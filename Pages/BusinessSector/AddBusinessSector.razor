@@ -1,0 +1,58 @@
+﻿@page "/addbusinesssector"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@inject BusinessSectorService businessSectorService
+@inject NavigationManager navigationManager
+@inject ISnackbar Snackbar
+
+
+<h3>Add new sector entry</h3>
+<MudItem Class="d-flex align-center">
+    <MudCard>
+        <MudCardContent>
+            <MudTextField class="mb-2" Label="Name" @bind-Value="@businessSector.Sector" Variant="Variant.Outlined"></MudTextField>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Label="Add" @onclick="@AddSectorElement">Add</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Error" Label="Cancel" @onclick="@Cancel">Close</MudButton>
+        </MudCardContent>
+    </MudCard>
+</MudItem> 
+
+
+@code {
+    BusinessSector businessSector = new();
+
+    private void ClearPageContent()
+    {
+        businessSector.Sector = string.Empty;
+    }
+
+    public async void AddSectorElement()
+    {
+        if (businessSector is null)
+        {
+            return;
+        }
+        else
+        {
+            businessSector.Id = 0;
+            if (!String.IsNullOrWhiteSpace(businessSector.Sector))
+            {
+                if (await businessSectorService.AddSector(businessSector))
+                {
+                    Snackbar.Add("New sector was added added successfully", Severity.Success);
+                    ClearPageContent();
+                }
+                else
+                {
+                    Snackbar.Add("An error occured", Severity.Error);
+                }
+            }
+        }
+    }
+
+    public void Cancel()
+    {
+        navigationManager.NavigateTo("/");
+    }
+
+}
