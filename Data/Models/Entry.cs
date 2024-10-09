@@ -5,6 +5,7 @@ namespace TTCCashRegister.Data.Models
 {
     public class Entry
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
         public int Id { get; set; }
         [Required]
@@ -22,5 +23,9 @@ namespace TTCCashRegister.Data.Models
         public int SectorId { get; set; }
         [ForeignKey("SectorId")]
         public virtual BusinessSector? BusinessSector { get; set; }
+
+        public int CashRegisterID { get; set; }
+        [ForeignKey("CashRegisterID")]
+        public virtual CashRegister? CashRegister { get; set; }
     }
 }
