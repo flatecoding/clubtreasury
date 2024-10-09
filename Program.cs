@@ -10,9 +10,12 @@ using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
 using MySqlConnector;
 using TTCCashRegister.Data.Services;
+using MudBlazor.Services;
+using MudBlazor;
 
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddMudServices();
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -27,6 +30,18 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddScoped<BusinessSectorService>();
 builder.Services.AddScoped<EntryService>();
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.NewestOnTop = false;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 2000;
+    config.SnackbarConfiguration.HideTransitionDuration = 500;
+    config.SnackbarConfiguration.ShowTransitionDuration = 500;
+    config.SnackbarConfiguration.SnackbarVariant = Variant.Text;
+});
 
 var app = builder.Build();
 
