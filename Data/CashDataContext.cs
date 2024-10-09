@@ -18,6 +18,7 @@ namespace TTCCashRegister.Data
         {
             optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
         }
+        public DbSet<TTCCashRegister.Data.Models.CashRegister> CashRegister { get; set; } = default!;
 
     }
 
