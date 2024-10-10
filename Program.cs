@@ -18,10 +18,23 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMudServices();
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-//builder.Services.AddMySqlDataSource(builder.Configuration.GetConnectionString("DefaultConnection")!);
 builder.Services.AddDbContext<CashDataContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+{
+    var configuration = builder.Configuration;
+    configuration.AddUserSecrets<Program>();
+    var dbPassword = configuration["DbPassword"];
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    if (connectionString is not null)
+    {
+        connectionString = connectionString.Replace("{DbPassword}", dbPassword);
+        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+    }
+    else
+    {
+        throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+    }
+});
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
 //    .AddEntityFrameworkStores<ApplicationDbContext>();
