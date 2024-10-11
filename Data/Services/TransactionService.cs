@@ -1,29 +1,29 @@
-﻿using System.Data.Entity;
-using TTCCashRegister.Data.Models;
+﻿using TTCCashRegister.Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace TTCCashRegister.Data.Services
 {
-    public class EntryService
+    public class TransactionService
     {
         private readonly CashDataContext _context;
 
-        public EntryService(CashDataContext context)
+        public TransactionService(CashDataContext context)
         {
             _context = context;
         }
 
-        public async Task<List<Entry>?> GetAllSectors()
+        public async Task<List<Transaction>?> GetAllSectors()
         {
-            return _context.Entries != null ? await _context.Entries
+            return _context.Transactions != null ? await _context.Transactions
                                                              .OrderByDescending(x => x.Id)
                                                              .ToListAsync(): null;
         }
 
-        public async Task<bool> AddSector(Entry entry)
+        public async Task<bool> AddSector(Transaction entry)
         {
             try
             {
-                await _context.Entries.AddAsync(entry);
+                await _context.Transactions.AddAsync(entry);
                 await _context.SaveChangesAsync();
                 return true;
             }

@@ -1,0 +1,102 @@
+﻿@page "/unitdetails"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@inject UnitDetailService unitdetailservice
+
+<h3>Cost unit details</h3>
+    <MudPaper Class="mt-4" Style="width:55%;">
+        <MudTable Class="mt-2" Items="@DetailEntries" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" FixedHeader="true"
+                  @bind-SelectedItem="selectedItem"
+                  Filter="new Func<UnitDetails,bool>(FilterFunc)"
+                  SortLabel="Sort By">
+            <ToolBarContent>
+                <MudButton Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           Color="Color.Primary"
+                           Href="addunitposition">
+                    Add unit position
+                </MudButton>
+                <MudSpacer />
+                <MudTextField @bind-Value="searchString1"
+                              Placeholder="Search"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              Class="mt-0">
+                </MudTextField>
+            </ToolBarContent>
+            <ColGroup>
+                <col style="width: 20px;" />
+                <col />
+                <col />
+                <col style="width: 110px;" />
+                <col style="width: 110px;" />
+            </ColGroup>
+
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortBy="new Func<CostUnit, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
+                <MudTh>Position<MudTableSortLabel SortBy="new Func<UnitDetails, object>(x => x.CostDetails)"></MudTableSortLabel></MudTh>
+                <MudTh>Unit<MudTableSortLabel SortBy="new Func<UnitDetails, object>(x => x.CostUnit?.CostUnitName ?? string.Empty)"></MudTableSortLabel></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="ID">@context.Id</MudTd>
+                <MudTd DataLabel="Detail position">@context.CostDetails</MudTd>
+                <MudTd DataLabel="Cost unit">@context?.CostUnit?.CostUnitName</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color=Color.Info
+                                   arial-label="edit"
+                                   Href="@($"editcostunit/{context.Id}")">
+
+                    </MudIconButton>
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color=Color.Error
+                                   arial-label="delete"
+                                   Href="@($"deletecostunit/{context.Id}")">
+                        Delete
+                    </MudIconButton>
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </MudPaper>
+
+
+@code {
+    private IEnumerable<UnitDetails>? DetailEntries;
+
+    private bool dense = true;
+    private bool hover = true;
+    private bool striped = true;
+    private bool bordered = false;
+    private string searchString1 = string.Empty;
+
+    private UnitDetails selectedItem = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        DetailEntries = await unitdetailservice.GetAllPositions();
+    }
+
+    private bool FilterFunc(UnitDetails element) => FilterFunc1(element, searchString1);
+
+    private bool FilterFunc1(UnitDetails element, string searchstring)
+    {
+        if (string.IsNullOrWhiteSpace(searchstring))
+            return true;
+        if (element is null)
+            return false;
+        if (element is not null && !string.IsNullOrWhiteSpace(searchstring))
+        {
+            var lowerstring = searchstring.ToLowerInvariant();
+            if (element.CostDetails is not null && element.CostDetails.ToLower().Contains(lowerstring))
+                return true;
+        }
+        return false;
+
+    }
+
+}

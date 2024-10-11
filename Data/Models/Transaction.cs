@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TTCCashRegister.Data.Models
 {
-    public class Entry
+    public class Transaction
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
@@ -14,18 +14,17 @@ namespace TTCCashRegister.Data.Models
         public int Documentnumber { get; set; }
         public string Description { get; set; } = string.Empty;
         [Required]
-        [Column(TypeName = "decimal(5,2)")]
-        public decimal Transaction { get; set; } = decimal.Zero;
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal Sum { get; set; } = decimal.Zero;
         [Required]
-        [Column(TypeName = "decimal(5,2)")]
-        public decimal BankTransaction { get; set; } = decimal.Zero;
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal AccountMovement { get; set; } = decimal.Zero;
         [Required]
-        public int SectorId { get; set; }
-        [ForeignKey("SectorId")]
-        public virtual BusinessSector? BusinessSector { get; set; }
-
+        public int CostUnitID { get; set; }
+        [ForeignKey("CostUnitID")]
+        public CostUnit CostUnit { get; set; } = new();
         public int CashRegisterID { get; set; }
         [ForeignKey("CashRegisterID")]
-        public virtual CashRegister? CashRegister { get; set; }
+        public CashRegister? CashRegister { get; set; }
     }
 }
