@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TTCCashRegister.Data;
 
@@ -11,9 +12,11 @@ using TTCCashRegister.Data;
 namespace TTCCashRegister.Migrations
 {
     [DbContext(typeof(CashDataContext))]
-    partial class CashDataContextModelSnapshot : ModelSnapshot
+    [Migration("20241011093344_ChangeCostUnitToOneToManyAndAddCostUnitForeignKey")]
+    partial class ChangeCostUnitToOneToManyAndAddCostUnitForeignKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,6 +56,28 @@ namespace TTCCashRegister.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CostUnits");
+                });
+
+            modelBuilder.Entity("TTCCashRegister.Data.Models.CostUnitDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CostDetails")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("CostUnitId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CostUnitId");
+
+                    b.ToTable("CostUnitsDetails");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.Models.Transaction", b =>
@@ -95,26 +120,15 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("Transactions");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Models.UnitDetails", b =>
+            modelBuilder.Entity("TTCCashRegister.Data.Models.CostUnitDetails", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.HasOne("TTCCashRegister.Data.Models.CostUnit", "CostUnit")
+                        .WithMany("CostUnitDetails")
+                        .HasForeignKey("CostUnitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CostDetails")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("CostUnitId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CostUnitId");
-
-                    b.ToTable("UnitDetails");
+                    b.Navigation("CostUnit");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.Models.Transaction", b =>
@@ -132,17 +146,6 @@ namespace TTCCashRegister.Migrations
                         .IsRequired();
 
                     b.Navigation("CashRegister");
-
-                    b.Navigation("CostUnit");
-                });
-
-            modelBuilder.Entity("TTCCashRegister.Data.Models.UnitDetails", b =>
-                {
-                    b.HasOne("TTCCashRegister.Data.Models.CostUnit", "CostUnit")
-                        .WithMany("CostUnitDetails")
-                        .HasForeignKey("CostUnitId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("CostUnit");
                 });

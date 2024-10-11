@@ -12,8 +12,8 @@ using TTCCashRegister.Data;
 namespace TTCCashRegister.Migrations
 {
     [DbContext(typeof(CashDataContext))]
-    [Migration("20241009190122_ImplementCashregisterclass")]
-    partial class ImplementCashregisterclass
+    [Migration("20241011074936_FirstInit")]
+    partial class FirstInit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,23 +25,6 @@ namespace TTCCashRegister.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("TTCCashRegister.Data.Models.BusinessSector", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Sector")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("BusinessSectors");
-                });
-
             modelBuilder.Entity("TTCCashRegister.Data.Models.CashRegister", b =>
                 {
                     b.Property<int>("ID")
@@ -51,14 +34,14 @@ namespace TTCCashRegister.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ID"));
 
                     b.Property<decimal>("CurrentBalance")
-                        .HasColumnType("decimal(5,2)");
+                        .HasColumnType("decimal(10,2)");
 
                     b.HasKey("ID");
 
                     b.ToTable("CashRegister");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Models.Entry", b =>
+            modelBuilder.Entity("TTCCashRegister.Data.Models.CostUnit", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -66,10 +49,52 @@ namespace TTCCashRegister.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("BankTransaction")
-                        .HasColumnType("decimal(5,2)");
+                    b.Property<int?>("CostUnitDetailsID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CostUnitName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CostUnitDetailsID");
+
+                    b.ToTable("CostUnits");
+                });
+
+            modelBuilder.Entity("TTCCashRegister.Data.Models.CostUnitDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CostDetails")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CostUnitsDetails");
+                });
+
+            modelBuilder.Entity("TTCCashRegister.Data.Models.Transaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AccountMovement")
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<int>("CashRegisterID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CostUnitID")
                         .HasColumnType("int");
 
                     b.Property<DateOnly?>("Date")
@@ -83,43 +108,39 @@ namespace TTCCashRegister.Migrations
                     b.Property<int>("Documentnumber")
                         .HasColumnType("int");
 
-                    b.Property<int>("SectorId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Transaction")
-                        .HasColumnType("decimal(5,2)");
+                    b.Property<decimal>("Sum")
+                        .HasColumnType("decimal(10,2)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CashRegisterID");
 
-                    b.HasIndex("SectorId");
-
-                    b.ToTable("Entries");
+                    b.ToTable("Transactions");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Models.Entry", b =>
+            modelBuilder.Entity("TTCCashRegister.Data.Models.CostUnit", b =>
+                {
+                    b.HasOne("TTCCashRegister.Data.Models.CostUnitDetails", "CostUnitDetails")
+                        .WithMany()
+                        .HasForeignKey("CostUnitDetailsID");
+
+                    b.Navigation("CostUnitDetails");
+                });
+
+            modelBuilder.Entity("TTCCashRegister.Data.Models.Transaction", b =>
                 {
                     b.HasOne("TTCCashRegister.Data.Models.CashRegister", "CashRegister")
-                        .WithMany("Entries")
+                        .WithMany("Transactions")
                         .HasForeignKey("CashRegisterID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("TTCCashRegister.Data.Models.BusinessSector", "BusinessSector")
-                        .WithMany()
-                        .HasForeignKey("SectorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BusinessSector");
 
                     b.Navigation("CashRegister");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.Models.CashRegister", b =>
                 {
-                    b.Navigation("Entries");
+                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }

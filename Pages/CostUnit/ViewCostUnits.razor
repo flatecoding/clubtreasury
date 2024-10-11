@@ -1,0 +1,114 @@
+﻿@page "/costunits"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@inject CostUnitService costunitservice
+
+<h3>Cost units</h3>
+
+
+    <MudPaper Class="mt-4" Style="width:55%;">
+        <MudTable Class="mt-2" Items="@allEntries" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" FixedHeader="true"
+          @bind-SelectedItem="selectedItem"
+          Filter="new Func<CostUnit,bool>(FilterFunc)"
+          SortLabel="Sort By">
+        <ToolBarContent>
+            <MudButton Variant="Variant.Filled"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   Color="Color.Primary"
+                   Href="addcostunit">
+                Add cost unit
+            </MudButton>
+            <MudSpacer />
+            <MudTextField @bind-Value="searchString1"
+                      Placeholder="Search"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Medium"
+                      Class="mt-0">
+            </MudTextField>
+        </ToolBarContent>
+            <ColGroup>
+                <col style="width: 20px;"/>
+                <col />
+                <col />
+                <col style="width: 110px;"/>
+                <col style="width: 110px;"/>
+            </ColGroup>
+         
+        <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<CostUnit, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
+                <MudTh>Unit<MudTableSortLabel SortBy="new Func<CostUnit, object>(x => x.CostUnitName ?? string.Empty)"></MudTableSortLabel></MudTh>
+            @*    <MudTh>Positionen<MudTableSortLabel SortBy="new Func<CostUnit, object>(x => x.CostUnitDetails is not null ? x.CostUnitDetails.Count: 0)"></MudTableSortLabel></MudTh>*@
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Unit">@context.CostUnitName</MudTd>
+            @*    <MudTd DataLabel="Details">
+                    @if (context.CostUnitDetails is not null)
+                    {
+                        @foreach (var detail in context.CostUnitDetails)
+                        {
+                            <div>@detail.CostDetails</div>
+                        }
+                    }
+            </MudTd>*@
+            <MudTd DataLabel="Actions">      
+                <MudIconButton
+                       Icon="@Icons.Material.Filled.Edit"
+                       Color=Color.Info
+                       arial-label="edit"
+                       Href="@($"editcostunit/{context.Id}")">
+                       
+                </MudIconButton>
+                <MudIconButton
+                       Icon="@Icons.Material.Filled.Delete"
+                       Color=Color.Error
+                       arial-label="delete"
+                       Href="@($"deletecostunit/{context.Id}")">
+                       Delete
+                </MudIconButton>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+    </MudPaper>
+
+
+@code {
+    private IEnumerable<CostUnit>? allEntries;
+
+    private bool dense = true;
+    private bool hover = true;
+    private bool striped = true;
+    private bool bordered = false;
+    private string searchString1 = string.Empty;
+
+    private CostUnit selectedItem = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        allEntries = await costunitservice.GetAllUnits();
+    }
+
+    private bool FilterFunc(CostUnit element) => FilterFunc1(element, searchString1);
+
+    private bool FilterFunc1(CostUnit element, string searchstring)
+    {
+        if (string.IsNullOrWhiteSpace(searchstring))
+            return true;
+        if (element is null)
+            return false;
+        if(element is not null && !string.IsNullOrWhiteSpace(searchstring))
+        {
+            var lowerstring = searchstring.ToLowerInvariant();
+            if (element.CostUnitName is not null && element.CostUnitName.ToLower().Contains(lowerstring))
+                return true;
+        }
+        return false;
+
+    }
+
+}
