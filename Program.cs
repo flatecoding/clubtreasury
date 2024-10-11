@@ -41,8 +41,9 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
-builder.Services.AddScoped<BusinessSectorService>();
-builder.Services.AddScoped<EntryService>();
+builder.Services.AddScoped<CostUnitService>();
+builder.Services.AddScoped<TransactionService>();
+builder.Services.AddScoped<UnitDetailService>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
@@ -55,6 +56,8 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.ShowTransitionDuration = 500;
     config.SnackbarConfiguration.SnackbarVariant = Variant.Text;
 });
+builder.Services.AddMudBlazorDialog();
+builder.Services.AddMudPopoverService();
 
 var app = builder.Build();
 

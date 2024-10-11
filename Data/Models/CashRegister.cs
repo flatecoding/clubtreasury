@@ -7,13 +7,13 @@ namespace TTCCashRegister.Data.Models
     {
         [Key]
         public int ID { get; set; }
-        [Column(TypeName = "decimal(5,2)")]
+        [Column(TypeName = "decimal(10,2)")]
         public decimal CurrentBalance { get; set; } = decimal.Zero;
-        public ICollection<Entry> Entries { get; set; }
+        public ICollection<Transaction> Transactions { get; set; }
 
         public CashRegister()
         {
-            Entries = new List<Entry>();
+            Transactions = new List<Transaction>();
 
         }
     }

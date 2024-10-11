@@ -1,7 +1,7 @@
 ﻿@page "/addtransaction"
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
-@inject EntryService entryservice
+@inject TransactionService entryservice
 @inject NavigationManager navigationmanager
 @inject ISnackbar Snackbar
 
@@ -28,17 +28,17 @@
 </MudItem> 
 
 @code {
-    Entry newElement = new();
+    Transaction newElement = new();
     CashRegister? cashRegister;
 
     private void ClearPageContent()
     {
         newElement.Date = DateOnly.FromDateTime(DateTime.Now);
         newElement.Documentnumber = 0;
-        newElement.SectorId = 0;
+        newElement.CostUnitID = 0;
         newElement.Description = string.Empty;
-        newElement.Transaction = decimal.Zero;
-        newElement.BankTransaction = decimal.Zero;
+        newElement.Sum = decimal.Zero;
+        newElement.AccountMovement = decimal.Zero;
         StateHasChanged();
     }
 
