@@ -1,0 +1,53 @@
+﻿@page "/addunitdetail"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@inject UnitDetailService unitDetailService
+@inject BasicUnitService basicUnitService
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form">
+            <MudTextField @bind-Value="newDetail.CostDetails" Label="Detailed position" Required="true" RequiredError="Detailed position is required." />
+            <MudSelect T="int" Label="Basic Unit" @bind-Value="newDetail.BasicUnitId" Required="true" Placeholder="Select a basic position">
+                @foreach (var basicUnit in allBasicUnits)
+                {
+                    <MudSelectItem T="int" Value="@basicUnit.Id">@basicUnit.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="AddUnitDetail">Add</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    private MudForm form = new();
+    private UnitDetails newDetail = new();
+    private IEnumerable<BasicUnit> allBasicUnits = new List<BasicUnit>();
+
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        allBasicUnits = await basicUnitService.GetAllBasicUnitsAsync();
+    }
+
+
+    private async Task AddUnitDetail()
+    {
+        if (form.IsValid)
+        {
+            await unitDetailService.AddUnitDetailAsync(newDetail);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

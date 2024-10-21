@@ -1,0 +1,68 @@
+﻿@page "/editcostunit"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@inject CostUnitService costunitservice
+@inject BasicUnitService basicunitservice
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form">
+            <MudTextField @bind-Value="editCostUnit.CostUnitName" Label="Unit Name" Required="true" RequiredError="Unit name is required." />
+            <MudSelect T="int" Label="Basic Units" @bind-SelectedValues="selectedBasicUnitIds" MultiSelection="true" Required="true" ToStringFunc="Converter">
+                @foreach (var basicUnit in allBasicUnits)
+                {
+                    <MudSelectItem T="int" Value="@basicUnit.Id">@basicUnit.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="SaveCostUnit">Save</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int CostUnitId { get; set; }
+    private MudForm form = new();
+    private CostUnit editCostUnit = new();
+    private IEnumerable<BasicUnit> allBasicUnits = new List<BasicUnit>();
+    private IEnumerable<int> selectedBasicUnitIds = new List<int>();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        allBasicUnits = await basicunitservice.GetAllBasicUnitsAsync();
+        // Load the existing CostUnit and its BasicUnits here
+        editCostUnit = await costunitservice.GetCostUnitByIdAsync(CostUnitId) ?? new CostUnit();
+        selectedBasicUnitIds = editCostUnit.BasicUnitDetails.Select(bu => bu.Id).ToHashSet();
+    }
+
+    private async Task SaveCostUnit()
+    {
+        if (form.IsValid)
+        {
+            // Update the BasicUnitDetails based on selectedBasicUnitIds
+            editCostUnit.BasicUnitDetails = allBasicUnits.Where(bu => selectedBasicUnitIds.Contains(bu.Id)).ToList();
+            await costunitservice.UpdateCostUnitAsync(editCostUnit);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+
+    private string Converter(int value)
+    {
+        if (value == 0)
+        {
+            return "Please select a Basic Unit";
+        }
+        var basicUnit = allBasicUnits.FirstOrDefault(bu => bu.Id == value);
+        return basicUnit?.Name ?? "Unknown";
+    }
+}
