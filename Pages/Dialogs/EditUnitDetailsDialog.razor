@@ -1,0 +1,63 @@
+﻿@page "/editunitdetails"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@inject UnitDetailService unitDetailService
+@inject BasicUnitService basicUnitService
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form">
+            <MudTextField @bind-Value="editUnitDetails.CostDetails" Label="Cost Details" Required="true" RequiredError="Cost details are required." />
+            <MudSelect T="int" Label="Basic Unit" @bind-Value="editUnitDetails.BasicUnitId" Required="true" ToStringFunc="Converter">
+                @foreach (var basicUnit in allBasicUnits)
+                {
+                    <MudSelectItem T="int" Value="@basicUnit.Id">@basicUnit.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="SaveUnitDetails">Save</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int UnitDetailsId { get; set; }
+    private MudForm form = new();
+    private UnitDetails editUnitDetails = new();
+    private IEnumerable<BasicUnit> allBasicUnits = new List<BasicUnit>();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        allBasicUnits = await basicUnitService.GetAllBasicUnitsAsync();
+        editUnitDetails = await unitDetailService.GetUnitDetailsByIdAsync(UnitDetailsId) ?? new UnitDetails();
+    }
+
+    private async Task SaveUnitDetails()
+    {
+        if (form.IsValid)
+        {
+            await unitDetailService.UpdateUnitDetailsAsync(editUnitDetails);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+
+    private string Converter(int value)
+    {
+        if (value == 0)
+        {
+            return "Please select a Basic Unit";
+        }
+        var basicUnit = allBasicUnits.FirstOrDefault(bu => bu.Id == value);
+        return basicUnit?.Name ?? "Unknown";
+    }
+}

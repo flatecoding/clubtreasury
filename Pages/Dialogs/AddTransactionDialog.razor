@@ -1,0 +1,111 @@
+﻿@page "/addtransactions"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@inject TransactionService transactionService
+@inject CostUnitService costUnitService
+@inject SpecialItemService specialItemService
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form">
+            <MudTextField @bind-Value="newTransaction.Documentnumber" Label="Document Number" Required="true" RequiredError="Document number is required." />
+            <MudTextField @bind-Value="newTransaction.Description" Label="Description" Required="true" RequiredError="Description is required." />
+            <MudTextField @bind-Value="newTransaction.Sum" Label="Sum" Required="true" RequiredError="Sum is required." />
+            <MudTextField @bind-Value="newTransaction.AccountMovement" Label="Account Movement" Required="true" RequiredError="Account movement is required." />
+            <MudDatePicker @bind-DateOnly="transactionDateTime" Label="Date" Required="true" RequiredError="Date is required." />         
+            <MudSelect T="CostUnit" Label="Cost Unit" @bind-Value="selectedCostUnit" Required="true" ToStringFunc="@Unitconverter" Placeholder="Select an unit">
+                @if (costUnits is not null)
+                {
+                    @foreach (var Unit in costUnits)
+                    {
+                        <MudSelectItem T="CostUnit" Value="@Unit">@Unit.CostUnitName</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+            <MudSelect T="BasicUnit" Label="Unit Details" @bind-Value="selectedBasicUnit" Required="true" ToStringFunc="@BasicUnitconverter" Placeholder="Select position">
+                @if (selectedUnitDetails is not null)
+                {
+                    @foreach (var unitDetail in selectedBasicUnit?.CostUnitDetails ?? Enumerable.Empty<UnitDetails>())
+                    {
+                        <MudSelectItem T="UnitDetails" Value="@unitDetail">@unitDetail.CostDetails</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+            <MudSelect T="UnitDetails" Label="Unit Details" @bind-Value="selectedUnitDetails" Required="true" ToStringFunc="@Detailsconverter" Placeholder="Select position">
+                @if(selectedUnitDetails is not null)
+                {
+                    @foreach (var unitDetail in selectedBasicUnit?.CostUnitDetails ?? Enumerable.Empty<UnitDetails>())
+                    {
+                        <MudSelectItem T="UnitDetails" Value="@unitDetail">@unitDetail.CostDetails</MudSelectItem>
+                    }
+                }  
+            </MudSelect>
+            <MudSelect T="SpecialItem" Label="SpecialItem" @bind-Value="selectedSpecialItem" ToStringFunc="@SpecialItemConverter" Placeholder="Select special position if required">
+                @foreach (var SpecialItem in SpecialItemList)
+                {
+                    <MudSelectItem T="SpecialItem" Value="@SpecialItem">@SpecialItem.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@form.IsValid" OnClick="AddTransaction">Add</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private MudForm form =new();
+    private Transaction newTransaction = new();
+    private DateOnly transactionDateTime = DateOnly.FromDateTime(DateTime.Now);
+    private IEnumerable<CostUnit> costUnits = new List<CostUnit>();
+    private CostUnit selectedCostUnit = new();
+    private BasicUnit selectedBasicUnit = new();
+    private UnitDetails selectedUnitDetails = new();
+    private IEnumerable<SpecialItem> SpecialItemList = new List<SpecialItem>();
+    private SpecialItem? selectedSpecialItem = new();
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+
+            //    Console.WriteLine("Initialisierung gestartet...");
+            costUnits = await costUnitService.GetAllUnitsAsync();
+            SpecialItemList = await specialItemService.GetAllSonderposten();
+            //     Console.WriteLine("Initialisierung abgeschlossen.");
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during init: {ex.Message}");
+        }
+    }
+
+    Func<CostUnit, string> Unitconverter = p => p?.CostUnitName ?? string.Empty;
+    Func<UnitDetails, string> Detailsconverter = d => d?.CostDetails ?? string.Empty;
+    Func<SpecialItem, string> SpecialItemConverter = s => s?.Name ?? string.Empty;
+    Func<BasicUnit, string> BasicUnitconverter = b => b?.Name ?? string.Empty;
+
+
+
+    private async Task AddTransaction()
+    {
+        if (form.IsValid)
+        {
+            newTransaction.Date = transactionDateTime;
+            newTransaction.CostUnitID = selectedCostUnit?.Id ?? 0;
+            newTransaction.SpecialItemID = selectedSpecialItem?.Id;
+            await transactionService.AddTransaction(newTransaction);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+
+}

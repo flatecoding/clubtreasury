@@ -1,37 +1,55 @@
-﻿using TTCCashRegister.Data.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using TTCCashRegister.Data;
+using TTCCashRegister.Data.Models;
 
-namespace TTCCashRegister.Data.Services
+public class TransactionService
 {
-    public class TransactionService
+    private readonly CashDataContext _context;
+
+    public TransactionService(CashDataContext context)
     {
-        private readonly CashDataContext _context;
+        _context = context;
+    }
 
-        public TransactionService(CashDataContext context)
-        {
-            _context = context;
-        }
+    public async Task<List<Transaction>?> GetAllTransactions()
+    {
+        return _context.Transactions is not null ? await _context.Transactions
+                                              .OrderByDescending(x => x.Id)
+                                              .ToListAsync() : new List<Transaction>();
+    }
 
-        public async Task<List<Transaction>?> GetAllSectors()
+    public async Task<bool> AddTransaction(Transaction entry)
+    {
+        try
         {
-            return _context.Transactions != null ? await _context.Transactions
-                                                             .OrderByDescending(x => x.Id)
-                                                             .ToListAsync(): null;
-        }
-
-        public async Task<bool> AddSector(Transaction entry)
-        {
-            try
+            var cashRegister = await _context.CashRegisters.FindAsync(entry.CashRegisterID);
+            if (cashRegister == null)
             {
-                await _context.Transactions.AddAsync(entry);
-                await _context.SaveChangesAsync();
-                return true;
+                throw new Exception("Cash Register not found.");
             }
-            catch (Exception ex)
+
+            // Kontobewegung einbuchen
+            cashRegister.CurrentBalance += entry.AccountMovement;
+
+            // Sonderposten verwalten
+            if (entry.SpecialItemID.HasValue)
             {
-                Console.WriteLine($"Error: {ex}");
-                return false;
+                var sonderposten = await _context.SpecialItems.FindAsync(entry.SpecialItemID.Value);
+                if (sonderposten == null)
+                {
+                    throw new Exception("Sonderposten not found.");
+                }
+                sonderposten.Betrag += entry.Sum;
             }
+
+            await _context.Transactions.AddAsync(entry);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex}");
+            return false;
         }
     }
 }
