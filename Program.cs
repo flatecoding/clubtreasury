@@ -1,17 +1,12 @@
 //using Devart.Data.MySql;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
-using System.Configuration;
+using MudBlazor;
+using MudBlazor.Services;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
-using MySqlConnector;
 using TTCCashRegister.Data.Services;
-using MudBlazor.Services;
-using MudBlazor;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +18,7 @@ builder.Services.AddDbContext<CashDataContext>(options =>
     var configuration = builder.Configuration;
     configuration.AddUserSecrets<Program>();
     var dbPassword = configuration["DbPassword"];
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    var connectionString = builder.Configuration.GetConnectionString(builder.Environment.IsDevelopment() ? "DefaultConnection" : "ProductionConnection");
 
     if (connectionString is not null)
     {
@@ -41,9 +36,12 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+builder.Services.AddScoped<UnitDetailService>();
 builder.Services.AddScoped<CostUnitService>();
 builder.Services.AddScoped<TransactionService>();
-builder.Services.AddScoped<UnitDetailService>();
+builder.Services.AddScoped<SpecialItemService>();
+builder.Services.AddScoped<CashRegisterService>();
+builder.Services.AddScoped<BasicUnitService>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;

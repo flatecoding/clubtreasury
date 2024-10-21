@@ -1,0 +1,124 @@
+﻿@page "/transactions"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@using TTCCashRegister.Pages.Dialogs
+@inject TransactionService transactionService
+@inject CostUnitService costUnitService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<h3>Transactions</h3>
+<MudPaper Class="mt-4" Style="width:70%;">
+    <MudTable Class="mt-2" Items="@allEntries" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" FixedHeader="true"
+              @bind-SelectedItem="selectedItem"
+              Filter="new Func<Transaction,bool>(FilterFunc)"
+              SortLabel="Sort By">
+        <ToolBarContent>
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Color="Color.Primary"
+                       OnClick="ShowAddTransactionDialog">
+                Add Transaction
+            </MudButton>
+            <MudSpacer />
+            <MudTextField @bind-Value="searchString1"
+                          Placeholder="Search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0">
+            </MudTextField>
+        </ToolBarContent>
+        <ColGroup>
+            <col style="width: 20px;" />
+            <col />
+            <col />
+            <col />
+            <col />
+            <col />
+            <col />
+            <col />
+            <col style="width: 110px;" />
+            <col style="width: 110px;" />
+        </ColGroup>
+        <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
+            <MudTh>Date<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Date ?? DateOnly.MinValue)"></MudTableSortLabel></MudTh>
+            <MudTh>Document Number<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Documentnumber)"></MudTableSortLabel></MudTh>
+            <MudTh>Description<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Description ?? string.Empty)"></MudTableSortLabel></MudTh>
+            <MudTh>Sum<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Sum)"></MudTableSortLabel></MudTh>
+            <MudTh>Account Movement<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.AccountMovement)"></MudTableSortLabel></MudTh>
+            <MudTh>Cost Unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.CostUnit.CostUnitName ?? string.Empty)"></MudTableSortLabel></MudTh>
+            <MudTh>Basic unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.BasicUnit.Name ?? string.Empty)"></MudTableSortLabel></MudTh>
+            <MudTh>Unit Details Count</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Date">@context.Date</MudTd>
+            <MudTd DataLabel="Document Number">@context.Documentnumber</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Sum">@context.Sum</MudTd>
+            <MudTd DataLabel="Account Movement">@context.AccountMovement</MudTd>
+            <MudTd DataLabel="Cost Unit">@context.CostUnit.CostUnitName</MudTd>
+            <MudTd DataLabel="Basic Unit">@context.BasicUnit.Name</MudTd>
+            <MudTd DataLabel="Unit Details Count">@context.CostUnit.BasicUnitDetailsCount</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" Href="@($"edittransaction/{context.Id}")"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" Href="@($"deletetransaction/{context.Id}")">Delete</MudIconButton>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private IEnumerable<Transaction>? allEntries;
+    private bool dense = true;
+    private bool hover = true;
+    private bool striped = true;
+    private bool bordered = false;
+    private string searchString1 = string.Empty;
+    private Transaction selectedItem = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        allEntries = await transactionService.GetAllTransactions();
+    }
+
+    private bool FilterFunc(Transaction element) => FilterFunc1(element, searchString1);
+
+    private bool FilterFunc1(Transaction element, string searchstring)
+    {
+        if (string.IsNullOrWhiteSpace(searchstring))
+            return true;
+        if (element is null)
+            return false;
+        if (element is not null && !string.IsNullOrWhiteSpace(searchstring))
+        {
+            var lowerstring = searchstring.ToLowerInvariant();
+            if (element.Description is not null && element.Description.ToLower().Contains(lowerstring))
+                return true;
+            if (element.Documentnumber.ToString().Contains(lowerstring))
+                return true;
+        }
+        return false;
+    }
+
+    private async Task ShowAddTransactionDialog()
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<AddTransactionDialog>("Add Transaction", parameters, options);
+        var result = dialog is not null ? await dialog.Result : null;
+        if (result is not null && !result.Canceled)
+        {
+            allEntries = transactionService is not null ? await transactionService.GetAllTransactions() : null;
+        }
+
+
+    }
+}

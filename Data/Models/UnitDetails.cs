@@ -9,8 +9,8 @@ namespace TTCCashRegister.Data.Models
         public int Id { get; set; }
         [Required]
         public string CostDetails { get; set; } = string.Empty;
-        public int CostUnitId { get; set; }
-        [ForeignKey("CostUnitId")]
-        public CostUnit? CostUnit { get; set; }
+        public int BasicUnitId { get; set; }
+        [ForeignKey("BasicUnitId")]
+        public BasicUnit? BasicUnit { get; set; }
     }
 }

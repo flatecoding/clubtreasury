@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TTCCashRegister.Data;
 
@@ -11,9 +12,11 @@ using TTCCashRegister.Data;
 namespace TTCCashRegister.Migrations
 {
     [DbContext(typeof(CashDataContext))]
-    partial class CashDataContextModelSnapshot : ModelSnapshot
+    [Migration("20241019192041_ImplementBasicUnitForMoreDetails")]
+    partial class ImplementBasicUnitForMoreDetails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,7 +33,7 @@ namespace TTCCashRegister.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CostUnitId")
+                    b.Property<int>("CostUnitId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -186,7 +189,9 @@ namespace TTCCashRegister.Migrations
                 {
                     b.HasOne("TTCCashRegister.Data.Models.CostUnit", "CostUnit")
                         .WithMany("BasicUnitDetails")
-                        .HasForeignKey("CostUnitId");
+                        .HasForeignKey("CostUnitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("CostUnit");
                 });

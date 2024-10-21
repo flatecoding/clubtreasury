@@ -1,11 +1,16 @@
 ﻿<MudNavMenu>
     <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-    <MudNavLink Href="/addtransaction" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Money">Transaction</MudNavLink>
+    <MudNavLink Href="/transactions" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Money">Transaction</MudNavLink>
     <MudNavGroup Title="Settings" Expanded="false" Icon="@Icons.Material.Filled.Settings">
-        <MudNavLink Href="/costunits" Match="NavLinkMatch.Prefix">Cost units</MudNavLink>
-        <MudNavLink Href="/unitdetails" Match="NavLinkMatch.Prefix">Unit positions</MudNavLink>
-        <MudNavLink  Href="/importdata" Match="NavLinkMatch.Prefix">Import data</MudNavLink>
-        <MudNavLink  Href="/exportdata" Match="NavLinkMatch.Prefix">Export data</MudNavLink>
+        <MudNavGroup Title="Cost unit" Expanded="false" Icon="@Icons.Material.Filled.Settings">
+            <MudNavLink Href="/costunits" Match="NavLinkMatch.Prefix">Cost units</MudNavLink>
+            <MudNavLink Href="/basicunits" Match="NavLinkMatch.Prefix">Basic position</MudNavLink>
+            <MudNavLink Href="/unitdetails" Match="NavLinkMatch.Prefix">Position details</MudNavLink>
+        </MudNavGroup>
+        <MudNavGroup Title="Import / Export data" Expanded="false" Icon="@Icons.Material.Filled.Save">
+            <MudNavLink  Href="/importdata" Match="NavLinkMatch.Prefix">Import data</MudNavLink>
+            <MudNavLink  Href="/exportdata" Match="NavLinkMatch.Prefix">Export data</MudNavLink>
+        </MudNavGroup>
     </MudNavGroup>
     <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
 </MudNavMenu>

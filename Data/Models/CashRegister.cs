@@ -7,6 +7,7 @@ namespace TTCCashRegister.Data.Models
     {
         [Key]
         public int ID { get; set; }
+        public string Name { get; set; }
         [Column(TypeName = "decimal(10,2)")]
         public decimal CurrentBalance { get; set; } = decimal.Zero;
         public ICollection<Transaction> Transactions { get; set; }

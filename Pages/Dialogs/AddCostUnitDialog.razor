@@ -1,0 +1,43 @@
+﻿@page "/addcostunit"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@inject CostUnitService costunitservice
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form">
+            <MudTextField @bind-Value="newCostUnit.CostUnitName" Label="Unit Name" Required="true" RequiredError="Unit name is required." />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@form.IsValid" OnClick="AddCostUnit">Add</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private MudForm form = new();
+
+    private CostUnit newCostUnit = new();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+
+
+    private async Task AddCostUnit()
+
+    {
+        if (form.IsValid)
+        {
+            await costunitservice.AddCostUnit(newCostUnit);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

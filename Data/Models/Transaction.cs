@@ -23,8 +23,21 @@ namespace TTCCashRegister.Data.Models
         public int CostUnitID { get; set; }
         [ForeignKey("CostUnitID")]
         public CostUnit CostUnit { get; set; } = new();
+        [Required]
+        public int BasicUnitID { get; set; }
+        [ForeignKey("BasicUnitID")]
+        public BasicUnit BasicUnit { get; set; } = new();
+        public int UnitDetailsId { get; set; }
+        [ForeignKey("UnitDetailsD")]
+        public UnitDetails UnitDetails { get; set; } = new();
+        [Required]
         public int CashRegisterID { get; set; }
         [ForeignKey("CashRegisterID")]
         public CashRegister? CashRegister { get; set; }
+        public int? SpecialItemID { get; set; }
+
+        [ForeignKey("SpecialItemID")]
+        public SpecialItem? SpecialItem { get; set; }
+
     }
 }

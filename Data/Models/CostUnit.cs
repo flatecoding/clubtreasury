@@ -10,9 +10,9 @@ namespace TTCCashRegister.Data.Models
         [Required]
         [StringLength(100, ErrorMessage = "The cost unit name cannot exceed 100 characters.")]
         public string CostUnitName { get; set; } = string.Empty;
-        public ICollection<UnitDetails>? CostUnitDetails { get; set; }
+        public ICollection<BasicUnit> BasicUnitDetails { get; set; } = new List<BasicUnit>();
 
         [NotMapped]
-        public int CostUnitDetailsCount => CostUnitDetails?.Count ?? 0;
+        public int BasicUnitDetailsCount => BasicUnitDetails?.Count ?? 0;
     }
 }

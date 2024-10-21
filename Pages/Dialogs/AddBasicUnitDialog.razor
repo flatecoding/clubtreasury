@@ -1,0 +1,36 @@
+﻿@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@inject BasicUnitService basicunitservice
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form">
+            <MudTextField @bind-Value="newBasicUnit.Name" Label="Name" Required="true" RequiredError="Name is required." />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@form.IsValid" OnClick="AddBasicUnit">Add</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    private MudForm form = new();
+    private BasicUnit newBasicUnit = new();
+
+    private async Task AddBasicUnit()
+    {
+        if (form.IsValid)
+        {
+            await basicunitservice.AddBasicUnitAsync(newBasicUnit);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}
