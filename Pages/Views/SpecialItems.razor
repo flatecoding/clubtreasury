@@ -1,23 +1,24 @@
-﻿@page "/unitdetails"
+﻿@page "/specialitems"
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
 @using TTCCashRegister.Pages.Dialogs
-@inject UnitDetailService unitDetailsService
+@inject SpecialItemService specialItemService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
-<h3>Unit Details</h3>
-<MudPaper Class="mt-4" Style="width:55%;">
+<h3>Special Items</h3>
+
+<MudPaper Class="mt-4" Style="width:50%;">
     <MudTable Class="mt-2" Items="@allEntries" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" FixedHeader="true"
               @bind-SelectedItem="selectedItem"
-              Filter="new Func<UnitDetails,bool>(FilterFunc)"
+              Filter="new Func<SpecialItem,bool>(FilterFunc)"
               SortLabel="Sort By">
         <ToolBarContent>
             <MudButton Variant="Variant.Filled"
                        StartIcon="@Icons.Material.Filled.Add"
                        Color="Color.Primary"
-                       @onclick="ShowAddUnitDetailsDialog">
-                Add Unit Details
+                       @onclick="ShowAddSpecialItemDialog">
+                Add Special Item
             </MudButton>
             <MudSpacer />
             <MudTextField @bind-Value="searchString1"
@@ -35,18 +36,18 @@
             <col style="width: 110px;" />
         </ColGroup>
         <HeaderContent>
-            <MudTh>Id<MudTableSortLabel SortBy="new Func<UnitDetails, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
-            <MudTh>Details<MudTableSortLabel SortBy="new Func<UnitDetails, object>(x => x.CostDetails ?? string.Empty)"></MudTableSortLabel></MudTh>
-            <MudTh>Basic position</MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<SpecialItem, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
+            <MudTh>Name<MudTableSortLabel SortBy="new Func<SpecialItem, object>(x => x.Name ?? string.Empty)"></MudTableSortLabel></MudTh>
+            <MudTh>Amount</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="ID">@context.Id</MudTd>
-            <MudTd DataLabel="Details">@context.CostDetails</MudTd>
-            <MudTd DataLabel="Basic position">@context?.BasicUnit?.Name</MudTd>
+            <MudTd DataLabel="Id">@context.Id</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="">@context.Betrag</MudTd>
             <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditUnitDetailsDialog(context.Id)"></MudIconButton>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteUnitDetailsDialog(context.Id)">Delete</MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditSpecialItemDialog(context.Id)"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteSpecialItemDialog(context.Id)">Delete</MudIconButton>
             </MudTd>
         </RowTemplate>
         <PagerContent>
@@ -56,23 +57,23 @@
 </MudPaper>
 
 @code {
-    private IEnumerable<UnitDetails>? allEntries;
+    private IEnumerable<SpecialItem>? allEntries;
     private bool dense = true;
     private bool hover = true;
     private bool striped = true;
     private bool bordered = false;
     private string searchString1 = string.Empty;
-    private UnitDetails selectedItem = new();
+    private SpecialItem selectedItem = new();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        allEntries = await unitDetailsService.GetAllDetailsAsync();
+        allEntries = await specialItemService.GetAllSonderposten();
     }
 
-    private bool FilterFunc(UnitDetails element) => FilterFunc1(element, searchString1);
+    private bool FilterFunc(SpecialItem element) => FilterFunc1(element, searchString1);
 
-    private bool FilterFunc1(UnitDetails element, string searchstring)
+    private bool FilterFunc1(SpecialItem element, string searchstring)
     {
         if (string.IsNullOrWhiteSpace(searchstring))
             return true;
@@ -81,45 +82,46 @@
         if (element is not null && !string.IsNullOrWhiteSpace(searchstring))
         {
             var lowerstring = searchstring.ToLowerInvariant();
-            if (element.CostDetails is not null && element.CostDetails.ToLower().Contains(lowerstring))
+            if (element.Name is not null && element.Name.ToLower().Contains(lowerstring))
                 return true;
         }
         return false;
     }
 
-    private async Task ShowAddUnitDetailsDialog()
+    private async Task ShowAddSpecialItemDialog()
     {
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<AddUnitDetailsDialog>("Add Unit Details", parameters, options);
+        var dialog = DialogService.Show<AddSpecialItemDialog>("Add Special Item", parameters, options);
+
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await unitDetailsService.GetAllDetailsAsync();
-            Snackbar.Add("New unit details were added successfully", Severity.Success);
+            allEntries = await specialItemService.GetAllSonderposten();
+            Snackbar.Add("New special item was added successfully", Severity.Success);
         }
     }
 
-    private async Task ShowEditUnitDetailsDialog(int unitDetailsId)
+    private async Task ShowEditSpecialItemDialog(int specialItemId)
     {
-        var parameters = new DialogParameters { ["UnitDetailsId"] = unitDetailsId };
+        var parameters = new DialogParameters { ["SpecialItemId"] = specialItemId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<EditUnitDetailsDialog>("Edit Unit Details", parameters, options);
+        var dialog = DialogService.Show<EditSpecialItemDialog>("Edit Special Item", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await unitDetailsService.GetAllDetailsAsync();
-            Snackbar.Add("Unit details were updated successfully", Severity.Success);
+            allEntries = await specialItemService.GetAllSonderposten();
+            Snackbar.Add("Special item was updated successfully", Severity.Success);
         }
     }
 
-    private async Task ShowDeleteUnitDetailsDialog(int unitDetailsId)
+    private async Task ShowDeleteSpecialItemDialog(int specialItemId)
     {
-        var parameters = new DialogParameters { ["UnitDetailsId"] = unitDetailsId };
+        var parameters = new DialogParameters { ["SpecialItemId"] = specialItemId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<DeleteUnitDetailsDialog>("Delete Unit Details", parameters, options);
+        var dialog = DialogService.Show<DeleteSpecialItemDialog>("Delete Special Item", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await unitDetailsService.GetAllDetailsAsync();
-            Snackbar.Add("Unit details were deleted successfully", Severity.Success);
+            allEntries = await specialItemService.GetAllSonderposten();
+            Snackbar.Add("Special item was deleted successfully", Severity.Success);
         }
     }
 }

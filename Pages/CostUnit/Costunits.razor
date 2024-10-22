@@ -105,8 +105,7 @@
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = DialogService.Show<AddCostUnitDialog>("Add Cost Unit", parameters, options);
-        var result = await dialog.Result;
-        if (!result.Canceled)
+        if ((await dialog.Result)?.Canceled == false)
         {
             allEntries = await costunitservice.GetAllUnitsAsync();
             Snackbar.Add("New sector was added added successfully", Severity.Success);
@@ -117,8 +116,7 @@
         var parameters = new DialogParameters { ["CostUnitId"] = costUnitId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = DialogService.Show<EditCostUnitDialog>("Edit Cost Unit", parameters, options);
-        var result = await dialog.Result;
-        if (!result.Canceled)
+        if ((await dialog.Result)?.Canceled == false)
         {
             allEntries = await costunitservice.GetAllUnitsAsync();
             Snackbar.Add("Cost unit was updated successfully", Severity.Success);
@@ -130,8 +128,7 @@
         var parameters = new DialogParameters { ["CostUnitId"] = costUnitId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = DialogService.Show<DeleteCostUnitDialog>("Delete Cost Unit", parameters, options);
-        var result = await dialog.Result;
-        if (!result.Canceled)
+        if ((await dialog.Result)?.Canceled == false)
         {
             allEntries = await costunitservice.GetAllUnitsAsync();
             Snackbar.Add("Cost unit was deleted successfully", Severity.Success);

@@ -27,9 +27,9 @@ namespace TTCCashRegister.Data.Models
         public int BasicUnitID { get; set; }
         [ForeignKey("BasicUnitID")]
         public BasicUnit BasicUnit { get; set; } = new();
-        public int UnitDetailsId { get; set; }
-        [ForeignKey("UnitDetailsD")]
-        public UnitDetails UnitDetails { get; set; } = new();
+        public int? UnitDetailsId { get; set; } // Optional
+        [ForeignKey("UnitDetailsId")]
+        public UnitDetails? UnitDetails { get; set; } // Optional
         [Required]
         public int CashRegisterID { get; set; }
         [ForeignKey("CashRegisterID")]

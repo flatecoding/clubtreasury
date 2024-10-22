@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using TTCCashRegister.Data;
 using TTCCashRegister.Data.Models;
 
@@ -46,9 +47,14 @@ public class TransactionService
             await _context.SaveChangesAsync();
             return true;
         }
+        catch (DbUpdateException dbEx)
+        {
+            Debug.WriteLine($"DBUpdateException: {dbEx.Message}");
+            return false;
+        }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex}");
+            Debug.WriteLine($"Error: {ex}");
             return false;
         }
     }

@@ -8,7 +8,7 @@
 @inject ISnackbar Snackbar
 
 <h3>Transactions</h3>
-<MudPaper Class="mt-4" Style="width:70%;">
+<MudPaper Class="mt-4" Style="width:100%;">
     <MudTable Class="mt-2" Items="@allEntries" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" FixedHeader="true"
               @bind-SelectedItem="selectedItem"
               Filter="new Func<Transaction,bool>(FilterFunc)"
@@ -113,12 +113,19 @@
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = DialogService.Show<AddTransactionDialog>("Add Transaction", parameters, options);
-        var result = dialog is not null ? await dialog.Result : null;
-        if (result is not null && !result.Canceled)
+        var result = await dialog.Result;
+        if (result?.Data is bool success && success)
         {
             allEntries = transactionService is not null ? await transactionService.GetAllTransactions() : null;
+            Snackbar.Add("Cost unit was deleted successfully", Severity.Success);
         }
-
-
+        else if (result?.Canceled == true)
+        {
+            Snackbar.Add("Transaction was cancelled", Severity.Warning);
+        }
+        else
+        {
+            Snackbar.Add("Transaction could not be added", Severity.Error);
+        }
     }
 }
