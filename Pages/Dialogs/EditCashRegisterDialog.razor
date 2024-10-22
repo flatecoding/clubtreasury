@@ -1,0 +1,44 @@
+﻿@page "/editcashregister"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@inject CashRegisterService cashRegisterService
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form">
+            <MudTextField @bind-Value="editCashRegister.Name" Label="Name" Required="true" RequiredError="Name is required." />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="SaveCashRegister">Save</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int CashRegisterId { get; set; }
+    private MudForm form = new();
+    private CashRegister editCashRegister = new();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        editCashRegister = await cashRegisterService.GetCashRegisterById(CashRegisterId) ?? new CashRegister();
+    }
+
+    private async Task SaveCashRegister()
+    {
+        if (form.IsValid)
+        {
+            await cashRegisterService.UpdateCashRegister(editCashRegister);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

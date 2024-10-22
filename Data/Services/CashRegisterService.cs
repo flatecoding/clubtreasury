@@ -1,5 +1,5 @@
-﻿using TTCCashRegister.Data.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using TTCCashRegister.Data.Models;
 
 namespace TTCCashRegister.Data.Services
 {
@@ -20,6 +20,11 @@ namespace TTCCashRegister.Data.Services
         public async Task<CashRegister?> GetCashRegisterById(int id)
         {
             return await _context.CashRegisters.FindAsync(id);
+        }
+
+        public async Task<CashRegister?> GetFirstEntry()
+        {
+            return await _context.CashRegisters.FirstOrDefaultAsync();
         }
 
         public async Task<bool> AddCashRegister(CashRegister cashRegister)

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TTCCashRegister.Data;
 
@@ -11,9 +12,11 @@ using TTCCashRegister.Data;
 namespace TTCCashRegister.Migrations
 {
     [DbContext(typeof(CashDataContext))]
-    partial class CashDataContextModelSnapshot : ModelSnapshot
+    [Migration("20241022081113_CorrectNameTypoInTransactionTable")]
+    partial class CorrectNameTypoInTransactionTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -139,7 +142,7 @@ namespace TTCCashRegister.Migrations
                     b.Property<decimal>("Sum")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int?>("UnitDetailsId")
+                    b.Property<int>("UnitDetailsId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -214,7 +217,9 @@ namespace TTCCashRegister.Migrations
 
                     b.HasOne("TTCCashRegister.Data.Models.UnitDetails", "UnitDetails")
                         .WithMany()
-                        .HasForeignKey("UnitDetailsId");
+                        .HasForeignKey("UnitDetailsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("BasicUnit");
 

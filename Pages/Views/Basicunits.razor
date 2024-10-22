@@ -110,8 +110,7 @@
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = DialogService.Show<AddBasicUnitDialog>("Add Basic Unit", parameters, options);
 
-        var result = await dialog.Result;
-        if (!result.Canceled)
+        if ((await dialog.Result)?.Canceled == false)
         {
             allEntries = await basicUnitService.GetAllBasicUnitsAsync();
             Snackbar.Add("New basic unit was added successfully", Severity.Success);
@@ -123,9 +122,7 @@
         var parameters = new DialogParameters { ["BasicUnitId"] = basicUnitId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = DialogService.Show<EditBasicUnitDialog>("Edit Basic Unit", parameters, options);
-        var result = await dialog.Result;
-
-        if (!result.Canceled)
+        if ((await dialog.Result)?.Canceled == false)
         {
             allEntries = await basicUnitService.GetAllBasicUnitsAsync();
             Snackbar.Add("Basic unit was updated successfully", Severity.Success);
@@ -137,9 +134,7 @@
         var parameters = new DialogParameters { ["BasicUnitId"] = basicUnitId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = DialogService.Show<DeleteBasicUnitDialog>("Delete Basic Unit", parameters, options);
-        var result = await dialog.Result;
-
-        if (!result.Canceled)
+        if ((await dialog.Result)?.Canceled == false)
         {
             allEntries = await basicUnitService.GetAllBasicUnitsAsync();
             Snackbar.Add("Basic unit was deleted successfully", Severity.Success);
