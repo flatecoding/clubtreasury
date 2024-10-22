@@ -8,7 +8,7 @@
 <MudDialog>
     <DialogContent>
         <MudForm @ref="form">
-            <MudTextField @bind-Value="editCostUnit.CostUnitName" Label="Unit Name" Required="true" RequiredError="Unit name is required." />
+            <MudTextField @bind-Value="editCostUnitCopy.CostUnitName" Label="Unit Name" Required="true" RequiredError="Unit name is required." />
             <MudSelect T="int" Label="Basic Units" @bind-SelectedValues="selectedBasicUnitIds" MultiSelection="true" Required="true" ToStringFunc="Converter">
                 @foreach (var basicUnit in allBasicUnits)
                 {
@@ -27,6 +27,7 @@
     [Parameter] public int CostUnitId { get; set; }
     private MudForm form = new();
     private CostUnit editCostUnit = new();
+    private CostUnit editCostUnitCopy = new();
     private IEnumerable<BasicUnit> allBasicUnits = new List<BasicUnit>();
     private IEnumerable<int> selectedBasicUnitIds = new List<int>();
 
@@ -37,6 +38,13 @@
         allBasicUnits = await basicunitservice.GetAllBasicUnitsAsync();
         // Load the existing CostUnit and its BasicUnits here
         editCostUnit = await costunitservice.GetCostUnitByIdAsync(CostUnitId) ?? new CostUnit();
+
+        editCostUnitCopy = new CostUnit
+        {
+                Id = editCostUnit.Id,
+                CostUnitName = editCostUnit.CostUnitName,
+                BasicUnitDetails = new List<BasicUnit>(editCostUnit.BasicUnitDetails)
+        };
         selectedBasicUnitIds = editCostUnit.BasicUnitDetails.Select(bu => bu.Id).ToHashSet();
     }
 
@@ -45,6 +53,7 @@
         if (form.IsValid)
         {
             // Update the BasicUnitDetails based on selectedBasicUnitIds
+            editCostUnit.CostUnitName = editCostUnitCopy.CostUnitName;
             editCostUnit.BasicUnitDetails = allBasicUnits.Where(bu => selectedBasicUnitIds.Contains(bu.Id)).ToList();
             await costunitservice.UpdateCostUnitAsync(editCostUnit);
             MudDialog.Close(DialogResult.Ok(true));

@@ -37,6 +37,14 @@
         editUnitDetails = await unitDetailService.GetUnitDetailsByIdAsync(UnitDetailsId) ?? new UnitDetails();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await form.Validate();
+        }
+    }
+
     private async Task SaveUnitDetails()
     {
         if (form.IsValid)

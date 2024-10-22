@@ -1,23 +1,24 @@
-﻿@page "/unitdetails"
+﻿@page "/cashregisters"
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
 @using TTCCashRegister.Pages.Dialogs
-@inject UnitDetailService unitDetailsService
+@inject CashRegisterService cashRegisterService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
-<h3>Unit Details</h3>
-<MudPaper Class="mt-4" Style="width:55%;">
+<h3>Cash Registers</h3>
+
+<MudPaper Class="mt-4" Style="width:75%;">
     <MudTable Class="mt-2" Items="@allEntries" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" FixedHeader="true"
               @bind-SelectedItem="selectedItem"
-              Filter="new Func<UnitDetails,bool>(FilterFunc)"
+              Filter="new Func<CashRegister,bool>(FilterFunc)"
               SortLabel="Sort By">
         <ToolBarContent>
             <MudButton Variant="Variant.Filled"
                        StartIcon="@Icons.Material.Filled.Add"
                        Color="Color.Primary"
-                       @onclick="ShowAddUnitDetailsDialog">
-                Add Unit Details
+                       @onclick="ShowAddCashRegisterDialog">
+                Add Cash Register
             </MudButton>
             <MudSpacer />
             <MudTextField @bind-Value="searchString1"
@@ -35,18 +36,18 @@
             <col style="width: 110px;" />
         </ColGroup>
         <HeaderContent>
-            <MudTh>Id<MudTableSortLabel SortBy="new Func<UnitDetails, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
-            <MudTh>Details<MudTableSortLabel SortBy="new Func<UnitDetails, object>(x => x.CostDetails ?? string.Empty)"></MudTableSortLabel></MudTh>
-            <MudTh>Basic position</MudTh>
+            <MudTh>Id<MudTableSortLabel SortBy="new Func<CashRegister, object>(x => x.ID)"></MudTableSortLabel></MudTh>
+            <MudTh>Name<MudTableSortLabel SortBy="new Func<CashRegister, object>(x => x.Name ?? string.Empty)"></MudTableSortLabel></MudTh>
+            <MudTh>Current balance</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="ID">@context.Id</MudTd>
-            <MudTd DataLabel="Details">@context.CostDetails</MudTd>
-            <MudTd DataLabel="Basic position">@context?.BasicUnit?.Name</MudTd>
+            <MudTd DataLabel="Id">@context.ID</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Current balance">@context.CurrentBalance</MudTd>
             <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditUnitDetailsDialog(context.Id)"></MudIconButton>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteUnitDetailsDialog(context.Id)">Delete</MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditCashRegisterDialog(context.ID)"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteCashRegisterDialog(context.ID)">Delete</MudIconButton>
             </MudTd>
         </RowTemplate>
         <PagerContent>
@@ -56,23 +57,23 @@
 </MudPaper>
 
 @code {
-    private IEnumerable<UnitDetails>? allEntries;
+    private IEnumerable<CashRegister>? allEntries;
     private bool dense = true;
     private bool hover = true;
     private bool striped = true;
     private bool bordered = false;
     private string searchString1 = string.Empty;
-    private UnitDetails selectedItem = new();
+    private CashRegister selectedItem = new();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        allEntries = await unitDetailsService.GetAllDetailsAsync();
+        allEntries = await cashRegisterService.GetAllCashRegisters();
     }
 
-    private bool FilterFunc(UnitDetails element) => FilterFunc1(element, searchString1);
+    private bool FilterFunc(CashRegister element) => FilterFunc1(element, searchString1);
 
-    private bool FilterFunc1(UnitDetails element, string searchstring)
+    private bool FilterFunc1(CashRegister element, string searchstring)
     {
         if (string.IsNullOrWhiteSpace(searchstring))
             return true;
@@ -81,45 +82,46 @@
         if (element is not null && !string.IsNullOrWhiteSpace(searchstring))
         {
             var lowerstring = searchstring.ToLowerInvariant();
-            if (element.CostDetails is not null && element.CostDetails.ToLower().Contains(lowerstring))
+            if (element.Name is not null && element.Name.ToLower().Contains(lowerstring))
                 return true;
         }
         return false;
     }
 
-    private async Task ShowAddUnitDetailsDialog()
+    private async Task ShowAddCashRegisterDialog()
     {
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<AddUnitDetailsDialog>("Add Unit Details", parameters, options);
+        var dialog = DialogService.Show<AddCashRegisterDialog>("Add Cash Register", parameters, options);
+
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await unitDetailsService.GetAllDetailsAsync();
-            Snackbar.Add("New unit details were added successfully", Severity.Success);
+            allEntries = await cashRegisterService.GetAllCashRegisters();
+            Snackbar.Add("New cash register was added successfully", Severity.Success);
         }
     }
 
-    private async Task ShowEditUnitDetailsDialog(int unitDetailsId)
+    private async Task ShowEditCashRegisterDialog(int cashRegisterId)
     {
-        var parameters = new DialogParameters { ["UnitDetailsId"] = unitDetailsId };
+        var parameters = new DialogParameters { ["CashRegisterId"] = cashRegisterId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<EditUnitDetailsDialog>("Edit Unit Details", parameters, options);
+        var dialog = DialogService.Show<EditCashRegisterDialog>("Edit Cash Register", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await unitDetailsService.GetAllDetailsAsync();
-            Snackbar.Add("Unit details were updated successfully", Severity.Success);
+            allEntries = await cashRegisterService.GetAllCashRegisters();
+            Snackbar.Add("Cash register was updated successfully", Severity.Success);
         }
     }
 
-    private async Task ShowDeleteUnitDetailsDialog(int unitDetailsId)
+    private async Task ShowDeleteCashRegisterDialog(int cashRegisterId)
     {
-        var parameters = new DialogParameters { ["UnitDetailsId"] = unitDetailsId };
+        var parameters = new DialogParameters { ["CashRegisterId"] = cashRegisterId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<DeleteUnitDetailsDialog>("Delete Unit Details", parameters, options);
+        var dialog = DialogService.Show<DeleteCashRegisterDialog>("Delete Cash Register", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await unitDetailsService.GetAllDetailsAsync();
-            Snackbar.Add("Unit details were deleted successfully", Severity.Success);
+            allEntries = await cashRegisterService.GetAllCashRegisters();
+            Snackbar.Add("Cash register was deleted successfully", Severity.Success);
         }
     }
 }
