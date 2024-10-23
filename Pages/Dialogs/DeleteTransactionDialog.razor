@@ -1,0 +1,43 @@
+﻿@page "/deletetransaction"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@inject TransactionService transactionService
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.subtitle1">Are you sure you want to delete this transaction?</MudText>
+        <MudText Typo="Typo.subtitle2">@transaction.Description</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteTransaction">Delete</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int TransactionId { get; set; }
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    private Transaction transaction = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var transactionEntry = await transactionService.GetTransactionByIdAsync(TransactionId);
+        if (transactionEntry != null)
+        {
+            transaction.Description = transactionEntry.Description;
+        }
+    }
+
+    private async Task DeleteTransaction()
+    {
+        var success = await transactionService.DeleteTransactionAsync(TransactionId);
+        MudDialog.Close(DialogResult.Ok(success));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

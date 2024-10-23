@@ -44,28 +44,28 @@
         <HeaderContent>
             <MudTh><MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
             <MudTh>Date<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Date ?? DateOnly.MinValue)"></MudTableSortLabel></MudTh>
-            <MudTh>Document Number<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Documentnumber)"></MudTableSortLabel></MudTh>
+            <MudTh>Do. Nr.<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Documentnumber)"></MudTableSortLabel></MudTh>
             <MudTh>Description<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Description ?? string.Empty)"></MudTableSortLabel></MudTh>
             <MudTh>Sum<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Sum)"></MudTableSortLabel></MudTh>
-            <MudTh>Account Movement<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.AccountMovement)"></MudTableSortLabel></MudTh>
+            <MudTh>Acc. mvm.<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.AccountMovement)"></MudTableSortLabel></MudTh>
             <MudTh>Cost Unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.CostUnit.CostUnitName ?? string.Empty)"></MudTableSortLabel></MudTh>
             <MudTh>Basic unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.BasicUnit.Name ?? string.Empty)"></MudTableSortLabel></MudTh>
-            <MudTh>Unit Details Count</MudTh>
+            <MudTh>Unit details</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Date">@context.Date</MudTd>
-            <MudTd DataLabel="Document Number">@context.Documentnumber</MudTd>
+            <MudTd DataLabel="Do. Nr.">@context.Documentnumber</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="Sum">@context.Sum</MudTd>
-            <MudTd DataLabel="Account Movement">@context.AccountMovement</MudTd>
+            <MudTd DataLabel="Acc. mvm.">@context.AccountMovement</MudTd>
             <MudTd DataLabel="Cost Unit">@context.CostUnit.CostUnitName</MudTd>
             <MudTd DataLabel="Basic Unit">@context.BasicUnit.Name</MudTd>
-            <MudTd DataLabel="Unit Details Count">@context.CostUnit.BasicUnitDetailsCount</MudTd>
+            <MudTd DataLabel="Unit Details Count">@context?.UnitDetails?.CostDetails</MudTd>
             <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" Href="@($"edittransaction/{context.Id}")"></MudIconButton>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" Href="@($"deletetransaction/{context.Id}")">Delete</MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" OnClick="() => ShowEditTransactionDialog(context.Id)"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" OnClick="() => ShowDeleteTransactionDialog(context.Id)"></MudIconButton>
             </MudTd>
         </RowTemplate>
         <PagerContent>
@@ -126,6 +126,50 @@
         else
         {
             Snackbar.Add("Transaction could not be added", Severity.Error);
+        }
+    }
+
+    private async Task ShowEditTransactionDialog(int transactionId)
+    {
+        var parameters = new DialogParameters { ["TransactionId"] = transactionId };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<EditTransactionDialog>("Edit Transaction", parameters, options);
+        var result = await dialog.Result;
+        if (result?.Data is bool success && success)
+        {
+            allEntries = transactionService is not null ? await transactionService.GetAllTransactions() : null;
+            Snackbar.Add("Transaction was edited successfully", Severity.Success);
+        }
+        else if (result?.Canceled == true)
+        {
+            Snackbar.Add("Transaction edit was cancelled", Severity.Warning);
+        }
+        else
+        {
+            Snackbar.Add("Transaction could not be edited", Severity.Error);
+            allEntries = transactionService is not null ? await transactionService.GetAllTransactions() : null;
+        }
+    }
+
+    private async Task ShowDeleteTransactionDialog(int transactionId)
+    {
+        var parameters = new DialogParameters { ["TransactionId"] = transactionId };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<DeleteTransactionDialog>("Delete Transaction", parameters, options);
+        var result = await dialog.Result;
+        if (result?.Data is bool success && success)
+        {
+            allEntries = transactionService is not null ? await transactionService.GetAllTransactions() : null;
+            Snackbar.Add("Transaction was deleted successfully", Severity.Success);
+            await InvokeAsync(StateHasChanged);
+        }
+        else if (result?.Canceled == true)
+        {
+            Snackbar.Add("Transaction delete was cancelled", Severity.Warning);
+        }
+        else
+        {
+            Snackbar.Add("Transaction could not be deleted", Severity.Error);
         }
     }
 }

@@ -1,12 +1,11 @@
-﻿@page "/addtransactions"
+﻿@page "/edittransaction"
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
-@using System.Diagnostics;
 @inject TransactionService transactionService
 @inject CostUnitService costUnitService
 @inject BasicUnitService basicUnitService
 @inject SpecialItemService specialItemService
-@inject CashRegisterService caschRegisterService
+@inject CashRegisterService cashRegisterService
 @inject IDialogService DialogService
 
 <MudDialog>
@@ -28,19 +27,18 @@
                 }
             </MudSelect>
             <MudDatePicker @bind-Date="@transactionDateTime" Label="Date" Required="true" RequiredError="Date is required." />
-            <MudTextField @bind-Value="newTransaction.Documentnumber" Label="Document Number" Required="true" RequiredError="Document number is required." />
-            <MudTextField @bind-Value="newTransaction.Description" Label="Description" Required="true" RequiredError="Description is required." />
-            <MudTextField @bind-Value="newTransaction.Sum" Label="Sum" Required="true" RequiredError="Sum is required." />
-            <MudTextField @bind-Value="newTransaction.AccountMovement" Label="Account Movement" Required="true" RequiredError="Account movement is required." />
-            
-            <MudSelect T="CostUnit" 
-                Label="Cost Unit" 
-                Required="true" 
-                ToStringFunc="@Unitconverter"
-                Immediate="true"
-                @bind-Value="@selectedCostUnit"
-                @bind-Value:after="OnCostUnitChangedAsync"       
-            >
+            <MudTextField @bind-Value="editTransactionCopy.Documentnumber" Label="Document Number" Required="true" RequiredError="Document number is required." />
+            <MudTextField @bind-Value="editTransactionCopy.Description" Label="Description" Required="true" RequiredError="Description is required." />
+            <MudTextField @bind-Value="editTransactionCopy.Sum" Label="Sum" Required="true" RequiredError="Sum is required." />
+            <MudTextField @bind-Value="editTransactionCopy.AccountMovement" Label="Account Movement" Required="true" RequiredError="Account movement is required." />
+
+            <MudSelect T="CostUnit"
+                       Label="Cost Unit"
+                       Required="true"
+                       ToStringFunc="@Unitconverter"
+                       Immediate="true"
+                       @bind-Value="@selectedCostUnit"
+                       @bind-Value:after="OnCostUnitChangedAsync">
                 @if (costUnits is not null)
                 {
                     @foreach (var Unit in costUnits)
@@ -49,14 +47,13 @@
                     }
                 }
             </MudSelect>
-            <MudSelect T="BasicUnit" 
-                Label="Basic Unit"  
-                Disabled="@(string.IsNullOrEmpty(selectedCostUnit.CostUnitName))" 
-                Required="true" 
-                ToStringFunc="@BasicUnitconverter"
-                @bind-Value="selectedBasicUnit"
-                @bind-Value:after="OnBasicUnitChangedAsync"
-            >
+            <MudSelect T="BasicUnit"
+                       Label="Basic Unit"
+                       Disabled="@(string.IsNullOrEmpty(selectedCostUnit.CostUnitName))"
+                       Required="true"
+                       ToStringFunc="@BasicUnitconverter"
+                       @bind-Value="selectedBasicUnit"
+                       @bind-Value:after="OnBasicUnitChangedAsync">
                 @if (basicUnits is not null)
                 {
                     @foreach (var basicUnit in basicUnits)
@@ -65,12 +62,11 @@
                     }
                 }
             </MudSelect>
-            <MudSelect T="UnitDetails" 
-                Label="Unit Details"
-                Disabled="@(string.IsNullOrEmpty(selectedBasicUnit.Name))" 
-                ToStringFunc="@Detailsconverter"
-                @bind-Value="selectedUnitDetails"
-            >
+            <MudSelect T="UnitDetails"
+                       Label="Unit Details"
+                       Disabled="@(string.IsNullOrEmpty(selectedBasicUnit.Name))"
+                       ToStringFunc="@Detailsconverter"
+                       @bind-Value="selectedUnitDetails">
                 <MudSelectItem T="UnitDetails" Value="null">None</MudSelectItem>
                 @if (unitDetails is not null)
                 {
@@ -80,12 +76,11 @@
                     }
                 }
             </MudSelect>
-            <MudSelect T="SpecialItem" 
-                Label="SpecialItem"
-                ToStringFunc="@SpecialItemConverter"
-                Placeholder="Select special position if required"
-                @bind-Value="selectedSpecialItem"  
-            >
+            <MudSelect T="SpecialItem"
+                       Label="SpecialItem"
+                       ToStringFunc="@SpecialItemConverter"
+                       Placeholder="Select special position if required"
+                       @bind-Value="selectedSpecialItem">
                 <MudSelectItem T="SpecialItem" Value="null">None</MudSelectItem>
                 @foreach (var SpecialItem in SpecialItemList)
                 {
@@ -95,15 +90,17 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="AddTransaction">Add</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="SaveTransaction">Save</MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
+    [Parameter] public int TransactionId { get; set; }
     private MudForm form = new();
-    private Transaction newTransaction = new();
-    private DateTime? transactionDateTime { get; set; } = DateTime.Now;
+    private Transaction editTransaction = new();
+    private Transaction editTransactionCopy = new();
+    private DateTime? transactionDateTime;
     private IEnumerable<CostUnit> costUnits = new List<CostUnit>();
     private IEnumerable<BasicUnit> basicUnits = new List<BasicUnit>();
     private IEnumerable<UnitDetails> unitDetails = new List<UnitDetails>();
@@ -113,10 +110,10 @@
     private UnitDetails selectedUnitDetails = new();
     private IEnumerable<SpecialItem> SpecialItemList = new List<SpecialItem>();
     private SpecialItem? selectedSpecialItem = new();
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
     private CashRegister selectedCashRegister = new();
 
-    
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
     Func<CashRegister, string> CashRegisterconverter = p => p?.Name ?? string.Empty;
     Func<DateTime, string> DateOnlyConverter = d => d.ToString() ?? string.Empty;
     Func<CostUnit, string> Unitconverter = p => p?.CostUnitName ?? string.Empty;
@@ -128,10 +125,37 @@
     {
         try
         {
+            editTransaction = await transactionService.GetTransactionByIdAsync(TransactionId) ?? new Transaction();
+
+            editTransactionCopy = new Transaction
+                {
+                    Id = editTransaction.Id,
+                    Description = editTransaction.Description,
+                    AccountMovement = editTransaction.AccountMovement,
+                    Date = editTransaction.Date,
+                    CashRegisterID = editTransaction.CashRegisterID,
+                    SpecialItemID = editTransaction.SpecialItemID,
+                    Sum = editTransaction.Sum,
+                    CostUnitID = editTransaction.CostUnitID,
+                    BasicUnitID = editTransaction.BasicUnitID,
+                    Documentnumber = editTransaction.Documentnumber
+
+                };
+
+            if (editTransaction.Date.HasValue)
+            {
+                transactionDateTime = editTransaction.Date.Value.ToDateTime(new TimeOnly(0, 0));
+            }
+
             costUnits = await costUnitService.GetAllUnitsAsync();
             basicUnits = await basicUnitService.GetAllBasicUnitsAsync();
             SpecialItemList = await specialItemService.GetAllSonderposten();
-            cashRegisters = await caschRegisterService.GetAllCashRegisters();
+            cashRegisters = await cashRegisterService.GetAllCashRegisters();
+
+            selectedCashRegister = cashRegisters.FirstOrDefault(c => c.ID == editTransaction.CashRegisterID) ?? new CashRegister();
+            selectedCostUnit = costUnits.FirstOrDefault(c => c.Id == editTransaction.CostUnitID) ?? new CostUnit();
+            selectedBasicUnit = basicUnits.FirstOrDefault(b => b.Id == editTransaction.BasicUnitID) ?? new BasicUnit();
+            selectedSpecialItem = SpecialItemList.FirstOrDefault(s => s.Id == editTransaction.SpecialItemID);
         }
         catch (Exception ex)
         {
@@ -145,7 +169,7 @@
         selectedBasicUnit = new BasicUnit();
         unitDetails = new List<UnitDetails>();
         selectedUnitDetails = new UnitDetails();
-        await InvokeAsync(StateHasChanged); 
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task OnBasicUnitChangedAsync()
@@ -160,39 +184,33 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task AddTransaction()
+    private async Task SaveTransaction()
     {
         if (form.IsValid)
         {
-            //Connect data
-            newTransaction.CashRegister = selectedCashRegister;
-            newTransaction.CashRegisterID = selectedCashRegister.ID;
+            editTransaction.Description = editTransactionCopy.Description;
+            editTransaction.Sum = editTransactionCopy.Sum;
+            editTransaction.AccountMovement = editTransactionCopy.AccountMovement;
             if (transactionDateTime.HasValue)
             {
-                newTransaction.Date = DateOnly.FromDateTime(transactionDateTime.Value);
+                editTransaction.Date = DateOnly.FromDateTime(transactionDateTime.Value);
             }
-            newTransaction.CostUnit = selectedCostUnit;
-            newTransaction.CostUnitID = selectedCostUnit?.Id ?? 0;
-            newTransaction.BasicUnit = selectedBasicUnit;
-            newTransaction.BasicUnitID = selectedBasicUnit?.Id ?? 0;
+            editTransaction.CostUnitID = selectedCostUnit?.Id ?? 0;
+            editTransaction.BasicUnitID = selectedBasicUnit?.Id ?? 0;
+
             if (selectedUnitDetails is not null)
             {
-                newTransaction.UnitDetailsId = selectedUnitDetails.Id;
-                newTransaction.UnitDetails = selectedUnitDetails;
+                editTransaction.UnitDetailsId = selectedUnitDetails.Id;
+                editTransaction.UnitDetails = selectedUnitDetails;
             }
             if (selectedSpecialItem is not null)
             {
-                newTransaction.SpecialItemID = selectedSpecialItem.Id;
-                newTransaction.SpecialItem = selectedSpecialItem;
+                editTransaction.SpecialItemID = selectedSpecialItem.Id;
+                editTransaction.SpecialItem = selectedSpecialItem;
             }
 
-            if (await transactionService.AddTransaction(newTransaction))
-            {
-                MudDialog.Close(DialogResult.Ok(true));
-
-            }
-            else
-                MudDialog.Close(DialogResult.Ok(false));
+            var success = await transactionService.UpdateTransactionAsync(editTransactionCopy);
+            MudDialog.Close(DialogResult.Ok(success));
         }
     }
 
