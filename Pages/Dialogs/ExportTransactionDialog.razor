@@ -76,15 +76,14 @@
     {
         if (Begin.HasValue && End.HasValue)
         {
-            var pdfData = await transactionService.ExportTransactionsToPdf(Begin.Value, End.Value);
-            var fileName = $"{SelectedLocation}/Transactions_{Begin:yyyyMMdd}_{End:yyyyMMdd}.pdf";
-            var fileContent = new ByteArrayContent(pdfData);
-            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
-            fileContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
-                {
-                    FileName = fileName
-                };
-            MudDialog.Close(DialogResult.Ok(true));
+            var folderPath = $"D://temp//{SelectedLocation}";
+            var destination = $"{folderPath}//{FileName}_{Begin:yyyyMMdd}_{End:yyyyMMdd}.pdf";
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var result = await transactionService.ExportTransactionsToPdf(Begin.Value, End.Value, destination);
+            MudDialog.Close(DialogResult.Ok(result));
         }
     }
 
