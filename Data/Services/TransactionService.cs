@@ -192,8 +192,8 @@ public class TransactionService
         return await _exportService.ExportTransactionsToCsv(begin, end);
     }
 
-    public async Task<byte[]> ExportTransactionsToPdf(DateTime begin, DateTime end)
+    public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string dest)
     {
-        return await _exportService.ExportTransactionsToPdf(begin, end);
+        return await _exportService.ExportTransactionsToPdf(begin, end, dest);
     }
 }
