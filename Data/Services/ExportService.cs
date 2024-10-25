@@ -47,11 +47,24 @@ namespace TTCCashRegister.Data.Services
                 var writer = new PdfWriter(Destination);
                 var pdf = new PdfDocument(writer);
                 var document = new Document(pdf, PageSize.A4.Rotate());
-                document.SetMargins(20, 20, 20, 20);
+                document.SetMargins(20, 30, 20, 30);
                 var font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
                 var bold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
                 var table = new Table(5);
                 table.SetWidth(UnitValue.CreatePercentValue(100));
+
+                // Header hinzufügen
+                document.Add(new Paragraph("Kassenbuch TTC Hagen")
+                    .SetFont(bold)
+                    .SetFontSize(20)
+                    .SetTextAlignment(TextAlignment.CENTER));
+
+                document.Add(new Paragraph($"Zeitraum: {begin:dd.MM.yyyy} - {end:dd.MM.yyyy}")
+                    .SetFont(font)
+                    .SetFontSize(14)
+                    .SetTextAlignment(TextAlignment.CENTER));
+
+                document.Add(new Paragraph("\n")); // Leerzeile für Abstand
 
                 table.AddHeaderCell(new Cell().Add(new Paragraph("Datum").SetFont(bold)));
                 table.AddHeaderCell(new Cell().Add(new Paragraph("Belegnr.").SetFont(bold)));
