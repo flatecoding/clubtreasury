@@ -6,13 +6,16 @@ using iText.Layout;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor;
 using System.Diagnostics;
 using System.Text;
+using TTCCashRegister.Data.Models;
 
 namespace TTCCashRegister.Data.Services
 {
     public class ExportService
     {
+        private readonly string _defaultPath = System.IO.Path.GetTempPath();
         private readonly CashDataContext _context;
 
         public ExportService(CashDataContext context)
@@ -20,31 +23,62 @@ namespace TTCCashRegister.Data.Services
             _context = context;
         }
 
-        public async Task<string> ExportTransactionsToCsv(DateTime begin, DateTime end)
+        private async Task<List<Transaction>> GetTransactionsInDateRange(DateTime begin, DateTime end)
         {
-            // IEnumerable<Transaction> transactions = new List<Transaction>();
-            var transactions = await _context.Transactions
-                 .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
-                 .ToListAsync();
-
-            var csv = new StringBuilder();
-            foreach (var transaction in transactions)
-            {
-                csv.AppendLine($"{transaction.Documentnumber};{transaction.Description};{transaction.Sum};{transaction.AccountMovement}");
-            }
-
-            return csv.ToString();
+            return await _context.Transactions
+                                 .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
+                                 .ToListAsync();
         }
 
-        public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string Destination)
+        public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string dest)
         {
-            var transactions = await _context.Transactions
-                .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
-                .ToListAsync();
-
             try
             {
-                var writer = new PdfWriter(Destination);
+                var folderpath = System.IO.Path.GetDirectoryName(dest) ?? _defaultPath;
+                if (!Directory.Exists(folderpath))
+                {
+                    Directory.CreateDirectory(folderpath);
+                }
+                var transactions = await GetTransactionsInDateRange(begin, end);
+
+                var csv = new StringBuilder();
+                foreach (var transaction in transactions)
+                {
+                    csv.AppendLine($"{transaction.Documentnumber};{transaction.Description};{transaction.Sum};{transaction.AccountMovement}");
+                }
+
+                if (string.IsNullOrWhiteSpace(csv.ToString()))
+                {
+                    Console.WriteLine("Keine Daten für den Export vorhanden.");
+                    return false;
+                }
+
+                using (StreamWriter sw = new StreamWriter(dest))
+                {
+                    await sw.WriteLineAsync("Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung");
+                    await sw.WriteAsync(csv);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.Write(ex.ToString());
+                return false;
+            }
+        }
+
+        public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string dest)
+        {
+            try
+            {
+                var folderpath = System.IO.Path.GetDirectoryName(dest) ?? _defaultPath;
+                if (!Directory.Exists(folderpath))
+                {
+                    Directory.CreateDirectory(folderpath);
+                }
+                var transactions = await GetTransactionsInDateRange(begin, end);
+
+                var writer = new PdfWriter(dest);
                 var pdf = new PdfDocument(writer);
                 var document = new Document(pdf, PageSize.A4.Rotate());
                 document.SetMargins(20, 30, 20, 30);

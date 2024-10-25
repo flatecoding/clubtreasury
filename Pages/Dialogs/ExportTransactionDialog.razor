@@ -36,31 +36,12 @@
                 Console.WriteLine("Das Startdatum muss vor dem Enddatum liegen.");
                 MudDialog.Close(DialogResult.Ok(false));
             }
+            var folderPath = $"D://temp//{SelectedLocation}";
+            var destination = $"{folderPath}//{FileName}_{Begin:yyyyMMdd}_{End:yyyyMMdd}.csv";
             try
             {
-                var csvData = await transactionService.ExportTransactionsToCsv(Begin.Value, End.Value);
-                if (string.IsNullOrWhiteSpace(csvData))
-                {
-                    Console.WriteLine("Keine Daten für den Export vorhanden.");
-                    MudDialog.Close(DialogResult.Ok(false));
-                }
-                var folderPath = SelectedLocation;
-                var fileName = $"{FileName}_{Begin:yyyyMMdd}_{End:yyyyMMdd}.csv";
-                var fullPath = Path.Combine(folderPath, fileName);
-
-                // Überprüfen, ob der Ordner existiert, und ggf. erstellen
-                if (!Directory.Exists(folderPath))
-                {
-                    Directory.CreateDirectory(folderPath);
-                }
-
-                using (StreamWriter sw = new StreamWriter(fullPath))
-                {
-                    await sw.WriteLineAsync("Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung");
-                    await sw.WriteAsync(csvData);
-                }
-
-                MudDialog.Close(DialogResult.Ok(true));
+                var result = await transactionService.ExportTransactionsToCsv(Begin.Value, End.Value, destination);
+                MudDialog.Close(DialogResult.Ok(result));
             }
             catch (Exception ex)
             {
@@ -76,14 +57,24 @@
     {
         if (Begin.HasValue && End.HasValue)
         {
+            if (Begin.Value > End.Value)
+            {
+                Console.WriteLine("Das Startdatum muss vor dem Enddatum liegen.");
+                MudDialog.Close(DialogResult.Ok(false));
+            }
             var folderPath = $"D://temp//{SelectedLocation}";
             var destination = $"{folderPath}//{FileName}_{Begin:yyyyMMdd}_{End:yyyyMMdd}.pdf";
-            if (!Directory.Exists(folderPath))
+            try
             {
-                Directory.CreateDirectory(folderPath);
+                var result = await transactionService.ExportTransactionsToPdf(Begin.Value, End.Value, destination);
+                MudDialog.Close(DialogResult.Ok(result));   
             }
-            var result = await transactionService.ExportTransactionsToPdf(Begin.Value, End.Value, destination);
-            MudDialog.Close(DialogResult.Ok(result));
+            catch (Exception ex)
+            {
+                // Fehlerbehandlung
+                Console.WriteLine($"Fehler beim Exportieren der CSV-Datei: {ex.Message}");
+                MudDialog.Close(DialogResult.Ok(false));
+            }
         }
     }
 
