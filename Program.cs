@@ -42,6 +42,7 @@ builder.Services.AddScoped<TransactionService>();
 builder.Services.AddScoped<SpecialItemService>();
 builder.Services.AddScoped<CashRegisterService>();
 builder.Services.AddScoped<BasicUnitService>();
+builder.Services.AddScoped<ExportService>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;

@@ -20,6 +20,12 @@
                        OnClick="ShowAddTransactionDialog">
                 Add Transaction
             </MudButton>
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Download"
+                       Color="Color.Secondary"
+                       OnClick="ShowExportTransactionDialog">
+                Export Transactions
+            </MudButton>
             <MudSpacer />
             <MudTextField @bind-Value="searchString1"
                           Placeholder="Search"
@@ -170,6 +176,26 @@
         else
         {
             Snackbar.Add("Transaction could not be deleted", Severity.Error);
+        }
+    }
+
+    private async Task ShowExportTransactionDialog()
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<ExportTransactionDialog>("Export Transactions", parameters, options);
+        var result = await dialog.Result;
+        if (result?.Data is bool success && success)
+        {
+            Snackbar.Add("Transactions were exported successfully", Severity.Success);
+        }
+        else if (result?.Canceled == true)
+        {
+            Snackbar.Add("Transaction export was cancelled", Severity.Warning);
+        }
+        else
+        {
+            Snackbar.Add("Transactions could not be exported", Severity.Error);
         }
     }
 }

@@ -1,0 +1,95 @@
+﻿@page "/export-transaction-dialog"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
+@inject TransactionService transactionService
+@inject NavigationManager Navigation
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6">Export Transactions</MudText>
+        <MudForm>
+            <MudDatePicker @bind-Date="Begin" Label="Begin Date" />
+            <MudDatePicker @bind-Date="End" Label="End Date" />
+            <MudTextField @bind-Value ="FileName" Label="Filename" Placeholder="Select a filename" Required="true"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ExportCsv">Export as CSV</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ExportPdf">Export as PDF</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public DateTime? Begin { get; set; } = DateTime.Now.AddMonths(-1);
+    [Parameter] public DateTime? End { get; set; } = DateTime.Now;
+    private readonly string SelectedLocation = "Export";
+    private string FileName = string.Empty;
+
+    private async Task ExportCsv()
+    {
+        if (Begin.HasValue && End.HasValue)
+        {
+            if (Begin.Value > End.Value)
+            {
+                Console.WriteLine("Das Startdatum muss vor dem Enddatum liegen.");
+                MudDialog.Close(DialogResult.Ok(false));
+            }
+            try
+            {
+                var csvData = await transactionService.ExportTransactionsToCsv(Begin.Value, End.Value);
+                if (string.IsNullOrWhiteSpace(csvData))
+                {
+                    Console.WriteLine("Keine Daten für den Export vorhanden.");
+                    MudDialog.Close(DialogResult.Ok(false));
+                }
+                var folderPath = SelectedLocation;
+                var fileName = $"{FileName}_{Begin:yyyyMMdd}_{End:yyyyMMdd}.csv";
+                var fullPath = Path.Combine(folderPath, fileName);
+
+                // Überprüfen, ob der Ordner existiert, und ggf. erstellen
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                using (StreamWriter sw = new StreamWriter(fullPath))
+                {
+                    await sw.WriteLineAsync("Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung");
+                    await sw.WriteAsync(csvData);
+                }
+
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+            catch (Exception ex)
+            {
+                // Fehlerbehandlung
+                Console.WriteLine($"Fehler beim Exportieren der CSV-Datei: {ex.Message}");
+                MudDialog.Close(DialogResult.Ok(false));
+            }
+        }
+    }
+
+
+    private async Task ExportPdf()
+    {
+        if (Begin.HasValue && End.HasValue)
+        {
+            var pdfData = await transactionService.ExportTransactionsToPdf(Begin.Value, End.Value);
+            var fileName = $"{SelectedLocation}/Transactions_{Begin:yyyyMMdd}_{End:yyyyMMdd}.pdf";
+            var fileContent = new ByteArrayContent(pdfData);
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
+            fileContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
+                {
+                    FileName = fileName
+                };
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
