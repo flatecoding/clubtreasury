@@ -5,26 +5,26 @@
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="form">
-            <MudTextField @bind-Value="newBasicUnit.Name" Label="Name" Required="true" RequiredError="Name is required." />
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_newBasicUnit.Name" Label="Name" Required="true" RequiredError="Name is required." />
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="AddBasicUnit">Add</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_form.IsValid" OnClick="AddBasicUnit">Add</MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
-    private MudForm form = new();
-    private BasicUnit newBasicUnit = new();
+    private MudForm _form = new();
+    private readonly BasicUnit _newBasicUnit = new();
 
     private async Task AddBasicUnit()
     {
-        if (form.IsValid)
+        if (_form.IsValid)
         {
-            await basicunitservice.AddBasicUnitAsync(newBasicUnit);
+            await basicunitservice.AddBasicUnitAsync(_newBasicUnit);
             MudDialog.Close(DialogResult.Ok(true));
         }
     }

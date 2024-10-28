@@ -2,14 +2,14 @@
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
 @using TTCCashRegister.Pages.Dialogs
-@inject CostUnitService costunitservice
+@inject CostUnitService CostUnitService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <h3>Cost units</h3>
 <MudPaper Class="mt-4" Style="width:55%;">
-    <MudTable Class="mt-2" Items="@allEntries" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" FixedHeader="true"
-              @bind-SelectedItem="selectedItem"
+    <MudTable Class="mt-2" Items="@_allEntries" Dense="@_dense" Hover="@_hover" Bordered="@_bordered" Striped="@_striped" FixedHeader="true"
+              @bind-SelectedItem="_selectedItem"
               Filter="new Func<CostUnit,bool>(FilterFunc)"
               SortLabel="Sort By">
         <ToolBarContent>
@@ -20,7 +20,7 @@
                 Add cost unit
             </MudButton>
             <MudSpacer />
-            <MudTextField @bind-Value="searchString1"
+            <MudTextField @bind-Value="_searchString1"
                           Placeholder="Search"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search"
@@ -69,23 +69,23 @@
 </MudPaper>
 
 @code {
-    private IEnumerable<CostUnit>? allEntries;
-    private bool dense = true;
-    private bool hover = true;
-    private bool striped = true;
-    private bool bordered = false;
-    private string searchString1 = string.Empty;
-    private CostUnit selectedItem = new();
+    private IEnumerable<CostUnit>? _allEntries;
+    private bool _dense = true;
+    private bool _hover = true;
+    private bool _striped = true;
+    private bool _bordered = false;
+    private string _searchString1 = string.Empty;
+    private CostUnit _selectedItem = new();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        allEntries = await costunitservice.GetAllUnitsAsync();
+        _allEntries = await CostUnitService.GetAllUnitsAsync();
     }
 
-    private bool FilterFunc(CostUnit element) => FilterFunc1(element, searchString1);
+    private bool FilterFunc(CostUnit element) => FilterFunc1(element, _searchString1);
 
-    private bool FilterFunc1(CostUnit element, string searchstring)
+    private bool FilterFunc1(CostUnit? element, string searchstring)
     {
         if (string.IsNullOrWhiteSpace(searchstring))
             return true;
@@ -107,7 +107,7 @@
         var dialog = DialogService.Show<AddCostUnitDialog>("Add Cost Unit", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await costunitservice.GetAllUnitsAsync();
+            _allEntries = await CostUnitService.GetAllUnitsAsync();
             Snackbar.Add("New sector was added added successfully", Severity.Success);
         }
     }
@@ -118,7 +118,7 @@
         var dialog = DialogService.Show<EditCostUnitDialog>("Edit Cost Unit", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await costunitservice.GetAllUnitsAsync();
+            _allEntries = await CostUnitService.GetAllUnitsAsync();
             Snackbar.Add("Cost unit was updated successfully", Severity.Success);
         }
     }
@@ -130,7 +130,7 @@
         var dialog = DialogService.Show<DeleteCostUnitDialog>("Delete Cost Unit", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await costunitservice.GetAllUnitsAsync();
+            _allEntries = await CostUnitService.GetAllUnitsAsync();
             Snackbar.Add("Cost unit was deleted successfully", Severity.Success);
         }
     }
