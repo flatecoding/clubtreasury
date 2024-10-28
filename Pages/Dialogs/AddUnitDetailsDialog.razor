@@ -1,16 +1,15 @@
 ﻿@page "/addunitdetail"
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
-@inject UnitDetailService unitDetailService
-@inject BasicUnitService basicUnitService
-@inject IDialogService DialogService
+@inject UnitDetailService UnitDetailService
+@inject BasicUnitService BasicUnitService
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="form">
-            <MudTextField @bind-Value="newDetail.CostDetails" Label="Detailed position" Required="true" RequiredError="Detailed position is required." />
-            <MudSelect T="int" Label="Basic Unit" @bind-Value="newDetail.BasicUnitId" Required="true" Placeholder="Select a basic position">
-                @foreach (var basicUnit in allBasicUnits)
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_newDetail.CostDetails" Label="Detailed position" Required="true" RequiredError="Detailed position is required." />
+            <MudSelect T="int" Label="Basic Unit" @bind-Value="_newDetail.BasicUnitId" Required="true" Placeholder="Select a basic position">
+                @foreach (var basicUnit in _allBasicUnits)
                 {
                     <MudSelectItem T="int" Value="@basicUnit.Id">@basicUnit.Name</MudSelectItem>
                 }
@@ -18,30 +17,28 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="AddUnitDetail">Add</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_form.IsValid" OnClick="AddUnitDetail">Add</MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
-    private MudForm form = new();
-    private UnitDetails newDetail = new();
-    private IEnumerable<BasicUnit> allBasicUnits = new List<BasicUnit>();
-
+    private MudForm _form = new();
+    private readonly UnitDetails _newDetail = new();
+    private IEnumerable<BasicUnit> _allBasicUnits = new List<BasicUnit>();
     
-
     protected override async Task OnInitializedAsync()
     {
-        allBasicUnits = await basicUnitService.GetAllBasicUnitsAsync();
+        _allBasicUnits = await BasicUnitService.GetAllBasicUnitsAsync();
     }
 
 
     private async Task AddUnitDetail()
     {
-        if (form.IsValid)
+        if (_form.IsValid)
         {
-            await unitDetailService.AddUnitDetailAsync(newDetail);
+            await UnitDetailService.AddUnitDetailAsync(_newDetail);
             MudDialog.Close(DialogResult.Ok(true));
         }
     }
