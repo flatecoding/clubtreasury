@@ -1,33 +1,32 @@
 ﻿@page "/addcashregister"
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
-@inject CashRegisterService cashRegisterService
-@inject IDialogService DialogService
+@inject CashRegisterService CashRegisterService
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="form">
-            <MudTextField @bind-Value="newCashRegister.Name" Label="Name" Required="true" RequiredError="Name is required." />
-            <MudTextField @bind-Value="newCashRegister.CurrentBalance" Label="Current balance" Required="true" RequiredError="Current balance is required." />
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_newCashRegister.Name" Label="Name" Required="true" RequiredError="Name is required." />
+            <MudTextField @bind-Value="_newCashRegister.CurrentBalance" Label="Current balance" Required="true" RequiredError="Current balance is required." />
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="AddEntry">Add</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_form.IsValid" OnClick="AddEntry">Add</MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    private MudForm form = new();
-    private CashRegister newCashRegister = new();
+    private MudForm _form = new();
+    private readonly CashRegister _newCashRegister = new();
 
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
 
     private async Task AddEntry()
     {
-        if (form.IsValid)
+        if (_form.IsValid)
         {
-            await cashRegisterService.AddCashRegister(newCashRegister);
+            await CashRegisterService.AddCashRegister(_newCashRegister);
             MudDialog.Close(DialogResult.Ok(true));
         }
     }
