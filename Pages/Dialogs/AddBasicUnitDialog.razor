@@ -1,7 +1,6 @@
 ﻿@using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
-@inject BasicUnitService basicunitservice
-@inject IDialogService DialogService
+@inject BasicUnitService BasicUnitService
 
 <MudDialog>
     <DialogContent>
@@ -24,7 +23,7 @@
     {
         if (_form.IsValid)
         {
-            await basicunitservice.AddBasicUnitAsync(_newBasicUnit);
+            await BasicUnitService.AddBasicUnitAsync(_newBasicUnit);
             MudDialog.Close(DialogResult.Ok(true));
         }
     }

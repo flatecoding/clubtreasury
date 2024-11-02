@@ -1,16 +1,14 @@
 ﻿@page "/transactions"
 @using TTCCashRegister.Data.Models
-@using TTCCashRegister.Data.Services
 @using TTCCashRegister.Pages.Dialogs
-@inject TransactionService transactionService
-@inject CostUnitService costUnitService
+@inject TransactionService TransactionService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <h3>Transactions</h3>
 <MudPaper Class="mt-4" Style="width:100%;">
-    <MudTable Class="mt-2" Items="@allEntries" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" FixedHeader="true"
-              @bind-SelectedItem="selectedItem"
+    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
+              @bind-SelectedItem="_selectedItem"
               Filter="new Func<Transaction,bool>(FilterFunc)"
               SortLabel="Sort By">
         <ToolBarContent>
@@ -28,7 +26,7 @@
                 Export Transactions
             </MudButton>
             <MudSpacer />
-            <MudTextField @bind-Value="searchString1"
+            <MudTextField @bind-Value="_searchString1"
                           Placeholder="Search"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search"
@@ -52,11 +50,11 @@
             <MudTh><MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
             <MudTh>Date<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Date ?? DateOnly.MinValue)"></MudTableSortLabel></MudTh>
             <MudTh>Doc. Nr.<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Documentnumber)"></MudTableSortLabel></MudTh>
-            <MudTh>Description<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Description ?? string.Empty)"></MudTableSortLabel></MudTh>
+            <MudTh>Description<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Description)"></MudTableSortLabel></MudTh>
             <MudTh>Sum<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Sum)"></MudTableSortLabel></MudTh>
             <MudTh>Acc. mvm.<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.AccountMovement)"></MudTableSortLabel></MudTh>
-            <MudTh>Cost Unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.CostUnit.CostUnitName ?? string.Empty)"></MudTableSortLabel></MudTh>
-            <MudTh>Basic unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.BasicUnit.Name ?? string.Empty)"></MudTableSortLabel></MudTh>
+            <MudTh>Cost Unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.CostUnit.CostUnitName)"></MudTableSortLabel></MudTh>
+            <MudTh>Basic unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.BasicUnit.Name)"></MudTableSortLabel></MudTh>
             <MudTh>Unit details</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
@@ -69,7 +67,7 @@
             <MudTd DataLabel="Acc. mvm.">@context.AccountMovement</MudTd>
             <MudTd DataLabel="Cost Unit">@context.CostUnit.CostUnitName</MudTd>
             <MudTd DataLabel="Basic Unit">@context.BasicUnit.Name</MudTd>
-            <MudTd DataLabel="Unit Details Count">@context?.UnitDetails?.CostDetails</MudTd>
+            <MudTd DataLabel="Unit details">@context?.UnitDetails?.CostDetails</MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" OnClick="() => ShowEditTransactionDialog(context.Id)"></MudIconButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" OnClick="() => ShowDeleteTransactionDialog(context.Id)"></MudIconButton>
@@ -82,34 +80,33 @@
 </MudPaper>
 
 @code {
-    private IEnumerable<Transaction>? allEntries;
-    private bool dense = true;
-    private bool hover = true;
-    private bool striped = true;
-    private bool bordered = false;
-    private string searchString1 = string.Empty;
-    private Transaction selectedItem = new();
+    private IEnumerable<Transaction>? _allEntries;
+    private const bool Dense = true;
+    private const bool Hover = true;
+    private const bool Striped = true;
+    private const bool Bordered = false;
+    private string _searchString1 = string.Empty;
+    private Transaction _selectedItem = new();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        allEntries = await transactionService.GetAllTransactions();
+        _allEntries = await TransactionService.GetAllTransactions();
     }
 
-    private bool FilterFunc(Transaction element) => FilterFunc1(element, searchString1);
+    private bool FilterFunc(Transaction? element) => FilterFunc1(element, _searchString1);
 
-    private bool FilterFunc1(Transaction element, string searchstring)
+    private bool FilterFunc1(Transaction? element, string searchstring)
     {
         if (string.IsNullOrWhiteSpace(searchstring))
             return true;
         if (element is null)
             return false;
-        if (element is not null && !string.IsNullOrWhiteSpace(searchstring))
+        if (!string.IsNullOrWhiteSpace(searchstring))
         {
-            var lowerstring = searchstring.ToLowerInvariant();
-            if (element.Description is not null && element.Description.ToLower().Contains(lowerstring))
+            if (element.Description.ToLower().Contains(searchstring.ToLowerInvariant()))
                 return true;
-            if (element.Documentnumber.ToString().Contains(lowerstring))
+            if (element.Documentnumber.ToString().Contains(searchstring.ToLowerInvariant()))
                 return true;
         }
         return false;
@@ -123,7 +120,7 @@
         var result = await dialog.Result;
         if (result?.Data is bool success && success)
         {
-            allEntries = transactionService is not null ? await transactionService.GetAllTransactions() : null;
+            _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
             Snackbar.Add("Cost unit was deleted successfully", Severity.Success);
         }
         else if (result?.Canceled == true)
@@ -144,7 +141,7 @@
         var result = await dialog.Result;
         if (result?.Data is bool success && success)
         {
-            allEntries = transactionService is not null ? await transactionService.GetAllTransactions() : null;
+            _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
             Snackbar.Add("Transaction was edited successfully", Severity.Success);
         }
         else if (result?.Canceled == true)
@@ -154,7 +151,7 @@
         else
         {
             Snackbar.Add("Transaction could not be edited", Severity.Error);
-            allEntries = transactionService is not null ? await transactionService.GetAllTransactions() : null;
+            _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
         }
     }
 
@@ -166,7 +163,7 @@
         var result = await dialog.Result;
         if (result?.Data is bool success && success)
         {
-            allEntries = transactionService is not null ? await transactionService.GetAllTransactions() : null;
+            _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
             Snackbar.Add("Transaction was deleted successfully", Severity.Success);
             await InvokeAsync(StateHasChanged);
         }
