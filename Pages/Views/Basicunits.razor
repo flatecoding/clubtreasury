@@ -2,16 +2,15 @@
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
 @using TTCCashRegister.Pages.Dialogs
-@inject BasicUnitService basicUnitService
-@inject CostUnitService costunitservice
+@inject BasicUnitService BasicUnitService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <h3>Basic Units</h3>
 
 <MudPaper Class="mt-4" Style="width:55%;">
-    <MudTable Class="mt-2" Items="@allEntries" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" FixedHeader="true"
-              @bind-SelectedItem="selectedItem"
+    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
+              @bind-SelectedItem="_selectedItem"
               Filter="new Func<BasicUnit,bool>(FilterFunc)"
               SortLabel="Sort By">
         <ToolBarContent>
@@ -22,7 +21,7 @@
                 Add Basic Unit
             </MudButton>
             <MudSpacer />
-            <MudTextField @bind-Value="searchString1"
+            <MudTextField @bind-Value="_searchString1"
                           Placeholder="Search"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search"
@@ -38,7 +37,7 @@
         </ColGroup>
         <HeaderContent>
             <MudTh>Id<MudTableSortLabel SortBy="new Func<BasicUnit, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>Name<MudTableSortLabel SortBy="new Func<BasicUnit, object>(x => x.Name ?? string.Empty)"></MudTableSortLabel></MudTh>
+            <MudTh>Name<MudTableSortLabel SortBy="new Func<BasicUnit, object>(x => x.Name)"></MudTableSortLabel></MudTh>
             <MudTh>Details</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
@@ -46,7 +45,7 @@
             <MudTd DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Details">
-                @if (context.CostUnitDetails != null && context.CostUnitDetails.Any())
+                @if (context.CostUnitDetails.Any())
                 {
                         @foreach (var detail in context.CostUnitDetails)
                         {
@@ -72,47 +71,41 @@
 
 @code {
 
-    private IEnumerable<BasicUnit>? allEntries;
+    private IEnumerable<BasicUnit>? _allEntries;
 
-    private bool dense = true;
-    private bool hover = true;
-    private bool striped = true;
-    private bool bordered = false;
-    private string searchString1 = string.Empty;
-    private BasicUnit selectedItem = new();
+    private const bool Dense = true;
+    private const bool Hover = true;
+    private const bool Striped = true;
+    private const bool Bordered = false;
+    private string _searchString1 = string.Empty;
+    private BasicUnit _selectedItem = new();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        allEntries = await basicUnitService.GetAllBasicUnitsAsync();
+        _allEntries = await BasicUnitService.GetAllBasicUnitsAsync();
     }
 
-    private bool FilterFunc(BasicUnit element) => FilterFunc1(element, searchString1);
+    private bool FilterFunc(BasicUnit? element) => FilterFunc1(element, _searchString1);
 
-    private bool FilterFunc1(BasicUnit element, string searchstring)
+    private bool FilterFunc1(BasicUnit? element, string searchstring)
     {
         if (string.IsNullOrWhiteSpace(searchstring))
             return true;
-        if (element is null)
-            return false;
-        if (element is not null && !string.IsNullOrWhiteSpace(searchstring))
-        {
-            var lowerstring = searchstring.ToLowerInvariant();
-            if (element.Name is not null && element.Name.ToLower().Contains(lowerstring))
-                return true;
-        }
-        return false;
+        if (element == null || string.IsNullOrWhiteSpace(searchstring)) return false;
+        var lowerstring = searchstring.ToLowerInvariant();
+        return element.Name.ToLower().Contains(lowerstring);
     }
 
     private async Task ShowAddBasicUnitDialog()
     {
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<AddBasicUnitDialog>("Add Basic Unit", parameters, options);
+        var dialog = await DialogService.ShowAsync<AddBasicUnitDialog>("Add Basic Unit", parameters, options);
 
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await basicUnitService.GetAllBasicUnitsAsync();
+            _allEntries = await BasicUnitService.GetAllBasicUnitsAsync();
             Snackbar.Add("New basic unit was added successfully", Severity.Success);
         }
     }
@@ -121,10 +114,10 @@
     {
         var parameters = new DialogParameters { ["BasicUnitId"] = basicUnitId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<EditBasicUnitDialog>("Edit Basic Unit", parameters, options);
+        var dialog = await DialogService.ShowAsync<EditBasicUnitDialog>("Edit Basic Unit", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await basicUnitService.GetAllBasicUnitsAsync();
+            _allEntries = await BasicUnitService.GetAllBasicUnitsAsync();
             Snackbar.Add("Basic unit was updated successfully", Severity.Success);
         }
     }
@@ -133,10 +126,10 @@
     {
         var parameters = new DialogParameters { ["BasicUnitId"] = basicUnitId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<DeleteBasicUnitDialog>("Delete Basic Unit", parameters, options);
+        var dialog = await DialogService.ShowAsync<DeleteBasicUnitDialog>("Delete Basic Unit", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await basicUnitService.GetAllBasicUnitsAsync();
+            _allEntries = await BasicUnitService.GetAllBasicUnitsAsync();
             Snackbar.Add("Basic unit was deleted successfully", Severity.Success);
         }
     }

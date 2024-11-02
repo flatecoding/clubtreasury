@@ -1,38 +1,37 @@
 ﻿@page "/editbasicunit"
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
-@inject BasicUnitService basicunitservice
-@inject IDialogService DialogService
+@inject BasicUnitService Basicunitservice
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="form">
-            <MudTextField @bind-Value="editBasicUnit.Name" Label="Name" Required="true" RequiredError="Name is required." />
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_editBasicUnit.Name" Label="Name" Required="true" RequiredError="Name is required." />
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="SaveBasicUnit">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_form.IsValid" OnClick="SaveBasicUnit">Save</MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [Parameter] public int BasicUnitId { get; set; }
-    private MudForm form = new();
-    private BasicUnit editBasicUnit = new();
+    private MudForm _form = new();
+    private BasicUnit _editBasicUnit = new();
 
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        editBasicUnit = await basicunitservice.GetBasicUnitByIdAsync(BasicUnitId) ?? new BasicUnit();
+        _editBasicUnit = await Basicunitservice.GetBasicUnitByIdAsync(BasicUnitId) ?? new BasicUnit();
     }
 
     private async Task SaveBasicUnit()
     {
-        if (form.IsValid)
+        if (_form.IsValid)
         {
-            await basicunitservice.UpdateBasicUnitAsync(editBasicUnit);
+            await Basicunitservice.UpdateBasicUnitAsync(_editBasicUnit);
             MudDialog.Close(DialogResult.Ok(true));
         }
     }

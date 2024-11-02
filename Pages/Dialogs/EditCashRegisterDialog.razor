@@ -1,38 +1,37 @@
 ﻿@page "/editcashregister"
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
-@inject CashRegisterService cashRegisterService
-@inject IDialogService DialogService
+@inject CashRegisterService CashRegisterService
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="form">
-            <MudTextField @bind-Value="editCashRegister.Name" Label="Name" Required="true" RequiredError="Name is required." />
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_editCashRegister.Name" Label="Name" Required="true" RequiredError="Name is required." />
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="SaveCashRegister">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_form.IsValid" OnClick="SaveCashRegister">Save</MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [Parameter] public int CashRegisterId { get; set; }
-    private MudForm form = new();
-    private CashRegister editCashRegister = new();
+    private MudForm _form = new();
+    private CashRegister _editCashRegister = new();
 
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        editCashRegister = await cashRegisterService.GetCashRegisterById(CashRegisterId) ?? new CashRegister();
+        _editCashRegister = await CashRegisterService.GetCashRegisterById(CashRegisterId) ?? new CashRegister();
     }
 
     private async Task SaveCashRegister()
     {
-        if (form.IsValid)
+        if (_form.IsValid)
         {
-            await cashRegisterService.UpdateCashRegister(editCashRegister);
+            await CashRegisterService.UpdateCashRegister(_editCashRegister);
             MudDialog.Close(DialogResult.Ok(true));
         }
     }

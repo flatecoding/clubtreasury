@@ -1,38 +1,37 @@
 ﻿@page "/editspecialitem"
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
-@inject SpecialItemService specialItemService
-@inject IDialogService DialogService
+@inject SpecialItemService SpecialItemService
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="form">
-            <MudTextField @bind-Value="editSpecialItem.Name" Label="Name" Required="true" RequiredError="Name is required." />
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_editSpecialItem.Name" Label="Name" Required="true" RequiredError="Name is required." />
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="SaveSpecialItem">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_form.IsValid" OnClick="SaveSpecialItem">Save</MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [Parameter] public int SpecialItemId { get; set; }
-    private MudForm form = new();
-    private SpecialItem editSpecialItem = new();
+    private MudForm _form = new();
+    private SpecialItem _editSpecialItem = new();
 
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        editSpecialItem = await specialItemService.GetSonderpostenById(SpecialItemId) ?? new SpecialItem();
+        _editSpecialItem = await SpecialItemService.GetSonderpostenById(SpecialItemId) ?? new SpecialItem();
     }
 
     private async Task SaveSpecialItem()
     {
-        if (form.IsValid)
+        if (_form.IsValid)
         {
-            await specialItemService.UpdateSonderposten(editSpecialItem);
+            await SpecialItemService.UpdateSonderposten(_editSpecialItem);
             MudDialog.Close(DialogResult.Ok(true));
         }
     }

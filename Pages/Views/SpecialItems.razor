@@ -2,15 +2,15 @@
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
 @using TTCCashRegister.Pages.Dialogs
-@inject SpecialItemService specialItemService
+@inject SpecialItemService SpecialItemService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <h3>Special Items</h3>
 
 <MudPaper Class="mt-4" Style="width:50%;">
-    <MudTable Class="mt-2" Items="@allEntries" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" FixedHeader="true"
-              @bind-SelectedItem="selectedItem"
+    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
+              @bind-SelectedItem="_selectedItem"
               Filter="new Func<SpecialItem,bool>(FilterFunc)"
               SortLabel="Sort By">
         <ToolBarContent>
@@ -21,7 +21,7 @@
                 Add Special Item
             </MudButton>
             <MudSpacer />
-            <MudTextField @bind-Value="searchString1"
+            <MudTextField @bind-Value="_searchString1"
                           Placeholder="Search"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search"
@@ -37,7 +37,7 @@
         </ColGroup>
         <HeaderContent>
             <MudTh>Id<MudTableSortLabel SortBy="new Func<SpecialItem, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>Name<MudTableSortLabel SortBy="new Func<SpecialItem, object>(x => x.Name ?? string.Empty)"></MudTableSortLabel></MudTh>
+            <MudTh>Name<MudTableSortLabel SortBy="new Func<SpecialItem, object>(x => x.Name)"></MudTableSortLabel></MudTh>
             <MudTh>Amount</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
@@ -57,32 +57,29 @@
 </MudPaper>
 
 @code {
-    private IEnumerable<SpecialItem>? allEntries;
-    private bool dense = true;
-    private bool hover = true;
-    private bool striped = true;
-    private bool bordered = false;
-    private string searchString1 = string.Empty;
-    private SpecialItem selectedItem = new();
+    private IEnumerable<SpecialItem>? _allEntries;
+    private const bool Dense = true;
+    private const bool Hover = true;
+    private const bool Striped = true;
+    private const bool Bordered = false;
+    private string _searchString1 = string.Empty;
+    private SpecialItem _selectedItem = new();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        allEntries = await specialItemService.GetAllSonderposten();
+        _allEntries = await SpecialItemService.GetAllSonderposten();
     }
 
-    private bool FilterFunc(SpecialItem element) => FilterFunc1(element, searchString1);
+    private bool FilterFunc(SpecialItem? element) => FilterFunc1(element, _searchString1);
 
-    private bool FilterFunc1(SpecialItem element, string searchstring)
+    private bool FilterFunc1(SpecialItem? element, string searchstring)
     {
         if (string.IsNullOrWhiteSpace(searchstring))
             return true;
-        if (element is null)
-            return false;
         if (element is not null && !string.IsNullOrWhiteSpace(searchstring))
         {
-            var lowerstring = searchstring.ToLowerInvariant();
-            if (element.Name is not null && element.Name.ToLower().Contains(lowerstring))
+            if (element.Name.ToLower().Contains(searchstring.ToLowerInvariant()))
                 return true;
         }
         return false;
@@ -92,11 +89,11 @@
     {
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<AddSpecialItemDialog>("Add Special Item", parameters, options);
+        var dialog = await DialogService.ShowAsync<AddSpecialItemDialog>("Add Special Item", parameters, options);
 
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await specialItemService.GetAllSonderposten();
+            _allEntries = await SpecialItemService.GetAllSonderposten();
             Snackbar.Add("New special item was added successfully", Severity.Success);
         }
     }
@@ -105,10 +102,10 @@
     {
         var parameters = new DialogParameters { ["SpecialItemId"] = specialItemId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<EditSpecialItemDialog>("Edit Special Item", parameters, options);
+        var dialog = await DialogService.ShowAsync<EditSpecialItemDialog>("Edit Special Item", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await specialItemService.GetAllSonderposten();
+            _allEntries = await SpecialItemService.GetAllSonderposten();
             Snackbar.Add("Special item was updated successfully", Severity.Success);
         }
     }
@@ -117,10 +114,10 @@
     {
         var parameters = new DialogParameters { ["SpecialItemId"] = specialItemId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<DeleteSpecialItemDialog>("Delete Special Item", parameters, options);
+        var dialog = await DialogService.ShowAsync<DeleteSpecialItemDialog>("Delete Special Item", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await specialItemService.GetAllSonderposten();
+            _allEntries = await SpecialItemService.GetAllSonderposten();
             Snackbar.Add("Special item was deleted successfully", Severity.Success);
         }
     }

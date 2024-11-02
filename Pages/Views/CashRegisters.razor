@@ -2,15 +2,15 @@
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
 @using TTCCashRegister.Pages.Dialogs
-@inject CashRegisterService cashRegisterService
+@inject CashRegisterService CashRegisterService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <h3>Cash Registers</h3>
 
 <MudPaper Class="mt-4" Style="width:75%;">
-    <MudTable Class="mt-2" Items="@allEntries" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" FixedHeader="true"
-              @bind-SelectedItem="selectedItem"
+    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
+              @bind-SelectedItem="_selectedItem"
               Filter="new Func<CashRegister,bool>(FilterFunc)"
               SortLabel="Sort By">
         <ToolBarContent>
@@ -21,7 +21,7 @@
                 Add Cash Register
             </MudButton>
             <MudSpacer />
-            <MudTextField @bind-Value="searchString1"
+            <MudTextField @bind-Value="_searchString1"
                           Placeholder="Search"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search"
@@ -37,7 +37,7 @@
         </ColGroup>
         <HeaderContent>
             <MudTh>Id<MudTableSortLabel SortBy="new Func<CashRegister, object>(x => x.ID)"></MudTableSortLabel></MudTh>
-            <MudTh>Name<MudTableSortLabel SortBy="new Func<CashRegister, object>(x => x.Name ?? string.Empty)"></MudTableSortLabel></MudTh>
+            <MudTh>Name<MudTableSortLabel SortBy="new Func<CashRegister, object>(x => x.Name)"></MudTableSortLabel></MudTh>
             <MudTh>Current balance</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
@@ -57,32 +57,31 @@
 </MudPaper>
 
 @code {
-    private IEnumerable<CashRegister>? allEntries;
-    private bool dense = true;
-    private bool hover = true;
-    private bool striped = true;
-    private bool bordered = false;
-    private string searchString1 = string.Empty;
-    private CashRegister selectedItem = new();
+    private IEnumerable<CashRegister>? _allEntries;
+    private const bool Dense = true;
+    private const bool Hover = true;
+    private const bool Striped = true;
+    private const bool Bordered = false;
+    private string _searchString1 = string.Empty;
+    private CashRegister _selectedItem = new();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        allEntries = await cashRegisterService.GetAllCashRegisters();
+        _allEntries = await CashRegisterService.GetAllCashRegisters();
     }
 
-    private bool FilterFunc(CashRegister element) => FilterFunc1(element, searchString1);
+    private bool FilterFunc(CashRegister? element) => FilterFunc1(element, _searchString1);
 
-    private bool FilterFunc1(CashRegister element, string searchstring)
+    private bool FilterFunc1(CashRegister? element, string searchstring)
     {
         if (string.IsNullOrWhiteSpace(searchstring))
             return true;
         if (element is null)
             return false;
-        if (element is not null && !string.IsNullOrWhiteSpace(searchstring))
+        if (!string.IsNullOrWhiteSpace(searchstring))
         {
-            var lowerstring = searchstring.ToLowerInvariant();
-            if (element.Name is not null && element.Name.ToLower().Contains(lowerstring))
+            if (element.Name.ToLower().Contains(searchstring.ToLowerInvariant()))
                 return true;
         }
         return false;
@@ -92,11 +91,11 @@
     {
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<AddCashRegisterDialog>("Add Cash Register", parameters, options);
+        var dialog = await DialogService.ShowAsync<AddCashRegisterDialog>("Add Cash Register", parameters, options);
 
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await cashRegisterService.GetAllCashRegisters();
+            _allEntries = await CashRegisterService.GetAllCashRegisters();
             Snackbar.Add("New cash register was added successfully", Severity.Success);
         }
     }
@@ -105,10 +104,10 @@
     {
         var parameters = new DialogParameters { ["CashRegisterId"] = cashRegisterId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<EditCashRegisterDialog>("Edit Cash Register", parameters, options);
+        var dialog = await DialogService.ShowAsync<EditCashRegisterDialog>("Edit Cash Register", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await cashRegisterService.GetAllCashRegisters();
+            _allEntries = await CashRegisterService.GetAllCashRegisters();
             Snackbar.Add("Cash register was updated successfully", Severity.Success);
         }
     }
@@ -117,10 +116,10 @@
     {
         var parameters = new DialogParameters { ["CashRegisterId"] = cashRegisterId };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<DeleteCashRegisterDialog>("Delete Cash Register", parameters, options);
+        var dialog = await DialogService.ShowAsync<DeleteCashRegisterDialog>("Delete Cash Register", parameters, options);
         if ((await dialog.Result)?.Canceled == false)
         {
-            allEntries = await cashRegisterService.GetAllCashRegisters();
+            _allEntries = await CashRegisterService.GetAllCashRegisters();
             Snackbar.Add("Cash register was deleted successfully", Severity.Success);
         }
     }
