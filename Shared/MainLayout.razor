@@ -2,7 +2,7 @@
 
 <PageTitle>Club Cash</PageTitle>
 
-<MudThemeProvider @bind-IsDarkMode="@darkmodeActive"/>
+<MudThemeProvider @bind-IsDarkMode="@_darkmodeActive"/>
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudPopoverProvider/>
@@ -30,7 +30,7 @@
 
 @code {
     bool _drawerOpen = true;
-    bool darkmodeActive = false;
+    bool _darkmodeActive;
 
     void DrawerToggle()
     {

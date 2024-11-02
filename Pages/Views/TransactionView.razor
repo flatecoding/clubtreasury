@@ -1,0 +1,199 @@
+﻿@page "/transactions"
+@using TTCCashRegister.Data.Models
+@using TTCCashRegister.Pages.Dialogs
+@inject TransactionService TransactionService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<h3>Transactions</h3>
+<MudPaper Class="mt-4" Style="width:100%;">
+    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
+              @bind-SelectedItem="_selectedItem"
+              Filter="new Func<Transaction,bool>(FilterFunc)"
+              SortLabel="Sort By">
+        <ToolBarContent>
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Color="Color.Primary"
+                       OnClick="ShowAddTransactionDialog">
+                Add Transaction
+            </MudButton>
+            <MudButton Class = "ml-2"
+                       Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Download"
+                       Color="Color.Secondary"
+                       OnClick="ShowExportTransactionDialog">
+                Export Transactions
+            </MudButton>
+            <MudSpacer />
+            <MudTextField @bind-Value="_searchString1"
+                          Placeholder="Search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0">
+            </MudTextField>
+        </ToolBarContent>
+        <ColGroup>
+            <col style="width: 20px;" />    @*ID*@
+            <col style="width: 30px;" />    @*Date*@
+            <col style="width: 80px;" />    @*Doc. Nr*@
+            <col />   @*Desciption*@
+            <col style="width: 30px;" />    @*Sum*@
+            <col style="width: 30px;" />    @*Acc. mvm.*@
+            <col />    @*Cost unit*@
+            <col />    @*Basic unit*@
+            <col />   @*unit details*@
+            <col />   @*Actions*@
+        </ColGroup>
+        <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
+            <MudTh>Date<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Date ?? DateOnly.MinValue)"></MudTableSortLabel></MudTh>
+            <MudTh>Doc. Nr.<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Documentnumber)"></MudTableSortLabel></MudTh>
+            <MudTh>Description<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Description)"></MudTableSortLabel></MudTh>
+            <MudTh>Sum<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Sum)"></MudTableSortLabel></MudTh>
+            <MudTh>Acc. mvm.<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.AccountMovement)"></MudTableSortLabel></MudTh>
+            <MudTh>Cost Unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.CostUnit.CostUnitName)"></MudTableSortLabel></MudTh>
+            <MudTh>Basic unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.BasicUnit.Name)"></MudTableSortLabel></MudTh>
+            <MudTh>Unit details</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Date">@context.Date</MudTd>
+            <MudTd DataLabel="Doc. Nr.">@context.Documentnumber</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Sum">@context.Sum</MudTd>
+            <MudTd DataLabel="Acc. mvm.">@context.AccountMovement</MudTd>
+            <MudTd DataLabel="Cost Unit">@context.CostUnit.CostUnitName</MudTd>
+            <MudTd DataLabel="Basic Unit">@context.BasicUnit.Name</MudTd>
+            <MudTd DataLabel="Unit details">@context?.UnitDetails?.CostDetails</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" OnClick="() => ShowEditTransactionDialog(context.Id)"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" OnClick="() => ShowDeleteTransactionDialog(context.Id)"></MudIconButton>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private IEnumerable<Transaction>? _allEntries;
+    private const bool Dense = true;
+    private const bool Hover = true;
+    private const bool Striped = true;
+    private const bool Bordered = false;
+    private string _searchString1 = string.Empty;
+    private Transaction _selectedItem = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _allEntries = await TransactionService.GetAllTransactions();
+    }
+
+    private bool FilterFunc(Transaction? element) => FilterFunc1(element, _searchString1);
+
+    private bool FilterFunc1(Transaction? element, string searchstring)
+    {
+        if (string.IsNullOrWhiteSpace(searchstring))
+            return true;
+        if (element is null)
+            return false;
+        if (!string.IsNullOrWhiteSpace(searchstring))
+        {
+            if (element.Description.ToLower().Contains(searchstring.ToLowerInvariant()))
+                return true;
+            if (element.Documentnumber.ToString().Contains(searchstring.ToLowerInvariant()))
+                return true;
+        }
+        return false;
+    }
+
+    private async Task ShowAddTransactionDialog()
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<AddTransactionDialog>("Add Transaction", parameters, options);
+        var result = await dialog.Result;
+        if (result?.Data is bool success && success)
+        {
+            _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
+            Snackbar.Add("Cost unit was deleted successfully", Severity.Success);
+        }
+        else if (result?.Canceled == true)
+        {
+            Snackbar.Add("Transaction was cancelled", Severity.Warning);
+        }
+        else
+        {
+            Snackbar.Add("Transaction could not be added", Severity.Error);
+        }
+    }
+
+    private async Task ShowEditTransactionDialog(int transactionId)
+    {
+        var parameters = new DialogParameters { ["TransactionId"] = transactionId };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<EditTransactionDialog>("Edit Transaction", parameters, options);
+        var result = await dialog.Result;
+        if (result?.Data is bool success && success)
+        {
+            _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
+            Snackbar.Add("Transaction was edited successfully", Severity.Success);
+        }
+        else if (result?.Canceled == true)
+        {
+            Snackbar.Add("Transaction edit was cancelled", Severity.Warning);
+        }
+        else
+        {
+            Snackbar.Add("Transaction could not be edited", Severity.Error);
+            _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
+        }
+    }
+
+    private async Task ShowDeleteTransactionDialog(int transactionId)
+    {
+        var parameters = new DialogParameters { ["TransactionId"] = transactionId };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<DeleteTransactionDialog>("Delete Transaction", parameters, options);
+        var result = await dialog.Result;
+        if (result?.Data is bool success && success)
+        {
+            _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
+            Snackbar.Add("Transaction was deleted successfully", Severity.Success);
+            await InvokeAsync(StateHasChanged);
+        }
+        else if (result?.Canceled == true)
+        {
+            Snackbar.Add("Transaction delete was cancelled", Severity.Warning);
+        }
+        else
+        {
+            Snackbar.Add("Transaction could not be deleted", Severity.Error);
+        }
+    }
+
+    private async Task ShowExportTransactionDialog()
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<ExportTransactionDialog>("Export Transactions", parameters, options);
+        var result = await dialog.Result;
+        if (result?.Data is bool success && success)
+        {
+            Snackbar.Add("Transactions were exported successfully", Severity.Success);
+        }
+        else if (result?.Canceled == true)
+        {
+            Snackbar.Add("Transaction export was cancelled", Severity.Warning);
+        }
+        else
+        {
+            Snackbar.Add("Transactions could not be exported", Severity.Error);
+        }
+    }
+}
