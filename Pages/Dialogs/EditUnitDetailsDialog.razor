@@ -1,16 +1,15 @@
 ﻿@page "/editunitdetails"
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
-@inject UnitDetailService unitDetailService
-@inject BasicUnitService basicUnitService
-@inject IDialogService DialogService
+@inject UnitDetailService UnitDetailService
+@inject BasicUnitService BasicUnitService
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="form">
-            <MudTextField @bind-Value="editUnitDetails.CostDetails" Label="Cost Details" Required="true" RequiredError="Cost details are required." />
-            <MudSelect T="int" Label="Basic Unit" @bind-Value="editUnitDetails.BasicUnitId" Required="true" ToStringFunc="Converter">
-                @foreach (var basicUnit in allBasicUnits)
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_editUnitDetails.CostDetails" Label="Cost Details" Required="true" RequiredError="Cost details are required." />
+            <MudSelect T="int" Label="Basic Unit" @bind-Value="_editUnitDetails.BasicUnitId" Required="true" ToStringFunc="Converter">
+                @foreach (var basicUnit in _allBasicUnits)
                 {
                     <MudSelectItem T="int" Value="@basicUnit.Id">@basicUnit.Name</MudSelectItem>
                 }
@@ -18,38 +17,38 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!form.IsValid" OnClick="SaveUnitDetails">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_form.IsValid" OnClick="SaveUnitDetails">Save</MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [Parameter] public int UnitDetailsId { get; set; }
-    private MudForm form = new();
-    private UnitDetails editUnitDetails = new();
-    private IEnumerable<BasicUnit> allBasicUnits = new List<BasicUnit>();
+    private MudForm _form = new();
+    private UnitDetails _editUnitDetails = new();
+    private IEnumerable<BasicUnit> _allBasicUnits = new List<BasicUnit>();
 
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        allBasicUnits = await basicUnitService.GetAllBasicUnitsAsync();
-        editUnitDetails = await unitDetailService.GetUnitDetailsByIdAsync(UnitDetailsId) ?? new UnitDetails();
+        _allBasicUnits = await BasicUnitService.GetAllBasicUnitsAsync();
+        _editUnitDetails = await UnitDetailService.GetUnitDetailsByIdAsync(UnitDetailsId) ?? new UnitDetails();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await form.Validate();
+            await _form.Validate();
         }
     }
 
     private async Task SaveUnitDetails()
     {
-        if (form.IsValid)
+        if (_form.IsValid)
         {
-            await unitDetailService.UpdateUnitDetailsAsync(editUnitDetails);
+            await UnitDetailService.UpdateUnitDetailsAsync(_editUnitDetails);
             MudDialog.Close(DialogResult.Ok(true));
         }
     }
@@ -65,7 +64,7 @@
         {
             return "Please select a Basic Unit";
         }
-        var basicUnit = allBasicUnits.FirstOrDefault(bu => bu.Id == value);
+        var basicUnit = _allBasicUnits.FirstOrDefault(bu => bu.Id == value);
         return basicUnit?.Name ?? "Unknown";
     }
 }
