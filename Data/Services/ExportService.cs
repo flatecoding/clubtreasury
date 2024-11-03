@@ -6,8 +6,8 @@ using iText.Layout;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.EntityFrameworkCore;
-using MudBlazor;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using TTCCashRegister.Data.Models;
 
@@ -15,12 +15,22 @@ namespace TTCCashRegister.Data.Services
 {
     public class ExportService
     {
-        private readonly string _defaultPath = System.IO.Path.GetTempPath();
         private readonly CashDataContext _context;
+        private readonly string _tempPath;
+        private const string SelectedFolder = "Export";
 
         public ExportService(CashDataContext context)
         {
             _context = context;
+            
+            if (OperatingSystem.IsWindows())
+            {
+                _tempPath = System.IO.Path.GetTempPath();
+            }
+            else
+            {
+                _tempPath = Environment.GetEnvironmentVariable("TMPDIR") ?? "/tmp";
+            }
         }
 
         private async Task<List<Transaction>> GetTransactionsInDateRange(DateTime begin, DateTime end)
@@ -30,14 +40,15 @@ namespace TTCCashRegister.Data.Services
                                  .ToListAsync();
         }
 
-        public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string dest)
+        public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
         {
             try
             {
-                var folderpath = System.IO.Path.GetDirectoryName(dest) ?? _defaultPath;
-                if (!Directory.Exists(folderpath))
+                var folderPath = System.IO.Path.Combine(_tempPath, SelectedFolder);
+                var fullPath = System.IO.Path.Combine(folderPath, filename);
+                if (!Directory.Exists(folderPath))
                 {
-                    Directory.CreateDirectory(folderpath);
+                    Directory.CreateDirectory(folderPath);
                 }
                 var transactions = await GetTransactionsInDateRange(begin, end);
 
@@ -53,7 +64,7 @@ namespace TTCCashRegister.Data.Services
                     return false;
                 }
 
-                using (StreamWriter sw = new StreamWriter(dest))
+                using (StreamWriter sw = new StreamWriter(fullPath))
                 {
                     await sw.WriteLineAsync("Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung");
                     await sw.WriteAsync(csv);
@@ -67,18 +78,18 @@ namespace TTCCashRegister.Data.Services
             }
         }
 
-        public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string dest)
+        public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename)
         {
             try
             {
-                var folderpath = System.IO.Path.GetDirectoryName(dest) ?? _defaultPath;
-                if (!Directory.Exists(folderpath))
+                var folderPath = System.IO.Path.Combine(_tempPath, SelectedFolder);
+                var fullPath = System.IO.Path.Combine(folderPath, filename);
+                if (!Directory.Exists(folderPath))
                 {
-                    Directory.CreateDirectory(folderpath);
+                    Directory.CreateDirectory(folderPath);
                 }
                 var transactions = await GetTransactionsInDateRange(begin, end);
-
-                var writer = new PdfWriter(dest);
+                var writer = new PdfWriter(fullPath);
                 var pdf = new PdfDocument(writer);
                 var document = new Document(pdf, PageSize.A4.Rotate());
                 document.SetMargins(20, 30, 20, 30);
@@ -105,29 +116,66 @@ namespace TTCCashRegister.Data.Services
                 table.AddHeaderCell(new Cell().Add(new Paragraph("Beschreibung.").SetFont(bold)));
                 table.AddHeaderCell(new Cell().Add(new Paragraph("Rechnungsbetrag").SetFont(bold)));
                 table.AddHeaderCell(new Cell().Add(new Paragraph("Kontobewegung").SetFont(bold)));
-
-
+                
                 foreach (var transaction in transactions)
                 {
                     table.AddCell(new Cell().Add(new Paragraph(transaction.Date.ToString()).SetFont(font)));
                     table.AddCell(new Cell().Add(new Paragraph(transaction.Documentnumber.ToString()).SetFont(font)));
                     table.AddCell(new Cell().Add(new Paragraph(transaction.Description).SetFont(font)));
-                    table.AddCell(new Cell().Add(new Paragraph(transaction.Sum.ToString()).SetFont(font)));
-                    table.AddCell(new Cell().Add(new Paragraph(transaction.AccountMovement.ToString()).SetFont(font)));
+                    table.AddCell(new Cell().Add(new Paragraph(transaction.Sum.ToString(CultureInfo.CurrentCulture)).SetFont(font)));
+                    table.AddCell(new Cell().Add(new Paragraph(transaction.AccountMovement.ToString(CultureInfo.CurrentCulture)).SetFont(font)));
                 }
                 document.Add(table);
                 document.Close();
                 return true;
-
             }
             catch (Exception ex)
             {
                 Debug.Write(ex.ToString());
                 return false;
             }
+        }
+        
+        public async Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
+        {
+            try
+            {
+                var folderPath = System.IO.Path.Combine(_tempPath, SelectedFolder);
+                var fullPath = System.IO.Path.Combine(folderPath, filename);
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+                var transactions = await GetTransactionsInDateRange(begin, end);
 
+                var csv = new StringBuilder();
+                foreach (var transaction in transactions)
+                {
+                    csv.AppendLine($"{transaction.CostUnit};{transaction.BasicUnit};{transaction.UnitDetails};{transaction.AccountMovement}");
+                }
 
+                if (string.IsNullOrWhiteSpace(csv.ToString()))
+                {
+                    Console.WriteLine("Keine Daten für den Export vorhanden.");
+                    return false;
+                }
+                
+                await using (StreamWriter sw = new StreamWriter(fullPath))
+                {
+                    await sw.WriteLineAsync("Kostenstelle;Position;Details;Summe");
+                    await sw.WriteAsync(csv);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.Write(ex.ToString());
+                return false;
+            }
         }
     }
+    
+    
+    
 }
 
