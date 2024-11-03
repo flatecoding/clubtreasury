@@ -13,20 +13,23 @@
         </MudNavGroup>
         <MudNavGroup Title="Import / Export data" Expanded="false" Icon="@Icons.Material.Filled.Save">
             <MudNavLink  Href="/importdata" Match="NavLinkMatch.Prefix">Import data</MudNavLink>
-            <MudNavLink  Href="/exportdata" Match="NavLinkMatch.Prefix">Export data</MudNavLink>
+            <MudNavGroup Title="Export data">
+                <MudNavLink  Href="/exportcashaudit" Match="NavLinkMatch.Prefix">Cash audit</MudNavLink>
+                <MudNavLink  Href="/exportbudget" Match="NavLinkMatch.Prefix">Budget plan</MudNavLink>
+            </MudNavGroup>
         </MudNavGroup>
     </MudNavGroup>
     <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
 </MudNavMenu>
 
 @code {
-    private bool collapseNavMenu = true;
+    private bool _collapseNavMenu = true;
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private string? NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
 
     private void ToggleNavMenu()
     {
-        collapseNavMenu = !collapseNavMenu;
+        _collapseNavMenu = !_collapseNavMenu;
     }
 }
 
