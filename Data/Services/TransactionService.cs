@@ -187,13 +187,13 @@ public class TransactionService
         }
     }
 
-    public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string dest)
+    public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
     {
-        return await _exportService.ExportTransactionsToCsv(begin, end, dest);
+        return await _exportService.ExportTransactionsToCsv(begin, end, filename);
     }
 
-    public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string dest)
+    public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename)
     {
-        return await _exportService.ExportTransactionsToPdf(begin, end, dest);
+        return await _exportService.ExportTransactionsToPdf(begin, end, filename);
     }
 }
