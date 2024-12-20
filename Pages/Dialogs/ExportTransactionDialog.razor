@@ -1,4 +1,6 @@
 ﻿@page "/export-transaction-dialog"
+@using TTCCashRegister.Data.Services
+@using TTCCashRegister.Data.Source
 @inject TransactionService TransactionService
 
 <MudDialog>
@@ -19,9 +21,15 @@
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
-    [Parameter] public DateTime? Begin { get; set; } = DateTime.Now.AddMonths(-1);
+    [Parameter] public DateTime? Begin { get; set; }
     [Parameter] public DateTime? End { get; set; } = DateTime.Now;
     private string _fileName = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Begin = UTools.GetBeginDateTime();
+    }
 
     private async Task ExportCsv()
     {

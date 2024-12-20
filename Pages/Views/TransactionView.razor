@@ -1,5 +1,7 @@
 ﻿@page "/transactions"
+@using System.Globalization
 @using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
 @using TTCCashRegister.Pages.Dialogs
 @inject TransactionService TransactionService
 @inject IDialogService DialogService
@@ -32,8 +34,8 @@
             <col style="width: 30px;" />    @*Date*@
             <col style="width: 80px;" />    @*Doc. Nr*@
             <col />   @*Desciption*@
-            <col style="width: 30px;" />    @*Sum*@
-            <col style="width: 30px;" />    @*Acc. mvm.*@
+            <col style="width: 100px;" />    @*Sum*@
+            <col style="width: 100px;" />    @*Acc. mvm.*@
             <col />    @*Cost unit*@
             <col />    @*Basic unit*@
             <col />   @*unit details*@
@@ -46,9 +48,9 @@
             <MudTh>Description<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Description)"></MudTableSortLabel></MudTh>
             <MudTh>Sum<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Sum)"></MudTableSortLabel></MudTh>
             <MudTh>Acc. mvm.<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.AccountMovement)"></MudTableSortLabel></MudTh>
-            <MudTh>Cost Unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.CostUnit.CostUnitName)"></MudTableSortLabel></MudTh>
-            <MudTh>Basic unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.BasicUnit.Name)"></MudTableSortLabel></MudTh>
-            <MudTh>Unit details</MudTh>
+            <MudTh>Cost unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.CostUnit.CostUnitName)"></MudTableSortLabel></MudTh>
+            <MudTh>Position<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.BasicUnit.Name)"></MudTableSortLabel></MudTh>
+            <MudTh>Pos. details</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -56,8 +58,8 @@
             <MudTd DataLabel="Date">@context.Date</MudTd>
             <MudTd DataLabel="Doc. Nr.">@context.Documentnumber</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
-            <MudTd DataLabel="Sum">@context.Sum</MudTd>
-            <MudTd DataLabel="Acc. mvm.">@context.AccountMovement</MudTd>
+            <MudTd DataLabel="Sum">@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+            <MudTd DataLabel="Acc. mvm.">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
             <MudTd DataLabel="Cost Unit">@context.CostUnit.CostUnitName</MudTd>
             <MudTd DataLabel="Basic Unit">@context.BasicUnit.Name</MudTd>
             <MudTd DataLabel="Unit details">@context?.UnitDetails?.CostDetails</MudTd>

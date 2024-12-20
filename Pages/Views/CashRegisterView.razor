@@ -1,4 +1,5 @@
 ﻿@page "/cashregisters"
+@using System.Globalization
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
 @using TTCCashRegister.Pages.Dialogs
@@ -8,7 +9,7 @@
 
 <h3>Cash Registers</h3>
 
-<MudPaper Class="mt-4" Style="width:75%;">
+<MudPaper Class="mt-4" Style="width:40%;">
     <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
               @bind-SelectedItem="_selectedItem"
               Filter="new Func<CashRegister,bool>(FilterFunc)"
@@ -30,10 +31,10 @@
             </MudTextField>
         </ToolBarContent>
         <ColGroup>
-            <col style="width: 20px;" />
-            <col style="width: 110px;" />
-            <col style="width: 110px;" />
-            <col style="width: 110px;" />
+            <col style="width: 50px;" />
+            <col  />
+            <col style="width: 200px;" />
+            <col style="width: 150px;"/>
         </ColGroup>
         <HeaderContent>
             <MudTh>Id<MudTableSortLabel SortBy="new Func<CashRegister, object>(x => x.ID)"></MudTableSortLabel></MudTh>
@@ -44,7 +45,7 @@
         <RowTemplate>
             <MudTd DataLabel="Id">@context.ID</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Current balance">@context.CurrentBalance</MudTd>
+            <MudTd DataLabel="Current balance">@context.CurrentBalance.ToString("C", CultureInfo.CurrentCulture)</MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditCashRegisterDialog(context.ID)"></MudIconButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteCashRegisterDialog(context.ID)">Delete</MudIconButton>

@@ -1,44 +1,35 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
-using TTCCashRegister.Data;
+﻿using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using TTCCashRegister.Data.Models;
-using TTCCashRegister.Data.Services;
 
-public class TransactionService
+namespace TTCCashRegister.Data.Services;
+
+public class TransactionService(
+    CashDataContext context,
+    CashRegisterService cashRegisterService,
+    SpecialItemService specialItemService,
+    ExportService exportService)
 {
-    private readonly CashDataContext _context;
-    private readonly CashRegisterService _cashRegisterService;
-    private readonly SpecialItemService _specialItemService;
-    private readonly ExportService _exportService;
-
-    public TransactionService(CashDataContext context, CashRegisterService cashRegisterService, SpecialItemService specialItemService, ExportService exportService)
-    {
-        _context = context;
-        _cashRegisterService = cashRegisterService;
-        _specialItemService = specialItemService;
-        _exportService = exportService;
-    }
-
     public async Task<List<Transaction>?> GetAllTransactions()
     {
-        return _context.Transactions is not null ? await _context.Transactions
-                                              .Include(c => c.BasicUnit)
-                                              .Include(d => d.CostUnit)
-                                              .Include(u => u.UnitDetails)
-                                              .OrderByDescending(x => x.Id)
-                                              .ToListAsync() : new List<Transaction>();
+        return context.Transactions is not null ? await context.Transactions
+            .Include(c => c.BasicUnit)
+            .Include(d => d.CostUnit)
+            .Include(u => u.UnitDetails)
+            .OrderByDescending(x => x.Id)
+            .ToListAsync() : new List<Transaction>();
     }
 
     public async Task<Transaction?> GetTransactionByIdAsync(int id)
     {
-        return await _context.Transactions.FirstAsync(x => x.Id == id);
+        return await context.Transactions.FirstAsync(x => x.Id == id);
     }
 
     public async Task<bool> AddTransaction(Transaction entry)
     {
         try
         {
-            var cashRegister = await _cashRegisterService.GetCashRegisterById(entry.CashRegisterID);
+            var cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterID);
             if (cashRegister == null)
             {
                 throw new Exception("Cash Register not found.");
@@ -46,22 +37,22 @@ public class TransactionService
 
             // Kontobewegung einbuchen
             cashRegister.CurrentBalance += entry.AccountMovement;
-            await _cashRegisterService.UpdateCashRegister(cashRegister);
+            await cashRegisterService.UpdateCashRegister(cashRegister);
 
             // Sonderposten verwalten
             if (entry.SpecialItemID.HasValue)
             {
-                var sonderposten = await _specialItemService.GetSonderpostenById(entry.SpecialItemID.Value);
+                var sonderposten = await specialItemService.GetSonderpostenById(entry.SpecialItemID.Value);
                 if (sonderposten == null)
                 {
                     throw new Exception("Special position not found.");
                 }
                 sonderposten.Betrag += entry.AccountMovement;
-                await _specialItemService.UpdateSonderposten(sonderposten);
+                await specialItemService.UpdateSonderposten(sonderposten);
             }
 
-            await _context.Transactions.AddAsync(entry);
-            await _context.SaveChangesAsync();
+            await context.Transactions.AddAsync(entry);
+            await context.SaveChangesAsync();
             return true;
         }
         catch (DbUpdateException dbEx)
@@ -80,13 +71,13 @@ public class TransactionService
     {
         try
         {
-            var existingTransaction = await _context.Transactions.AsNoTracking().FirstOrDefaultAsync(t => t.Id == entry.Id);
+            var existingTransaction = await context.Transactions.AsNoTracking().FirstOrDefaultAsync(t => t.Id == entry.Id);
             if (existingTransaction == null)
             {
                 throw new Exception("Transaction not found.");
             }
 
-            var cashRegister = await _cashRegisterService.GetCashRegisterById(entry.CashRegisterID);
+            var cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterID);
             if (cashRegister == null)
             {
                 throw new Exception("Cash Register not found.");
@@ -95,19 +86,19 @@ public class TransactionService
             // Adjust the balance for the existing transaction
             cashRegister.CurrentBalance -= existingTransaction.AccountMovement;
             cashRegister.CurrentBalance += entry.AccountMovement;
-            await _cashRegisterService.UpdateCashRegister(cashRegister);
+            await cashRegisterService.UpdateCashRegister(cashRegister);
 
             // Sonderposten verwalten
             if (entry.SpecialItemID.HasValue)
             {
-                var sonderposten = await _specialItemService.GetSonderpostenById(entry.SpecialItemID.Value);
+                var sonderposten = await specialItemService.GetSonderpostenById(entry.SpecialItemID.Value);
                 if (sonderposten == null)
                 {
                     throw new Exception("Sonderposten not found.");
                 }
                 sonderposten.Betrag -= existingTransaction.AccountMovement;
                 sonderposten.Betrag += entry.AccountMovement;
-                await _specialItemService.UpdateSonderposten(sonderposten);
+                await specialItemService.UpdateSonderposten(sonderposten);
             }
 
             // Update the transaction details
@@ -125,7 +116,7 @@ public class TransactionService
             existingTransaction.SpecialItem = entry.SpecialItem;
             existingTransaction.SpecialItemID = entry.SpecialItemID;
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             return true;
         }
         catch (DbUpdateException dbEx)
@@ -144,13 +135,13 @@ public class TransactionService
     {
         try
         {
-            var transaction = await _context.Transactions.FindAsync(id);
+            var transaction = await context.Transactions.FindAsync(id);
             if (transaction == null)
             {
                 throw new Exception("Transaction not found.");
             }
 
-            var cashRegister = await _cashRegisterService.GetCashRegisterById(transaction.CashRegisterID);
+            var cashRegister = await cashRegisterService.GetCashRegisterById(transaction.CashRegisterID);
             if (cashRegister == null)
             {
                 throw new Exception("Cash Register not found.");
@@ -158,21 +149,21 @@ public class TransactionService
 
             // Adjust the balance for the deleted transaction
             cashRegister.CurrentBalance -= transaction.AccountMovement;
-            await _cashRegisterService.UpdateCashRegister(cashRegister);
+            await cashRegisterService.UpdateCashRegister(cashRegister);
 
             if (transaction.SpecialItemID.HasValue)
             {
-                var sonderposten = await _specialItemService.GetSonderpostenById(transaction.SpecialItemID.Value);
+                var sonderposten = await specialItemService.GetSonderpostenById(transaction.SpecialItemID.Value);
                 if (sonderposten == null)
                 {
                     throw new Exception("Sonderposten not found.");
                 }
                 sonderposten.Betrag -= transaction.AccountMovement;
-                await _specialItemService.UpdateSonderposten(sonderposten);
+                await specialItemService.UpdateSonderposten(sonderposten);
             }
 
-            _context.Transactions.Remove(transaction);
-            await _context.SaveChangesAsync();
+            context.Transactions.Remove(transaction);
+            await context.SaveChangesAsync();
             return true;
         }
         catch (DbUpdateException dbEx)
@@ -189,11 +180,15 @@ public class TransactionService
 
     public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
     {
-        return await _exportService.ExportTransactionsToCsv(begin, end, filename);
+        return await exportService.ExportTransactionsToCsv(begin, end, filename);
+    }
+    public async Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
+    {
+        return await exportService.ExportBudgetToCsv(begin, end, filename);
     }
 
     public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename)
     {
-        return await _exportService.ExportTransactionsToPdf(begin, end, filename);
+        return await exportService.ExportTransactionsToPdf(begin, end, filename);
     }
 }

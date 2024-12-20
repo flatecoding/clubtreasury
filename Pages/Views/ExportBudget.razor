@@ -1,12 +1,14 @@
 @page "/exportbudget"
+@using System.Globalization
 @using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
 @using TTCCashRegister.Pages.Dialogs
 @inject TransactionService TransactionService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <h3>Export Data</h3>
-<MudPaper Class="mt-4" Style="width:80%;">
+<MudPaper Class="mt-4" Style="width:50%;">
     <MudTable Class="mt-2" Items="@_transactions" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true">
         <ToolBarContent>
             <MudButton Class = "ml-2"
@@ -18,10 +20,10 @@
             </MudButton>
         </ToolBarContent>
         <ColGroup>
-            <col />    @*Doc. Nr*@
-            <col />   @*Desciption*@
-            <col style="width: 30px;" />    @*Sum*@
-            <col style="width: 30px;" />    @*Acc. mvm.*@
+            <col style="width:200px;"/>    @*Cost unit*@
+            <col style="width:200px;"/>   @*Basic unit*@
+            <col />    @*Position details*@
+            <col style="width:100px;" />    @*Acc. mvm.*@
         </ColGroup>
         <HeaderContent>
             <MudTh>Cost unit</MudTh>
@@ -30,10 +32,10 @@
             <MudTh>Acc. mvm.</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Cost unit">@context.Date</MudTd>
-            <MudTd DataLabel="Position">@context.Documentnumber</MudTd>
-            <MudTd DataLabel="Position detail">@context.Description</MudTd>
-            <MudTd DataLabel="Acc. mvm.">@context.AccountMovement</MudTd>
+            <MudTd DataLabel="Cost unit">@context.CostUnit.CostUnitName</MudTd>
+            <MudTd DataLabel="Position">@context.BasicUnit.Name</MudTd>
+            <MudTd DataLabel="Position detail">@context.UnitDetails?.CostDetails</MudTd>
+            <MudTd DataLabel="Acc. mvm.">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
         </RowTemplate>
         <PagerContent>
             <MudTablePager />
