@@ -1,4 +1,5 @@
 ﻿@page "/specialitems"
+@using System.Globalization
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
 @using TTCCashRegister.Pages.Dialogs
@@ -44,7 +45,7 @@
         <RowTemplate>
             <MudTd DataLabel="Id">@context.Id</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="">@context.Betrag</MudTd>
+            <MudTd DataLabel="">@context.Betrag.ToString("C", CultureInfo.CurrentCulture)</MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditSpecialItemDialog(context.Id)"></MudIconButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteSpecialItemDialog(context.Id)">Delete</MudIconButton>

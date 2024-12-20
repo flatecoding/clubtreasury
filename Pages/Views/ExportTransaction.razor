@@ -1,5 +1,7 @@
 @page "/exportcashaudit"
+@using System.Globalization
 @using TTCCashRegister.Data.Models
+@using TTCCashRegister.Data.Services
 @using TTCCashRegister.Pages.Dialogs
 @inject TransactionService TransactionService
 @inject IDialogService DialogService
@@ -21,8 +23,8 @@
             <col style="width: 30px;" />    @*Date*@
             <col style="width: 80px;" />    @*Doc. Nr*@
             <col />   @*Desciption*@
-            <col style="width: 30px;" />    @*Sum*@
-            <col style="width: 30px;" />    @*Acc. mvm.*@
+            <col style="width: 100px;" />    @*Sum*@
+            <col style="width: 100px;" />    @*Acc. mvm.*@
         </ColGroup>
         <HeaderContent>
             <MudTh>Date</MudTh>
@@ -35,8 +37,8 @@
             <MudTd DataLabel="Date">@context.Date</MudTd>
             <MudTd DataLabel="Doc. Nr.">@context.Documentnumber</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
-            <MudTd DataLabel="Sum">@context.Sum</MudTd>
-            <MudTd DataLabel="Acc. mvm.">@context.AccountMovement</MudTd>
+            <MudTd DataLabel="Sum">@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+            <MudTd DataLabel="Acc. mvm.">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
         </RowTemplate>
         <PagerContent>
             <MudTablePager />

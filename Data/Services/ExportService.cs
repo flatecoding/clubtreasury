@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using TTCCashRegister.Data.Models;
 
 namespace TTCCashRegister.Data.Services
@@ -39,6 +41,17 @@ namespace TTCCashRegister.Data.Services
                                  .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
                                  .ToListAsync();
         }
+        
+        private async Task<List<Transaction>> GetBudgetByDateRange(DateTime begin, DateTime end)
+        {
+            return await _context.Transactions
+                .Include(t => t.CostUnit)
+                .Include(t => t.BasicUnit)
+                .ThenInclude(bu => bu.CostUnitDetails)
+                .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
+                .ToListAsync();
+        }
+
 
         public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
         {
@@ -146,12 +159,14 @@ namespace TTCCashRegister.Data.Services
                 {
                     Directory.CreateDirectory(folderPath);
                 }
-                var transactions = await GetTransactionsInDateRange(begin, end);
+                var budget = await GetBudgetByDateRange(begin, end);
 
                 var csv = new StringBuilder();
-                foreach (var transaction in transactions)
+                foreach (var bu in budget)
                 {
-                    csv.AppendLine($"{transaction.CostUnit};{transaction.BasicUnit};{transaction.UnitDetails};{transaction.AccountMovement}");
+                    var unitDetails = bu.UnitDetails != null ? bu.UnitDetails.CostDetails : "N/A";
+                    csv.AppendLine(
+                        $"{bu.CostUnit.CostUnitName};{bu.BasicUnit.Name};{unitDetails};{bu.AccountMovement}");
                 }
 
                 if (string.IsNullOrWhiteSpace(csv.ToString()))
