@@ -117,12 +117,12 @@
     private CashRegister _selectedCashRegister = new();
 
 
-    readonly Func<CashRegister, string> _cashRegisterConverter = p => p.Name;
+    readonly Func<CashRegister, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
     Func<DateTime, string> _dateOnlyConverter = d => d.ToString(CultureInfo.CurrentCulture);
-    readonly Func<CostUnit, string> _unitConverter = p => p.CostUnitName;
-    readonly Func<UnitDetails, string> _detailsConverter = d => d.CostDetails;
-    readonly Func<SpecialItem, string> _specialItemConverter = s => s.Name;
-    readonly Func<BasicUnit, string> _basicUnitConverter = b => b.Name;
+    readonly Func<CostUnit, string> _unitConverter = p => p?.CostUnitName ?? string.Empty;
+    readonly Func<UnitDetails, string> _detailsConverter = d => d?.CostDetails ??string.Empty;
+    readonly Func<SpecialItem, string> _specialItemConverter = s => s?.Name ?? string.Empty;
+    readonly Func<BasicUnit, string> _basicUnitConverter = b => b?.Name ?? string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
