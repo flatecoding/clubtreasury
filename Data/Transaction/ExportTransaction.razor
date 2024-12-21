@@ -1,8 +1,6 @@
 @page "/exportcashaudit"
 @using System.Globalization
-@using TTCCashRegister.Data.Models
-@using TTCCashRegister.Data.Services
-@using TTCCashRegister.Pages.Dialogs
+@using TTCCashRegister.Data.Transaction.Dialogs
 @inject TransactionService TransactionService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -47,7 +45,7 @@
 </MudPaper>
 
 @code {
-    private IEnumerable<Transaction>? _allEntries;
+    private IEnumerable<TransactionModel>? _allEntries;
     private const bool Dense = true;
     private const bool Hover = true;
     private const bool Striped = true;

@@ -9,9 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using TTCCashRegister.Data.Models;
 
 namespace TTCCashRegister.Data.Services
 {
@@ -35,14 +32,14 @@ namespace TTCCashRegister.Data.Services
             }
         }
 
-        private async Task<List<Transaction>> GetTransactionsInDateRange(DateTime begin, DateTime end)
+        private async Task<List<Transaction.TransactionModel>> GetTransactionsInDateRange(DateTime begin, DateTime end)
         {
             return await _context.Transactions
                                  .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
                                  .ToListAsync();
         }
         
-        private async Task<List<Transaction>> GetBudgetByDateRange(DateTime begin, DateTime end)
+        private async Task<List<Transaction.TransactionModel>> GetBudgetByDateRange(DateTime begin, DateTime end)
         {
             return await _context.Transactions
                 .Include(t => t.CostUnit)
