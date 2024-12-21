@@ -1,8 +1,6 @@
 ﻿@page "/transactions"
 @using System.Globalization
-@using TTCCashRegister.Data.Models
-@using TTCCashRegister.Data.Services
-@using TTCCashRegister.Pages.Dialogs
+@using TTCCashRegister.Data.Transaction.Dialogs
 @inject TransactionService TransactionService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -11,7 +9,7 @@
 <MudPaper Class="mt-4" Style="width:100%;">
     <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
               @bind-SelectedItem="_selectedItem"
-              Filter="new Func<Transaction,bool>(FilterFunc)"
+              Filter="new Func<TransactionModel,bool>(FilterFunc)"
               SortLabel="Sort By">
         <ToolBarContent>
             <MudButton Variant="Variant.Filled"
@@ -42,14 +40,14 @@
             <col />   @*Actions*@
         </ColGroup>
         <HeaderContent>
-            <MudTh><MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
-            <MudTh>Date<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Date ?? DateOnly.MinValue)"></MudTableSortLabel></MudTh>
-            <MudTh>Doc. Nr.<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Documentnumber)"></MudTableSortLabel></MudTh>
-            <MudTh>Description<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Description)"></MudTableSortLabel></MudTh>
-            <MudTh>Sum<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.Sum)"></MudTableSortLabel></MudTh>
-            <MudTh>Acc. mvm.<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.AccountMovement)"></MudTableSortLabel></MudTh>
-            <MudTh>Cost unit<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.CostUnit.CostUnitName)"></MudTableSortLabel></MudTh>
-            <MudTh>Position<MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.BasicUnit.Name)"></MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
+            <MudTh>Date<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Date ?? DateOnly.MinValue)"></MudTableSortLabel></MudTh>
+            <MudTh>Doc. Nr.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Documentnumber)"></MudTableSortLabel></MudTh>
+            <MudTh>Description<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Description)"></MudTableSortLabel></MudTh>
+            <MudTh>Sum<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Sum)"></MudTableSortLabel></MudTh>
+            <MudTh>Acc. mvm.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.AccountMovement)"></MudTableSortLabel></MudTh>
+            <MudTh>Cost unit<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.CostUnit.CostUnitName)"></MudTableSortLabel></MudTh>
+            <MudTh>Position<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.BasicUnit.Name)"></MudTableSortLabel></MudTh>
             <MudTh>Pos. details</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
@@ -75,13 +73,13 @@
 </MudPaper>
 
 @code {
-    private IEnumerable<Transaction>? _allEntries;
+    private IEnumerable<TransactionModel>? _allEntries;
     private const bool Dense = true;
     private const bool Hover = true;
     private const bool Striped = true;
     private const bool Bordered = false;
     private string _searchString1 = string.Empty;
-    private Transaction _selectedItem = new();
+    private TransactionModel _selectedItem = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,9 +87,9 @@
         _allEntries = await TransactionService.GetAllTransactions();
     }
 
-    private bool FilterFunc(Transaction? element) => FilterFunc1(element, _searchString1);
+    private bool FilterFunc(TransactionModel? element) => FilterFunc1(element, _searchString1);
 
-    private bool FilterFunc1(Transaction? element, string searchstring)
+    private bool FilterFunc1(TransactionModel? element, string searchstring)
     {
         if (string.IsNullOrWhiteSpace(searchstring))
             return true;
@@ -116,7 +114,7 @@
         if (result?.Data is bool success && success)
         {
             _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
-            Snackbar.Add("Cost unit was deleted successfully", Severity.Success);
+            Snackbar.Add("Transaction was added successfully", Severity.Success);
         }
         else if (result?.Canceled == true)
         {

@@ -2,6 +2,7 @@
 @using System.Globalization
 @using TTCCashRegister.Data.Models
 @using TTCCashRegister.Data.Services
+@using TTCCashRegister.Data.Transaction
 @using TTCCashRegister.Pages.Dialogs
 @inject TransactionService TransactionService
 @inject IDialogService DialogService
@@ -44,7 +45,7 @@
 </MudPaper>
 
 @code {
-    private IEnumerable<Transaction>? _transactions;
+    private IEnumerable<TransactionModel>? _transactions;
     private const bool Dense = true;
     private const bool Hover = true;
     private const bool Striped = true;

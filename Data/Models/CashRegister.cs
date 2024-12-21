@@ -10,11 +10,11 @@ namespace TTCCashRegister.Data.Models
         public string Name { get; set; } = string.Empty;
         [Column(TypeName = "decimal(10,2)")]
         public decimal CurrentBalance { get; set; } = decimal.Zero;
-        public ICollection<Transaction> Transactions { get; set; }
+        public ICollection<Transaction.TransactionModel> Transactions { get; set; }
 
         public CashRegister()
         {
-            Transactions = new List<Transaction>();
+            Transactions = new List<Transaction.TransactionModel>();
 
         }
     }
