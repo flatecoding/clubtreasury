@@ -7,6 +7,7 @@ using MudBlazor.Services;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
 using TTCCashRegister.Data.Services;
+using TTCCashRegister.Data.Transaction;
 
 
 var builder = WebApplication.CreateBuilder(args);
