@@ -24,13 +24,7 @@ public class TransactionService(
 
     public async Task<TransactionModel?> GetTransactionByIdAsync(int id)
     {
-        return await context.Transactions
-            .Include(t => t.CostUnit)
-            .Include(t => t.BasicUnit)
-            .Include(t => t.UnitDetails)
-            .Include(t => t.CashRegister)
-            .Include(t => t.SpecialItem)
-            .FirstOrDefaultAsync(t => t.Id == id);
+        return await context.Transactions.FirstAsync(x => x.Id == id);
     }
 
     public async Task<bool> AddTransaction(Data.Transaction.TransactionModel entry)
@@ -79,7 +73,7 @@ public class TransactionService(
     {
         try
         {
-            var existingTransaction = await GetTransactionByIdAsync(entry.Id);
+            var existingTransaction = await context.Transactions.AsNoTracking().FirstOrDefaultAsync(t => t.Id == entry.Id);
             if (existingTransaction == null)
             {
                 throw new Exception("Transaction not found.");
@@ -119,8 +113,6 @@ public class TransactionService(
             existingTransaction.Sum = entry.Sum;
             existingTransaction.CostUnit = entry.CostUnit;
             existingTransaction.BasicUnit = entry.BasicUnit;
-            existingTransaction.BasicUnit.CostUnit = entry.CostUnit;
-            existingTransaction.BasicUnit.CostUnitId = entry.CostUnitID;
             existingTransaction.UnitDetails = entry.UnitDetails;
             existingTransaction.UnitDetailsId = entry.UnitDetailsId;
             existingTransaction.SpecialItem = entry.SpecialItem;
@@ -136,7 +128,7 @@ public class TransactionService(
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error: {ex}");
+            Debug.WriteLine($"Error: {ex.Message}");
             return false;
         }
     }
