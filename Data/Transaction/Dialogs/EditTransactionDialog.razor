@@ -8,6 +8,7 @@
 @inject BasicUnitService BasicUnitService
 @inject SpecialItemService SpecialItemService
 @inject CashRegisterService CashRegisterService
+@inject UnitDetailService unitdetailservice
 
 <MudDialog>
     <DialogContent>
@@ -70,7 +71,7 @@
                        Label="Unit Details"
                        Disabled="@(string.IsNullOrEmpty(_selectedBasicUnit.Name))"
                        ToStringFunc="@_detailsconverter"
-                       @bind-Value="_selectedUnitDetails">
+                       @bind-Value="_selectedUnitDetail">
                 <MudSelectItem T="UnitDetails" Value="null">None</MudSelectItem>
                 @if (_unitDetails is not null)
                 {
@@ -112,7 +113,7 @@
     private IEnumerable<CashRegister> _cashRegisters = new List<CashRegister>();
     private CostUnit _selectedCostUnit = new();
     private BasicUnit _selectedBasicUnit = new();
-    private UnitDetails _selectedUnitDetails = new();
+    private UnitDetails? _selectedUnitDetail = new();
     private IEnumerable<SpecialItem> _specialItemList = new List<SpecialItem>();
     private SpecialItem? _selectedSpecialItem = new();
     private CashRegister? _selectedCashRegister = new();
@@ -151,16 +152,19 @@
             {
                 _transactionDateTime = _editTransactionModel.Date.Value.ToDateTime(new TimeOnly(0, 0));
             }
-
-            _costUnits = await CostUnitService.GetAllUnitsAsync();
-            _basicUnits = await BasicUnitService.GetAllBasicUnitsAsync();
+            
             _specialItemList = await SpecialItemService.GetAllSonderposten();
             _cashRegisters = await CashRegisterService.GetAllCashRegisters();
-
-            _selectedCashRegister = _cashRegisters.FirstOrDefault(c => c.ID == _editTransactionModel.CashRegisterID) ?? new CashRegister();
+            _costUnits = await CostUnitService.GetAllUnitsAsync();
             _selectedCostUnit = _costUnits.FirstOrDefault(c => c.Id == _editTransactionModel.CostUnitID) ?? new CostUnit();
+            
+            _basicUnits = await BasicUnitService.GetBasicUnitsByCostUnitIdAsync(_selectedCostUnit.Id);
             _selectedBasicUnit = _basicUnits.FirstOrDefault(b => b.Id == _editTransactionModel.BasicUnitID) ?? new BasicUnit();
+            _unitDetails = await unitdetailservice.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnit.Id);
+            _selectedUnitDetail = _unitDetails.FirstOrDefault(u => u.Id == _editTransactionModel.UnitDetailsId);
+            _selectedCashRegister = _cashRegisters.FirstOrDefault(c => c.ID == _editTransactionModel.CashRegisterID) ?? new CashRegister();
             _selectedSpecialItem = _specialItemList.FirstOrDefault(s => s.Id == _editTransactionModel.SpecialItemID);
+            
         }
         catch (Exception ex)
         {
@@ -170,17 +174,18 @@
 
     private async Task OnCostUnitChangedAsync()
     {
-        _basicUnits = _selectedCostUnit.BasicUnitDetails;
-        _selectedBasicUnit = new BasicUnit();
-        _unitDetails = new List<UnitDetails>();
-        _selectedUnitDetails = new UnitDetails();
+        _basicUnits = await BasicUnitService.GetBasicUnitsByCostUnitIdAsync(_selectedCostUnit.Id); 
+        _selectedBasicUnit = _basicUnits.FirstOrDefault(); 
+        // Wähle die erste BasicUnit standardmäßig 
+        await OnBasicUnitChangedAsync();
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task OnBasicUnitChangedAsync()
     {
-        _unitDetails = _selectedBasicUnit.CostUnitDetails;
-        _selectedUnitDetails = new();
+        _selectedBasicUnit = _basicUnits.FirstOrDefault(b => b.Id == _selectedCostUnit.Id) ?? new BasicUnit();
+        _unitDetails = await unitdetailservice.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnit.Id);
+        _selectedUnitDetail = _unitDetails.FirstOrDefault();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -204,17 +209,10 @@
 
             _editTransactionModel.CostUnitID = _selectedCostUnit.Id;
             _editTransactionModel.BasicUnitID = _selectedBasicUnit.Id;
-
-            if (_selectedUnitDetails is not null)
-            {
-              _editTransactionModel.UnitDetailsId = _selectedUnitDetails.Id;
-              _editTransactionModel.UnitDetails = _selectedUnitDetails;
-            }
-            if (_selectedSpecialItem is not null)
-            {
-                _editTransactionModel.SpecialItemID = _selectedSpecialItem.Id;
-                _editTransactionModel.SpecialItem = _selectedSpecialItem;
-            }
+            _editTransactionModel.UnitDetailsId = _selectedUnitDetail?.Id;
+            _editTransactionModel.UnitDetails = _selectedUnitDetail;
+            _editTransactionModel.SpecialItemID = _selectedSpecialItem?.Id;
+            _editTransactionModel.SpecialItem = _selectedSpecialItem;
 
             var success = await TransactionService.UpdateTransactionAsync(_editTransactionModelCopy);
             MudDialog.Close(DialogResult.Ok(success));

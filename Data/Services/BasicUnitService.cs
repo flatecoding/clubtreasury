@@ -27,6 +27,21 @@ namespace TTCCashRegister.Data.Services
                                  .Include(b => b.CostUnitDetails)
                                  .FirstOrDefaultAsync(b => b.Id == id);
         }
+        
+        public async Task<IEnumerable<BasicUnit>?> GetBasicUnitsByCostUnitIdAsync(int costunitId)
+        {
+            try
+            {
+                return await _context.BasicUnits
+                    .Where(x => x.CostUnit != null && x.CostUnit.Id == costunitId)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex}");
+                return null;
+            }
+        }
 
         public async Task<IEnumerable<BasicUnit>> GetAllBasicUnitsAsync()
         {

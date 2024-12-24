@@ -49,6 +49,21 @@ namespace TTCCashRegister.Data.Services
                 return null;
             }
         }
+        
+        public async Task<List<UnitDetails>?> GetUnitDetailsByBasicUnitAsync(int id)
+        {
+            try
+            {
+                return await _context.UnitDetails
+                    .Where(x => x.BasicUnit != null && x.BasicUnit.Id == id)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex}");
+                return null;
+            }
+        }
 
         public async Task<bool> UpdateUnitDetailsAsync(UnitDetails detail)
         {
