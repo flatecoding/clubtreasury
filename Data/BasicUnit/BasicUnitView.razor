@@ -1,0 +1,125 @@
+﻿@page "/basicunits"
+@using TTCCashRegister.Data.BasicUnit.Dialogs
+@using TTCCashRegister.Data.Source
+@inject BasicUnitService BasicUnitService
+@inject IDialogService DialogService
+@inject NotificationService NotificationService
+
+<h3>Basic Units</h3>
+
+<MudPaper Class="mt-4" Style="width:55%;">
+    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
+              @bind-SelectedItem="_selectedItem"
+              Filter="new Func<BasicUnitModel,bool>(FilterFunc)"
+              SortLabel="Sort By">
+        <ToolBarContent>
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Color="Color.Primary"
+                       OnClick="ShowAddBasicUnitDialog">
+                Add Basic Unit
+            </MudButton>
+            <MudSpacer />
+            <MudTextField @bind-Value="_searchString1"
+                          Placeholder="Search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0">
+            </MudTextField>
+        </ToolBarContent>
+        <ColGroup>
+            <col style="width: 20px;" />
+            <col style="width: 110px;" />
+            <col style="width: 110px;" />
+            <col style="width: 110px;" />
+        </ColGroup>
+        <HeaderContent>
+            <MudTh>Id<MudTableSortLabel SortBy="new Func<BasicUnitModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
+            <MudTh>Position<MudTableSortLabel SortBy="new Func<BasicUnitModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
+            <MudTh>Pos. details</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Details">
+                @if (context.CostUnitDetails.Any())
+                {
+                        @foreach (var detail in context.CostUnitDetails)
+                        {
+                           <li> @detail.CostDetails</li>
+                        }
+                }
+                else
+                {
+                    <em>No details assigned</em>
+                }
+
+            </MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" OnClick="() => ShowEditBasicUnitDialog(context.Id)"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" OnClick="() => ShowDeleteBasicUnitDialog(context.Id)">Delete</MudIconButton>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private IEnumerable<BasicUnitModel>? _allEntries;
+    private const bool Dense = true;
+    private const bool Hover = true;
+    private const bool Striped = true;
+    private const bool Bordered = false;
+    private string _searchString1 = string.Empty;
+    private BasicUnitModel _selectedItem = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _allEntries = await BasicUnitService.GetAllBasicUnitsAsync();
+    }
+
+    private bool FilterFunc(BasicUnitModel? element) => FilterFunc1(element, _searchString1);
+
+    private bool FilterFunc1(BasicUnitModel? element, string searchstring)
+    {
+        if (string.IsNullOrWhiteSpace(searchstring))
+            return true;
+        if (element == null || string.IsNullOrWhiteSpace(searchstring)) return false;
+        var lowerstring = searchstring.ToLowerInvariant();
+        return element.Name.ToLower().Contains(lowerstring);
+    }
+
+    private async Task ShowAddBasicUnitDialog()
+    {
+        var dialog = await DialogService.ShowAsync<AddBasicUnitDialog>("Add Basic Unit", new DialogParameters());
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
+    }
+
+    private async Task ShowEditBasicUnitDialog(int basicUnitId)
+    {
+        var dialog = await DialogService.ShowAsync<EditBasicUnitDialog>("Edit Basic Unit", 
+            new DialogParameters { ["BasicUnitId"] = basicUnitId });
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
+    }
+
+    private async Task ShowDeleteBasicUnitDialog(int basicUnitId)
+    {
+        var dialog = await DialogService.ShowAsync<DeleteBasicUnitDialog>("Delete Basic Unit", 
+            new DialogParameters { ["BasicUnitId"] = basicUnitId });
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
+    }
+    
+    private async Task UpdateView() 
+    {    
+        _allEntries = await BasicUnitService.GetAllBasicUnitsAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+}

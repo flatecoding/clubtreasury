@@ -1,0 +1,45 @@
+﻿@page "/editspecialitem"
+@inject SpecialItemService SpecialItemService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_editSpecialItem" Validation="_specialItemValidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_editSpecialItem.Name" Label="Name"
+                          For="@(() => _editSpecialItem.Name)" Immediate="true"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   OnClick="@(async () => await SaveSpecialItem())">Save</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int SpecialItemId { get; set; }
+    private MudForm _form = new();
+    private SpecialItemModel _editSpecialItem = new();
+    private readonly SpecialItemValidator _specialItemValidator = new();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editSpecialItem = await SpecialItemService.GetSonderpostenById(SpecialItemId) ?? new SpecialItemModel();
+    }
+
+    private async Task SaveSpecialItem()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            await SpecialItemService.UpdateSonderposten(_editSpecialItem);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

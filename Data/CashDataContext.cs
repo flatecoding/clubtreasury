@@ -1,22 +1,21 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TTCCashRegister.Data.Models;
+using TTCCashRegister.Data.CostUnit;
+using TTCCashRegister.Data.Transaction;
+using TTCCashRegister.Data.UnitDetail;
+using TTCCashRegister.Data.BasicUnit;
+using TTCCashRegister.Data.CashRegister;
+using TTCCashRegister.Data.SpecialItem;
 
 namespace TTCCashRegister.Data
 {
-    public class CashDataContext : DbContext
+    public class CashDataContext(DbContextOptions<CashDataContext> options) : DbContext(options)
     {
-        public DbSet<Transaction.TransactionModel> Transactions { get; set; }
-        public DbSet<CostUnit> CostUnits { get; set; }
-        public DbSet<CashRegister> CashRegisters { get; set; } = default!;
-        public DbSet<UnitDetails> UnitDetails { get; set; }
-        public DbSet<SpecialItem> SpecialItems { get; set; }
-        public DbSet<BasicUnit> BasicUnits { get; set; }
-
-        public CashDataContext(DbContextOptions<CashDataContext> options)
-           : base(options)
-        {
-        }
-
+        public DbSet<TransactionModel> Transactions { get; set; }
+        public DbSet<CostUnitModel> CostUnits { get; set; }
+        public DbSet<CashRegisterModel> CashRegisters { get; set; }
+        public DbSet<UnitDetailsModel> UnitDetails { get; set; }
+        public DbSet<SpecialItemModel> SpecialItems { get; set; }
+        public DbSet<BasicUnitModel> BasicUnits { get; set; }
     }
 
 }
