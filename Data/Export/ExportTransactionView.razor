@@ -1,0 +1,68 @@
+@page "/exportcashaudit"
+@using System.Globalization
+@using TTCCashRegister.Data.Export.Dialogs
+@using TTCCashRegister.Data.Source
+@using TTCCashRegister.Data.Transaction
+@using TTCCashRegister.Data.Transaction.Dialogs
+@inject TransactionService TransactionService
+@inject IDialogService DialogService
+@inject NotificationService NotificationService
+
+<h3>ExportTransactionView</h3>
+<MudPaper Class="mt-4" Style="width:50%;">
+    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true">
+        <ToolBarContent>
+            <MudButton Class = "ml-2"
+                       Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Download"
+                       Color="Color.Secondary"
+                       OnClick="ShowExportTransactionDialog">
+                Export Transactions
+            </MudButton>
+        </ToolBarContent>
+        <ColGroup>
+            <col style="width: 30px;" />    @*Date*@
+            <col style="width: 80px;" />    @*Doc. Nr*@
+            <col />   @*Desciption*@
+            <col style="width: 100px;" />    @*Sum*@
+            <col style="width: 100px;" />    @*Acc. mvm.*@
+        </ColGroup>
+        <HeaderContent>
+            <MudTh>Date</MudTh>
+            <MudTh>Doc. Nr.</MudTh>
+            <MudTh>Description</MudTh>
+            <MudTh>Sum</MudTh>
+            <MudTh>Acc. mvm.</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Date">@context.Date</MudTd>
+            <MudTd DataLabel="Doc. Nr.">@context.Documentnumber</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Sum">@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+            <MudTd DataLabel="Acc. mvm.">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private IEnumerable<TransactionModel>? _allEntries;
+    private const bool Dense = true;
+    private const bool Hover = true;
+    private const bool Striped = true;
+    private const bool Bordered = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _allEntries = await TransactionService.GetAllTransactions();
+    }
+
+    private async Task ShowExportTransactionDialog()
+    {
+        var dialog = await DialogService.ShowAsync<ExportTransactionDialog>("Export Transactions", new DialogParameters());
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+    }
+}

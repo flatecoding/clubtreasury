@@ -8,5 +8,4 @@ public static class UTools
             ? new DateTime(DateTime.Today.Year - 1, 7, 1)
             : new DateTime(DateTime.Today.Year, 7, 1);
     }
-    
 }
