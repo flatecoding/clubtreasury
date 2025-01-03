@@ -1,0 +1,79 @@
+﻿@page "/editcostunit"
+@using TTCCashRegister.Data.BasicUnit
+@using TTCCashRegister.Data.CostUnit
+@inject CostUnitService CostUnitservice
+@inject BasicUnitService BasicUnitservice
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_editCostUnitModelCopy" Validation="_costunitvalidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_editCostUnitModelCopy.CostUnitName" Label="Unit Name"
+                          For="@(() => _editCostUnitModelCopy.CostUnitName)" Immediate="true" />
+            <MudSelect T="int" Label="Basic Units" @bind-SelectedValues="_selectedBasicUnitIds" MultiSelection="true" ToStringFunc="Converter">
+                @foreach (var basicUnit in _allBasicUnits)
+                {
+                    <MudSelectItem T="int" Value="@basicUnit.Id">@basicUnit.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveCostUnit())">Save</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int CostUnitId { get; set; }
+    private MudForm _form = new();
+    private CostUnitModel _editCostUnitModel = new();
+    private CostUnitModel _editCostUnitModelCopy = new();
+    private readonly CostUnitValidator _costunitvalidator = new(); 
+    private IEnumerable<BasicUnitModel> _allBasicUnits = new List<BasicUnitModel>();
+    private IEnumerable<int> _selectedBasicUnitIds = new List<int>();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _allBasicUnits = await BasicUnitservice.GetAllBasicUnitsAsync();
+        // Load the existing CostUnit and its BasicUnits here
+        _editCostUnitModel = await CostUnitservice.GetCostUnitByIdAsync(CostUnitId) ?? new CostUnitModel();
+
+        _editCostUnitModelCopy = new CostUnitModel
+        {
+                Id = _editCostUnitModel.Id,
+                CostUnitName = _editCostUnitModel.CostUnitName,
+                BasicUnitDetails = new List<BasicUnitModel>(_editCostUnitModel.BasicUnitDetails)
+        };
+        _selectedBasicUnitIds = _editCostUnitModel.BasicUnitDetails.Select(bu => bu.Id).ToHashSet();
+    }
+
+    private async Task SaveCostUnit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            // Update the BasicUnitDetails based on selectedBasicUnitIds
+            _editCostUnitModel.CostUnitName = _editCostUnitModelCopy.CostUnitName;
+            _editCostUnitModel.BasicUnitDetails = _allBasicUnits.Where(bu => _selectedBasicUnitIds.Contains(bu.Id)).ToList();
+            await CostUnitservice.UpdateCostUnitAsync(_editCostUnitModel);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+
+    private string Converter(int value)
+    {
+        if (value == 0)
+        {
+            return "Please select a Basic Unit";
+        }
+        var basicUnit = _allBasicUnits.FirstOrDefault(bu => bu.Id == value);
+        return basicUnit?.Name ?? "Unknown";
+    }
+}

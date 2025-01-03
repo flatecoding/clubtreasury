@@ -1,6 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using TTCCashRegister.Data.Models;
+using TTCCashRegister.Data.BasicUnit;
+using TTCCashRegister.Data.CashRegister;
+using TTCCashRegister.Data.CostUnit;
+using TTCCashRegister.Data.SpecialItem;
+using TTCCashRegister.Data.UnitDetail;
 
 namespace TTCCashRegister.Data.Transaction
 {
@@ -21,24 +25,24 @@ namespace TTCCashRegister.Data.Transaction
         [Column(TypeName = "decimal(10,2)")]
         public decimal AccountMovement { get; set; } = decimal.Zero;
         [Required]
-        public int CostUnitID { get; set; }
-        [ForeignKey("CostUnitID")]
-        public CostUnit CostUnit { get; set; } = new();
+        public int CostUnitId { get; set; }
+        [ForeignKey("CostUnitId")]
+        public CostUnitModel CostUnit { get; set; } = new();
         [Required]
-        public int BasicUnitID { get; set; }
-        [ForeignKey("BasicUnitID")]
-        public BasicUnit BasicUnit { get; set; } = new();
+        public int BasicUnitId { get; set; }
+        [ForeignKey("BasicUnitId")]
+        public BasicUnitModel BasicUnit { get; set; } = new();
         public int? UnitDetailsId { get; set; } // Optional
         [ForeignKey("UnitDetailsId")]
-        public UnitDetails? UnitDetails { get; set; } // Optional
+        public UnitDetailsModel? UnitDetails { get; set; } // Optional
         [Required]
-        public int CashRegisterID { get; set; }
-        [ForeignKey("CashRegisterID")]
-        public CashRegister? CashRegister { get; set; }
-        public int? SpecialItemID { get; set; }
+        public int CashRegisterId { get; set; }
+        [ForeignKey("CashRegisterId")]
+        public CashRegisterModel? CashRegister { get; set; }
+        public int? SpecialItemId { get; set; }
 
-        [ForeignKey("SpecialItemID")]
-        public SpecialItem? SpecialItem { get; set; }
+        [ForeignKey("SpecialItemId")]
+        public SpecialItemModel? SpecialItem { get; set; }
 
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using TTCCashRegister.Data.Services;
+using TTCCashRegister.Data.CashRegister;
+using TTCCashRegister.Data.Export;
+using TTCCashRegister.Data.SpecialItem;
 
 namespace TTCCashRegister.Data.Transaction;
 
@@ -27,11 +29,11 @@ public class TransactionService(
         return await context.Transactions.FirstAsync(x => x.Id == id);
     }
 
-    public async Task<bool> AddTransaction(Data.Transaction.TransactionModel entry)
+    public async Task<bool> AddTransaction(TransactionModel entry)
     {
         try
         {
-            var cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterID);
+            var cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterId);
             if (cashRegister == null)
             {
                 throw new Exception("Cash Register not found.");
@@ -42,9 +44,9 @@ public class TransactionService(
             await cashRegisterService.UpdateCashRegister(cashRegister);
 
             // Sonderposten verwalten
-            if (entry.SpecialItemID.HasValue)
+            if (entry.SpecialItemId.HasValue)
             {
-                var sonderposten = await specialItemService.GetSonderpostenById(entry.SpecialItemID.Value);
+                var sonderposten = await specialItemService.GetSonderpostenById(entry.SpecialItemId.Value);
                 if (sonderposten == null)
                 {
                     throw new Exception("Special position not found.");
@@ -79,7 +81,7 @@ public class TransactionService(
                 throw new Exception("Transaction not found.");
             }
 
-            var cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterID);
+            var cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterId);
             if (cashRegister == null)
             {
                 throw new Exception("Cash Register not found.");
@@ -91,9 +93,9 @@ public class TransactionService(
             await cashRegisterService.UpdateCashRegister(cashRegister);
 
             // Sonderposten verwalten
-            if (entry.SpecialItemID.HasValue)
+            if (entry.SpecialItemId.HasValue)
             {
-                var sonderposten = await specialItemService.GetSonderpostenById(entry.SpecialItemID.Value);
+                var sonderposten = await specialItemService.GetSonderpostenById(entry.SpecialItemId.Value);
                 if (sonderposten == null)
                 {
                     throw new Exception("Sonderposten not found.");
@@ -105,7 +107,7 @@ public class TransactionService(
 
             // Update the transaction details
             existingTransaction.CashRegister = cashRegister;
-            existingTransaction.CashRegisterID = cashRegister.ID;
+            existingTransaction.CashRegisterId = cashRegister.ID;
             existingTransaction.Description = entry.Description;
             existingTransaction.AccountMovement = entry.AccountMovement;
             existingTransaction.Date = entry.Date;
@@ -116,7 +118,7 @@ public class TransactionService(
             existingTransaction.UnitDetails = entry.UnitDetails;
             existingTransaction.UnitDetailsId = entry.UnitDetailsId;
             existingTransaction.SpecialItem = entry.SpecialItem;
-            existingTransaction.SpecialItemID = entry.SpecialItemID;
+            existingTransaction.SpecialItemId = entry.SpecialItemId;
 
             await context.SaveChangesAsync();
             return true;
@@ -143,7 +145,7 @@ public class TransactionService(
                 throw new Exception("Transaction not found.");
             }
 
-            var cashRegister = await cashRegisterService.GetCashRegisterById(transaction.CashRegisterID);
+            var cashRegister = await cashRegisterService.GetCashRegisterById(transaction.CashRegisterId);
             if (cashRegister == null)
             {
                 throw new Exception("Cash Register not found.");
@@ -153,9 +155,9 @@ public class TransactionService(
             cashRegister.CurrentBalance -= transaction.AccountMovement;
             await cashRegisterService.UpdateCashRegister(cashRegister);
 
-            if (transaction.SpecialItemID.HasValue)
+            if (transaction.SpecialItemId.HasValue)
             {
-                var sonderposten = await specialItemService.GetSonderpostenById(transaction.SpecialItemID.Value);
+                var sonderposten = await specialItemService.GetSonderpostenById(transaction.SpecialItemId.Value);
                 if (sonderposten == null)
                 {
                     throw new Exception("Sonderposten not found.");

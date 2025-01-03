@@ -1,9 +1,10 @@
 ﻿@page "/transactions"
 @using System.Globalization
+@using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction.Dialogs
 @inject TransactionService TransactionService
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
+@inject NotificationService NotificationService
 
 <h3>Transactions</h3>
 <MudPaper Class="mt-4" Style="width:100%;">
@@ -107,66 +108,31 @@
 
     private async Task ShowAddTransactionDialog()
     {
-        var parameters = new DialogParameters();
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<AddTransactionDialog>("Add Transaction", parameters, options);
-        var result = await dialog.Result;
-        if (result?.Data is bool success && success)
-        {
-            _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
-            Snackbar.Add("Transaction was added successfully", Severity.Success);
-        }
-        else if (result?.Canceled == true)
-        {
-            Snackbar.Add("Transaction was cancelled", Severity.Warning);
-        }
-        else
-        {
-            Snackbar.Add("Transaction could not be added", Severity.Error);
-        }
+        var dialog = await DialogService.ShowAsync<AddTransactionDialog>("Add Transaction", new DialogParameters());
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
     }
 
     private async Task ShowEditTransactionDialog(int transactionId)
     {
-        var parameters = new DialogParameters { ["TransactionId"] = transactionId };
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<EditTransactionDialog>("Edit Transaction", parameters, options);
-        var result = await dialog.Result;
-        if (result?.Data is bool success && success)
-        {
-            _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
-            Snackbar.Add("Transaction was edited successfully", Severity.Success);
-        }
-        else if (result?.Canceled == true)
-        {
-            Snackbar.Add("Transaction edit was cancelled", Severity.Warning);
-        }
-        else
-        {
-            Snackbar.Add("Transaction could not be edited", Severity.Error);
-            _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
-        }
+        var dialog = await DialogService.ShowAsync<EditTransactionDialog>("Edit Transaction", 
+            new DialogParameters { ["TransactionId"] = transactionId });
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
     }
 
     private async Task ShowDeleteTransactionDialog(int transactionId)
     {
-        var parameters = new DialogParameters { ["TransactionId"] = transactionId };
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<DeleteTransactionDialog>("Delete Transaction", parameters, options);
-        var result = await dialog.Result;
-        if (result?.Data is bool success && success)
-        {
-            _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
-            Snackbar.Add("Transaction was deleted successfully", Severity.Success);
-            await InvokeAsync(StateHasChanged);
-        }
-        else if (result?.Canceled == true)
-        {
-            Snackbar.Add("Transaction delete was cancelled", Severity.Warning);
-        }
-        else
-        {
-            Snackbar.Add("Transaction could not be deleted", Severity.Error);
-        }
+        var dialog = await DialogService.ShowAsync<DeleteTransactionDialog>("Delete Transaction", 
+            new DialogParameters { ["TransactionId"] = transactionId });
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
     }
+    
+    private async Task UpdateView() 
+    {    
+        _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
+        await InvokeAsync(StateHasChanged);
+    }
+
 }
