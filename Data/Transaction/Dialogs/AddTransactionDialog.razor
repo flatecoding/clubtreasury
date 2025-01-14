@@ -7,6 +7,7 @@
 @using TTCCashRegister.Data.Transaction
 @using TTCCashRegister.Data.UnitDetail
 @inject TransactionService TransactionService
+@inject UnitDetailService UnitDetailService
 @inject CostUnitService CostUnitService
 @inject BasicUnitService BasicUnitService
 @inject SpecialItemService SpecialItemService
@@ -115,9 +116,9 @@
     private IEnumerable<CashRegisterModel>? _cashRegisters = new List<CashRegisterModel>();
     private CostUnitModel _selectedCostUnit = new();
     private BasicUnitModel _selectedBasicUnit = new();
-    private UnitDetailsModel _selectedUnitDetail = new();
+    private UnitDetailsModel? _selectedUnitDetail;
     private IEnumerable<SpecialItemModel> _specialItemList = new List<SpecialItemModel>();
-    private SpecialItemModel? _selectedSpecialItem = new();
+    private SpecialItemModel? _selectedSpecialItem;
     [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
     private CashRegisterModel _selectedCashRegisterModel = new();
 
@@ -146,17 +147,16 @@
 
     private async Task OnCostUnitChangedAsync()
     {
-        _basicUnits = _selectedCostUnit.BasicUnitDetails;
-        _selectedBasicUnit = new BasicUnitModel();
-        _unitDetails = new List<UnitDetailsModel>();
-        _selectedUnitDetail = new UnitDetailsModel();
-        await InvokeAsync(StateHasChanged); 
+        _basicUnits = await BasicUnitService.GetBasicUnitsByCostUnitIdAsync(_selectedCostUnit.Id);
+        _selectedBasicUnit = _basicUnits.FirstOrDefault();
+        await OnBasicUnitChangedAsync();
+        await InvokeAsync(StateHasChanged);
     }
-
+    
     private async Task OnBasicUnitChangedAsync()
     {
-        _unitDetails = _selectedBasicUnit.CostUnitDetails;
-        _selectedUnitDetail = new();
+        _unitDetails = await UnitDetailService.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnit.Id);
+        _selectedUnitDetail = _unitDetails.FirstOrDefault();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -164,11 +164,12 @@
     {
         await InvokeAsync(StateHasChanged);
     }
+    
 
     private async Task AddTransaction()
     {
         await _form.Validate();
-        if (_form.IsValid)
+        if ((_form.IsValid) && (IsProccesable()))
         {
             //Connect data
             _newTransactionModel.CashRegister = _selectedCashRegisterModel;
@@ -200,6 +201,11 @@
             else
                 MudDialog.Close(DialogResult.Ok(false));
         }
+    }
+
+    private bool IsProccesable()
+    {
+        return (_selectedCostUnit.Id >= 1) && (_selectedBasicUnit.Id >= 1);
     }
 
     private void Cancel()
