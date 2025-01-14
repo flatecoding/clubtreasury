@@ -177,7 +177,7 @@
 
     private async Task OnCostUnitChangedAsync()
     {
-        _basicUnits = await BasicUnitService.GetBasicUnitsByCostUnitIdAsync(_selectedCostUnitModel.Id); 
+        _basicUnits = await BasicUnitService.GetBasicUnitsByCostUnitIdAsync(_selectedCostUnitModel.Id);
         _selectedBasicUnitModel = _basicUnits.FirstOrDefault(); 
         // Wähle die erste BasicUnit standardmäßig 
         await OnBasicUnitChangedAsync();
@@ -186,7 +186,6 @@
 
     private async Task OnBasicUnitChangedAsync()
     {
-        _selectedBasicUnitModel = _basicUnits.FirstOrDefault(b => b.Id == _selectedCostUnitModel.Id) ?? new BasicUnitModel();
         _unitDetails = await Unitdetailservice.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnitModel.Id);
         _selectedUnitDetail = _unitDetails.FirstOrDefault();
         await InvokeAsync(StateHasChanged);
@@ -194,6 +193,8 @@
 
     private async Task OnCashRegisterChangedAsync()
     {
+        _editTransactionModelCopy.CashRegister = _selectedCashRegister;
+        _editTransactionModelCopy.CashRegisterId = _selectedCashRegister.ID;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -202,20 +203,18 @@
         await _form.Validate();
         if (_form.IsValid)
         {
-            _editTransactionModel.Description = _editTransactionModelCopy.Description;
-            _editTransactionModel.Sum = _editTransactionModelCopy.Sum;
-            _editTransactionModel.AccountMovement = _editTransactionModelCopy.AccountMovement;
             if (_transactionDateTime.HasValue)
             {
                 _editTransactionModelCopy.Date = DateOnly.FromDateTime(_transactionDateTime.Value);
             }
-
-            _editTransactionModel.CostUnitId = _selectedCostUnitModel.Id;
-            _editTransactionModel.BasicUnitId = _selectedBasicUnitModel.Id;
-            _editTransactionModel.UnitDetailsId = _selectedUnitDetail?.Id;
-            _editTransactionModel.UnitDetails = _selectedUnitDetail;
-            _editTransactionModel.SpecialItemId = _selectedSpecialItem?.Id;
-            _editTransactionModel.SpecialItem = _selectedSpecialItem;
+            _editTransactionModelCopy.CashRegister = _selectedCashRegister;
+            _editTransactionModelCopy.CashRegisterId = _selectedCashRegister.ID;
+            _editTransactionModelCopy.CostUnitId = _selectedCostUnitModel.Id;
+            _editTransactionModelCopy.BasicUnitId = _selectedBasicUnitModel.Id;
+            _editTransactionModelCopy.UnitDetailsId = _selectedUnitDetail?.Id;
+            _editTransactionModelCopy.UnitDetails = _selectedUnitDetail;
+            _editTransactionModelCopy.SpecialItemId = _selectedSpecialItem?.Id;
+            _editTransactionModelCopy.SpecialItem = _selectedSpecialItem;
 
             var success = await TransactionService.UpdateTransactionAsync(_editTransactionModelCopy);
             MudDialog.Close(DialogResult.Ok(success));

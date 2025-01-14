@@ -16,6 +16,20 @@ namespace TTCCashRegister.Data
         public DbSet<UnitDetailsModel> UnitDetails { get; set; }
         public DbSet<SpecialItemModel> SpecialItems { get; set; }
         public DbSet<BasicUnitModel> BasicUnits { get; set; }
-    }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<BasicUnitModel>()
+                .HasOne(b => b.CostUnit)
+                .WithMany(c => c.BasicUnitDetails)
+                .HasForeignKey(b => b.CostUnitId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CostUnitModel>()
+                .HasMany(c => c.BasicUnitDetails);
+
+
+        }
+    }
 }
