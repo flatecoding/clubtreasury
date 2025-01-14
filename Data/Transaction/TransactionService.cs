@@ -81,17 +81,29 @@ public class TransactionService(
                 throw new Exception("Transaction not found.");
             }
 
-            var cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterId);
-            if (cashRegister == null)
+            if ((existingTransaction.CashRegisterId != entry.CashRegisterId)
+                || (existingTransaction.AccountMovement != entry.AccountMovement))
             {
-                throw new Exception("Cash Register not found.");
+                CashRegisterModel cashRegister;
+                if (existingTransaction.CashRegisterId != entry.CashRegisterId)
+                {
+                    cashRegister = await cashRegisterService.GetCashRegisterById(existingTransaction.CashRegisterId);
+                    cashRegister.CurrentBalance -= existingTransaction.AccountMovement;
+                    await cashRegisterService.UpdateCashRegister(cashRegister);
+                    cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterId);
+                    existingTransaction.CashRegister = cashRegister;
+                    existingTransaction.CashRegisterId = cashRegister.ID;
+                    cashRegister.CurrentBalance += entry.AccountMovement;
+                }
+                else
+                {
+                    cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterId);
+                    cashRegister.CurrentBalance -= existingTransaction.AccountMovement;
+                    cashRegister.CurrentBalance += entry.AccountMovement;
+                }
+                await cashRegisterService.UpdateCashRegister(cashRegister);
             }
-
-            // Adjust the balance for the existing transaction
-            cashRegister.CurrentBalance -= existingTransaction.AccountMovement;
-            cashRegister.CurrentBalance += entry.AccountMovement;
-            await cashRegisterService.UpdateCashRegister(cashRegister);
-
+            
             // Sonderposten verwalten
             if (entry.SpecialItemId.HasValue)
             {
@@ -106,8 +118,6 @@ public class TransactionService(
             }
 
             // Update the transaction details
-            existingTransaction.CashRegister = cashRegister;
-            existingTransaction.CashRegisterId = cashRegister.ID;
             existingTransaction.Description = entry.Description;
             existingTransaction.AccountMovement = entry.AccountMovement;
             existingTransaction.Date = entry.Date;
