@@ -1,0 +1,45 @@
+﻿@page "/editcashregister"
+@using TTCCashRegister.Data.CashRegister
+@inject CashRegisterService CashRegisterService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_editCashRegisterModel" Validation="_cashRegisterValidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_editCashRegisterModel.Name" Label="Name"
+                          For="@(() => _editCashRegisterModel.Name)" Immediate="true"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveCashRegister())">Save</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int CashRegisterId { get; set; }
+    private MudForm _form = new();
+    private CashRegisterModel _editCashRegisterModel = new();
+    private readonly CashRegisterValidator _cashRegisterValidator = new();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editCashRegisterModel = await CashRegisterService.GetCashRegisterById(CashRegisterId) ?? new CashRegisterModel();
+    }
+
+    private async Task SaveCashRegister()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            await CashRegisterService.UpdateCashRegister(_editCashRegisterModel);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

@@ -1,0 +1,36 @@
+﻿@inject BasicUnitService BasicUnitService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_newBasicUnitModel" Validation="_basicUnitValidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_newBasicUnitModel.Name" Label="Name"
+                          For="@(() => _newBasicUnitModel.Name)" Immediate="true"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await AddBasicUnit())">Add</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    private MudForm _form = new();
+    private readonly BasicUnitModel _newBasicUnitModel = new();
+    private readonly BasicUnitValidator _basicUnitValidator= new ();
+
+    private async Task AddBasicUnit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            await BasicUnitService.AddBasicUnitAsync(_newBasicUnitModel);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

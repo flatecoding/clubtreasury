@@ -3,7 +3,10 @@
 <PageTitle>Club Cash</PageTitle>
 
 <MudThemeProvider @bind-IsDarkMode="@_darkmodeActive"/>
-<MudDialogProvider />
+<MudDialogProvider
+    CloseButton = "true" 
+    MaxWidth = "MaxWidth.Small"
+    FullWidth = "true"/>
 <MudSnackbarProvider />
 <MudPopoverProvider/>
 
