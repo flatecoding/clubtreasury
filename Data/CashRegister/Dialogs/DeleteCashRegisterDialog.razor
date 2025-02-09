@@ -1,0 +1,40 @@
+﻿@page "/deletecashregister"
+@inject CashRegisterService CashRegisterService
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6">Are you sure you want to delete this cash register?</MudText>
+        <MudText Typo="Typo.subtitle1">@_cashRegisterName</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteEntry">Delete</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int CashRegisterId { get; set; }
+    private string _cashRegisterName = string.Empty;
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var cashRegister = await CashRegisterService.GetCashRegisterById(CashRegisterId);
+        if (cashRegister != null)
+        {
+            _cashRegisterName = cashRegister.Name;
+        }
+    }
+
+    private async Task DeleteEntry()
+    {
+        var success = await CashRegisterService.DeleteCashRegister(CashRegisterId);
+        MudDialog.Close(success ? DialogResult.Ok(true) : DialogResult.Ok(false));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

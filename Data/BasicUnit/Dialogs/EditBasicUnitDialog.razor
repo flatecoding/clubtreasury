@@ -1,0 +1,44 @@
+﻿@page "/editbasicunit"
+@inject BasicUnitService Basicunitservice
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_editBasicUnitModel" Validation="_basicUnitValidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_editBasicUnitModel.Name" Label="Name"
+                          For="@(() => _editBasicUnitModel.Name)" Immediate="true"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveBasicUnit())">Save</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int BasicUnitId { get; set; }
+    private MudForm _form = new();
+    private BasicUnitModel _editBasicUnitModel = new();
+    private readonly BasicUnitValidator _basicUnitValidator = new();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editBasicUnitModel = await Basicunitservice.GetBasicUnitByIdAsync(BasicUnitId) ?? new BasicUnitModel();
+    }
+
+    private async Task SaveBasicUnit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            await Basicunitservice.UpdateBasicUnitAsync(_editBasicUnitModel);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}
