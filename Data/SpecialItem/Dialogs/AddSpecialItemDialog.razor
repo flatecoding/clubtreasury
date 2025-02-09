@@ -1,0 +1,38 @@
+﻿@page "/addspecialitem"
+@inject SpecialItemService SpecialItemService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_newSpecialItem" Validation="_specialItemValidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_newSpecialItem.Name" Label="Name"  
+                          For="@(() => _newSpecialItem.Name)" Immediate="true"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await AddSpecialItem())">Add</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private MudForm _form = new();
+    private readonly SpecialItemModel _newSpecialItem = new();
+    private readonly SpecialItemValidator _specialItemValidator = new();
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    private async Task AddSpecialItem()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            await SpecialItemService.AddSonderposten(_newSpecialItem);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

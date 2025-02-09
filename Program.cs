@@ -6,7 +6,14 @@ using MudBlazor;
 using MudBlazor.Services;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
-using TTCCashRegister.Data.Services;
+using TTCCashRegister.Data.BasicUnit;
+using TTCCashRegister.Data.CashRegister;
+using TTCCashRegister.Data.CostUnit;
+using TTCCashRegister.Data.Export;
+using TTCCashRegister.Data.Source;
+using TTCCashRegister.Data.SpecialItem;
+using TTCCashRegister.Data.Transaction;
+using TTCCashRegister.Data.UnitDetail;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,6 +50,7 @@ builder.Services.AddScoped<SpecialItemService>();
 builder.Services.AddScoped<CashRegisterService>();
 builder.Services.AddScoped<BasicUnitService>();
 builder.Services.AddScoped<ExportService>();
+builder.Services.AddScoped<NotificationService>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
