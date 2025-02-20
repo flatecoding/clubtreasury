@@ -75,7 +75,7 @@ public class TransactionService(
     {
         try
         {
-            var existingTransaction = await context.Transactions.AsNoTracking().FirstOrDefaultAsync(t => t.Id == entry.Id);
+            var existingTransaction = await context.Transactions.FirstOrDefaultAsync(t => t.Id == entry.Id);
             if (existingTransaction == null)
             {
                 throw new Exception("Transaction not found.");
@@ -129,7 +129,7 @@ public class TransactionService(
             existingTransaction.UnitDetailsId = entry.UnitDetailsId;
             existingTransaction.SpecialItem = entry.SpecialItem;
             existingTransaction.SpecialItemId = entry.SpecialItemId;
-
+            
             await context.SaveChangesAsync();
             return true;
         }
