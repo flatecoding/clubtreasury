@@ -9,6 +9,8 @@ using iText.Layout;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.EntityFrameworkCore;
+using TTCCashRegister.Data.Transaction;
+
 
 namespace TTCCashRegister.Data.Export
 {
@@ -32,14 +34,14 @@ namespace TTCCashRegister.Data.Export
             }
         }
 
-        private async Task<List<Transaction.TransactionModel>> GetTransactionsInDateRange(DateTime begin, DateTime end)
+        private async Task<List<TransactionModel>> GetTransactionsInDateRange(DateTime begin, DateTime end)
         {
             return await _context.Transactions
                                  .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
                                  .ToListAsync();
         }
-        
-        private async Task<List<Transaction.TransactionModel>> GetBudgetByDateRange(DateTime begin, DateTime end)
+       
+        private async Task<List<TransactionModel>> GetBudgetByDateRange(DateTime begin, DateTime end)
         {
             return await _context.Transactions
                 .Include(t => t.CostUnit)
@@ -49,8 +51,7 @@ namespace TTCCashRegister.Data.Export
                 .ToListAsync();
         }
 
-
-        public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
+       public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
         {
             try
             {
@@ -74,11 +75,9 @@ namespace TTCCashRegister.Data.Export
                     return false;
                 }
 
-                using (StreamWriter sw = new StreamWriter(fullPath))
-                {
-                    await sw.WriteLineAsync("Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung");
-                    await sw.WriteAsync(csv);
-                }
+                await using StreamWriter sw = new StreamWriter(fullPath);
+                await sw.WriteLineAsync("Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung");
+                await sw.WriteAsync(csv);
                 return true;
             }
             catch (Exception ex)
@@ -156,27 +155,52 @@ namespace TTCCashRegister.Data.Export
                 {
                     Directory.CreateDirectory(folderPath);
                 }
-                var budget = await GetBudgetByDateRange(begin, end);
+
+                var transactions = await GetBudgetByDateRange(begin, end);
+
+                var groupedTransactions = 
+                    transactions
+                    .GroupBy(t => t.CostUnit)
+                    .Select(costUnitGroup => new
+                    {
+                        CostUnit = costUnitGroup.Key,
+                        SummeCostUnit = costUnitGroup.Sum(t => t.AccountMovement),
+                        BasicUnits = costUnitGroup
+                        .GroupBy(t => t.BasicUnit)
+                        .Select(basicUnitGroup => new 
+                        {
+                            BasicUnit = basicUnitGroup.Key,
+                            SummeBasicUnit = basicUnitGroup.Sum(t => t.AccountMovement),
+                            UnitDetails = basicUnitGroup
+                                            .GroupBy(t => t.UnitDetails)
+                                            .Select(unitDetailGroup => new
+                                            {
+                                                UnitDetail = unitDetailGroup.Key,
+                                                SummeUnitDetails = unitDetailGroup.Sum(t => t.AccountMovement)
+                                            }).ToList()
+                        }).ToList()
+                    }).ToList();
 
                 var csv = new StringBuilder();
-                foreach (var bu in budget)
-                {
-                    var unitDetails = bu.UnitDetails != null ? bu.UnitDetails.CostDetails : "N/A";
-                    csv.AppendLine(
-                        $"{bu.CostUnit.CostUnitName};{bu.BasicUnit.Name};{unitDetails};{bu.AccountMovement}");
+                csv.AppendLine("Kostenstelle;Position;Details;Summe");
+
+                foreach (var costUnitGroup in groupedTransactions)
+                {   
+                    csv.AppendLine($"{costUnitGroup.CostUnit.CostUnitName};;;{costUnitGroup.SummeCostUnit.ToString("C", CultureInfo.CurrentCulture)}");
+                    foreach (var basicUnitGroup in costUnitGroup.BasicUnits)
+                    {
+                        csv.AppendLine($";{basicUnitGroup.BasicUnit.Name};;{basicUnitGroup.SummeBasicUnit.ToString("C", CultureInfo.CurrentCulture)}");
+                        foreach (var unitDetailGroup in basicUnitGroup.UnitDetails)
+                        {
+                            var unitDetailName = unitDetailGroup.UnitDetail != null ? unitDetailGroup.UnitDetail.CostDetails : "";
+                            csv.AppendLine($";;{unitDetailName};{unitDetailGroup.SummeUnitDetails.ToString("C", CultureInfo.CurrentCulture)}");
+                        }
+                    }
                 }
 
-                if (string.IsNullOrWhiteSpace(csv.ToString()))
-                {
-                    Console.WriteLine("Keine Daten für den Export vorhanden.");
-                    return false;
-                }
-                
-                await using (StreamWriter sw = new StreamWriter(fullPath))
-                {
-                    await sw.WriteLineAsync("Kostenstelle;Position;Details;Summe");
-                    await sw.WriteAsync(csv);
-                }
+                await using StreamWriter sw = new StreamWriter(fullPath);
+                await sw.WriteAsync(csv.ToString());
+
                 return true;
             }
             catch (Exception ex)
@@ -185,9 +209,10 @@ namespace TTCCashRegister.Data.Export
                 return false;
             }
         }
+       
+        
+        
+        
     }
-    
-    
-    
 }
 
