@@ -102,6 +102,13 @@
                 return true;
             if (element.Documentnumber.ToString().Contains(searchstring.ToLowerInvariant()))
                 return true;
+            if (element.CostUnit.CostUnitName.ToLower().Contains(searchstring.ToLowerInvariant()))
+                return true;
+            if (element.BasicUnit.Name.ToLower().Contains(searchstring.ToLowerInvariant()))
+                return true;
+            if (element.UnitDetails is not null)
+                if (element.UnitDetails.CostDetails.ToLower().Contains(searchstring.ToLowerInvariant()))
+                    return true;
         }
         return false;
     }
