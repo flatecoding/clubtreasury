@@ -5,18 +5,19 @@
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.h6">Import cost units</MudText>
+        <MudText Typo="Typo.subtitle1">Select a file to import cost units and positions</MudText>
         <MudForm>
-            <MudTextField @bind-Value="_fileName" Label="Filename" Placeholder="Select a filename" Required="true" />
             <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
                 <ActivatorContent>
-                    <MudButton Variant="Variant.Filled"
+                    <MudButton Class="mb-2"
+                               Variant="Variant.Filled"
                                Color="Color.Primary"
                                StartIcon="@Icons.Material.Filled.CloudUpload">
                         Upload Files
                     </MudButton>
                 </ActivatorContent>
             </MudFileUpload>
+            <MudTextField Disabled="true" @bind-Value="_fileName" Label="Filename" Placeholder="Select a filename" Required="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
