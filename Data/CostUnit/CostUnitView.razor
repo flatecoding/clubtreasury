@@ -93,8 +93,13 @@
         if (element is not null && !string.IsNullOrWhiteSpace(searchstring))
         {
             var lowerstring = searchstring.ToLowerInvariant();
-            if (element.CostUnitName is not null && element.CostUnitName.ToLower().Contains(lowerstring))
-                return true;
+            if (element.CostUnitName is not null)
+            {
+                if (element.CostUnitName.ToLower().Contains(lowerstring))
+                    return true;
+                if (element.BasicUnitDetails.Any(b => b.Name.ToLower().Contains(lowerstring)))
+                    return true;
+            }
         }
         return false;
     }
