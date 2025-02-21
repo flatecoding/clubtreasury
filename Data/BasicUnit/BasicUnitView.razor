@@ -90,8 +90,10 @@
         if (string.IsNullOrWhiteSpace(searchstring))
             return true;
         if (element == null || string.IsNullOrWhiteSpace(searchstring)) return false;
-        var lowerstring = searchstring.ToLowerInvariant();
-        return element.Name.ToLower().Contains(lowerstring);
+        if (element?.CostUnitDetails is not null &&
+            element.CostUnitDetails.Any(c => c.CostDetails.ToLower().Contains(searchstring.ToLowerInvariant())))
+            return true;
+        return element is not null && element.Name.ToLower().Contains(searchstring.ToLowerInvariant());
     }
 
     private async Task ShowAddBasicUnitDialog()
