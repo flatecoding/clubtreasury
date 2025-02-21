@@ -14,12 +14,13 @@ public class TransactionService(
 {
     public async Task<List<TransactionModel>?> GetAllTransactions()
     {
-        return context.Transactions is not null ? await context.Transactions
+        return await context.Transactions
             .Include(c => c.BasicUnit)
             .Include(d => d.CostUnit)
             .Include(u => u.UnitDetails)
             .OrderByDescending(x => x.Id)
-            .ToListAsync() : new List<TransactionModel>();
+            .AsNoTracking()
+            .ToListAsync();
     }
     
     

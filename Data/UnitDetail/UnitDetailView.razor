@@ -78,6 +78,8 @@
         {
             if (element.CostDetails.ToLower().Contains(searchstring.ToLowerInvariant()))
                 return true;
+            if (element.BasicUnit is not null && element.BasicUnit.Name.ToLower().Contains(searchstring.ToLowerInvariant()))
+            return true;
         }
         return false;
     }
