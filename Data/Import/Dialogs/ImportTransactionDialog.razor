@@ -1,0 +1,63 @@
+@page "/import-transaction-dialog"
+@using TTCCashRegister.Data.Source
+@using TTCCashRegister.Data.Transaction
+@inject ImportBookingJournalService ImportBookingJournalService
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.subtitle1">Select a file to import transactions</MudText>
+        <MudForm>
+            <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+                <ActivatorContent>
+                    <MudButton Class="mb-2"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.CloudUpload">
+                        Upload Files
+                    </MudButton>
+                </ActivatorContent>
+            </MudFileUpload>
+            <MudTextField Disabled="true" @bind-Value="_fileName" Label="Filename" Placeholder="Select a filename" Required="true"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ImportData">Import</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+    private string _fileName = string.Empty;
+    
+    private IBrowserFile _file;
+    private async Task UploadFiles(IBrowserFile file)
+    {
+        _file = file;
+        _fileName = file.Name;
+    }
+
+    private async Task ImportData()
+    {
+        if (_file != null)
+        {
+            try
+            {
+                await using var stream = _file.OpenReadStream();
+                var result = await ImportBookingJournalService.ImportTransactions(stream);
+                MudDialog.Close(DialogResult.Ok(result));
+            }
+            catch (Exception ex)
+            {
+                // Fehlerbehandlung
+                Console.WriteLine($"Fehler beim Importieren der Datei: {ex.Message}");
+                MudDialog.Close(DialogResult.Ok(false));
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

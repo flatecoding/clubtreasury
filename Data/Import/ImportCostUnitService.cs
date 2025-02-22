@@ -44,10 +44,24 @@ namespace TTCCashRegister.Data.Import
                 foreach (var line in lines)
                 {
                     var parts = line.Split('/');
-                    if (parts.Length != 2) continue;
-
-                    var costUnitName = parts[0].Trim();
-                    var positionName = parts[1].Trim();
+                    string costUnitName;
+                    string positionName;
+                    switch (parts.Length)
+                    {
+                        case 1:
+                        {
+                            costUnitName = parts[0].Trim();
+                            positionName = "Undefined"; 
+                        }
+                            break;
+                        case >= 2:
+                        {
+                            costUnitName = parts[0].Trim();
+                            positionName = parts[1].Trim();
+                        }
+                            break;
+                        default: continue;
+                    }
 
                     var costUnit = costUnits.FirstOrDefault(cu => cu.CostUnitName == costUnitName);
 

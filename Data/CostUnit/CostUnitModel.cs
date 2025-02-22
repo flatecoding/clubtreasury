@@ -15,6 +15,6 @@ namespace TTCCashRegister.Data.CostUnit
         public ICollection<BasicUnitModel> BasicUnitDetails { get; set; } = new List<BasicUnitModel>();
 
         [NotMapped]
-        public int BasicUnitDetailsCount => BasicUnitDetails?.Count ?? 0;
+        public int BasicUnitDetailsCount => BasicUnitDetails.Count;
     }
 }
