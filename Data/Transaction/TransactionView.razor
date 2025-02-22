@@ -29,19 +29,19 @@
             </MudTextField>
         </ToolBarContent>
         <ColGroup>
-            <col style="width: 20px;" />    @*ID*@
-            <col style="width: 30px;" />    @*Date*@
-            <col style="width: 80px;" />    @*Doc. Nr*@
-            <col />   @*Desciption*@
-            <col style="width: 100px;" />    @*Sum*@
-            <col style="width: 100px;" />    @*Acc. mvm.*@
-            <col />    @*Cost unit*@
+            <col style="width: 20px;" />    @*Date*@
+            <col style="width: 30px;" />    @*Doc. Nr*@
+            <col style="width: 400px;" />    @*Description*@
+            <col style="min-width: 40px; "/>   @*Sum*@
+            <col style="min-width: 40px;" />    @*Acc. mvm.*@
+            <col /> @*Cost unit*@    
             <col />    @*Basic unit*@
-            <col />   @*unit details*@
+            <col />   @*unit details*@ 
             <col />   @*Actions*@
+              
         </ColGroup>
         <HeaderContent>
-            <MudTh><MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
+            <MudTh Hidden="True"><MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
             <MudTh>Date<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Date ?? DateOnly.MinValue)"></MudTableSortLabel></MudTh>
             <MudTh>Doc. Nr.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Documentnumber)"></MudTableSortLabel></MudTh>
             <MudTh>Description<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Description)"></MudTableSortLabel></MudTh>
@@ -53,7 +53,7 @@
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd Hidden="true" DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Date">@context.Date</MudTd>
             <MudTd DataLabel="Doc. Nr.">@context.Documentnumber</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
