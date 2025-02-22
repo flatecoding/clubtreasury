@@ -53,6 +53,7 @@ builder.Services.AddScoped<BasicUnitService>();
 builder.Services.AddScoped<ExportService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ImportCostUnitService>();
+builder.Services.AddScoped<ImportBookingJournalService>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;

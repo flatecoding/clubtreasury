@@ -88,17 +88,20 @@ public class TransactionService(
                 CashRegisterModel cashRegister;
                 if (existingTransaction.CashRegisterId != entry.CashRegisterId)
                 {
-                    cashRegister = await cashRegisterService.GetCashRegisterById(existingTransaction.CashRegisterId);
+                    cashRegister = await cashRegisterService.GetCashRegisterById(existingTransaction.CashRegisterId) 
+                                   ?? throw new InvalidOperationException();
                     cashRegister.CurrentBalance -= existingTransaction.AccountMovement;
                     await cashRegisterService.UpdateCashRegister(cashRegister);
-                    cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterId);
+                    cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterId) 
+                                   ?? throw new InvalidOperationException();
                     existingTransaction.CashRegister = cashRegister;
                     existingTransaction.CashRegisterId = cashRegister.ID;
                     cashRegister.CurrentBalance += entry.AccountMovement;
                 }
                 else
                 {
-                    cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterId);
+                    cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterId) 
+                                   ?? throw new InvalidOperationException();
                     cashRegister.CurrentBalance -= existingTransaction.AccountMovement;
                     cashRegister.CurrentBalance += entry.AccountMovement;
                 }
