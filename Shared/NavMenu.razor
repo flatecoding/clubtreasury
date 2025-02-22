@@ -19,8 +19,12 @@
         <MudNavGroup Title="Import / Export data" Expanded="false" Icon="@Icons.Material.Filled.Save">
             <MudNavGroup Title="Import data">
                 <MudNavLink 
-                            OnClick="() => OpenImportDialog()"
-                            Icon="@Icons.Material.Filled.FileUpload">Cost units
+                    OnClick="() => OpenImportCostUnitDialog()"
+                    Icon="@Icons.Material.Filled.FileUpload">Cost units
+                </MudNavLink>
+                <MudNavLink
+                    OnClick="() => OpenImportTransactionDialog()"
+                    Icon="@Icons.Material.Filled.FileUpload">Booking journals
                 </MudNavLink>
             </MudNavGroup>
             <MudNavGroup Title="Export data">
@@ -42,11 +46,19 @@
         _collapseNavMenu = !_collapseNavMenu;
     }
     
-    private async Task OpenImportDialog()
+    private async Task OpenImportCostUnitDialog()
     {
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = DialogService.Show<ImportCostunits>("Import cost units", parameters, options);
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+    }
+    
+    private async Task OpenImportTransactionDialog()
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<ImportTransactionDialog>("Import transactions", parameters, options);
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
     }
     

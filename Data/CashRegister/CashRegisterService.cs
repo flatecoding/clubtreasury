@@ -2,36 +2,29 @@
 
 namespace TTCCashRegister.Data.CashRegister
 {
-    public class CashRegisterService
+    public class CashRegisterService(CashDataContext context)
     {
-        private readonly CashDataContext _context;
-
-        public CashRegisterService(CashDataContext context)
+        public async Task<List<CashRegisterModel>> GetAllCashRegisters()
         {
-            _context = context;
+            return await context.CashRegisters.ToListAsync();
         }
 
-        public async Task<List<CashRegister.CashRegisterModel>> GetAllCashRegisters()
+        public async Task<CashRegisterModel?> GetCashRegisterById(int id)
         {
-            return await _context.CashRegisters.ToListAsync();
+            return await context.CashRegisters.FindAsync(id);
         }
 
-        public async Task<CashRegister.CashRegisterModel?> GetCashRegisterById(int id)
+        public async Task<CashRegisterModel?> GetFirstEntry()
         {
-            return await _context.CashRegisters.FindAsync(id);
+            return await context.CashRegisters.FirstOrDefaultAsync();
         }
 
-        public async Task<CashRegister.CashRegisterModel?> GetFirstEntry()
-        {
-            return await _context.CashRegisters.FirstOrDefaultAsync();
-        }
-
-        public async Task<bool> AddCashRegister(CashRegister.CashRegisterModel cashRegisterModel)
+        public async Task<bool> AddCashRegister(CashRegisterModel cashRegisterModel)
         {
             try
             {
-                await _context.CashRegisters.AddAsync(cashRegisterModel);
-                await _context.SaveChangesAsync();
+                await context.CashRegisters.AddAsync(cashRegisterModel);
+                await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
@@ -41,12 +34,12 @@ namespace TTCCashRegister.Data.CashRegister
             }
         }
 
-        public async Task<bool> UpdateCashRegister(CashRegister.CashRegisterModel cashRegisterModel)
+        public async Task<bool> UpdateCashRegister(CashRegisterModel cashRegisterModel)
         {
             try
             {
-                _context.CashRegisters.Update(cashRegisterModel);
-                await _context.SaveChangesAsync();
+                context.CashRegisters.Update(cashRegisterModel);
+                await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
@@ -60,14 +53,14 @@ namespace TTCCashRegister.Data.CashRegister
         {
             try
             {
-                var cashRegister = await _context.CashRegisters.FindAsync(id);
+                var cashRegister = await context.CashRegisters.FindAsync(id);
                 if (cashRegister == null)
                 {
                     return false;
                 }
 
-                _context.CashRegisters.Remove(cashRegister);
-                await _context.SaveChangesAsync();
+                context.CashRegisters.Remove(cashRegister);
+                await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
