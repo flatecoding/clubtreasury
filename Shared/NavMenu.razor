@@ -58,7 +58,7 @@
     {
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<ImportTransactionDialog>("Import transactions", parameters, options);
+        var dialog = DialogService.Show<ImportTransactionDialog>("Import booking journal", parameters, options);
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
     }
     
