@@ -7,7 +7,7 @@
 @inject IDialogService DialogService
 @inject NotificationService NotificationService
 
-<h3>Export Data</h3>
+<h2>Export data for budget plan</h2>
 <MudPaper Class="mt-4" Style="width:50%;">
     <MudTable Class="mt-2" Items="@_transactions" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true">
         <ToolBarContent>
@@ -16,7 +16,7 @@
                        StartIcon="@Icons.Material.Filled.Download"
                        Color="Color.Secondary"
                        OnClick="ShowExportBudgetDialog">
-                Export Transactions
+                Export data
             </MudButton>
         </ToolBarContent>
         <ColGroup>

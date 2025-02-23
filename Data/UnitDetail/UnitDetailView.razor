@@ -4,7 +4,7 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
-<h3>Unit Details</h3>
+<h2>Position details</h2>
 <MudPaper Class="mt-4" Style="width:55%;">
     <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
               @bind-SelectedItem="_selectedItem"
@@ -15,7 +15,7 @@
                        StartIcon="@Icons.Material.Filled.Add"
                        Color="Color.Primary"
                        @onclick="ShowAddUnitDetailsDialog">
-                Add Unit Details
+                Add position details
             </MudButton>
             <MudSpacer />
             <MudTextField @bind-Value="_searchString1"

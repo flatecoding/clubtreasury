@@ -1,27 +1,26 @@
 @page "/import-transaction-dialog"
-@using TTCCashRegister.Data.Source
-@using TTCCashRegister.Data.Transaction
 @inject ImportBookingJournalService ImportBookingJournalService
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.subtitle1">Select a file to import transactions</MudText>
+        <MudText Typo="Typo.subtitle1">Select a file to import data from booking journal</MudText>
         <MudForm>
             <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
                 <ActivatorContent>
                     <MudButton Class="mb-2"
                                Variant="Variant.Filled"
                                Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.CloudUpload">
-                        Upload Files
+                               >
+                        Select file
                     </MudButton>
                 </ActivatorContent>
             </MudFileUpload>
-            <MudTextField Disabled="true" @bind-Value="_fileName" Label="Filename" Placeholder="Select a filename" Required="true"/>
+            <MudTextField Disabled="true" @bind-Value="_fileName" Label="Filename" Placeholder="Filename" Required="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ImportData">Import</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload"
+                   OnClick="ImportData">Import</MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
