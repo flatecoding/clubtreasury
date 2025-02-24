@@ -116,7 +116,11 @@ public class TransactionService(
                 {
                     throw new Exception("Sonderposten not found.");
                 }
-                sonderposten.Betrag -= existingTransaction.AccountMovement;
+                if(existingTransaction.SpecialItemId.HasValue && 
+                   existingTransaction.SpecialItemId.Value != entry.SpecialItemId.Value)
+                {
+                    sonderposten.Betrag -= existingTransaction.AccountMovement;
+                }
                 sonderposten.Betrag += entry.AccountMovement;
                 await specialItemService.UpdateSonderposten(sonderposten);
             }
