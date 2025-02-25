@@ -11,9 +11,14 @@ namespace TTCCashRegister.Data.BasicUnit
         public int Id { get; set; }
         [Required]
         public string Name { get; set; } = string.Empty;
-        public ICollection<UnitDetailsModel> CostUnitDetails { get; set; } = new List<UnitDetailsModel>();
+        public ICollection<UnitDetailsModel> CostUnitDetails { get; set; } =  new List<UnitDetailsModel>();
         public int? CostUnitId { get; set; }
         [ForeignKey("CostUnitId")]
         public CostUnitModel? CostUnit { get; set; }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

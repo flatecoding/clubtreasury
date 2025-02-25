@@ -20,6 +20,7 @@ namespace TTCCashRegister.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            
             modelBuilder.Entity<BasicUnitModel>()
                 .HasOne(b => b.CostUnit)
                 .WithMany(c => c.BasicUnitDetails)
@@ -28,8 +29,10 @@ namespace TTCCashRegister.Data
 
             modelBuilder.Entity<CostUnitModel>()
                 .HasMany(c => c.BasicUnitDetails);
-
-
+            modelBuilder.Entity<UnitDetailsModel>()
+                .HasMany(b => b.BasicUnits)
+                .WithMany(u => u.CostUnitDetails)
+                .UsingEntity(j => j.ToTable("PositionDetails"));
         }
     }
 }
