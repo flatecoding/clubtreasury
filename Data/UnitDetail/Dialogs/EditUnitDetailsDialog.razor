@@ -1,6 +1,6 @@
 ﻿@page "/editunitdetails"
+@using System.Diagnostics
 @using TTCCashRegister.Data.BasicUnit
-@using TTCCashRegister.Data.CostUnit
 @using TTCCashRegister.Data.UnitDetail
 @inject UnitDetailService UnitDetailService
 @inject BasicUnitService BasicUnitService
@@ -10,11 +10,13 @@
         <MudForm @ref="_form" Model="_editUnitDetailsModel" Validation="_unitDetailValidator.ValidateValue" ValidationDelay="0">
             <MudTextField @bind-Value="_editUnitDetailsModel.CostDetails" Label="Cost Details"
                           For="@(() => _editUnitDetailsModel.CostDetails)"/>
-            <MudSelect T="int" Label="Basic Unit" @bind-Value="_editUnitDetailsModel.BasicUnitId" 
-                       For="@(() => _editUnitDetailsModel.BasicUnitId)" ToStringFunc="Converter">
+            <MudSelect T="BasicUnitModel" Label="Basic Unit" 
+                       @bind-SelectedValues="_editUnitDetailsModel.BasicUnits" 
+                       MultiSelection="true"
+                       >
                 @foreach (var basicUnit in _allBasicUnits)
                 {
-                    <MudSelectItem T="int" Value="@basicUnit.Id">@basicUnit.Name</MudSelectItem>
+                    <MudSelectItem T="BasicUnitModel" Value="@basicUnit">@basicUnit.Name</MudSelectItem>
                 }
             </MudSelect>
         </MudForm>
@@ -36,23 +38,23 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _allBasicUnits = await BasicUnitService.GetAllBasicUnitsAsync();
-        _editUnitDetailsModel = await UnitDetailService.GetUnitDetailsByIdAsync(UnitDetailsId) ?? new UnitDetailsModel();
-    }
-/*
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
+        try
         {
-            await _form.Validate();
+            _allBasicUnits = await BasicUnitService.GetAllBasicUnitsAsync();
+            _editUnitDetailsModel = await UnitDetailService.GetUnitDetailsByIdAsync(UnitDetailsId) ?? new UnitDetailsModel();
         }
-    } */
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error initializing component: {ex.Message}");
+        }
+        
+    }
 
     private async Task SaveUnitDetails()
     {
         await _form.Validate();
         if (_form.IsValid)
-        {
+        { 
             await UnitDetailService.UpdateUnitDetailsAsync(_editUnitDetailsModel);
             MudDialog.Close(DialogResult.Ok(true));
         }
@@ -63,13 +65,4 @@
         MudDialog.Close(DialogResult.Cancel());
     }
 
-    private string Converter(int value)
-    {
-        if (value == 0)
-        {
-            return "Please select a Basic Unit";
-        }
-        var basicUnit = _allBasicUnits.FirstOrDefault(bu => bu.Id == value);
-        return basicUnit?.Name ?? "Unknown";
-    }
 }

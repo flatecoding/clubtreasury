@@ -10,8 +10,6 @@ namespace TTCCashRegister.Data.UnitDetail
         public int Id { get; set; }
         [Required]
         public string CostDetails { get; set; } = string.Empty;
-        public int BasicUnitId { get; set; }
-        [ForeignKey("BasicUnitId")]
-        public BasicUnitModel? BasicUnit { get; set; }
+        public IEnumerable<BasicUnitModel> BasicUnits { get; set; } = new List<BasicUnitModel>();
     }
 }

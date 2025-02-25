@@ -13,10 +13,10 @@ namespace TTCCashRegister.Data.UnitDetail
 
         public async Task<List<UnitDetailsModel>?> GetAllDetailsAsync()
         {
-            return _context.UnitDetails is not null ? await Queryable
-                                                                .OrderByDescending<UnitDetailsModel, int>(_context.UnitDetails
-                                                                    .Include(x => x.BasicUnit), c => c.Id)
-                                                                .ToListAsync() : new List<UnitDetailsModel>();
+            return await _context.UnitDetails
+                .Include(x => x.BasicUnits)
+                .OrderByDescending<UnitDetailsModel, int>(c => c.Id)
+                .ToListAsync();
         }
 
         public async Task<bool> AddUnitDetailAsync(UnitDetailsModel detailModel)
@@ -39,7 +39,7 @@ namespace TTCCashRegister.Data.UnitDetail
             try
             {
                 return await _context.UnitDetails
-                                     .Include(x => x.BasicUnit)
+                                     .Include(x => x.BasicUnits)
                                      .FirstOrDefaultAsync(x => x.Id == id);
             }
             catch (Exception ex)
@@ -54,7 +54,7 @@ namespace TTCCashRegister.Data.UnitDetail
             try
             {
                 return await _context.UnitDetails
-                    .Where(x => x.BasicUnit != null && x.BasicUnit.Id == id)
+                    .Where(ud => ud.BasicUnits.Any(bu => bu.Id == id))
                     .ToListAsync();
             }
             catch (Exception ex)

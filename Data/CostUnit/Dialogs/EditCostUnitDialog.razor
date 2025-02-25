@@ -9,7 +9,10 @@
         <MudForm @ref="_form" Model="_editCostUnitModelCopy" Validation="_costunitvalidator.ValidateValue" ValidationDelay="0">
             <MudTextField @bind-Value="_editCostUnitModelCopy.CostUnitName" Label="Unit Name"
                           For="@(() => _editCostUnitModelCopy.CostUnitName)" Immediate="true" />
-            <MudSelect T="int" Label="Basic Units" @bind-SelectedValues="_selectedBasicUnitIds" MultiSelection="true" ToStringFunc="Converter">
+            <MudSelect T="int" Label="Basic Units" 
+                       @bind-SelectedValues="_selectedBasicUnitIds" 
+                       MultiSelection="true" 
+                       ToStringFunc="Converter">
                 @foreach (var basicUnit in _allBasicUnits)
                 {
                     <MudSelectItem T="int" Value="@basicUnit.Id">@basicUnit.Name</MudSelectItem>
