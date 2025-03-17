@@ -41,7 +41,19 @@
         <RowTemplate>
             <MudTd DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Details">@context.CostDetails</MudTd>
-            <MudTd DataLabel="Basic position">@context?.BasicUnit?.Name</MudTd>
+            <MudTd DataLabel="Basic position">
+                @if (context?.BasicUnits is not null && context.BasicUnits.Any())
+                {
+                    @foreach (var detail in context.BasicUnits)
+                    {
+                        <li> @detail.Name</li>
+                    }
+                }
+                else
+                {
+                    <em>No details assigned</em>
+                }
+                </MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditUnitDetailsDialog(context.Id)"></MudIconButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteUnitDetailsDialog(context.Id)">Delete</MudIconButton>
@@ -78,8 +90,8 @@
         {
             if (element.CostDetails.ToLower().Contains(searchstring.ToLowerInvariant()))
                 return true;
-            if (element.BasicUnit is not null && element.BasicUnit.Name.ToLower().Contains(searchstring.ToLowerInvariant()))
-            return true;
+          //  if (element.BasicUnits is not null && element.BasicUnit.Name.ToLower().Contains(searchstring.ToLowerInvariant()))
+          //  return true;
         }
         return false;
     }

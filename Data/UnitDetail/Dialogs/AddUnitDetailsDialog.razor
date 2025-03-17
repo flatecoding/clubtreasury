@@ -10,11 +10,13 @@
         <MudForm @ref="_form" Model="_newDetailModel" Validation="_unitDetailValidator.ValidateValue" ValidationDelay="0">
             <MudTextField @bind-Value="_newDetailModel.CostDetails" Label="Detailed position"
                           For="@(() => _newDetailModel.CostDetails)"/>
-            <MudSelect T="int" Label="Basic Unit" @bind-Value="_newDetailModel.BasicUnitId" Placeholder="Select a basic position"
-                       For="@(() => _newDetailModel.BasicUnitId)">
+            <MudSelect T="BasicUnitModel" Label="Basic Unit"
+                       @bind-SelectedValues="_newDetailModel.BasicUnits"
+                       MultiSelection="true"
+            >
                 @foreach (var basicUnit in _allBasicUnits)
                 {
-                    <MudSelectItem T="int" Value="@basicUnit.Id">@basicUnit.Name</MudSelectItem>
+                    <MudSelectItem T="BasicUnitModel" Value="@basicUnit">@basicUnit.Name</MudSelectItem>
                 }
             </MudSelect>
         </MudForm>
