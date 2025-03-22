@@ -1,5 +1,4 @@
 using FluentValidation;
-using Pomelo.EntityFrameworkCore.MySql.Storage.Internal;
 
 namespace TTCCashRegister.Data.UnitDetail;
 
