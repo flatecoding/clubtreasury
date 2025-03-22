@@ -2,10 +2,12 @@
 using System.Globalization;
 using System.Text;
 using iText.IO.Font.Constants;
+using iText.IO.Image;
 using iText.Kernel.Font;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Layout;
+using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +40,14 @@ namespace TTCCashRegister.Data.Export
         {
             return await _context.Transactions
                                  .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
+                                 .Select(t => new TransactionModel
+                                 {
+                                     Date = t.Date,
+                                     Documentnumber = t.Documentnumber,
+                                     Description = t.Description,
+                                     Sum = t.Sum,
+                                     AccountMovement = t.AccountMovement
+                                 })
                                  .ToListAsync();
         }
        
@@ -100,7 +110,8 @@ namespace TTCCashRegister.Data.Export
                 var transactions = await GetTransactionsInDateRange(begin, end);
                 var writer = new PdfWriter(fullPath);
                 var pdf = new PdfDocument(writer);
-                var document = new Document(pdf, PageSize.A4.Rotate());
+                //var document = new Document(pdf, PageSize.A4.Rotate());
+                var document = new Document(pdf, PageSize.A4);
                 document.SetMargins(20, 30, 20, 30);
                 var font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
                 var bold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
@@ -108,23 +119,55 @@ namespace TTCCashRegister.Data.Export
                 table.SetWidth(UnitValue.CreatePercentValue(100));
 
                 // Header hinzufügen
-                document.Add(new Paragraph("Kassenbuch TTC Hagen")
-                    .SetFont(bold)
-                    .SetFontSize(20)
-                    .SetTextAlignment(TextAlignment.CENTER));
+                var imagepath = $"{Directory.GetCurrentDirectory()}{@"/wwwroot/images"}";
+                const string imagename = "Logo TTC Hagen.bmp";
+                var fullfilenamepath = System.IO.Path.Combine(imagepath, imagename);
+                if (File.Exists(fullfilenamepath))
+                {
+                    // Erstelle eine Tabelle mit einer Zeile und zwei Spalten
+                    Table headerTable = new Table(3);
+                    headerTable.SetWidth(UnitValue.CreatePercentValue(100)); // Setzt die Breite auf 100%
+                    //headerTable.SetBorder(Border.NO_BORDER);
 
-                document.Add(new Paragraph($"Zeitraum: {begin:dd.MM.yyyy} - {end:dd.MM.yyyy}")
-                    .SetFont(font)
-                    .SetFontSize(14)
-                    .SetTextAlignment(TextAlignment.CENTER));
+                    // Füge das Bild in die erste Zelle ein
+                    var img = new Image(ImageDataFactory.Create(fullfilenamepath));
+                    img.ScaleToFit(60, 60);
+                    Cell imageCell = new Cell(2,1).Add(img)
+                        .SetBorder(Border.NO_BORDER);
+                    headerTable.AddCell(imageCell);
+
+                    // Füge den Text in die zweite Zelle ein
+                    Paragraph title = new Paragraph("Kassenbuch TTC Hagen")
+                        .SetFont(bold)
+                        .SetFontSize(20)
+                        .SetTextAlignment(TextAlignment.CENTER);
+                    Cell titleCell = new Cell().Add(title).SetBorder(Border.NO_BORDER);
+                    headerTable.AddCell(titleCell);
+                    
+                    Cell imagerightside = new  Cell(2,1).Add(img)
+                        .SetBorder(Border.NO_BORDER)
+                        .SetHorizontalAlignment(HorizontalAlignment.LEFT);
+                    headerTable.AddCell(imagerightside);
+
+                    // Füge den Zeitraum in die zweite Zelle der zweiten Spalte ein
+                    Paragraph period = new Paragraph($"Zeitraum: {begin:dd.MM.yyyy} - {end:dd.MM.yyyy}")
+                        .SetFont(font)
+                        .SetFontSize(14)
+                        .SetTextAlignment(TextAlignment.CENTER);
+                    Cell periodCell = new Cell().Add(period).SetBorder(Border.NO_BORDER);
+                    headerTable.AddCell(periodCell);
+
+                    // Füge die Tabelle zum Dokument hinzu
+                    document.Add(headerTable);
+                }
 
                 document.Add(new Paragraph("\n")); // Leerzeile für Abstand
 
                 table.AddHeaderCell(new Cell().Add(new Paragraph("Datum").SetFont(bold)));
                 table.AddHeaderCell(new Cell().Add(new Paragraph("Belegnr.").SetFont(bold)));
                 table.AddHeaderCell(new Cell().Add(new Paragraph("Beschreibung.").SetFont(bold)));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Rechnungsbetrag").SetFont(bold)));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Kontobewegung").SetFont(bold)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Summe").SetFont(bold)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Konto").SetFont(bold)));
                 
                 foreach (var transaction in transactions)
                 {
