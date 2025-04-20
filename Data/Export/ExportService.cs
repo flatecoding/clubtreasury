@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using iText.IO.Font.Constants;
 using iText.IO.Image;
+using iText.Kernel.Colors;
 using iText.Kernel.Font;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
@@ -47,8 +48,7 @@ namespace TTCCashRegister.Data.Export
                                      Description = t.Description,
                                      Sum = t.Sum,
                                      AccountMovement = t.AccountMovement
-                                 })
-                                 .ToListAsync();
+                                 }).ToListAsync();
         }
        
         private async Task<List<TransactionModel>> GetBudgetByDateRange(DateTime begin, DateTime end)
@@ -108,6 +108,7 @@ namespace TTCCashRegister.Data.Export
                     Directory.CreateDirectory(folderPath);
                 }
                 var transactions = await GetTransactionsInDateRange(begin, end);
+                var orderedTransactions = transactions.OrderByDescending(t => t.Documentnumber).ToList();
                 var writer = new PdfWriter(fullPath);
                 var pdf = new PdfDocument(writer);
                 //var document = new Document(pdf, PageSize.A4.Rotate());
@@ -124,19 +125,18 @@ namespace TTCCashRegister.Data.Export
                 var fullfilenamepath = System.IO.Path.Combine(imagepath, imagename);
                 if (File.Exists(fullfilenamepath))
                 {
-                    // Erstelle eine Tabelle mit einer Zeile und zwei Spalten
+                    // Create a table with a row and two cells
                     Table headerTable = new Table(3);
-                    headerTable.SetWidth(UnitValue.CreatePercentValue(100)); // Setzt die Breite auf 100%
+                    headerTable.SetWidth(UnitValue.CreatePercentValue(100));
                     //headerTable.SetBorder(Border.NO_BORDER);
 
-                    // Füge das Bild in die erste Zelle ein
+                    // Add image in first row
                     var img = new Image(ImageDataFactory.Create(fullfilenamepath));
                     img.ScaleToFit(60, 60);
                     Cell imageCell = new Cell(2,1).Add(img)
                         .SetBorder(Border.NO_BORDER);
                     headerTable.AddCell(imageCell);
-
-                    // Füge den Text in die zweite Zelle ein
+                    
                     Paragraph title = new Paragraph("Kassenbuch TTC Hagen")
                         .SetFont(bold)
                         .SetFontSize(20)
@@ -162,21 +162,45 @@ namespace TTCCashRegister.Data.Export
                 }
 
                 document.Add(new Paragraph("\n")); // Leerzeile für Abstand
+                var headerColor = new DeviceRgb(221, 235, 247);
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Datum").SetFont(bold)).SetBackgroundColor(headerColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Belegnr.").SetFont(bold)).SetBackgroundColor(headerColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Beschreibung.").SetFont(bold)).SetBackgroundColor(headerColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Summe").SetFont(bold)).SetBackgroundColor(headerColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Konto").SetFont(bold)).SetBackgroundColor(headerColor));
 
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Datum").SetFont(bold)));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Belegnr.").SetFont(bold)));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Beschreibung.").SetFont(bold)));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Summe").SetFont(bold)));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Konto").SetFont(bold)));
-                
-                foreach (var transaction in transactions)
+                for (var i = 0; i < orderedTransactions.Count; i++)
                 {
-                    table.AddCell(new Cell().Add(new Paragraph(transaction.Date.ToString()).SetFont(font)));
-                    table.AddCell(new Cell().Add(new Paragraph(transaction.Documentnumber.ToString()).SetFont(font)));
-                    table.AddCell(new Cell().Add(new Paragraph(transaction.Description).SetFont(font)));
-                    table.AddCell(new Cell().Add(new Paragraph(transaction.Sum.ToString(CultureInfo.CurrentCulture)).SetFont(font)));
-                    table.AddCell(new Cell().Add(new Paragraph(transaction.AccountMovement.ToString(CultureInfo.CurrentCulture)).SetFont(font)));
+                    var transaction = orderedTransactions[i];
+                    Color rowColor = i % 2 == 0 ? new DeviceRgb(250, 250, 250): new DeviceRgb(220, 220, 220);
+                    var accColor = transaction.AccountMovement > 0 ? new DeviceRgb(0, 150, 0) 
+                        : new DeviceRgb(225,0, 0);
+                    table.AddCell(new Cell()
+                        .Add(new Paragraph(transaction.Date.ToString())
+                            .SetFont(font))
+                        .SetBackgroundColor(rowColor));
+                    table.AddCell(new Cell()
+                        .Add(new Paragraph(transaction.Documentnumber.ToString())
+                            .SetFont(font)
+                            .SetTextAlignment(TextAlignment.CENTER))
+                        .SetBackgroundColor(rowColor));
+                    table.AddCell(new Cell()
+                        .Add(new Paragraph(transaction.Description)
+                            .SetFont(font))
+                        .SetBackgroundColor(rowColor));
+                    table.AddCell(new Cell()
+                        .Add(new Paragraph(transaction.Sum.ToString(CultureInfo.CurrentCulture))
+                        .SetFont(font))
+                        .SetBackgroundColor(rowColor));
+                    table.AddCell(new Cell().Add(
+                        new Paragraph(transaction.AccountMovement.ToString(CultureInfo.CurrentCulture))
+                            .SetFont(font)
+                            .SetFontColor(accColor))
+                        .SetBackgroundColor(rowColor));
                 }
+                /*ToDo Add Summ Bills and account movements. Attention positiv and negative values. Can't be compared
+                 directly!!
+                 */
                 document.Add(table);
                 document.Close();
                 return true;
