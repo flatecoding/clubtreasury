@@ -60,13 +60,10 @@ namespace TTCCashRegister.Data.BasicUnit
         public async Task<bool> DeleteBasicUnitAsync(int id)
         {
             var unit = await _context.BasicUnits.FindAsync(id);
-            if (unit != null)
-            {
-                _context.BasicUnits.Remove(unit);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            return false;
+            if (unit is null) return false;
+            _context.BasicUnits.Remove(unit);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
