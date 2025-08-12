@@ -12,6 +12,10 @@
     <Content Remove="Pages\BusinessSectors\**" />
     <EmbeddedResource Remove="Pages\BusinessSectors\**" />
     <None Remove="Pages\BusinessSectors\**" />
+    <None Include="wwwroot\images\Logo TTC Hagen.bmp" />
+    <None Include="wwwroot\images\Logo TTC Hagen.eps" />
+    <None Include="wwwroot\images\Logo TTC Hagen.png" />
+    <None Include="wwwroot\images\Logo TTC Hagen.svg" />
   </ItemGroup>
 
   <ItemGroup>
