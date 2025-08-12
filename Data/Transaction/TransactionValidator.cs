@@ -1,4 +1,3 @@
-using System.Data;
 using FluentValidation;
 
 namespace TTCCashRegister.Data.Transaction;

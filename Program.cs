@@ -1,4 +1,6 @@
 //using Devart.Data.MySql;
+
+using System.Diagnostics;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,16 +22,31 @@ using TTCCashRegister.Data.UnitDetail;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMudServices();
 
+var loggerFactory = LoggerFactory.Create(loggingBuilder =>
+{
+    loggingBuilder.AddConsole();
+});
+var logger = loggerFactory.CreateLogger<Program>();
+
 // Add services to the container.
 builder.Services.AddDbContext<CashDataContext>(options =>
 {
     var configuration = builder.Configuration;
     configuration.AddUserSecrets<Program>();
-    var dbPassword = configuration["DbPassword"];
+    var dbPassword = Environment.GetEnvironmentVariable("DbPassword");
+    if (builder.Environment.IsDevelopment())
+    {
+        dbPassword = builder.Configuration["DbPassword"];
+    }
     var connectionString = builder.Configuration.GetConnectionString(builder.Environment.IsDevelopment() ? "DefaultConnection" : "ProductionConnection");
 
     if (connectionString is not null)
     {
+        if (dbPassword is null)
+        {
+            logger.LogInformation($"Password not found");
+            throw new Exception("Db password not found");
+        }
         connectionString = connectionString.Replace("{DbPassword}", dbPassword);
         options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
     }

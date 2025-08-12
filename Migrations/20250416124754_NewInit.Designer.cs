@@ -12,8 +12,8 @@ using TTCCashRegister.Data;
 namespace TTCCashRegister.Migrations
 {
     [DbContext(typeof(CashDataContext))]
-    [Migration("20250102122537_RefactorFolderStructure")]
-    partial class RefactorFolderStructure
+    [Migration("20250416124754_NewInit")]
+    partial class NewInit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,21 @@ namespace TTCCashRegister.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("BasicUnitModelUnitDetailsModel", b =>
+                {
+                    b.Property<int>("BasicUnitsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CostUnitDetailsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BasicUnitsId", "CostUnitDetailsId");
+
+                    b.HasIndex("CostUnitDetailsId");
+
+                    b.ToTable("PositionDetails", (string)null);
+                });
 
             modelBuilder.Entity("TTCCashRegister.Data.BasicUnit.BasicUnitModel", b =>
                 {
@@ -168,25 +183,36 @@ namespace TTCCashRegister.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BasicUnitId")
-                        .HasColumnType("int");
-
                     b.Property<string>("CostDetails")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BasicUnitId");
-
                     b.ToTable("UnitDetails");
+                });
+
+            modelBuilder.Entity("BasicUnitModelUnitDetailsModel", b =>
+                {
+                    b.HasOne("TTCCashRegister.Data.BasicUnit.BasicUnitModel", null)
+                        .WithMany()
+                        .HasForeignKey("BasicUnitsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TTCCashRegister.Data.UnitDetail.UnitDetailsModel", null)
+                        .WithMany()
+                        .HasForeignKey("CostUnitDetailsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.BasicUnit.BasicUnitModel", b =>
                 {
                     b.HasOne("TTCCashRegister.Data.CostUnit.CostUnitModel", "CostUnit")
                         .WithMany("BasicUnitDetails")
-                        .HasForeignKey("CostUnitId");
+                        .HasForeignKey("CostUnitId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CostUnit");
                 });
@@ -228,22 +254,6 @@ namespace TTCCashRegister.Migrations
                     b.Navigation("SpecialItem");
 
                     b.Navigation("UnitDetails");
-                });
-
-            modelBuilder.Entity("TTCCashRegister.Data.UnitDetail.UnitDetailsModel", b =>
-                {
-                    b.HasOne("TTCCashRegister.Data.BasicUnit.BasicUnitModel", "BasicUnit")
-                        .WithMany("CostUnitDetails")
-                        .HasForeignKey("BasicUnitId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BasicUnit");
-                });
-
-            modelBuilder.Entity("TTCCashRegister.Data.BasicUnit.BasicUnitModel", b =>
-                {
-                    b.Navigation("CostUnitDetails");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.CashRegister.CashRegisterModel", b =>
