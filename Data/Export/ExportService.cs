@@ -162,19 +162,19 @@ namespace TTCCashRegister.Data.Export
                 }
 
                 document.Add(new Paragraph("\n")); // Leerzeile für Abstand
-                var headerColor = new DeviceRgb(221, 235, 247);
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Datum").SetFont(bold)).SetBackgroundColor(headerColor));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Belegnr.").SetFont(bold)).SetBackgroundColor(headerColor));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Beschreibung.").SetFont(bold)).SetBackgroundColor(headerColor));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Summe").SetFont(bold)).SetBackgroundColor(headerColor));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Konto").SetFont(bold)).SetBackgroundColor(headerColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Datum").SetFont(bold)).SetBackgroundColor(PdfColors.HeaderColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Belegnr.").SetFont(bold)).SetBackgroundColor(PdfColors.HeaderColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Beschreibung.").SetFont(bold)).SetBackgroundColor(PdfColors.HeaderColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Summe").SetFont(bold)).SetBackgroundColor(PdfColors.HeaderColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Konto").SetFont(bold)).SetBackgroundColor(PdfColors.HeaderColor));
 
                 for (var i = 0; i < orderedTransactions.Count; i++)
                 {
                     var transaction = orderedTransactions[i];
-                    Color rowColor = i % 2 == 0 ? new DeviceRgb(250, 250, 250): new DeviceRgb(220, 220, 220);
-                    var accColor = transaction.AccountMovement > 0 ? new DeviceRgb(0, 150, 0) 
-                        : new DeviceRgb(225,0, 0);
+                    Color rowColor = i % 2 == 0 ? PdfColors.RowColorEven: PdfColors.RowColorOdd;
+                    var accColor = transaction.AccountMovement > 0 ? PdfColors.PositivSum 
+                        : PdfColors.NegativSum;
+                   
                     table.AddCell(new Cell()
                         .Add(new Paragraph(transaction.Date.ToString())
                             .SetFont(font))
