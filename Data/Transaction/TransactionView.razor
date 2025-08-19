@@ -44,7 +44,7 @@
             <MudTh Hidden="True"><MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
             <MudTh>Date<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Date ?? DateOnly.MinValue)"></MudTableSortLabel></MudTh>
             <MudTh>Doc. Nr.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Documentnumber)"></MudTableSortLabel></MudTh>
-            <MudTh>Description<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Description)"></MudTableSortLabel></MudTh>
+            <MudTh>Description<MudTableSortLabel SortBy="new Func<TransactionModel, object?>(x => x.Description)"></MudTableSortLabel></MudTh>
             <MudTh>Sum<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Sum)"></MudTableSortLabel></MudTh>
             <MudTh>Acc. mvm.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.AccountMovement)"></MudTableSortLabel></MudTh>
             <MudTh>Cost unit<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.CostUnit.CostUnitName)"></MudTableSortLabel></MudTh>
@@ -98,7 +98,7 @@
             return false;
         if (!string.IsNullOrWhiteSpace(searchstring))
         {
-            if (element.Description.ToLower().Contains(searchstring.ToLowerInvariant()))
+            if (element.Description != null && element.Description.ToLower().Contains(searchstring.ToLowerInvariant()))
                 return true;
             if (element.Documentnumber.ToString().Contains(searchstring.ToLowerInvariant()))
                 return true;

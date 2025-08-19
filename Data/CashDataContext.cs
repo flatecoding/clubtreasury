@@ -33,6 +33,12 @@ namespace TTCCashRegister.Data
                 .HasMany(b => b.BasicUnits)
                 .WithMany(u => u.CostUnitDetails)
                 .UsingEntity(j => j.ToTable("PositionDetails"));
+            
+            modelBuilder.Entity<TransactionModel>()
+                .HasOne(t => t.BasicUnit)
+                .WithMany()
+                .HasForeignKey(t => t.BasicUnitId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

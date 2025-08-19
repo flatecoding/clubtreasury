@@ -17,7 +17,7 @@ namespace TTCCashRegister.Data.Transaction
         public DateOnly? Date { get; set; } = new DateOnly();
         [Required]
         public int Documentnumber { get; set; }
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; } = string.Empty;
         [Required]
         [Column(TypeName = "decimal(10,2)")]
         public decimal Sum { get; set; } = decimal.Zero;
