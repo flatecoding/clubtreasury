@@ -3,9 +3,11 @@
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.subtitle1">Select a file to import data from booking journal</MudText>
+        <MudText Typo="Typo.subtitle1">Select a file to import data from booking journal. Table name must be "Buchungen"</MudText>
         <MudForm>
-            <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+            <MudFileUpload T="IBrowserFile" 
+                           FilesChanged="UploadFiles"
+                           Accept="*.xlsx/*.ods">
                 <ActivatorContent>
                     <MudButton Class="mb-2"
                                Variant="Variant.Filled"
@@ -19,8 +21,21 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload"
-                   OnClick="ImportData">Import</MudButton>
+        <MudButton OnClick="ImportData"
+                   Disabled="@isImporting"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary">
+            @if (isImporting)
+            {
+                <MudProgressCircular Size="Size.Medium" Class="mr-2" />
+                <a>Importing...</a>
+            }
+            else
+            {
+                <a>Import</a>
+            }
+        </MudButton>
+
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
@@ -30,16 +45,20 @@
     private string _fileName = string.Empty;
     
     private IBrowserFile _file;
-    private async Task UploadFiles(IBrowserFile file)
+    private Task UploadFiles(IBrowserFile file)
     {
         _file = file;
         _fileName = file.Name;
+        return Task.CompletedTask;
     }
+
+    private bool isImporting = false;
 
     private async Task ImportData()
     {
-        if (_file != null)
+        if (_file != null && !isImporting)
         {
+            isImporting = true;
             try
             {
                 await using var stream = _file.OpenReadStream();
@@ -48,9 +67,12 @@
             }
             catch (Exception ex)
             {
-                // Fehlerbehandlung
                 Console.WriteLine($"Fehler beim Importieren der Datei: {ex.Message}");
                 MudDialog.Close(DialogResult.Ok(false));
+            }
+            finally
+            {
+                isImporting = false;
             }
         }
     }
