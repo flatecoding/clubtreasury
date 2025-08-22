@@ -17,6 +17,7 @@ namespace TTCCashRegister.Data.Transaction
         public DateOnly? Date { get; set; } = new DateOnly();
         [Required]
         public int Documentnumber { get; set; }
+        [MaxLength(300)]
         public string? Description { get; set; } = string.Empty;
         [Required]
         [Column(TypeName = "decimal(10,2)")]
