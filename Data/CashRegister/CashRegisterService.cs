@@ -6,7 +6,9 @@ namespace TTCCashRegister.Data.CashRegister
     {
         public async Task<List<CashRegisterModel>> GetAllCashRegisters()
         {
-            return await context.CashRegisters.ToListAsync();
+            return await context.CashRegisters
+                .Include(t => t.Transactions)
+                .ToListAsync();
         }
 
         public async Task<CashRegisterModel?> GetCashRegisterById(int id)
