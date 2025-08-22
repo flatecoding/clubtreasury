@@ -27,7 +27,7 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     private MudForm _form = new();
     private readonly UnitDetailsModel _newDetailModel = new();
     private IEnumerable<BasicUnitModel> _allBasicUnits = new List<BasicUnitModel>();

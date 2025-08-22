@@ -19,7 +19,7 @@
     private MudForm _form = new();
     private readonly CostUnitValidator _costunitvalidator = new(); 
     private readonly CostUnitModel _newCostUnitModel = new();
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     
     private async Task AddCostUnit()
     {
