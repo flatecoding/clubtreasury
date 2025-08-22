@@ -21,6 +21,7 @@
   <ItemGroup>
     <PackageReference Include="Accelist.FluentValidation.Blazor" Version="4.0.0" />
     <PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
+    <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="8.2.4" />
     <PackageReference Include="ExcelDataReader" Version="3.7.0" />
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0" />
     <PackageReference Include="FluentValidation" Version="11.11.0" />
@@ -38,7 +39,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.6" />
-    <PackageReference Include="MudBlazor" Version="7.8.0" />
+    <PackageReference Include="MudBlazor" Version="8.11.0" />
     <PackageReference Include="MySqlConnector" Version="2.3.7" />
     <PackageReference Include="MySqlConnector.DependencyInjection" Version="2.3.6" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />

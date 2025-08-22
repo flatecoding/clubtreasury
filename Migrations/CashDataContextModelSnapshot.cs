@@ -142,7 +142,6 @@ namespace TTCCashRegister.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<int>("Documentnumber")
@@ -219,7 +218,7 @@ namespace TTCCashRegister.Migrations
                     b.HasOne("TTCCashRegister.Data.BasicUnit.BasicUnitModel", "BasicUnit")
                         .WithMany()
                         .HasForeignKey("BasicUnitId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("TTCCashRegister.Data.CashRegister.CashRegisterModel", "CashRegister")
