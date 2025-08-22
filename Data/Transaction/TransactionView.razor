@@ -12,6 +12,7 @@
               @bind-SelectedItem="_selectedItem"
               Filter="new Func<TransactionModel,bool>(FilterFunc)"
               SortLabel="Sort By">
+
         <ToolBarContent>
             <MudButton Variant="Variant.Filled"
                        StartIcon="@Icons.Material.Filled.Add"
@@ -19,29 +20,52 @@
                        OnClick="ShowAddTransactionDialog">
                 Add Transaction
             </MudButton>
+
             <MudSpacer />
+            
+            <MudDateRangePicker Label="Date Range"
+                                @bind-DateRange="_dateRange"
+                                Editable="true"
+                                DateFormat="dd.MM.yyyy"
+                                Class="mx-2" />
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       OnClick="ApplyDateFilter">
+                Apply Filter
+            </MudButton>
+
+            <MudSpacer />
+            
             <MudTextField @bind-Value="_searchString1"
                           Placeholder="Search"
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search"
                           IconSize="Size.Medium"
-                          Class="mt-0">
-            </MudTextField>
+                          Class="mt-0" />
+            
+            <MudSwitch @bind-Value="_useAndSearch"
+                       Color="Color.Primary"
+                       ThumbIcon="@Icons.Material.Filled.Done"
+                       Class="ml-4">
+                @(_useAndSearch ? "AND search" : "OR search")
+            </MudSwitch>
         </ToolBarContent>
+
+
         <ColGroup>
             <col style="width: 20px;" />    @*Date*@
             <col style="width: 30px;" />    @*Doc. Nr*@
-            <col style="width: 400px;" />    @*Description*@
-            <col style="min-width: 40px; "/>   @*Sum*@
-            <col style="min-width: 40px;" />    @*Acc. mvm.*@
-            <col /> @*Cost unit*@    
-            <col />    @*Basic unit*@
-            <col />   @*unit details*@ 
-            <col />   @*Actions*@
-              
+            <col style="width: 400px;" />   @*Description*@
+            <col style="min-width: 40px;"/> @*Sum*@
+            <col style="min-width: 40px;"/> @*Acc. mvm.*@
+            <col />                         @*Cost unit*@    
+            <col />                         @*Basic unit*@
+            <col />                         @*unit details*@ 
+            <col />                         @*Actions*@
         </ColGroup>
+
         <HeaderContent>
-            <MudTh Hidden="True"><MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
+            <MudTh hidden="True"><MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
             <MudTh>Date<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Date ?? DateOnly.MinValue)"></MudTableSortLabel></MudTh>
             <MudTh>Doc. Nr.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Documentnumber)"></MudTableSortLabel></MudTh>
             <MudTh>Description<MudTableSortLabel SortBy="new Func<TransactionModel, object?>(x => x.Description)"></MudTableSortLabel></MudTh>
@@ -52,8 +76,9 @@
             <MudTh>Pos. details</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
+
         <RowTemplate>
-            <MudTd Hidden="true" DataLabel="ID">@context.Id</MudTd>
+            <MudTd hidden="true" DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Date">@context.Date</MudTd>
             <MudTd DataLabel="Doc. Nr.">@context.Documentnumber</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
@@ -67,6 +92,7 @@
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" OnClick="() => ShowDeleteTransactionDialog(context.Id)"></MudIconButton>
             </MudTd>
         </RowTemplate>
+
         <PagerContent>
             <MudTablePager />
         </PagerContent>
@@ -81,6 +107,8 @@
     private const bool Bordered = false;
     private string _searchString1 = string.Empty;
     private TransactionModel _selectedItem = new();
+    private DateRange _dateRange = new DateRange(null, null);
+    private bool _useAndSearch = false; // Toggle für AND/OR-Suche
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,27 +120,49 @@
 
     private bool FilterFunc1(TransactionModel? element, string searchstring)
     {
-        if (string.IsNullOrWhiteSpace(searchstring))
-            return true;
         if (element is null)
             return false;
-        if (!string.IsNullOrWhiteSpace(searchstring))
-        {
-            if (element.Description != null && element.Description.ToLower().Contains(searchstring.ToLowerInvariant()))
-                return true;
-            if (element.Documentnumber.ToString().Contains(searchstring.ToLowerInvariant()))
-                return true;
-            if (element.CostUnit.CostUnitName.ToLower().Contains(searchstring.ToLowerInvariant()))
-                return true;
-            if (element.BasicUnit.Name.ToLower().Contains(searchstring.ToLowerInvariant()))
-                return true;
-            if (element.UnitDetails is not null)
-                if (element.UnitDetails.CostDetails.ToLower().Contains(searchstring.ToLowerInvariant()))
-                    return true;
-        }
-        return false;
-    }
 
+        if (string.IsNullOrWhiteSpace(searchstring))
+            return true;
+
+        // Begriffe splitten (Leerzeichen als Trenner)
+        var terms = searchstring
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(t => t.ToLowerInvariant())
+            .ToList();
+
+        // Prüffunktion für ein einzelnes Suchwort
+        bool Matches(string term) =>
+            (element.Description?.ToLower().Contains(term) == true) ||
+            element.Documentnumber.ToString().Contains(term) ||
+            element.CostUnit.CostUnitName.ToLower().Contains(term) ||
+            element.BasicUnit.Name.ToLower().Contains(term) ||
+            (element.UnitDetails != null && element.UnitDetails.CostDetails.ToLower().Contains(term));
+
+        // ODER-Suche (irgendein Begriff passt) oder UND-Suche (alle Begriffe müssen passen)
+        return _useAndSearch
+            ? terms.All(Matches) // AND
+            : terms.Any(Matches); // OR
+    }
+    
+    private async Task ApplyDateFilter()
+    {
+        if (_dateRange.Start.HasValue && _dateRange.End.HasValue)
+        {
+            var start = _dateRange.Start.Value.Date;
+            var end = _dateRange.End.Value.Date;
+
+            _allEntries = await TransactionService.GetTransactionsByDateRange(start, end);
+        }
+        else
+        {
+            _allEntries = await TransactionService.GetAllTransactions();
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+    
     private async Task ShowAddTransactionDialog()
     {
         var dialog = await DialogService.ShowAsync<AddTransactionDialog>("Add Transaction", new DialogParameters());
@@ -122,7 +172,7 @@
 
     private async Task ShowEditTransactionDialog(int transactionId)
     {
-        var dialog = await DialogService.ShowAsync<EditTransactionDialog>("Edit Transaction", 
+        var dialog = await DialogService.ShowAsync<EditTransactionDialog>("Edit Transaction",
             new DialogParameters { ["TransactionId"] = transactionId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
@@ -130,16 +180,15 @@
 
     private async Task ShowDeleteTransactionDialog(int transactionId)
     {
-        var dialog = await DialogService.ShowAsync<DeleteTransactionDialog>("Delete Transaction", 
+        var dialog = await DialogService.ShowAsync<DeleteTransactionDialog>("Delete Transaction",
             new DialogParameters { ["TransactionId"] = transactionId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
-    
-    private async Task UpdateView() 
-    {    
-        _allEntries = TransactionService is not null ? await TransactionService.GetAllTransactions() : null;
+
+    private async Task UpdateView()
+    {
+        _allEntries = await TransactionService.GetAllTransactions();
         await InvokeAsync(StateHasChanged);
     }
-
 }

@@ -7,8 +7,6 @@
         <MudForm @ref="_form" Model="_newCashRegisterModel" Validation="_cashRegisterValidator.ValidateValue" ValidationDelay="0">
             <MudTextField @bind-Value="_newCashRegisterModel.Name" Label="Name"
                           For="@(() => _newCashRegisterModel.Name)" Immediate="true"/>
-            <MudTextField @bind-Value="_newCashRegisterModel.CurrentBalance" Label="Current balance"
-                          For="@(() => _newCashRegisterModel.CurrentBalance)" Immediate="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
@@ -22,7 +20,7 @@
     private readonly CashRegisterModel _newCashRegisterModel = new();
     private readonly CashRegisterValidator _cashRegisterValidator = new();
 
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     private async Task AddEntry()
     {

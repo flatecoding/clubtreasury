@@ -17,7 +17,7 @@
     [Parameter] public int CostUnitId { get; set; }
     private string _costUnitName = string.Empty;
 
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {

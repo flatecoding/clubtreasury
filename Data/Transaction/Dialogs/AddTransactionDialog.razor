@@ -32,12 +32,31 @@
                     }
                 }
             </MudSelect>
-            <MudDatePicker @bind-Date="@TransactionDateTime" Label="Date" Required="true" RequiredError="Date is required." />
-            <MudTextField @bind-Value="_newTransactionModel.Documentnumber" Label="Document Number" For="@(() => _newTransactionModel.Documentnumber)" Immediate="true" />
-            <MudTextField @bind-Value="_newTransactionModel.Description" Label="Description" For="@(() => _newTransactionModel.Description)" Immediate="true"/>
-            <MudTextField @bind-Value="_newTransactionModel.Sum" Label="Sum" For="@(() => _newTransactionModel.Sum)" Immediate="true"/>
-            <MudTextField @bind-Value="_newTransactionModel.AccountMovement" Label="Account Movement" For="@(() => _newTransactionModel.AccountMovement)" Immediate="true"/>
-            
+            <MudDatePicker 
+                @bind-Date="@TransactionDateTime"
+                Editable="true" 
+                Label="Date" 
+                Required="true" 
+                RequiredError="Date is required."/>
+            <MudTextField 
+                @bind-Value="_newTransactionModel.Documentnumber" 
+                Label="Document Number" 
+                For="@(() => _newTransactionModel.Documentnumber)" 
+                Immediate="true" />
+            <MudTextField 
+                @bind-Value="_newTransactionModel.Description" 
+                Label="Description" 
+                For="@(() => _newTransactionModel.Description)" 
+                Immediate="true"/>
+            <MudTextField 
+                @bind-Value="_newTransactionModel.Sum"
+                Label="Sum" For="@(() => _newTransactionModel.Sum)" 
+                Immediate="true"/>
+            <MudTextField 
+                @bind-Value="_newTransactionModel.AccountMovement"
+                Label="Account Movement" 
+                For="@(() => _newTransactionModel.AccountMovement)" 
+                Immediate="true"/>
             <MudSelect T="CostUnitModel" 
                 Label="Cost Unit" 
                 Required="true" 
@@ -119,7 +138,7 @@
     private UnitDetailsModel? _selectedUnitDetail;
     private IEnumerable<SpecialItemModel> _specialItemList = new List<SpecialItemModel>();
     private SpecialItemModel? _selectedSpecialItem;
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     private CashRegisterModel _selectedCashRegisterModel = new();
 
 
@@ -173,7 +192,7 @@
         {
             //Connect data
             _newTransactionModel.CashRegister = _selectedCashRegisterModel;
-            _newTransactionModel.CashRegisterId = _selectedCashRegisterModel.ID;
+            _newTransactionModel.CashRegisterId = _selectedCashRegisterModel.Id;
             if (TransactionDateTime.HasValue)
             {
                 _newTransactionModel.Date = DateOnly.FromDateTime(TransactionDateTime.Value);

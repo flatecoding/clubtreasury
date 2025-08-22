@@ -19,7 +19,7 @@
     private readonly SpecialItemModel _newSpecialItem = new();
     private readonly SpecialItemValidator _specialItemValidator = new();
 
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     private async Task AddSpecialItem()
     {
