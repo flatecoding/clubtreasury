@@ -23,8 +23,18 @@ public class TransactionService(
             .ToListAsync();
     }
     
+    public async Task<IEnumerable<TransactionModel>> GetTransactionsByDateRange(DateTime start, DateTime end)
+    {
+        return await context.Transactions
+            .Include(t => t.CostUnit)
+            .Include(t => t.BasicUnit)
+            .Include(t => t.UnitDetails)
+            .Where(t => t.Date.HasValue &&
+                        t.Date.Value >= DateOnly.FromDateTime(start) &&
+                        t.Date.Value <= DateOnly.FromDateTime(end))
+            .ToListAsync();
+    }
     
-
     public async Task<TransactionModel?> GetTransactionByIdAsync(int id)
     {
         return await context.Transactions.FirstAsync(x => x.Id == id);
@@ -39,10 +49,6 @@ public class TransactionService(
             {
                 throw new Exception("Cash Register not found.");
             }
-
-            // Kontobewegung einbuchen
-            cashRegister.CurrentBalance += entry.AccountMovement;
-            await cashRegisterService.UpdateCashRegister(cashRegister);
 
             // Sonderposten verwalten
             if (entry.SpecialItemId.HasValue)
@@ -80,32 +86,6 @@ public class TransactionService(
             if (existingTransaction == null)
             {
                 throw new Exception("Transaction not found.");
-            }
-
-            if ((existingTransaction.CashRegisterId != entry.CashRegisterId)
-                || (existingTransaction.AccountMovement != entry.AccountMovement))
-            {
-                CashRegisterModel cashRegister;
-                if (existingTransaction.CashRegisterId != entry.CashRegisterId)
-                {
-                    cashRegister = await cashRegisterService.GetCashRegisterById(existingTransaction.CashRegisterId) 
-                                   ?? throw new InvalidOperationException();
-                    cashRegister.CurrentBalance -= existingTransaction.AccountMovement;
-                    await cashRegisterService.UpdateCashRegister(cashRegister);
-                    cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterId) 
-                                   ?? throw new InvalidOperationException();
-                    existingTransaction.CashRegister = cashRegister;
-                    existingTransaction.CashRegisterId = cashRegister.ID;
-                    cashRegister.CurrentBalance += entry.AccountMovement;
-                }
-                else
-                {
-                    cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterId) 
-                                   ?? throw new InvalidOperationException();
-                    cashRegister.CurrentBalance -= existingTransaction.AccountMovement;
-                    cashRegister.CurrentBalance += entry.AccountMovement;
-                }
-                await cashRegisterService.UpdateCashRegister(cashRegister);
             }
             
             // Sonderposten verwalten
@@ -169,23 +149,20 @@ public class TransactionService(
                 throw new Exception("Cash Register not found.");
             }
 
-            // Adjust the balance for the deleted transaction
-            cashRegister.CurrentBalance -= transaction.AccountMovement;
-            await cashRegisterService.UpdateCashRegister(cashRegister);
-
             if (transaction.SpecialItemId.HasValue)
             {
-                var sonderposten = await specialItemService.GetSonderpostenById(transaction.SpecialItemId.Value);
-                if (sonderposten == null)
-                {
+                var sonderposten = await specialItemService
+                                                        .GetSonderpostenById(transaction.SpecialItemId.Value);
+                if (sonderposten == null) 
                     throw new Exception("Sonderposten not found.");
-                }
+                
                 sonderposten.Betrag -= transaction.AccountMovement;
                 await specialItemService.UpdateSonderposten(sonderposten);
             }
 
             context.Transactions.Remove(transaction);
             await context.SaveChangesAsync();
+            
             return true;
         }
         catch (DbUpdateException dbEx)

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
+using MudExtensions.Services;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
 using TTCCashRegister.Data.BasicUnit;
@@ -85,6 +86,7 @@ builder.Services.AddMudServices(config =>
 });
 builder.Services.AddMudBlazorDialog();
 builder.Services.AddMudPopoverService();
+builder.Services.AddMudExtensions();
 
 var app = builder.Build();
 

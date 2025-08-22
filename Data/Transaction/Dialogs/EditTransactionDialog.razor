@@ -31,7 +31,11 @@
                     }
                 }
             </MudSelect>
-            <MudDatePicker @bind-Date="@_transactionDateTime" Label="Date" Required="true" RequiredError="Date is required." />
+            <MudDatePicker 
+                @bind-Date="@_transactionDateTime" 
+                Editable="true"
+                Label="Date" Required="true" 
+                RequiredError="Date is required." />
             <MudTextField @bind-Value="_editTransactionModelCopy.Documentnumber" Label="Document Number" 
                           For="@(() => _editTransactionModelCopy.Documentnumber)" Immediate="true" />
             <MudTextField @bind-Value="_editTransactionModelCopy.Description" Label="Description"
@@ -121,7 +125,7 @@
     private SpecialItemModel? _selectedSpecialItem = new();
     private CashRegisterModel? _selectedCashRegister;
 
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     readonly Func<CashRegisterModel, string> _cashRegisterconverter = p => p?.Name ?? string.Empty;
     Func<DateTime, string> _dateOnlyConverter = d => d.ToString(CultureInfo.CurrentCulture);
@@ -165,7 +169,7 @@
             _selectedBasicUnitModel = _basicUnits.FirstOrDefault(b => b.Id == _editTransactionModel.BasicUnitId) ?? new BasicUnitModel();
             _unitDetails = await Unitdetailservice.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnitModel.Id);
             _selectedUnitDetail = _unitDetails.FirstOrDefault(u => u.Id == _editTransactionModel.UnitDetailsId);
-            _selectedCashRegister = _cashRegisters.FirstOrDefault(c => c.ID == _editTransactionModel.CashRegisterId) ?? new CashRegisterModel();
+            _selectedCashRegister = _cashRegisters.FirstOrDefault(c => c.Id == _editTransactionModel.CashRegisterId) ?? new CashRegisterModel();
             _selectedSpecialItem = _specialItemList.FirstOrDefault(s => s.Id == _editTransactionModel.SpecialItemId);
             
         }
@@ -194,7 +198,7 @@
     private async Task OnCashRegisterChangedAsync()
     {
         _editTransactionModelCopy.CashRegister = _selectedCashRegister;
-        _editTransactionModelCopy.CashRegisterId = _selectedCashRegister.ID;
+        _editTransactionModelCopy.CashRegisterId = _selectedCashRegister.Id;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -208,7 +212,7 @@
                 _editTransactionModelCopy.Date = DateOnly.FromDateTime(_transactionDateTime.Value);
             }
             _editTransactionModelCopy.CashRegister = _selectedCashRegister;
-            _editTransactionModelCopy.CashRegisterId = _selectedCashRegister.ID;
+            _editTransactionModelCopy.CashRegisterId = _selectedCashRegister.Id;
             _editTransactionModelCopy.CostUnitId = _selectedCostUnitModel.Id;
             _editTransactionModelCopy.CostUnit = _selectedCostUnitModel;
             _editTransactionModelCopy.BasicUnitId = _selectedBasicUnitModel.Id;
