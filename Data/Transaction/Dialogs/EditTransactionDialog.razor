@@ -115,11 +115,11 @@
     private readonly TransactionValidator _transactionValidator = new();
     private DateTime? _transactionDateTime;
     private IEnumerable<CostUnitModel> _costUnits = new List<CostUnitModel>();
-    private IEnumerable<BasicUnitModel> _basicUnits = new List<BasicUnitModel>();
-    private IEnumerable<UnitDetailsModel> _unitDetails = new List<UnitDetailsModel>();
+    private IEnumerable<BasicUnitModel>? _basicUnits = new List<BasicUnitModel>();
+    private IEnumerable<UnitDetailsModel>? _unitDetails = new List<UnitDetailsModel>();
     private IEnumerable<CashRegisterModel> _cashRegisters = new List<CashRegisterModel>();
     private CostUnitModel _selectedCostUnitModel = new();
-    private BasicUnitModel _selectedBasicUnitModel = new();
+    private BasicUnitModel? _selectedBasicUnitModel = new();
     private UnitDetailsModel? _selectedUnitDetail = new();
     private IEnumerable<SpecialItemModel> _specialItemList = new List<SpecialItemModel>();
     private SpecialItemModel? _selectedSpecialItem = new();
@@ -166,12 +166,19 @@
             _selectedCostUnitModel = _costUnits.FirstOrDefault(c => c.Id == _editTransactionModel.CostUnitId) ?? new CostUnitModel();
             
             _basicUnits = await BasicUnitService.GetBasicUnitsByCostUnitIdAsync(_selectedCostUnitModel.Id);
-            _selectedBasicUnitModel = _basicUnits.FirstOrDefault(b => b.Id == _editTransactionModel.BasicUnitId) ?? new BasicUnitModel();
-            _unitDetails = await Unitdetailservice.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnitModel.Id);
-            _selectedUnitDetail = _unitDetails.FirstOrDefault(u => u.Id == _editTransactionModel.UnitDetailsId);
-            _selectedCashRegister = _cashRegisters.FirstOrDefault(c => c.Id == _editTransactionModel.CashRegisterId) ?? new CashRegisterModel();
-            _selectedSpecialItem = _specialItemList.FirstOrDefault(s => s.Id == _editTransactionModel.SpecialItemId);
-            
+            if (_basicUnits is not null) 
+                _selectedBasicUnitModel = _basicUnits
+                                           .FirstOrDefault(b => b.Id == _editTransactionModel.BasicUnitId) 
+                                          ?? new BasicUnitModel();
+            if (_selectedBasicUnitModel is not null) _unitDetails = 
+                await Unitdetailservice.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnitModel.Id);
+            if (_unitDetails is not null) _selectedUnitDetail = 
+                _unitDetails.FirstOrDefault(u => u.Id == _editTransactionModel.UnitDetailsId);
+            _selectedCashRegister = _cashRegisters
+                                    .FirstOrDefault(c => c.Id == _editTransactionModel.CashRegisterId) 
+                                    ?? new CashRegisterModel();
+            _selectedSpecialItem = _specialItemList
+                                   .FirstOrDefault(s => s.Id == _editTransactionModel.SpecialItemId);
         }
         catch (Exception ex)
         {
@@ -182,23 +189,25 @@
     private async Task OnCostUnitChangedAsync()
     {
         _basicUnits = await BasicUnitService.GetBasicUnitsByCostUnitIdAsync(_selectedCostUnitModel.Id);
-        _selectedBasicUnitModel = _basicUnits.FirstOrDefault(); 
-        // Wähle die erste BasicUnit standardmäßig 
+        if (_basicUnits is not null) 
+            _selectedBasicUnitModel = _basicUnits.FirstOrDefault();
         await OnBasicUnitChangedAsync();
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task OnBasicUnitChangedAsync()
     {
-        _unitDetails = await Unitdetailservice.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnitModel.Id);
-        _selectedUnitDetail = _unitDetails.FirstOrDefault();
+        if (_selectedBasicUnitModel != null) _unitDetails = await Unitdetailservice.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnitModel.Id);
+        if (_unitDetails is not null) 
+            _selectedUnitDetail = _unitDetails.FirstOrDefault();
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task OnCashRegisterChangedAsync()
     {
         _editTransactionModelCopy.CashRegister = _selectedCashRegister;
-        _editTransactionModelCopy.CashRegisterId = _selectedCashRegister.Id;
+        if (_selectedCashRegister is not null) 
+            _editTransactionModelCopy.CashRegisterId = _selectedCashRegister.Id;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -212,11 +221,16 @@
                 _editTransactionModelCopy.Date = DateOnly.FromDateTime(_transactionDateTime.Value);
             }
             _editTransactionModelCopy.CashRegister = _selectedCashRegister;
-            _editTransactionModelCopy.CashRegisterId = _selectedCashRegister.Id;
+            if (_selectedCashRegister is not null)
+                _editTransactionModelCopy.CashRegisterId = _selectedCashRegister.Id;
             _editTransactionModelCopy.CostUnitId = _selectedCostUnitModel.Id;
             _editTransactionModelCopy.CostUnit = _selectedCostUnitModel;
-            _editTransactionModelCopy.BasicUnitId = _selectedBasicUnitModel.Id;
-            _editTransactionModelCopy.BasicUnit = _selectedBasicUnitModel;
+            if (_selectedBasicUnitModel is not null)
+            {
+                _editTransactionModelCopy.BasicUnitId = _selectedBasicUnitModel.Id;
+                _editTransactionModelCopy.BasicUnit = _selectedBasicUnitModel;
+            }
+
             _editTransactionModelCopy.UnitDetailsId = _selectedUnitDetail?.Id;
             _editTransactionModelCopy.UnitDetails = _selectedUnitDetail;
             _editTransactionModelCopy.SpecialItemId = _selectedSpecialItem?.Id;
