@@ -72,6 +72,7 @@ namespace TTCCashRegister.Data.Export
                     Directory.CreateDirectory(folderPath);
                 }
                 var transactions = await GetTransactionsInDateRange(begin, end);
+                transactions = transactions.OrderBy(t => t.Documentnumber).ToList();
 
                 var csv = new StringBuilder();
                 foreach (var transaction in transactions)
@@ -108,7 +109,7 @@ namespace TTCCashRegister.Data.Export
                     Directory.CreateDirectory(folderPath);
                 }
                 var transactions = await GetTransactionsInDateRange(begin, end);
-                var orderedTransactions = transactions.OrderByDescending(t => t.Documentnumber).ToList();
+                var orderedTransactions = transactions.OrderBy(t => t.Documentnumber).ToList();
                 var writer = new PdfWriter(fullPath);
                 var pdf = new PdfDocument(writer);
                 //var document = new Document(pdf, PageSize.A4.Rotate());
