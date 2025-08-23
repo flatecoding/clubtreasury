@@ -107,8 +107,8 @@
     private const bool Bordered = false;
     private string _searchString1 = string.Empty;
     private TransactionModel _selectedItem = new();
-    private DateRange _dateRange = new DateRange(null, null);
-    private bool _useAndSearch = false; // Toggle für AND/OR-Suche
+    private DateRange _dateRange = new(null, null);
+    private bool _useAndSearch; // Toggle für AND/OR-Suche
 
     protected override async Task OnInitializedAsync()
     {
