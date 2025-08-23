@@ -1,84 +1,107 @@
 @page "/export-budget-dialog"
+@using MudExtensions
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction
 @inject TransactionService TransactionService
+@inject ISnackbar Snackbar;
 
 <MudDialog>
     <DialogContent>
         <MudText Typo="Typo.h6">Export Transactions</MudText>
         <MudForm>
-            <MudDatePicker Editable="true" @bind-Date="Begin" Label="Begin Date" />
-            <MudDatePicker Editable="true" @bind-Date="End" Label="End Date" />
-            <MudTextField @bind-Value ="_fileName" Label="Filename" Placeholder="Select a filename" Required="true"/>
+            <MudDateRangePicker Label="Date Range"
+                                @bind-DateRange="DateRange"
+                                Editable="true"
+                                DateFormat="dd.MM.yyyy"
+                                Class="mx-2" />            
+            <MudTextField @bind-Value="_fileName" Label="Filename" Placeholder="Select a filename" Required="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ExportCsv">Export as CSV</MudButton>
-      @*  <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ExportPdf">Export as PDF</MudButton> *@
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+        <MudLoadingButton 
+            @bind-Loading="_isExporting" 
+            Size="Size.Small" 
+            LoadingAdornment="Adornment" 
+            OnClick="@(() => ExportCsv())" 
+            Variant="Variant.Filled" 
+            Color="Color.Primary"
+        >Export as CSV
+        </MudLoadingButton>
+        @*<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ExportPdf">Export as PDF</MudButton> *@
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
-    [Parameter] public DateTime? Begin { get; set; }
-    [Parameter] public DateTime? End { get; set; } = DateTime.Now;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     private const string SelectedFolder = "Export";
     private string _fileName = string.Empty;
-    
+    [Parameter] public DateRange? DateRange { get; set; }
+    private const Adornment Adornment = MudBlazor.Adornment.Start;
+    private bool _isExporting;
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        Begin = UTools.GetBeginDateTime();
+        DateRange = new DateRange(UTools.GetBeginDateTime(), DateTime.Now);
     }
 
     private async Task ExportCsv()
     {
-        if (Begin.HasValue && End.HasValue)
+        _isExporting = true;
+        try
         {
-            if (Begin.Value > End.Value)
+            if (DateRange is { Start: not null, End: not null })
             {
-                Console.WriteLine("Das Startdatum muss vor dem Enddatum liegen.");
-                MudDialog.Close(DialogResult.Ok(false));
-            }
-            var folderPath = Path.Combine(Path.GetTempPath(), SelectedFolder);
-            var destination = Path.Combine(folderPath, $"{_fileName}_{Begin:yyyyMMdd}_{End:yyyyMMdd}.csv");
-            try
-            {
-                var result = await TransactionService.ExportBudgetToCsv(Begin.Value, End.Value, destination);
+                var start = DateRange.Start.Value.Date;
+                var end = DateRange.End.Value.Date;
+                if (start > end)
+                {
+                    Snackbar.Add("Start can't be after end date!", Severity.Warning);
+                    Console.WriteLine("Start can't be after end date!");
+                }
+
+                var folderPath = Path.Combine(Path.GetTempPath(), SelectedFolder);
+                var destination = Path.Combine(folderPath, $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv");
+
+                var result = await TransactionService.ExportBudgetToCsv(start, end, destination);
                 MudDialog.Close(DialogResult.Ok(result));
             }
-            catch (Exception ex)
+        }
+        catch (Exception ex)
             {
-                // Fehlerbehandlung
-                Console.WriteLine($"Fehler beim Exportieren der CSV-Datei: {ex.Message}");
+                Console.WriteLine($"Error occured during export to csv-file: {ex.Message}");
                 MudDialog.Close(DialogResult.Ok(false));
             }
+        finally
+        {
+            _isExporting = false;
         }
-}
+    }
 
 
     private async Task ExportPdf()
     {
-        if (Begin.HasValue && End.HasValue)
+        if (DateRange is { Start: not null, End: not null })
         {
-            if (Begin.Value > End.Value)
+            var start = DateRange.Start.Value.Date;
+            var end = DateRange.End.Value.Date;
+            if (start > end)
             {
-                Console.WriteLine("Das Startdatum muss vor dem Enddatum liegen.");
-                MudDialog.Close(DialogResult.Ok(false));
+                Snackbar.Add("Start can't be after end date!", Severity.Warning);
+                Console.WriteLine("Start can't be after end date!");
             }
 
             var folderPath = Path.Combine(Path.GetTempPath(), SelectedFolder);
-            var destination = Path.Combine(folderPath, $"{_fileName}_{Begin:yyyyMMdd}_{End:yyyyMMdd}.pdf");
+            var destination = Path.Combine(folderPath, $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf");
             try
             {
-                var result = await TransactionService.ExportTransactionsToPdf(Begin.Value, End.Value, destination);
+                var result = await TransactionService.ExportTransactionsToPdf(start, end, destination);
                 MudDialog.Close(DialogResult.Ok(result));
             }
             catch (Exception ex)
             {
-                // Fehlerbehandlung
-                Console.WriteLine($"Fehler beim Exportieren der CSV-Datei: {ex.Message}");
+                Console.WriteLine($"Error occured during export to pdf:: {ex.Message}");
                 MudDialog.Close(DialogResult.Ok(false));
             }
         }
