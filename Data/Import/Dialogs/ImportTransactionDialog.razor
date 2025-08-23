@@ -26,29 +26,27 @@
             @bind-Loading="_isImporting" 
             Size="Size.Small" 
             LoadingAdornment="Adornment" 
-            OnClick="ImportData" 
+            OnClick="@(() => ImportData())" 
             Variant="Variant.Filled" 
             Color="Color.Primary"
             >Import
         </MudLoadingButton>
-        <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => Cancel())">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     private string? _fileName;
     private const Adornment Adornment = MudBlazor.Adornment.Start;
-
+    private bool _isImporting;
     private IBrowserFile? _file;
-    private Task UploadFiles(IBrowserFile file)
+    private Task UploadFiles(IBrowserFile? file)
     {
         _file = file;
-        _fileName = file.Name;
+        _fileName = file?.Name;
         return Task.CompletedTask;
     }
-
-    private bool _isImporting;
 
     private async Task ImportData()
     {
@@ -64,7 +62,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fehler beim Importieren der Datei '{_fileName}': {ex.Message}");
+                Console.WriteLine($"An error occured during import of file: '{_fileName}': {ex.Message}");
                 MudDialog.Close(DialogResult.Ok(false));
             }
             finally
