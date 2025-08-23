@@ -35,7 +35,7 @@
     private IEnumerable<BasicUnitModel> _allBasicUnits = new List<BasicUnitModel>();
     private IEnumerable<int> _selectedBasicUnitIds = new List<int>();
 
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
