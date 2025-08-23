@@ -20,7 +20,7 @@
     private BasicUnitModel _editBasicUnitModel = new();
     private readonly BasicUnitValidator _basicUnitValidator = new();
 
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {

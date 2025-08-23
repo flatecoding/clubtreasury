@@ -16,7 +16,7 @@
 @code {
     [Parameter] public int TransactionId { get; set; }
 
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     private readonly TransactionModel _transactionModel = new();
 

@@ -14,7 +14,7 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     private MudForm _form = new();
     private readonly BasicUnitModel _newBasicUnitModel = new();
     private readonly BasicUnitValidator _basicUnitValidator= new ();
