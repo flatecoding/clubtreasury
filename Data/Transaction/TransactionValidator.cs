@@ -20,9 +20,7 @@ public class TransactionValidator : AbstractValidator<TransactionModel>
     {
         var result = await ValidateAsync(ValidationContext<TransactionModel>.CreateWithOptions((TransactionModel)model, 
             x => x.IncludeProperties(propertyName)));
-        if (result.IsValid)
-            return Array.Empty<string>();
-        return result.Errors.Select(e => e.ErrorMessage);
+        return result.IsValid ? [] : result.Errors.Select(e => e.ErrorMessage);
     };
     
 }
