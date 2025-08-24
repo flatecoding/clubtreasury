@@ -21,33 +21,29 @@ namespace TTCCashRegister.Data.CashRegister
             return await context.CashRegisters.FirstOrDefaultAsync();
         }
 
-        public async Task<bool> AddCashRegister(CashRegisterModel cashRegisterModel)
+        public async Task AddCashRegister(CashRegisterModel cashRegisterModel)
         {
             try
             {
                 await context.CashRegisters.AddAsync(cashRegisterModel);
                 await context.SaveChangesAsync();
-                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex}");
-                return false;
             }
         }
 
-        public async Task<bool> UpdateCashRegister(CashRegisterModel cashRegisterModel)
+        public async Task UpdateCashRegister(CashRegisterModel cashRegisterModel)
         {
             try
             {
                 context.CashRegisters.Update(cashRegisterModel);
                 await context.SaveChangesAsync();
-                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex}");
-                return false;
             }
         }
 

@@ -32,7 +32,7 @@ namespace TTCCashRegister.Data.Transaction
         [Required]
         public int BasicUnitId { get; set; }
         [ForeignKey("BasicUnitId")]
-        public BasicUnitModel BasicUnit { get; set; } = new();
+        public BasicUnitModel? BasicUnit { get; set; } = new();
         public int? UnitDetailsId { get; set; } // Optional
         [ForeignKey("UnitDetailsId")]
         public UnitDetailsModel? UnitDetails { get; set; } // Optional

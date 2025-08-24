@@ -125,30 +125,27 @@
 
         if (string.IsNullOrWhiteSpace(searchstring))
             return true;
-
-        // Begriffe splitten (Leerzeichen als Trenner)
+        
         var terms = searchstring
             .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(t => t.ToLowerInvariant())
             .ToList();
 
-        // Prüffunktion für ein einzelnes Suchwort
+        return _useAndSearch
+            ? terms.All(Matches) // AND
+            : terms.Any(Matches); // OR
+
         bool Matches(string term) =>
             (element.Description?.ToLower().Contains(term) == true) ||
             element.Documentnumber.ToString().Contains(term) ||
             element.CostUnit.CostUnitName.ToLower().Contains(term) ||
             element.BasicUnit.Name.ToLower().Contains(term) ||
             (element.UnitDetails != null && element.UnitDetails.CostDetails.ToLower().Contains(term));
-
-        // ODER-Suche (irgendein Begriff passt) oder UND-Suche (alle Begriffe müssen passen)
-        return _useAndSearch
-            ? terms.All(Matches) // AND
-            : terms.Any(Matches); // OR
     }
     
     private async Task ApplyDateFilter()
     {
-        if (_dateRange.Start.HasValue && _dateRange.End.HasValue)
+        if (_dateRange is { Start: not null, End: not null })
         {
             var start = _dateRange.Start.Value.Date;
             var end = _dateRange.End.Value.Date;

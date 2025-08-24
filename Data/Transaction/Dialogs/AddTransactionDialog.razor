@@ -65,12 +65,9 @@
                 @bind-Value="@_selectedCostUnit"
                 @bind-Value:after="OnCostUnitChangedAsync"       
             >
-                @if (_costUnits is not null)
+                @foreach (var unit in _costUnits)
                 {
-                    @foreach (var unit in _costUnits)
-                    {
-                        <MudSelectItem T="CostUnitModel" Value="@unit">@unit.CostUnitName</MudSelectItem>
-                    }
+                    <MudSelectItem T="CostUnitModel" Value="@unit">@unit.CostUnitName</MudSelectItem>
                 }
             </MudSelect>
             <MudSelect T="BasicUnitModel" 
@@ -91,7 +88,7 @@
             </MudSelect>
             <MudSelect T="UnitDetailsModel" 
                 Label="Unit Details"
-                Disabled="@(string.IsNullOrEmpty(_selectedBasicUnit.Name))" 
+                Disabled="@(string.IsNullOrEmpty(_selectedBasicUnit?.Name))" 
                 ToStringFunc="@_detailsConverter"
                 @bind-Value="_selectedUnitDetail"
             >
@@ -130,11 +127,11 @@
     readonly TransactionValidator _transactionValidator = new();
     private DateTime? TransactionDateTime { get; set; } = DateTime.Now;
     private IEnumerable<CostUnitModel> _costUnits = new List<CostUnitModel>();
-    private IEnumerable<BasicUnitModel> _basicUnits = new List<BasicUnitModel>();
-    private IEnumerable<UnitDetailsModel> _unitDetails = new List<UnitDetailsModel>();
+    private IEnumerable<BasicUnitModel>? _basicUnits = new List<BasicUnitModel>();
+    private IEnumerable<UnitDetailsModel>? _unitDetails = new List<UnitDetailsModel>();
     private IEnumerable<CashRegisterModel>? _cashRegisters = new List<CashRegisterModel>();
     private CostUnitModel _selectedCostUnit = new();
-    private BasicUnitModel _selectedBasicUnit = new();
+    private BasicUnitModel? _selectedBasicUnit = new();
     private UnitDetailsModel? _selectedUnitDetail;
     private IEnumerable<SpecialItemModel> _specialItemList = new List<SpecialItemModel>();
     private SpecialItemModel? _selectedSpecialItem;
@@ -167,15 +164,18 @@
     private async Task OnCostUnitChangedAsync()
     {
         _basicUnits = await BasicUnitService.GetBasicUnitsByCostUnitIdAsync(_selectedCostUnit.Id);
-        _selectedBasicUnit = _basicUnits.FirstOrDefault();
+        if (_basicUnits is not null) 
+            _selectedBasicUnit = _basicUnits.FirstOrDefault();
         await OnBasicUnitChangedAsync();
         await InvokeAsync(StateHasChanged);
     }
     
     private async Task OnBasicUnitChangedAsync()
     {
-        _unitDetails = await UnitDetailService.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnit.Id);
-        _selectedUnitDetail = _unitDetails.FirstOrDefault();
+        if (_selectedBasicUnit is not null) 
+            _unitDetails = await UnitDetailService.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnit.Id);
+        if (_unitDetails is not null) 
+            _selectedUnitDetail = _unitDetails.FirstOrDefault();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -188,7 +188,7 @@
     private async Task AddTransaction()
     {
         await _form.Validate();
-        if ((_form.IsValid) && (IsProccesable()))
+        if (_form.IsValid && IsProccesable())
         {
             //Connect data
             _newTransactionModel.CashRegister = _selectedCashRegisterModel;
@@ -200,7 +200,8 @@
             _newTransactionModel.CostUnit = _selectedCostUnit;
             _newTransactionModel.CostUnitId = _selectedCostUnit.Id;
             _newTransactionModel.BasicUnit = _selectedBasicUnit;
-            _newTransactionModel.BasicUnitId = _selectedBasicUnit.Id;
+            if (_selectedBasicUnit is not null) 
+                _newTransactionModel.BasicUnitId = _selectedBasicUnit.Id;
             if (_selectedUnitDetail is not null)
             {
                 _newTransactionModel.UnitDetailsId = _selectedUnitDetail.Id;
@@ -224,7 +225,7 @@
 
     private bool IsProccesable()
     {
-        return (_selectedCostUnit.Id >= 1) && (_selectedBasicUnit.Id >= 1);
+        return (_selectedCostUnit.Id >= 1) && _selectedBasicUnit is { Id: >= 1 };
     }
 
     private void Cancel()
