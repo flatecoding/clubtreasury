@@ -20,7 +20,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var specialItem = await SpecialItemService.GetSonderpostenById(SpecialItemId);
+        var specialItem = await SpecialItemService.GetSpecialPositionById(SpecialItemId);
         if (specialItem != null)
         {
             _specialItemName = specialItem.Name;
@@ -29,7 +29,7 @@
 
     private async Task DeleteSpecialItem()
     {
-        var success = await SpecialItemService.DeleteSonderposten(SpecialItemId);
+        var success = await SpecialItemService.DeleteSpecialPosition(SpecialItemId);
         if (success)
         {
             MudDialog.Close(DialogResult.Ok(true));

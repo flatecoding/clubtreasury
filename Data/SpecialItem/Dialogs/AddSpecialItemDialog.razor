@@ -26,7 +26,7 @@
         await _form.Validate();
         if (_form.IsValid)
         {
-            await SpecialItemService.AddSonderposten(_newSpecialItem);
+            await SpecialItemService.AddSpecialPosition(_newSpecialItem);
             MudDialog.Close(DialogResult.Ok(true));
         }
     }
