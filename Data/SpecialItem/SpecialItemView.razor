@@ -44,7 +44,7 @@
         <RowTemplate>
             <MudTd DataLabel="Id">@context.Id</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="">@context.Betrag.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+            <MudTd DataLabel="">@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditSpecialItemDialog(context.Id)"></MudIconButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteSpecialItemDialog(context.Id)">Delete</MudIconButton>
@@ -68,7 +68,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _allEntries = await SpecialItemService.GetAllSonderposten();
+        _allEntries = await SpecialItemService.GetAllSpecialItems();
     }
 
     private bool FilterFunc(SpecialItemModel? element) => FilterFunc1(element, _searchString1);
@@ -94,7 +94,7 @@
 
     private async Task UpdateView()
     {
-        _allEntries = await SpecialItemService.GetAllSonderposten();
+        _allEntries = await SpecialItemService.GetAllSpecialItems();
         await InvokeAsync(StateHasChanged);
     }
 

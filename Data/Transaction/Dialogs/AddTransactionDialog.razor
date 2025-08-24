@@ -155,7 +155,7 @@
         {
             _costUnits = await CostUnitService.GetAllUnitsAsync();
             _basicUnits = await BasicUnitService.GetAllBasicUnitsAsync();
-            _specialItemList = await SpecialItemService.GetAllSonderposten();
+            _specialItemList = await SpecialItemService.GetAllSpecialItems();
             _cashRegisters = await CashRegisterService.GetAllCashRegisters();
         }
         catch (Exception ex)
