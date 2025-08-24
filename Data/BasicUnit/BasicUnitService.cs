@@ -2,27 +2,19 @@
 
 namespace TTCCashRegister.Data.BasicUnit
 {
-    public class BasicUnitService
+    public class BasicUnitService(CashDataContext context)
     {
-        private readonly CashDataContext _context;
-
-        public BasicUnitService(CashDataContext context)
-        {
-            _context = context;
-        }
-
         // Create
-        public async Task<bool> AddBasicUnitAsync(BasicUnitModel unit)
+        public async Task AddBasicUnitAsync(BasicUnitModel unit)
         {
-            _context.BasicUnits.Add(unit);
-            await _context.SaveChangesAsync();
-            return true;
+            context.BasicUnits.Add(unit);
+            await context.SaveChangesAsync();
         }
 
         // Read
         public async Task<BasicUnitModel?> GetBasicUnitByIdAsync(int id)
         {
-            return await _context.BasicUnits
+            return await context.BasicUnits
                                  .Include(b => b.CostUnitDetails)
                                  .FirstOrDefaultAsync(b => b.Id == id);
         }
@@ -31,7 +23,7 @@ namespace TTCCashRegister.Data.BasicUnit
         {
             try
             {
-                return await _context.BasicUnits
+                return await context.BasicUnits
                     .Where(x => x.CostUnit != null && x.CostUnit.Id == costunitId)
                     .ToListAsync();
             }
@@ -44,7 +36,7 @@ namespace TTCCashRegister.Data.BasicUnit
 
         public async Task<IEnumerable<BasicUnitModel>> GetAllBasicUnitsAsync()
         {
-            return await _context.BasicUnits
+            return await context.BasicUnits
                                  .Include(b => b.CostUnitDetails)
                                  .ToListAsync();
         }
@@ -52,17 +44,17 @@ namespace TTCCashRegister.Data.BasicUnit
         // Update
         public async Task UpdateBasicUnitAsync(BasicUnitModel unit)
         {
-            _context.BasicUnits.Update(unit);
-            await _context.SaveChangesAsync();
+            context.BasicUnits.Update(unit);
+            await context.SaveChangesAsync();
         }
 
         // Delete
         public async Task<bool> DeleteBasicUnitAsync(int id)
         {
-            var unit = await _context.BasicUnits.FindAsync(id);
+            var unit = await context.BasicUnits.FindAsync(id);
             if (unit is null) return false;
-            _context.BasicUnits.Remove(unit);
-            await _context.SaveChangesAsync();
+            context.BasicUnits.Remove(unit);
+            await context.SaveChangesAsync();
             return true;
         }
     }

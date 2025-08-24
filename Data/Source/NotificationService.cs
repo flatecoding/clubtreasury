@@ -6,7 +6,7 @@ public class NotificationService(ISnackbar snackbar)
 {
     public Task ShowDialogResultAsync(DialogResult? result)
     {
-        if (result?.Data is bool success && success)
+        if (result?.Data is true)
         {
             snackbar.Add("The transaction was successful", Severity.Success);
         }
