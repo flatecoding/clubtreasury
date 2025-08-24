@@ -2,68 +2,60 @@
 
 namespace TTCCashRegister.Data.SpecialItem
 {
-    public class SpecialItemService
+    public class SpecialItemService(CashDataContext context)
     {
-        private readonly CashDataContext _context;
-
-        public SpecialItemService(CashDataContext context)
+        public async Task<List<SpecialItemModel>> GetAllSpecialItems()
         {
-            _context = context;
+            return await context.SpecialItems
+                .Include(s => s.Transactions)  
+                .ToListAsync();
         }
 
-        public async Task<List<SpecialItemModel>> GetAllSonderposten()
+        public async Task<SpecialItemModel?> GetSpecialPositionById(int id)
         {
-            return _context.SpecialItems is not null ? await _context.SpecialItems
-                                                            .ToListAsync() : new List<SpecialItemModel>();
+            return await context.SpecialItems
+                .Include(s => s.Transactions)
+                .FirstOrDefaultAsync(s => s.Id == id);
         }
 
-        public async Task<SpecialItemModel?> GetSonderpostenById(int id)
-        {
-            return await _context.SpecialItems.FindAsync(id);
-        }
-
-        public async Task<bool> AddSonderposten(SpecialItemModel sonderposten)
+        public async Task AddSpecialPosition(SpecialItemModel specialPosition)
         {
             try
             {
-                await _context.SpecialItems.AddAsync(sonderposten);
-                await _context.SaveChangesAsync();
-                return true;
+                await context.SpecialItems.AddAsync(specialPosition);
+                await context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex}");
-                return false;
             }
         }
 
-        public async Task<bool> UpdateSonderposten(SpecialItemModel sonderposten)
+        public async Task UpdateSpecialPosition(SpecialItemModel specialPosition)
         {
             try
             {
-                _context.SpecialItems.Update(sonderposten);
-                await _context.SaveChangesAsync();
-                return true;
+                context.SpecialItems.Update(specialPosition);
+                await context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex}");
-                return false;
             }
         }
 
-        public async Task<bool> DeleteSonderposten(int id)
+        public async Task<bool> DeleteSpecialPosition(int id)
         {
             try
             {
-                var sonderposten = await _context.SpecialItems.FindAsync(id);
-                if (sonderposten == null)
+                var specialPosition = await context.SpecialItems.FindAsync(id);
+                if (specialPosition is null)
                 {
                     return false;
                 }
 
-                _context.SpecialItems.Remove(sonderposten);
-                await _context.SaveChangesAsync();
+                context.SpecialItems.Remove(specialPosition);
+                await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)

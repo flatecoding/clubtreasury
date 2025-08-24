@@ -160,7 +160,7 @@
                 _transactionDateTime = _editTransactionModel.Date.Value.ToDateTime(new TimeOnly(0, 0));
             }
             
-            _specialItemList = await SpecialItemService.GetAllSonderposten();
+            _specialItemList = await SpecialItemService.GetAllSpecialItems();
             _cashRegisters = await CashRegisterService.GetAllCashRegisters();
             _costUnits = await CostUnitService.GetAllUnitsAsync();
             _selectedCostUnitModel = _costUnits.FirstOrDefault(c => c.Id == _editTransactionModel.CostUnitId) ?? new CostUnitModel();
