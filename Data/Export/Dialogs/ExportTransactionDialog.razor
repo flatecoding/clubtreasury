@@ -22,21 +22,20 @@
             @bind-Loading="_isExporting" 
             Size="Size.Small" 
             LoadingAdornment="Adornment" 
-            OnClick="@(() => ExportCsv())" 
-            Variant="Variant.Outlined" 
-            Color="Color.Primary"
-        >Export as CSV
-        </MudLoadingButton>
-        <MudLoadingButton 
-            @bind-Loading="_isExporting" 
-            Size="Size.Small" 
-            LoadingAdornment="Adornment" 
             OnClick="@(() => ExportPdf())" 
             Variant="Variant.Outlined" 
             Color="Color.Primary"
         >Export as PDF
         </MudLoadingButton>
-        <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudLoadingButton
+            @bind-Loading="_isExporting"
+            Size="Size.Small"
+            LoadingAdornment="Adornment"
+            OnClick="@(() => ExportCsv())"
+            Variant="Variant.Outlined"
+            Color="Color.Primary">Export as CSV
+        </MudLoadingButton>
+        <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Error" OnClick="@(() => Cancel())">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
