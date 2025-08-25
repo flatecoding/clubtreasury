@@ -7,11 +7,11 @@ namespace TTCCashRegister.Data.CashRegister
     public class CashRegisterModel
     {
         [Key]
-        public int Id { get; set; }
+        public int Id { get; init; }
         [MaxLength(150)]
         public string Name { get; set; } = string.Empty;
         [NotMapped] 
         public decimal CurrentBalance => Transactions?.Sum(t => t.AccountMovement) ?? 0m;
-        public ICollection<TransactionModel> Transactions { get; set; } = new List<TransactionModel>();
+        public ICollection<TransactionModel> Transactions { get; init; } = new List<TransactionModel>();
     }
 }

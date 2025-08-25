@@ -13,6 +13,7 @@ using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.EntityFrameworkCore;
 using TTCCashRegister.Data.Transaction;
+using Path = System.IO.Path;
 
 
 namespace TTCCashRegister.Data.Export
@@ -20,21 +21,27 @@ namespace TTCCashRegister.Data.Export
     public class ExportService
     {
         private readonly CashDataContext _context;
-        private readonly string _tempPath;
+        private readonly string _exportPath;
         private const string SelectedFolder = "Export";
+        private const string CsvHeader = "Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung";
+        private const string CsvBudgetHeader = "Kostenstelle;Position;Details;Summe";
+        private const string Image = "Logo TTC Hagen.bmp";
+        private const string PdfTitle = "Kassenbuch TTC Hagen";
+        private const string Range = "Zeitraum";
+        private const string PdfHeaderDate = "Datum";
+        private const string PdfHeaderDocumentNumber = "Belegnr.";
+        private const string PdfHeaderDescription = "Beschreibung";
+        private const string PdfHeaderSum = "Summe";
+        private const string PdfHeaderAccountMovement = "Konto";
 
         public ExportService(CashDataContext context)
         {
             _context = context;
-            
-            if (OperatingSystem.IsWindows())
-            {
-                _tempPath = System.IO.Path.GetTempPath();
-            }
-            else
-            {
-                _tempPath = Environment.GetEnvironmentVariable("TMPDIR") ?? "/tmp";
-            }
+            var projectDirectory = AppContext.BaseDirectory;
+            var binDirectory = Directory.GetParent(projectDirectory)?.Parent?.Parent?.FullName;
+            if (binDirectory is null)
+                throw new DirectoryNotFoundException($"The bin directory could not be found: {projectDirectory}");
+            _exportPath = Path.Combine(binDirectory, SelectedFolder);
         }
 
         private async Task<List<TransactionModel>> GetTransactionsInDateRange(DateTime begin, DateTime end)
@@ -65,11 +72,9 @@ namespace TTCCashRegister.Data.Export
         {
             try
             {
-                var folderPath = System.IO.Path.Combine(_tempPath, SelectedFolder);
-                var fullPath = System.IO.Path.Combine(folderPath, filename);
-                if (!Directory.Exists(folderPath))
+                if (!Directory.Exists(_exportPath))
                 {
-                    Directory.CreateDirectory(folderPath);
+                    Directory.CreateDirectory(_exportPath);
                 }
                 var transactions = await GetTransactionsInDateRange(begin, end);
                 transactions = transactions.OrderBy(t => t.Documentnumber).ToList();
@@ -82,12 +87,12 @@ namespace TTCCashRegister.Data.Export
 
                 if (string.IsNullOrWhiteSpace(csv.ToString()))
                 {
-                    Console.WriteLine("Keine Daten für den Export vorhanden.");
+                    Console.WriteLine("No data for export available.");
                     return false;
                 }
-
-                await using StreamWriter sw = new StreamWriter(fullPath);
-                await sw.WriteLineAsync("Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung");
+                
+                await using var sw = new StreamWriter(Path.Combine(_exportPath, filename));
+                await sw.WriteLineAsync(CsvHeader);
                 await sw.WriteAsync(csv);
                 return true;
             }
@@ -102,15 +107,13 @@ namespace TTCCashRegister.Data.Export
         {
             try
             {
-                var folderPath = System.IO.Path.Combine(_tempPath, SelectedFolder);
-                var fullPath = System.IO.Path.Combine(folderPath, filename);
-                if (!Directory.Exists(folderPath))
+                if (!Directory.Exists(_exportPath))
                 {
-                    Directory.CreateDirectory(folderPath);
+                    Directory.CreateDirectory(_exportPath);
                 }
                 var transactions = await GetTransactionsInDateRange(begin, end);
                 var orderedTransactions = transactions.OrderBy(t => t.Documentnumber).ToList();
-                var writer = new PdfWriter(fullPath);
+                var writer = new PdfWriter(Path.Combine(_exportPath, filename));
                 var pdf = new PdfDocument(writer);
                 //var document = new Document(pdf, PageSize.A4.Rotate());
                 var document = new Document(pdf, PageSize.A4);
@@ -120,61 +123,64 @@ namespace TTCCashRegister.Data.Export
                 var table = new Table(5);
                 table.SetWidth(UnitValue.CreatePercentValue(100));
 
-                // Header hinzufügen
-                var imagepath = $"{Directory.GetCurrentDirectory()}{@"/wwwroot/images"}";
-                const string imagename = "Logo TTC Hagen.bmp";
-                var fullfilenamepath = System.IO.Path.Combine(imagepath, imagename);
-                if (File.Exists(fullfilenamepath))
+                //Add header
+                var imagePath = $"{Directory.GetCurrentDirectory()}{@"/wwwroot/images"}";
+                var fullFileName = Path.Combine(imagePath, Image);
+                
+                if (File.Exists(fullFileName))
                 {
                     // Create a table with a row and two cells
-                    Table headerTable = new Table(3);
+                    var headerTable = new Table(3);
                     headerTable.SetWidth(UnitValue.CreatePercentValue(100));
                     //headerTable.SetBorder(Border.NO_BORDER);
 
                     // Add image in first row
-                    var img = new Image(ImageDataFactory.Create(fullfilenamepath));
+                    var img = new Image(ImageDataFactory.Create(fullFileName));
                     img.ScaleToFit(60, 60);
-                    Cell imageCell = new Cell(2,1).Add(img)
+                    var imageCell = new Cell(2,1).Add(img)
                         .SetBorder(Border.NO_BORDER);
                     headerTable.AddCell(imageCell);
                     
-                    Paragraph title = new Paragraph("Kassenbuch TTC Hagen")
+                    var title = new Paragraph(PdfTitle)
                         .SetFont(bold)
                         .SetFontSize(20)
                         .SetTextAlignment(TextAlignment.CENTER);
-                    Cell titleCell = new Cell().Add(title).SetBorder(Border.NO_BORDER);
+                    var titleCell = new Cell().Add(title).SetBorder(Border.NO_BORDER);
                     headerTable.AddCell(titleCell);
                     
-                    Cell imagerightside = new  Cell(2,1).Add(img)
+                    var imageRightSide = new  Cell(2,1).Add(img)
                         .SetBorder(Border.NO_BORDER)
                         .SetHorizontalAlignment(HorizontalAlignment.LEFT);
-                    headerTable.AddCell(imagerightside);
-
-                    // Füge den Zeitraum in die zweite Zelle der zweiten Spalte ein
-                    Paragraph period = new Paragraph($"Zeitraum: {begin:dd.MM.yyyy} - {end:dd.MM.yyyy}")
+                    headerTable.AddCell(imageRightSide);
+                    
+                    var period = new Paragraph($"{Range}: {begin:dd.MM.yyyy} - {end:dd.MM.yyyy}")
                         .SetFont(font)
                         .SetFontSize(14)
                         .SetTextAlignment(TextAlignment.CENTER);
-                    Cell periodCell = new Cell().Add(period).SetBorder(Border.NO_BORDER);
+                    var periodCell = new Cell().Add(period).SetBorder(Border.NO_BORDER);
                     headerTable.AddCell(periodCell);
-
-                    // Füge die Tabelle zum Dokument hinzu
+                    
                     document.Add(headerTable);
                 }
 
-                document.Add(new Paragraph("\n")); // Leerzeile für Abstand
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Datum").SetFont(bold)).SetBackgroundColor(PdfColors.HeaderColor));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Belegnr.").SetFont(bold)).SetBackgroundColor(PdfColors.HeaderColor));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Beschreibung.").SetFont(bold)).SetBackgroundColor(PdfColors.HeaderColor));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Summe").SetFont(bold)).SetBackgroundColor(PdfColors.HeaderColor));
-                table.AddHeaderCell(new Cell().Add(new Paragraph("Konto").SetFont(bold)).SetBackgroundColor(PdfColors.HeaderColor));
+                document.Add(new Paragraph("\n"));
+                table.AddHeaderCell(new Cell().Add(new Paragraph(PdfHeaderDate).SetFont(bold))
+                    .SetBackgroundColor(PdfColors.HeaderColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph(PdfHeaderDocumentNumber).SetFont(bold))
+                    .SetBackgroundColor(PdfColors.HeaderColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph(PdfHeaderDescription).SetFont(bold))
+                    .SetBackgroundColor(PdfColors.HeaderColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph(PdfHeaderSum).SetFont(bold))
+                    .SetBackgroundColor(PdfColors.HeaderColor));
+                table.AddHeaderCell(new Cell().Add(new Paragraph(PdfHeaderAccountMovement).SetFont(bold))
+                    .SetBackgroundColor(PdfColors.HeaderColor));
 
                 for (var i = 0; i < orderedTransactions.Count; i++)
                 {
                     var transaction = orderedTransactions[i];
                     Color rowColor = i % 2 == 0 ? PdfColors.RowColorEven: PdfColors.RowColorOdd;
-                    var accColor = transaction.AccountMovement > 0 ? PdfColors.PositivSum 
-                        : PdfColors.NegativSum;
+                    var accColor = transaction.AccountMovement > 0 ? PdfColors.PositiveSum 
+                        : PdfColors.NegativeSum;
                    
                     table.AddCell(new Cell()
                         .Add(new Paragraph(transaction.Date.ToString())
@@ -184,6 +190,7 @@ namespace TTCCashRegister.Data.Export
                         .Add(new Paragraph(transaction.Documentnumber.ToString())
                             .SetFont(font)
                             .SetTextAlignment(TextAlignment.CENTER))
+                        .SetHorizontalAlignment(HorizontalAlignment.CENTER)
                         .SetBackgroundColor(rowColor));
                     table.AddCell(new Cell()
                         .Add(new Paragraph(transaction.Description)
@@ -199,9 +206,7 @@ namespace TTCCashRegister.Data.Export
                             .SetFontColor(accColor))
                         .SetBackgroundColor(rowColor));
                 }
-                /*ToDo Add Summ Bills and account movements. Attention positiv and negative values. Can't be compared
-                 directly!!
-                 */
+                
                 document.Add(table);
                 document.Close();
                 return true;
@@ -217,8 +222,8 @@ namespace TTCCashRegister.Data.Export
         {
             try
             {
-                var folderPath = System.IO.Path.Combine(_tempPath, SelectedFolder);
-                var fullPath = System.IO.Path.Combine(folderPath, filename);
+                var folderPath = Path.Combine(_exportPath, SelectedFolder);
+                var fullPath = Path.Combine(folderPath, filename);
                 if (!Directory.Exists(folderPath))
                 {
                     Directory.CreateDirectory(folderPath);
@@ -250,23 +255,23 @@ namespace TTCCashRegister.Data.Export
                     }).ToList();
 
                 var csv = new StringBuilder();
-                csv.AppendLine("Kostenstelle;Position;Details;Summe");
+                csv.AppendLine(CsvBudgetHeader);
 
                 foreach (var costUnitGroup in groupedTransactions)
                 {   
                     csv.AppendLine($"{costUnitGroup.CostUnit.CostUnitName};;;{costUnitGroup.SummeCostUnit.ToString("C", CultureInfo.CurrentCulture)}");
                     foreach (var basicUnitGroup in costUnitGroup.BasicUnits)
                     {
-                        csv.AppendLine($";{basicUnitGroup.BasicUnit.Name};;{basicUnitGroup.SummeBasicUnit.ToString("C", CultureInfo.CurrentCulture)}");
+                        csv.AppendLine($";{basicUnitGroup.BasicUnit?.Name};;{basicUnitGroup.SummeBasicUnit.ToString("C", CultureInfo.CurrentCulture)}");
                         foreach (var unitDetailGroup in basicUnitGroup.UnitDetails)
                         {
-                            var unitDetailName = unitDetailGroup.UnitDetail != null ? unitDetailGroup.UnitDetail.CostDetails : "";
+                            var unitDetailName = unitDetailGroup.UnitDetail is not null ? unitDetailGroup.UnitDetail.CostDetails : "";
                             csv.AppendLine($";;{unitDetailName};{unitDetailGroup.SummeUnitDetails.ToString("C", CultureInfo.CurrentCulture)}");
                         }
                     }
                 }
 
-                await using StreamWriter sw = new StreamWriter(fullPath);
+                await using var sw = new StreamWriter(fullPath);
                 await sw.WriteAsync(csv.ToString());
 
                 return true;
@@ -277,10 +282,6 @@ namespace TTCCashRegister.Data.Export
                 return false;
             }
         }
-       
-        
-        
-        
     }
 }
 

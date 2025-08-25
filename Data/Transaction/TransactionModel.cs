@@ -12,7 +12,7 @@ namespace TTCCashRegister.Data.Transaction
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
-        public int Id { get; set; }
+        public int Id { get; init; }
         [Required]
         public DateOnly? Date { get; set; } = new DateOnly();
         [Required]
