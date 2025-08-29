@@ -33,7 +33,7 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Cost unit">@context.CostUnit.CostUnitName</MudTd>
-            <MudTd DataLabel="Position">@context.BasicUnit.Name</MudTd>
+            <MudTd DataLabel="Position">@context.BasicUnit?.Name</MudTd>
             <MudTd DataLabel="Position detail">@context.UnitDetails?.CostDetails</MudTd>
             <MudTd DataLabel="Acc. mvm.">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
         </RowTemplate>

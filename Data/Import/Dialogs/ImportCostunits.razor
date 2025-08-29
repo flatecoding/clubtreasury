@@ -37,15 +37,15 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-    private string _fileName = string.Empty;
+    private string? _fileName = string.Empty;
     private bool _isImporting;
     private const Adornment Adornment = MudBlazor.Adornment.Start;
 
-    private IBrowserFile _file;
+    private IBrowserFile? _file;
     private Task UploadFiles(IBrowserFile? file)
     {
         _file = file;
-        _fileName = file.Name;
+        _fileName = file?.Name;
         return Task.CompletedTask;
     }
 
@@ -55,8 +55,8 @@
         {
             try
             {
-                await using var stream = _file.OpenReadStream();
-                var result = await ImportCostUnitService.ImportCostUnitsAndPositions(stream);
+                await using var stream = _file?.OpenReadStream();
+                var result = stream != null && await ImportCostUnitService.ImportCostUnitsAndPositions(stream);
                 MudDialog.Close(DialogResult.Ok(result));
             }
             catch (Exception ex)

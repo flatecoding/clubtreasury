@@ -72,7 +72,7 @@
             <MudTh>Sum<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Sum)"></MudTableSortLabel></MudTh>
             <MudTh>Acc. mvm.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.AccountMovement)"></MudTableSortLabel></MudTh>
             <MudTh>Cost unit<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.CostUnit.CostUnitName)"></MudTableSortLabel></MudTh>
-            <MudTh>Position<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.BasicUnit.Name)"></MudTableSortLabel></MudTh>
+            <MudTh>Position<MudTableSortLabel SortBy="new Func<TransactionModel, object?>(x => x.BasicUnit?.Name)"></MudTableSortLabel></MudTh>
             <MudTh>Pos. details</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
@@ -85,7 +85,7 @@
             <MudTd DataLabel="Sum">@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
             <MudTd DataLabel="Acc. mvm.">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
             <MudTd DataLabel="Cost Unit">@context.CostUnit.CostUnitName</MudTd>
-            <MudTd DataLabel="Basic Unit">@context.BasicUnit.Name</MudTd>
+            <MudTd DataLabel="Basic Unit">@context.BasicUnit?.Name</MudTd>
             <MudTd DataLabel="Unit details">@context?.UnitDetails?.CostDetails</MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" OnClick="() => ShowEditTransactionDialog(context.Id)"></MudIconButton>
@@ -136,11 +136,12 @@
             : terms.Any(Matches); // OR
 
         bool Matches(string term) =>
-            (element.Description?.ToLower().Contains(term) == true) ||
-            element.Documentnumber.ToString().Contains(term) ||
-            element.CostUnit.CostUnitName.ToLower().Contains(term) ||
-            element.BasicUnit.Name.ToLower().Contains(term) ||
-            (element.UnitDetails != null && element.UnitDetails.CostDetails.ToLower().Contains(term));
+            element.BasicUnit is not null && 
+             ((element.Description?.ToLower().Contains(term) is true) ||
+             element.Documentnumber.ToString().Contains(term) ||
+             element.CostUnit.CostUnitName.ToLower().Contains(term) ||
+             element.BasicUnit.Name.ToLower().Contains(term) ||
+             (element.UnitDetails is not null && element.UnitDetails.CostDetails.ToLower().Contains(term)));
     }
     
     private async Task ApplyDateFilter()
