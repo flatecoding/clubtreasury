@@ -4,6 +4,7 @@ using System.Text;
 using iText.IO.Font.Constants;
 using iText.IO.Image;
 using iText.Kernel.Colors;
+using iText.Kernel.Events;
 using iText.Kernel.Font;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
@@ -63,7 +64,7 @@ namespace TTCCashRegister.Data.Export
             return await _context.Transactions
                 .Include(t => t.CostUnit)
                 .Include(t => t.BasicUnit)
-                .ThenInclude(bu => bu.CostUnitDetails)
+                .ThenInclude(bu => bu!.CostUnitDetails)
                 .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
                 .ToListAsync();
         }
@@ -117,9 +118,13 @@ namespace TTCCashRegister.Data.Export
                 var pdf = new PdfDocument(writer);
                 //var document = new Document(pdf, PageSize.A4.Rotate());
                 var document = new Document(pdf, PageSize.A4);
-                document.SetMargins(20, 30, 20, 30);
+                document.SetMargins(20, 30, 40, 30);
                 var font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
                 var bold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                // EventHandler registrieren
+                var handler = new PageNumberEventHandler(font, 9, footerPageCounterBottomMargin: 20f, placeholderWidth: 50f);
+                pdf.AddEventHandler(PdfDocumentEvent.END_PAGE, handler);
+                
                 var table = new Table(5);
                 table.SetWidth(UnitValue.CreatePercentValue(100));
 
@@ -208,6 +213,7 @@ namespace TTCCashRegister.Data.Export
                 }
                 
                 document.Add(table);
+                handler.WriteTotal(pdf);
                 document.Close();
                 return true;
             }
@@ -222,11 +228,9 @@ namespace TTCCashRegister.Data.Export
         {
             try
             {
-                var folderPath = Path.Combine(_exportPath, SelectedFolder);
-                var fullPath = Path.Combine(folderPath, filename);
-                if (!Directory.Exists(folderPath))
+                if (!Directory.Exists(_exportPath))
                 {
-                    Directory.CreateDirectory(folderPath);
+                    Directory.CreateDirectory(_exportPath);
                 }
 
                 var transactions = await GetBudgetByDateRange(begin, end);
@@ -271,7 +275,7 @@ namespace TTCCashRegister.Data.Export
                     }
                 }
 
-                await using var sw = new StreamWriter(fullPath);
+                await using var sw = new StreamWriter(Path.Combine(_exportPath, filename));
                 await sw.WriteAsync(csv.ToString());
 
                 return true;
