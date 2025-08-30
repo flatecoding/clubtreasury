@@ -76,7 +76,7 @@
             </MudSelect>
             <MudSelect T="UnitDetailsModel"
                        Label="Unit Details"
-                       Disabled="@(string.IsNullOrEmpty(_selectedBasicUnitModel.Name))"
+                       Disabled="@(string.IsNullOrEmpty(_selectedBasicUnitModel?.Name))"
                        ToStringFunc="@_detailsconverter"
                        @bind-Value="_selectedUnitDetail">
                 <MudSelectItem T="UnitDetailsModel" Value="null">None</MudSelectItem>
