@@ -59,12 +59,11 @@
                 {
                     Snackbar.Add("Start can't be after end date!", Severity.Warning);
                     Console.WriteLine("Start can't be after end date!");
+                    return;
                 }
-
-                var folderPath = Path.Combine(Path.GetTempPath(), SelectedFolder);
-                var destination = Path.Combine(folderPath, $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv");
-
-                var result = await TransactionService.ExportBudgetToCsv(start, end, destination);
+                
+                var fileName = $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
+                var result = await TransactionService.ExportBudgetToCsv(start, end, fileName);
                 MudDialog.Close(DialogResult.Ok(result));
             }
         }
