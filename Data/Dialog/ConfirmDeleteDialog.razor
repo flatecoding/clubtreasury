@@ -1,0 +1,53 @@
+@page "/confirmdelete"
+@using MudExtensions
+
+<MudDialog>
+    <DialogContent>
+        <MudTextM3 Typo="TypoM3.Title" Size="Size.Medium">@_deleteQuestion</MudTextM3>
+        <MudTextM3 Typo="TypoM3.Body" Size="Size.Large">@_entityName</MudTextM3>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@(() => Confirm())">Delete</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    // Parameter für universelle Nutzung
+    [Parameter] public string EntityName { get; set; } = string.Empty; // z.B. "Person", "Cash Register"
+    [Parameter] public string ItemName { get; set; } = string.Empty;   // z.B. "Max Mustermann"
+    [Parameter] public EventCallback OnConfirm { get; set; }           // Aktion, die beim Bestätigen ausgeführt wird
+    
+    private string _entityName = string.Empty;
+    private string _deleteQuestion = "Are you sure you want to delete this ";
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async void OnInitialized()
+    {
+        try
+        {
+            _deleteQuestion = $"{_deleteQuestion}{EntityName.ToLower()} entry?";
+            _entityName = $"{ItemName}";
+            await MudDialog.SetTitleAsync($"Delete {EntityName.ToLower()}");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occured during delete operation! Error: {ex}");
+        }
+    }
+
+    private async Task Confirm()
+    {
+        if (OnConfirm.HasDelegate)
+            await OnConfirm.InvokeAsync();
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

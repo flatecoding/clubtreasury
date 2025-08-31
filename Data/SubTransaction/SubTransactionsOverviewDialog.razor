@@ -1,0 +1,132 @@
+@using System.Globalization
+@using TTCCashRegister.Data.Dialog
+@using TTCCashRegister.Data.Source
+@inject SubTransactionService SubTransactionService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NotificationService NotificationService
+
+<MudDialog>
+    <DialogContent>
+        @if (_subTransactions == null)
+        {
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+        }
+        else if (!_subTransactions.Any())
+        {
+            <em>No subtransactions found.</em>
+        }
+        else
+        {
+            <MudTable Items="_subTransactions" Dense="true" Hover="true" Striped="true" Bordered="true">
+                <HeaderContent>
+                    <MudTh>Doc. Nr.</MudTh>
+                    <MudTh>Description</MudTh>
+                    <MudTh>Person</MudTh>
+                    <MudTh>Sum</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate Context="row">
+                    <MudTd>@row.DocumentNumber</MudTd>
+                    <MudTd>@row.Description</MudTd>
+                    <MudTd>@row.Person?.Name</MudTd>
+                    <MudTd>@row.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Info"
+                                       OnClick="@(() => ShowEditSubTransactionDialog(row.Id))"/>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       OnClick="@(() => ShowDeleteSubTransactionDialog(row.Id))"/>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@(() => ShowAddSubTransactionDialog())">
+            Add SubTransaction
+        </MudButton>
+        <MudButton Color="Color.Default" OnClick="@(() => Close())">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int TransactionId { get; set; }
+    [Parameter] public int ParentDocumentNumber { get; set; }
+    private List<SubTransactionModel>? _subTransactions;
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSubTransactions();
+        await MudDialog.SetTitleAsync($"Subtransactions for document: {ParentDocumentNumber}");
+        StateHasChanged();
+    }
+
+    private async Task LoadSubTransactions()
+    {
+        _subTransactions = await SubTransactionService.GetByTransactionIdAsync(TransactionId);
+    }
+
+    
+    private async Task ShowAddSubTransactionDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            ["TransactionId"] = TransactionId,
+            ["SubTransactionId"] = null
+        };
+
+        var dialog = await DialogService.ShowAsync<SubTransactionDialog>(null, parameters);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            Snackbar.Add("Subtransaction was added successfully", Severity.Success);
+            await LoadSubTransactions();
+        }
+    }
+    
+    private async Task ShowEditSubTransactionDialog(int subTransactionId)
+    {
+        var parameters = new DialogParameters
+        {
+            ["TransactionId"] = TransactionId,
+            ["SubTransactionId"] = subTransactionId
+        };
+
+        var dialog = await DialogService.ShowAsync<SubTransactionDialog>(null, parameters);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            Snackbar.Add("Subtransaction was updated successfully", Severity.Success);
+            await LoadSubTransactions();
+        }
+    }
+
+    private async Task ShowDeleteSubTransactionDialog(int subTransactionId)
+    {
+        var transaction = await SubTransactionService.GetSubTransactionByIdAsync(subTransactionId);
+        if (transaction == null) return;
+
+        var dialog = await DialogService.ShowAsync<ConfirmDeleteDialog>(
+            string.Empty,
+            new DialogParameters
+            {
+                ["EntityName"] = "SubTransaction",
+                ["ItemName"] = transaction.TransactionId,
+                ["OnConfirm"] = EventCallback.Factory.Create(this, async () =>
+                {
+                    await SubTransactionService.DeleteAsync(subTransactionId);
+                })
+            });
+
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        StateHasChanged();
+    }
+
+    private void Close() => MudDialog.Close();
+}
