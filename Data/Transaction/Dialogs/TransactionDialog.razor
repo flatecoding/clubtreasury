@@ -1,0 +1,323 @@
+@page "/transactiondialog"
+@using System.Globalization
+@using TTCCashRegister.Data.BasicUnit
+@using TTCCashRegister.Data.CashRegister
+@using TTCCashRegister.Data.CostUnit
+@using TTCCashRegister.Data.Person
+@using TTCCashRegister.Data.SpecialItem
+@using TTCCashRegister.Data.Transaction
+@using TTCCashRegister.Data.UnitDetail
+@inject TransactionService TransactionService
+@inject CostUnitService CostUnitService
+@inject BasicUnitService BasicUnitService
+@inject UnitDetailService UnitDetailService
+@inject CashRegisterService CashRegisterService
+@inject PersonService PersonService
+@inject SpecialItemService SpecialItemService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_transactionModel" Validation="_transactionValidator.ValidateValue" ValidationDelay="0">
+            
+            <MudSelect T="CashRegisterModel"
+                       Label="Cash register"
+                       Required="true"
+                       ToStringFunc="@_cashRegisterConverter"
+                       Immediate="true"
+                       @bind-Value="_selectedCashRegisterModel"
+                       @bind-Value:after="OnCashRegisterChangedAsync">
+                @foreach (var cash in _cashRegisters)
+                {
+                    <MudSelectItem T="CashRegisterModel" Value="@cash">@cash.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudDatePicker 
+                @bind-Date="@TransactionDateTime"
+                Editable="true" 
+                Label="Date" 
+                Required="true" 
+                RequiredError="Date is required." />
+
+            <MudTextField @bind-Value="_transactionModel.Documentnumber" 
+                          Label="Document Number" 
+                          For="@(() => _transactionModel.Documentnumber)" 
+                          Immediate="true" />
+
+            <MudTextField @bind-Value="_transactionModel.Description" 
+                          Label="Description" 
+                          For="@(() => _transactionModel.Description)" 
+                          Immediate="true" />
+
+            <MudTextField @bind-Value="_transactionModel.Sum"
+                             Label="Sum" 
+                             For="@(() => _transactionModel.Sum)" 
+                             Immediate="true" />
+
+            <MudTextField @bind-Value="_transactionModel.AccountMovement"
+                          Label="Account Movement" 
+                          For="@(() => _transactionModel.AccountMovement)" 
+                          Immediate="true" />
+
+            <MudSelect T="CostUnitModel" 
+                       Label="Cost Unit" 
+                       Required="true" 
+                       ToStringFunc="@_unitConverter"
+                       Immediate="true"
+                       @bind-Value="_selectedCostUnit"
+                       @bind-Value:after="OnCostUnitChangedAsync">
+                @foreach (var unit in _costUnits)
+                {
+                    <MudSelectItem T="CostUnitModel" Value="@unit">@unit.CostUnitName</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="BasicUnitModel" 
+                       Label="Basic Unit"  
+                       Disabled="@(_selectedCostUnit == null)" 
+                       Required="true" 
+                       ToStringFunc="@_basicUnitConverter"
+                       @bind-Value="_selectedBasicUnit"
+                       @bind-Value:after="OnBasicUnitChangedAsync">
+                @if (_basicUnits is not null)
+                {
+                    @foreach (var basicUnit in _basicUnits)
+                    {
+                        <MudSelectItem T="BasicUnitModel" Value="@basicUnit">@basicUnit.Name</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+
+            <MudSelect T="UnitDetailsModel" 
+                       Label="Unit Details"
+                       Disabled="@(_selectedBasicUnit == null)" 
+                       ToStringFunc="@_detailsConverter"
+                       @bind-Value="_selectedUnitDetail">
+                <MudSelectItem T="UnitDetailsModel" Value="@null">None</MudSelectItem>
+                @if (_unitDetails is not null)
+                {
+                    foreach (var unitDetail in _unitDetails)
+                    {
+                        <MudSelectItem T="UnitDetailsModel" Value="@unitDetail">@unitDetail.CostDetails</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+
+            <MudSelect T="PersonModel"
+                       Label="Person"
+                       ToStringFunc="@_personConverter"
+                       @bind-Value="_selectedPerson">
+                <MudSelectItem T="PersonModel" Value="@null">None</MudSelectItem>
+                @foreach (var p in _persons)
+                {
+                    <MudSelectItem T="PersonModel" Value="@p">@p.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="SpecialItemModel" 
+                       Label="SpecialItem"
+                       ToStringFunc="@_specialItemConverter"
+                       Placeholder="Select special position if required"
+                       @bind-Value="_selectedSpecialItem">
+                <MudSelectItem T="SpecialItemModel" Value="@null">None</MudSelectItem>
+                @foreach (var specialItem in _specialItemList)
+                {
+                    <MudSelectItem T="SpecialItemModel" Value="@specialItem">@specialItem.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Save())">
+            @(_isEditMode ? "Save" : "Add")
+        </MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int? TransactionId { get; set; } // null = Add, Wert = Edit
+
+    private MudForm _form = new();
+    private TransactionModel _transactionModel = new();
+    private readonly TransactionValidator _transactionValidator = new();
+
+    private bool _isEditMode;
+    private string _dialogTitle = string.Empty;
+
+    private DateTime? TransactionDateTime { get; set; } = DateTime.Now;
+
+    private IEnumerable<CostUnitModel> _costUnits = [];
+    private IEnumerable<BasicUnitModel>? _basicUnits = [];
+    private IEnumerable<UnitDetailsModel>? _unitDetails = [];
+    private IEnumerable<CashRegisterModel> _cashRegisters = [];
+    private IEnumerable<SpecialItemModel> _specialItemList = [];
+    private IEnumerable<PersonModel> _persons = [];
+
+    private CostUnitModel? _selectedCostUnit;
+    private BasicUnitModel? _selectedBasicUnit;
+    private UnitDetailsModel? _selectedUnitDetail;
+    private CashRegisterModel? _selectedCashRegisterModel;
+    private SpecialItemModel? _selectedSpecialItem;
+    private PersonModel? _selectedPerson;
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    // Converter-Funktionen
+    private readonly Func<PersonModel, string> _personConverter = p => p?.Name ?? string.Empty;
+    private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
+    private readonly Func<CostUnitModel, string> _unitConverter = p => p?.CostUnitName ?? string.Empty;
+    private readonly Func<UnitDetailsModel, string> _detailsConverter = d => d?.CostDetails ?? string.Empty;
+    private readonly Func<SpecialItemModel, string> _specialItemConverter = s => s?.Name ?? string.Empty;
+    private readonly Func<BasicUnitModel, string> _basicUnitConverter = b => b?.Name ?? string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isEditMode = TransactionId.HasValue;
+
+        // Stammdaten laden
+        _costUnits = await CostUnitService.GetAllUnitsAsync();
+        _basicUnits = await BasicUnitService.GetAllBasicUnitsAsync();
+        _specialItemList = await SpecialItemService.GetAllSpecialItems();
+        _cashRegisters = await CashRegisterService.GetAllCashRegisters();
+        _persons = await PersonService.GetAllPersonsAsync();
+
+        string dialogTitle;
+        
+        if (_isEditMode && TransactionId is not null)
+        {
+            _transactionModel = await TransactionService.GetTransactionByIdAsync(TransactionId.Value) ?? new TransactionModel();
+            dialogTitle = "Edit transaction";
+
+            // Auswahlfelder vorbelegen
+            _selectedCashRegisterModel = _transactionModel.CashRegister;
+            _selectedCostUnit = _transactionModel.CostUnit;
+            _selectedBasicUnit = _transactionModel.BasicUnit;
+            _selectedUnitDetail = _transactionModel.UnitDetails;
+            _selectedPerson = _transactionModel.Person;
+            _selectedSpecialItem = _transactionModel.SpecialItem;
+            TransactionDateTime = _transactionModel.Date?.ToDateTime(TimeOnly.MinValue);
+        }
+        else
+        {
+            _transactionModel = new TransactionModel();
+            dialogTitle = "Add new transaction";
+        }
+        await MudDialog.SetTitleAsync(dialogTitle);
+        StateHasChanged();
+    }
+
+    private async Task OnCostUnitChangedAsync()
+    {
+        _basicUnits = [];
+        _selectedBasicUnit = null;
+        _unitDetails = [];
+        _selectedUnitDetail = null;
+
+        if (_selectedCostUnit is not null)
+        {
+            _basicUnits = await BasicUnitService.GetBasicUnitsByCostUnitIdAsync(_selectedCostUnit.Id);
+            if (_basicUnits != null) _selectedBasicUnit = _basicUnits.FirstOrDefault();
+            await OnBasicUnitChangedAsync();
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnBasicUnitChangedAsync()
+    {
+        _unitDetails = [];
+        _selectedUnitDetail = null;
+
+        if (_selectedBasicUnit is not null)
+        {
+            _unitDetails = await UnitDetailService.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnit.Id);
+            if (_unitDetails != null) _selectedUnitDetail = _unitDetails.FirstOrDefault();
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnCashRegisterChangedAsync() => InvokeAsync(StateHasChanged);
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_form.IsValid && IsProcessable())
+        {
+            MapFormToModel();
+
+            bool success;
+            if (_isEditMode)
+                success = await TransactionService.UpdateTransactionAsync(_transactionModel);
+            else
+                success = await TransactionService.AddTransaction(_transactionModel);
+
+            MudDialog.Close(DialogResult.Ok(success));
+        }
+    }
+
+    private void MapFormToModel()
+    {
+        (_transactionModel.CashRegister, _transactionModel.CashRegisterId) =
+            SetRequired<CashRegisterModel, CashRegisterModel>(_selectedCashRegisterModel, c => c.Id);
+
+        (_transactionModel.CostUnit, _transactionModel.CostUnitId) =
+            SetRequired<CostUnitModel, CostUnitModel>(_selectedCostUnit, c => c.Id);
+
+        (_transactionModel.BasicUnit, _transactionModel.BasicUnitId) =
+            SetRequired<BasicUnitModel, BasicUnitModel>(_selectedBasicUnit, b => b.Id);
+        
+        (_transactionModel.UnitDetails, _transactionModel.UnitDetailsId) =
+            SetOrClear<UnitDetailsModel, UnitDetailsModel>(_selectedUnitDetail, u => u.Id);
+
+        (_transactionModel.Person, _transactionModel.PersonId) =
+            SetOrClear<PersonModel, PersonModel>(_selectedPerson, p => p.Id);
+
+        (_transactionModel.SpecialItem, _transactionModel.SpecialItemId) =
+            SetOrClear<SpecialItemModel, SpecialItemModel>(_selectedSpecialItem, s => s.Id);
+        
+        if (TransactionDateTime.HasValue)
+            _transactionModel.Date = DateOnly.FromDateTime(TransactionDateTime.Value);
+        else
+            throw new InvalidOperationException("Das Transaktionsdatum ist erforderlich.");
+    }
+
+    
+    private static (TModel?, int?) SetOrClear<TModel, TSelected>(
+        TSelected? selected,
+        Func<TSelected, int> getId
+    ) where TModel : class
+        where TSelected : class
+    {
+        if (selected is not null)
+        {
+            return (selected as TModel, getId(selected));
+        }
+        return (null, null);
+    }
+
+// für Pflichtfelder
+    private (TModel, int) SetRequired<TModel, TSelected>(
+        TSelected? selected,
+        Func<TSelected, int> getId
+    ) where TModel : class
+        where TSelected : class
+    {
+        if (selected is null)
+            throw new InvalidOperationException($"{typeof(TModel).Name} ist erforderlich, wurde aber nicht ausgewählt.");
+
+        return (selected as TModel ?? throw new InvalidCastException(), getId(selected));
+    }
+
+
+    private bool IsProcessable()
+    {
+        return _selectedCostUnit?.Id >= 1
+               && _selectedBasicUnit?.Id >= 1
+               && _selectedCashRegisterModel?.Id >= 1
+               && TransactionDateTime.HasValue;
+    }
+
+    private void Cancel() => MudDialog.Close(DialogResult.Cancel());
+}

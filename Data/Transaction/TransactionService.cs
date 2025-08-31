@@ -16,6 +16,8 @@ public class TransactionService(
             .Include(c => c.BasicUnit)
             .Include(d => d.CostUnit)
             .Include(u => u.UnitDetails)
+            .Include(t => t.SubTransactions)!
+              .ThenInclude(st => st.Person)
             .OrderByDescending(x => x.Id)
             .AsNoTracking()
             .ToListAsync();
