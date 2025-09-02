@@ -8,19 +8,20 @@
 @inject TransactionService TransactionService
 @inject IDialogService DialogService
 @inject NotificationService NotificationService
+@inject PersonService PersonService
 
 <h2>Transactions</h2>
-<MudTable Class="mt-2"
-          Items="@_allEntries"
+<MudTable @ref="_table"
+          ServerData="LoadServerData"
+          RowsPerPage="25"
+          Class="mt-2"
           Dense="@Dense"
           Hover="@Hover"
           Bordered="@Bordered"
           Striped="@Striped"
           FixedHeader="true"
           @bind-SelectedItem="_selectedItem"
-          Filter="new Func<TransactionModel,bool>(FilterFunc)"
           SortLabel="Sort By">
-
     <ToolBarContent>
         <MudButton Variant="Variant.Filled"
                    StartIcon="@Icons.Material.Filled.Add"
@@ -28,42 +29,24 @@
                    OnClick="@(() => ShowAddTransactionDialog())">
             Add Transaction
         </MudButton>
-
         <MudSpacer />
 
-        <MudDateRangePicker Label="Date Range"
-                            @bind-DateRange="_dateRange"
-                            Editable="true"
-                            DateFormat="dd.MM.yyyy"
-                            Class="mx-2" />
         <MudButton Variant="Variant.Outlined"
                    Color="Color.Primary"
-                   OnClick="@(() => ApplyDateFilter())">
-            Apply Filter
+                   StartIcon="@Icons.Material.Filled.FilterAlt"
+                   OnClick="@(() => ShowFilterDialog())">
+            Filter
         </MudButton>
-
-        <MudSpacer />
-
-        <MudTextField @bind-Value="_searchString1"
-                      Placeholder="Search"
-                      Adornment="Adornment.Start"
-                      AdornmentIcon="@Icons.Material.Filled.Search"
-                      IconSize="Size.Medium"
-                      Class="mt-0" />
-
-        <MudSwitch @bind-Value="_useAndSearch"
-                   Color="Color.Primary"
-                   ThumbIcon="@Icons.Material.Filled.Done"
-                   Class="ml-4">
-            @(_useAndSearch ? "AND search" : "OR search")
-        </MudSwitch>
     </ToolBarContent>
 
     <HeaderContent>
-        <MudTh>Date<MudTableSortLabel SortBy="new Func<TransactionModel, object?>(x => x.Date)"></MudTableSortLabel></MudTh>
-        <MudTh>Doc. Nr.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Documentnumber)"></MudTableSortLabel></MudTh>
+        <MudTh>Date<MudTableSortLabel SortBy="new Func<TransactionModel, object?>(x => x.Date)" 
+                                      SortLabel="Date"></MudTableSortLabel></MudTh>
+        <MudTh>Doc. Nr.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Documentnumber)" 
+                                          SortLabel="DocumentNumber" /></MudTh>
         <MudTh>Description</MudTh>
-        <MudTh>Sum<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Sum)"></MudTableSortLabel></MudTh>
+        <MudTh>Sum<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Sum)" 
+                                     SortLabel="Sum"></MudTableSortLabel></MudTh>
         <MudTh>Acc. mvm.</MudTh>
         <MudTh>Cost unit</MudTh>
         <MudTh>Basic unit</MudTh>
@@ -107,15 +90,16 @@
 
 
 @code {
-    private IEnumerable<TransactionModel>? _allEntries;
+    private MudTable<TransactionModel>? _table;
     private const bool Dense = true;
     private const bool Hover = true;
     private const bool Striped = true;
     private const bool Bordered = false;
     private string _searchString1 = string.Empty;
+    private string _personName = string.Empty;
     private TransactionModel _selectedItem = new();
     private DateRange _dateRange = new(null, null);
-    private bool _useAndSearch; // Toggle für AND/OR-Suche
+
     private readonly DialogOptions _subTransactionsOverviewOptions = new()
     {
         MaxWidth = MaxWidth.Medium,
@@ -124,57 +108,39 @@
         BackgroundClass= "custom-dialog-background"
     };
 
+    private int? _personId;
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _allEntries = await TransactionService.GetAllTransactions();
     }
 
-    private bool FilterFunc(TransactionModel? element) => FilterFunc1(element, _searchString1);
-
-    private bool FilterFunc1(TransactionModel? element, string searchString)
+    private async Task ShowFilterDialog()
     {
-        if (element is null)
-            return false;
-
-        if (string.IsNullOrWhiteSpace(searchString))
-            return true;
-        
-        var terms = searchString
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(t => t.ToLowerInvariant())
-            .ToList();
-
-        return _useAndSearch
-            ? terms.All(Matches) // AND
-            : terms.Any(Matches); // OR
-
-        bool Matches(string term) =>
-            element.BasicUnit is not null && 
-             ((element.Description?.ToLower().Contains(term) is true) ||
-             element.Documentnumber.ToString().Contains(term) ||
-             element.CostUnit.CostUnitName.ToLower().Contains(term) ||
-             element.BasicUnit.Name.ToLower().Contains(term) ||
-             (element.UnitDetails is not null && element.UnitDetails.CostDetails.ToLower().Contains(term)));
-    }
-    
-    private async Task ApplyDateFilter()
-    {
-        if (_dateRange is { Start: not null, End: not null })
+        var parameters = new DialogParameters
         {
-            var start = _dateRange.Start.Value.Date;
-            var end = _dateRange.End.Value.Date;
+            ["DateRange"] = _dateRange,
+            ["SearchText"] = _searchString1,
+            ["SelectedPersonId"] = _personId,
+        };
 
-            _allEntries = await TransactionService.GetTransactionsByDateRange(start, end);
-        }
-        else
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<TransactionFilterDialog>("Filter", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
         {
-            _allEntries = await TransactionService.GetAllTransactions();
-        }
+            var values = (TransactionFilterValues)result.Data!;
+            _dateRange = values.DateRange;
+            _searchString1 = values.SearchText;
+            _personId = values.PersonId;
 
-        await InvokeAsync(StateHasChanged);
+            if (_table is not null)
+                await _table.ReloadServerData();
+        }
     }
-    
+
     private async Task ShowSubTransactionsOverviewDialog(int transactionId, int documentNumber)
     {
         var dialog = await DialogService.ShowAsync<SubTransactionsOverviewDialog>(null,
@@ -191,7 +157,7 @@
     
     private async Task ShowAddTransactionDialog()
     {
-       var dialog = await DialogService.ShowAsync<TransactionDialog>(string.Empty);
+        var dialog = await DialogService.ShowAsync<TransactionDialog>(string.Empty);
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
@@ -227,7 +193,17 @@
 
     private async Task UpdateView()
     {
-        _allEntries = await TransactionService.GetAllTransactions();
+        await TransactionService.GetAllTransactions();
         await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task<TableData<TransactionModel>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        return await TransactionService.GetTransactionsPaged(
+            state,
+            cancellationToken,
+            _dateRange,
+            _searchString1,
+            _personId);
     }
 }
