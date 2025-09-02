@@ -4,7 +4,19 @@
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.subtitle1">Select a file to import data from booking journal. Table name must be "Buchungen"</MudText>
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Large">Select a file to import data from booking journal. </MudTextM3>
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Medium"><strong>Required format</strong></MudTextM3> 
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>Name of sheet:</strong> "Buchungen"</MudTextM3>
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>Row definition:</strong></MudTextM3>
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium">
+            Date; Document number; Description; Income; Outcome; Account movement; Costunit/Basicposition
+        </MudTextM3>
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>File format:</strong> *.xlsx</MudTextM3>
+       <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Medium"><strong>Example</strong></MudTextM3>
+        <MudImage Class="mb-2"
+            Src="images/ExampleBookingJournalImport.png"
+                          Alt="Example">
+                </MudImage>
         <MudForm>
             <MudFileUpload T="IBrowserFile" 
                            FilesChanged="UploadFiles"
