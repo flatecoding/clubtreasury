@@ -1,0 +1,111 @@
+@page "/subtransactiondialog"
+@using TTCCashRegister.Data.Person
+@inject SubTransactionService SubTransactionService
+@inject PersonService PersonService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_subTransactionModel" 
+                 Validation="_subTransactionValidator.ValidateValue"
+                 ValidationDelay="0">
+            
+            <MudTextField @bind-Value="_subTransactionModel.DocumentNumber"
+                          Label="Document Number"
+                          For="@(() => _subTransactionModel.DocumentNumber)"
+                          Immediate="true" />
+            
+            <MudTextField @bind-Value="_subTransactionModel.Description"
+                          Label="Description"
+                          For="@(() => _subTransactionModel.Description)"
+                          Immediate="true"
+                          Required="true"
+                          RequiredError="Description is required" />
+            
+            <MudTextField @bind-Value="_subTransactionModel.Sum"
+                             Label="Sum"
+                             For="@(() => _subTransactionModel.Sum)"
+                             Immediate="true"
+                             Required="true"
+                             RequiredError="Amount is required" />
+            
+            <MudSelect T="int?" Label="Person"
+                       @bind-Value="_subTransactionModel.PersonId"
+                       Clearable="true">
+                <MudSelectItem T="int?" Value="@null">None</MudSelectItem>
+                @foreach (var p in _persons)
+                {
+                    <MudSelectItem T="int?" Value="@p.Id">@p.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="@(async () => await Save())">
+            @(_isEditMode ? "Save" : "Add")
+        </MudButton>
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Default"
+                   OnClick="@Cancel">
+            Cancel
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int TransactionId { get; set; }
+    [Parameter] public int? SubTransactionId { get; set; } // null = Add, Wert = Edit
+
+    private MudForm _form = new();
+    private SubTransactionModel _subTransactionModel = new();
+    private bool _isEditMode;
+    private readonly SubTransactionValidator _subTransactionValidator = new();
+
+    private IEnumerable<PersonModel> _persons = [];
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isEditMode = SubTransactionId.HasValue;
+        
+        _persons = await PersonService.GetAllPersonsAsync();
+        string dialogTitle;
+        if (_isEditMode)
+        {
+            if (SubTransactionId is not null) _subTransactionModel = 
+                await SubTransactionService.GetSubTransactionByIdAsync(SubTransactionId.Value)
+                  ?? new SubTransactionModel { TransactionId = TransactionId };
+            dialogTitle = "Edit subtransaction";
+        }
+        else
+        {
+            _subTransactionModel = new SubTransactionModel
+            {
+                TransactionId = TransactionId,
+                Sum = 0m
+            };
+            dialogTitle = "Add new subtransaction";
+        }
+
+        await MudDialog.SetTitleAsync(dialogTitle);
+        StateHasChanged();
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            if (_isEditMode)
+                await SubTransactionService.UpdateAsync(_subTransactionModel);
+            else
+                await SubTransactionService.AddSubTransactionAsync(_subTransactionModel);
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel() => MudDialog.Close(DialogResult.Cancel());
+}
