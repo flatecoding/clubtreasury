@@ -1,14 +1,12 @@
 ﻿@page "/transactions"
 @using System.Globalization
 @using TTCCashRegister.Data.Dialog
-@using TTCCashRegister.Data.Person
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.SubTransaction
 @using TTCCashRegister.Data.Transaction.Dialogs
 @inject TransactionService TransactionService
 @inject IDialogService DialogService
 @inject NotificationService NotificationService
-@inject PersonService PersonService
 
 <h2>Transactions</h2>
 <MudTable @ref="_table"
@@ -19,7 +17,9 @@
           Hover="@Hover"
           Bordered="@Bordered"
           Striped="@Striped"
-          FixedHeader="true"
+          FixedHeader="@_fixedHeader"
+          FixedFooter="@_fixedFooter"
+          Height="@(_fixedHeader || _fixedFooter ?"700px":"")"
           @bind-SelectedItem="_selectedItem"
           SortLabel="Sort By">
     <ToolBarContent>
@@ -96,7 +96,6 @@
     private const bool Striped = true;
     private const bool Bordered = false;
     private string _searchString1 = string.Empty;
-    private string _personName = string.Empty;
     private TransactionModel _selectedItem = new();
     private DateRange _dateRange = new(null, null);
 
@@ -104,11 +103,13 @@
     {
         MaxWidth = MaxWidth.Medium,
         FullWidth = true,
-        BackdropClick = true,
+        BackdropClick = false,
         BackgroundClass= "custom-dialog-background"
     };
 
     private int? _personId;
+    private readonly bool _fixedHeader = true;
+    private readonly bool _fixedFooter = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -124,7 +125,7 @@
             ["SelectedPersonId"] = _personId,
         };
 
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, BackdropClick = false };
 
         var dialog = await DialogService.ShowAsync<TransactionFilterDialog>("Filter", parameters, options);
         var result = await dialog.Result;

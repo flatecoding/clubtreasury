@@ -73,6 +73,13 @@
     private const bool Bordered = false;
     private string _searchString1 = string.Empty;
     private UnitDetailsModel _selectedItem = new();
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        BackdropClick = false,
+        BackgroundClass= "custom-dialog-background"
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,8 +106,9 @@
     private async Task ShowAddUnitDetailsDialog()
     {
         var parameters = new DialogParameters();
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<AddUnitDetailsDialog>("Add Unit Details", parameters, options);
+        
+        var dialog = await DialogService.ShowAsync<AddUnitDetailsDialog>("Add Unit Details", 
+            parameters, _dialogOptions);
         if ((await dialog.Result)?.Canceled == false)
         {
             _allEntries = await UnitDetailsService.GetAllDetailsAsync();
@@ -111,8 +119,8 @@
     private async Task ShowEditUnitDetailsDialog(int unitDetailsId)
     {
         var parameters = new DialogParameters { ["UnitDetailsId"] = unitDetailsId };
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<EditUnitDetailsDialog>("Edit Unit Details", parameters, options);
+        var dialog = await DialogService.ShowAsync<EditUnitDetailsDialog>("Edit Unit Details", 
+            parameters, _dialogOptions);
         if ((await dialog.Result)?.Canceled == false)
         {
             _allEntries = await UnitDetailsService.GetAllDetailsAsync();
@@ -123,8 +131,8 @@
     private async Task ShowDeleteUnitDetailsDialog(int unitDetailsId)
     {
         var parameters = new DialogParameters { ["UnitDetailsId"] = unitDetailsId };
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<DeleteUnitDetailsDialog>("Delete Unit Details", parameters, options);
+        var dialog = await DialogService.ShowAsync<DeleteUnitDetailsDialog>("Delete Unit Details", 
+            parameters, _dialogOptions);
         if ((await dialog.Result)?.Canceled == false)
         {
             _allEntries = await UnitDetailsService.GetAllDetailsAsync();
