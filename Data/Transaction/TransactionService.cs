@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor;
 using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Export;
 
@@ -152,4 +153,87 @@ public class TransactionService(
     {
         return await exportService.ExportTransactionsToPdf(begin, end, filename);
     }
+    
+    public async Task<TableData<TransactionModel>> GetTransactionsPaged(
+        TableState state,
+        CancellationToken cancellationToken,
+        DateRange? dateRange,
+        string? searchText,
+        int? personId)
+    {
+        var query = context.Transactions
+            .Include(c => c.BasicUnit)
+            .Include(d => d.CostUnit)
+            .Include(u => u.UnitDetails)
+            .Include(t => t.Person)
+            .Include(t => t.SubTransactions)!
+            .ThenInclude(st => st.Person)
+            .AsNoTracking();
+
+        // 🔍 Datum
+        if (dateRange?.Start is not null && dateRange?.End is not null)
+        {
+            var start = dateRange.Start.Value.Date;
+            var end = dateRange.End.Value.Date;
+            query = query.Where(t => t.Date.HasValue &&
+                                     t.Date.Value >= DateOnly.FromDateTime(start) &&
+                                     t.Date.Value <= DateOnly.FromDateTime(end));
+        }
+
+        // 🔎 Suchtext (inkl. Person.Name, falls PersonId nicht explizit gesetzt wurde)
+        if (!string.IsNullOrWhiteSpace(searchText))
+        {
+            var term = searchText.ToLower();
+
+            query = query.Where(x =>
+                x.SubTransactions != null && ((x.Description != null && x.Description.ToLower().Contains(term)) ||
+                                              x.Documentnumber.ToString().Contains(term) ||
+                                              (x.CostUnit.CostUnitName.ToLower().Contains(term)) ||
+                                              (x.BasicUnit != null && x.BasicUnit.Name.ToLower().Contains(term)) ||
+                                              (x.UnitDetails != null && x.UnitDetails.CostDetails.ToLower().Contains(term)) ||
+                                              (x.Person != null && x.Person.Name.ToLower().Contains(term)) ||
+                                              x.SubTransactions.Any(st =>
+                                                  st.Person != null && st.Person.Name.ToLower().Contains(term)))
+            );
+        }
+
+        // 👤 Person-Filter (exakt per ID)
+        if (personId is not null)
+        {
+            query = query.Where(t =>
+                (t.Person != null && t.Person.Id == personId) ||
+                t.SubTransactions.Any(st => st.Person != null && st.Person.Id == personId));
+        }
+
+
+        
+        query = state.SortLabel switch
+        {
+            "Date" => state.SortDirection == SortDirection.Descending
+                ? query.OrderByDescending(x => x.Date)
+                : query.OrderBy(x => x.Date),
+            "DocumentNumber" => state.SortDirection == SortDirection.Descending
+                ? query.OrderByDescending(x => x.Documentnumber)
+                : query.OrderBy(x => x.Documentnumber),
+            "Sum" => state.SortDirection == SortDirection.Descending
+                ? query.OrderByDescending(x => x.Sum)
+                : query.OrderBy(x => x.Sum),
+            _ => query.OrderByDescending(x => x.Id)
+        };
+
+        var totalItems = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .Skip(state.Page * state.PageSize)
+            .Take(state.PageSize)
+            .ToListAsync(cancellationToken);
+
+        return new TableData<TransactionModel>
+        {
+            TotalItems = totalItems,
+            Items = items
+        };
+}
+
+
 }
