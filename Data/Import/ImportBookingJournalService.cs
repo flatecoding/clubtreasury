@@ -153,6 +153,7 @@ namespace TTCCashRegister.Data.Import
                    catch (Exception rowEx)
                    {
                        logger.LogError("Error processing row: {0} — {1}", string.Join(", ", row.ItemArray), rowEx.Message);
+                       return false;
                    }
                }
 

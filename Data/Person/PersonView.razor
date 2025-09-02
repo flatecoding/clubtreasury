@@ -1,0 +1,121 @@
+@page "/persons"
+@using TTCCashRegister.Data.Dialog
+@using TTCCashRegister.Data.Source
+@inject PersonService PersonService
+@inject IDialogService DialogService
+@inject NotificationService NotificationService
+
+<h2>Persons</h2>
+
+<MudPaper Class="mt-4" Style="width:40%;">
+    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
+              @bind-SelectedItem="_selectedItem"
+              Filter="new Func<PersonModel,bool>(FilterFunc)"
+              SortLabel="Sort By">
+        <ToolBarContent>
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Color="Color.Primary"
+                       @onclick="ShowAddPersonDialog">
+                Add Person
+            </MudButton>
+            <MudSpacer />
+            <MudTextField @bind-Value="_searchString1"
+                          Placeholder="Search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0">
+            </MudTextField>
+        </ToolBarContent>
+        <ColGroup>
+            <col style="width: 50px;" />
+            <col />
+            <col style="width: 150px;"/>
+        </ColGroup>
+        <HeaderContent>
+            <MudTh>Id<MudTableSortLabel SortBy="new Func<PersonModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
+            <MudTh>Name<MudTableSortLabel SortBy="new Func<PersonModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id">@context.Id</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditPersonDialog(context.Id)"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeletePersonDialog(context.Id)"></MudIconButton>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private IEnumerable<PersonModel>? _allEntries;
+    private const bool Dense = true;
+    private const bool Hover = true;
+    private const bool Striped = true;
+    private const bool Bordered = false;
+    private string _searchString1 = string.Empty;
+    private PersonModel _selectedItem = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _allEntries = await PersonService.GetAllPersonsAsync();
+    }
+
+    private bool FilterFunc(PersonModel? element) => FilterFunc1(element, _searchString1);
+
+    private static bool FilterFunc1(PersonModel? element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        return element is not null && element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task ShowAddPersonDialog()
+    {
+        var dialog = await DialogService.ShowAsync<PersonDialog>(string.Empty);
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
+    }
+
+    private async Task ShowEditPersonDialog(int personId)
+    {
+        var dialog = await DialogService.ShowAsync<PersonDialog>(string.Empty, 
+            new DialogParameters { ["PersonId"] = personId });
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
+    }
+
+    private async Task ShowDeletePersonDialog(int personId)
+    {
+        var person = await PersonService.GetPersonById(personId);
+        if (person == null) return;
+
+        var dialog = await DialogService.ShowAsync<ConfirmDeleteDialog>(
+            string.Empty,
+            new DialogParameters
+            {
+                ["EntityName"] = "Person",
+                ["ItemName"] = person.Name,
+                ["OnConfirm"] = EventCallback.Factory.Create(this, async () =>
+                {
+                    await PersonService.DeletePerson(personId);
+                })
+            });
+
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
+    }
+
+    
+    private async Task UpdateView()
+    {
+        _allEntries = await PersonService.GetAllPersonsAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+}

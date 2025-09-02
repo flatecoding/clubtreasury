@@ -1,106 +1,96 @@
 ﻿@page "/transactions"
 @using System.Globalization
+@using TTCCashRegister.Data.Dialog
 @using TTCCashRegister.Data.Source
+@using TTCCashRegister.Data.SubTransaction
 @using TTCCashRegister.Data.Transaction.Dialogs
 @inject TransactionService TransactionService
 @inject IDialogService DialogService
 @inject NotificationService NotificationService
 
 <h2>Transactions</h2>
-<MudPaper Class="mt-4" Style="width:100%;">
-    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
-              @bind-SelectedItem="_selectedItem"
-              Filter="new Func<TransactionModel,bool>(FilterFunc)"
-              SortLabel="Sort By">
+<MudTable @ref="_table"
+          ServerData="LoadServerData"
+          RowsPerPage="25"
+          Class="mt-2"
+          Dense="@Dense"
+          Hover="@Hover"
+          Bordered="@Bordered"
+          Striped="@Striped"
+          FixedHeader="@_fixedHeader"
+          FixedFooter="@_fixedFooter"
+          Height="@(_fixedHeader || _fixedFooter ?"700px":"")"
+          @bind-SelectedItem="_selectedItem"
+          SortLabel="Sort By">
+    <ToolBarContent>
+        <MudButton Variant="Variant.Filled"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   Color="Color.Primary"
+                   OnClick="@(() => ShowAddTransactionDialog())">
+            Add Transaction
+        </MudButton>
+        <MudSpacer />
 
-        <ToolBarContent>
-            <MudButton Variant="Variant.Filled"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       Color="Color.Primary"
-                       OnClick="ShowAddTransactionDialog">
-                Add Transaction
-            </MudButton>
+        <MudButton Variant="Variant.Outlined"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.FilterAlt"
+                   OnClick="@(() => ShowFilterDialog())">
+            Filter
+        </MudButton>
+    </ToolBarContent>
 
-            <MudSpacer />
-            
-            <MudDateRangePicker Label="Date Range"
-                                @bind-DateRange="_dateRange"
-                                Editable="true"
-                                DateFormat="dd.MM.yyyy"
-                                Class="mx-2" />
-            <MudButton Variant="Variant.Outlined"
-                       Color="Color.Primary"
-                       OnClick="ApplyDateFilter">
-                Apply Filter
-            </MudButton>
+    <HeaderContent>
+        <MudTh>Date<MudTableSortLabel SortBy="new Func<TransactionModel, object?>(x => x.Date)" 
+                                      SortLabel="Date"></MudTableSortLabel></MudTh>
+        <MudTh>Doc. Nr.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Documentnumber)" 
+                                          SortLabel="DocumentNumber" /></MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>Sum<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Sum)" 
+                                     SortLabel="Sum"></MudTableSortLabel></MudTh>
+        <MudTh>Acc. mvm.</MudTh>
+        <MudTh>Cost unit</MudTh>
+        <MudTh>Basic unit</MudTh>
+        <MudTh>Unit details</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
 
-            <MudSpacer />
-            
-            <MudTextField @bind-Value="_searchString1"
-                          Placeholder="Search"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search"
-                          IconSize="Size.Medium"
-                          Class="mt-0" />
-            
-            <MudSwitch @bind-Value="_useAndSearch"
-                       Color="Color.Primary"
-                       ThumbIcon="@Icons.Material.Filled.Done"
-                       Class="ml-4">
-                @(_useAndSearch ? "AND search" : "OR search")
-            </MudSwitch>
-        </ToolBarContent>
+    <RowTemplate>
+        <MudTd>@context.Date</MudTd>
+        <MudTd>@context.Documentnumber</MudTd>
+        <MudTd>@context.Description</MudTd>
+        <MudTd>@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+        <MudTd>@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+        <MudTd>@context.CostUnit.CostUnitName</MudTd>
+        <MudTd>@context.BasicUnit?.Name</MudTd>
+        <MudTd>@context.UnitDetails?.CostDetails</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.List"
+                           Color="Color.Secondary"
+                           aria-label="show-subtransactions"
+                           OnClick="@(() => ShowSubTransactionsOverviewDialog(
+                                        context.Id, 
+                                        context.Documentnumber))">
+            </MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                           Color="Color.Info"
+                           aria-label="edit"
+                           OnClick="@(() => ShowEditTransactionDialog(context.Id))">
+            </MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                           Color="Color.Error"
+                           aria-label="delete"
+                           OnClick="@(() => ShowDeleteTransactionDialog(context.Id))">
+            </MudIconButton>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
 
-
-        <ColGroup>
-            <col style="width: 20px;" />    @*Date*@
-            <col style="width: 30px;" />    @*Doc. Nr*@
-            <col style="width: 400px;" />   @*Description*@
-            <col style="min-width: 40px;"/> @*Sum*@
-            <col style="min-width: 40px;"/> @*Acc. mvm.*@
-            <col />                         @*Cost unit*@    
-            <col />                         @*Basic unit*@
-            <col />                         @*unit details*@ 
-            <col />                         @*Actions*@
-        </ColGroup>
-
-        <HeaderContent>
-            <MudTh hidden="True"><MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
-            <MudTh>Date<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Date ?? DateOnly.MinValue)"></MudTableSortLabel></MudTh>
-            <MudTh>Doc. Nr.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Documentnumber)"></MudTableSortLabel></MudTh>
-            <MudTh>Description<MudTableSortLabel SortBy="new Func<TransactionModel, object?>(x => x.Description)"></MudTableSortLabel></MudTh>
-            <MudTh>Sum<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Sum)"></MudTableSortLabel></MudTh>
-            <MudTh>Acc. mvm.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.AccountMovement)"></MudTableSortLabel></MudTh>
-            <MudTh>Cost unit<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.CostUnit.CostUnitName)"></MudTableSortLabel></MudTh>
-            <MudTh>Position<MudTableSortLabel SortBy="new Func<TransactionModel, object?>(x => x.BasicUnit?.Name)"></MudTableSortLabel></MudTh>
-            <MudTh>Pos. details</MudTh>
-            <MudTh>Actions</MudTh>
-        </HeaderContent>
-
-        <RowTemplate>
-            <MudTd hidden="true" DataLabel="ID">@context.Id</MudTd>
-            <MudTd DataLabel="Date">@context.Date</MudTd>
-            <MudTd DataLabel="Doc. Nr.">@context.Documentnumber</MudTd>
-            <MudTd DataLabel="Description">@context.Description</MudTd>
-            <MudTd DataLabel="Sum">@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
-            <MudTd DataLabel="Acc. mvm.">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
-            <MudTd DataLabel="Cost Unit">@context.CostUnit.CostUnitName</MudTd>
-            <MudTd DataLabel="Basic Unit">@context.BasicUnit?.Name</MudTd>
-            <MudTd DataLabel="Unit details">@context?.UnitDetails?.CostDetails</MudTd>
-            <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" OnClick="() => ShowEditTransactionDialog(context.Id)"></MudIconButton>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" OnClick="() => ShowDeleteTransactionDialog(context.Id)"></MudIconButton>
-            </MudTd>
-        </RowTemplate>
-
-        <PagerContent>
-            <MudTablePager />
-        </PagerContent>
-    </MudTable>
-</MudPaper>
 
 @code {
-    private IEnumerable<TransactionModel>? _allEntries;
+    private MudTable<TransactionModel>? _table;
     private const bool Dense = true;
     private const bool Hover = true;
     private const bool Striped = true;
@@ -108,85 +98,113 @@
     private string _searchString1 = string.Empty;
     private TransactionModel _selectedItem = new();
     private DateRange _dateRange = new(null, null);
-    private bool _useAndSearch; // Toggle für AND/OR-Suche
+
+    private readonly DialogOptions _subTransactionsOverviewOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        BackdropClick = false,
+        BackgroundClass= "custom-dialog-background"
+    };
+
+    private int? _personId;
+    private readonly bool _fixedHeader = true;
+    private readonly bool _fixedFooter = true;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _allEntries = await TransactionService.GetAllTransactions();
     }
 
-    private bool FilterFunc(TransactionModel? element) => FilterFunc1(element, _searchString1);
-
-    private bool FilterFunc1(TransactionModel? element, string searchstring)
+    private async Task ShowFilterDialog()
     {
-        if (element is null)
-            return false;
+        var parameters = new DialogParameters
+        {
+            ["DateRange"] = _dateRange,
+            ["SearchText"] = _searchString1,
+            ["SelectedPersonId"] = _personId,
+        };
 
-        if (string.IsNullOrWhiteSpace(searchstring))
-            return true;
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, BackdropClick = false };
+
+        var dialog = await DialogService.ShowAsync<TransactionFilterDialog>("Filter", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false })
+        {
+            var values = (TransactionFilterValues)result.Data!;
+            _dateRange = values.DateRange;
+            _searchString1 = values.SearchText;
+            _personId = values.PersonId;
+
+            if (_table is not null)
+                await _table.ReloadServerData();
+        }
+    }
+
+    private async Task ShowSubTransactionsOverviewDialog(int transactionId, int documentNumber)
+    {
+        var dialog = await DialogService.ShowAsync<SubTransactionsOverviewDialog>(null,
+            new DialogParameters
+            {
+                ["TransactionId"] = transactionId,
+                ["ParentDocumentNumber"] = documentNumber
+            },
+            _subTransactionsOverviewOptions);
+        await dialog.Result;
         
-        var terms = searchstring
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(t => t.ToLowerInvariant())
-            .ToList();
-
-        return _useAndSearch
-            ? terms.All(Matches) // AND
-            : terms.Any(Matches); // OR
-
-        bool Matches(string term) =>
-            element.BasicUnit is not null && 
-             ((element.Description?.ToLower().Contains(term) is true) ||
-             element.Documentnumber.ToString().Contains(term) ||
-             element.CostUnit.CostUnitName.ToLower().Contains(term) ||
-             element.BasicUnit.Name.ToLower().Contains(term) ||
-             (element.UnitDetails is not null && element.UnitDetails.CostDetails.ToLower().Contains(term)));
-    }
-    
-    private async Task ApplyDateFilter()
-    {
-        if (_dateRange is { Start: not null, End: not null })
-        {
-            var start = _dateRange.Start.Value.Date;
-            var end = _dateRange.End.Value.Date;
-
-            _allEntries = await TransactionService.GetTransactionsByDateRange(start, end);
-        }
-        else
-        {
-            _allEntries = await TransactionService.GetAllTransactions();
-        }
-
-        await InvokeAsync(StateHasChanged);
+        await UpdateView();
     }
     
     private async Task ShowAddTransactionDialog()
     {
-        var dialog = await DialogService.ShowAsync<AddTransactionDialog>("Add Transaction", new DialogParameters());
+        var dialog = await DialogService.ShowAsync<TransactionDialog>(string.Empty);
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
 
     private async Task ShowEditTransactionDialog(int transactionId)
     {
-        var dialog = await DialogService.ShowAsync<EditTransactionDialog>("Edit Transaction",
+        var dialog = await DialogService.ShowAsync<TransactionDialog>("Edit Transaction",
             new DialogParameters { ["TransactionId"] = transactionId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
-
+    
     private async Task ShowDeleteTransactionDialog(int transactionId)
     {
-        var dialog = await DialogService.ShowAsync<DeleteTransactionDialog>("Delete Transaction",
-            new DialogParameters { ["TransactionId"] = transactionId });
+        var transaction = await TransactionService.GetTransactionByIdAsync(transactionId);
+        if (transaction == null) return;
+
+        var dialog = await DialogService.ShowAsync<ConfirmDeleteDialog>(
+            string.Empty,
+            new DialogParameters
+            {
+                ["EntityName"] = "Transaction",
+                ["ItemName"] = $"B{transaction.Documentnumber.ToString()}: {transaction.Description}",
+                ["OnConfirm"] = EventCallback.Factory.Create(this, async () =>
+                {
+                    await TransactionService.DeleteTransactionAsync(transactionId);
+                })
+            });
+
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
 
     private async Task UpdateView()
     {
-        _allEntries = await TransactionService.GetAllTransactions();
+        await TransactionService.GetAllTransactions();
         await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task<TableData<TransactionModel>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        return await TransactionService.GetTransactionsPaged(
+            state,
+            cancellationToken,
+            _dateRange,
+            _searchString1,
+            _personId);
     }
 }

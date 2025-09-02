@@ -4,7 +4,9 @@ using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.UnitDetail;
 using TTCCashRegister.Data.BasicUnit;
 using TTCCashRegister.Data.CashRegister;
+using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.SpecialItem;
+using TTCCashRegister.Data.SubTransaction;
 
 namespace TTCCashRegister.Data
 {
@@ -16,6 +18,8 @@ namespace TTCCashRegister.Data
         public DbSet<UnitDetailsModel> UnitDetails { get; set; }
         public DbSet<SpecialItemModel> SpecialItems { get; set; }
         public DbSet<BasicUnitModel> BasicUnits { get; set; }
+        public DbSet<PersonModel> Persons { get; set; }
+        public DbSet<SubTransactionModel> SubTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

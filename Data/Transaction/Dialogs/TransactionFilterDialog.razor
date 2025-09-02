@@ -1,0 +1,63 @@
+@using TTCCashRegister.Data.Person
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudDateRangePicker @bind-DateRange="DateRange"
+                                Editable="true"
+                                DateFormat="dd.MM.yyyy"
+                                Label="Date Range" />
+
+            <MudTextField @bind-Value="SearchText"
+                          Label="Search Text"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" />
+
+           
+            <MudSelect T="int?" Label="Person" @bind-Value="SelectedPersonId">
+                <MudSelectItem T="int?" Value="@( (int?)null )">-- All Persons --</MudSelectItem>
+
+                @if (_persons is not null)
+                {
+                    @foreach (var person in _persons)
+                    {
+                        <MudSelectItem T="int?" Value="@person.Id">@person.Name</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="@(() => Apply())">Apply</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="@(() => Cancel())">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Inject] PersonService PersonService { get; set; } = null!;   // 👈 direkt injizieren
+
+    [Parameter] public DateRange DateRange { get; set; } = new(null, null);
+    [Parameter] public string SearchText { get; set; } = string.Empty;
+    [Parameter] public int? SelectedPersonId { get; set; }
+
+    private List<PersonModel>? _persons;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _persons = await PersonService.GetAllPersonsAsync();
+    }
+
+    private void Apply()
+    {
+        MudDialog.Close(DialogResult.Ok(new TransactionFilterValues
+        {
+            DateRange = DateRange,
+            SearchText = SearchText,
+            PersonId = SelectedPersonId
+        }));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}
