@@ -1,0 +1,65 @@
+@page "/persondialog"
+@inject PersonService PersonService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_personModel" Validation="_personValidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_personModel.Name" Label="Name"
+                          For="@(() => _personModel.Name)" Immediate="true"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Save())">
+            @(_isEditMode ? "Save" : "Add")
+        </MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int? PersonId { get; set; } // null = Add, Wert = Edit
+    private MudForm _form = new();
+    private PersonModel _personModel = new();
+    private readonly PersonValidator _personValidator = new();
+    private bool _isEditMode;
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isEditMode = PersonId.HasValue;
+        string dialogTitle;
+        if (_isEditMode)
+        {
+            if (PersonId is not null) _personModel = 
+                await PersonService.GetPersonById(PersonId.Value) ?? new PersonModel();
+            dialogTitle = "Edit person";
+        }
+        else
+        {
+            _personModel = new PersonModel();
+            dialogTitle = "Add person";
+        }
+        await MudDialog.SetTitleAsync(dialogTitle);
+        StateHasChanged();
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            if (_isEditMode)
+                await PersonService.UpdatePerson(_personModel);
+            else
+                await PersonService.AddPerson(_personModel);
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

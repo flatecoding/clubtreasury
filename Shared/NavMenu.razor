@@ -16,21 +16,22 @@
             <MudNavLink Href="/cashregisters" Match="NavLinkMatch.Prefix">Cash Register</MudNavLink>
             <MudNavLink Href="/specialitems" Match="NavLinkMatch.Prefix">Special positions</MudNavLink>
         </MudNavGroup>
-        <MudNavGroup Title="Import / Export data" Expanded="false" Icon="@Icons.Material.Filled.Save">
-            <MudNavGroup Title="Import data">
-                <MudNavLink 
-                    OnClick="@(() => OpenImportCostUnitDialog())"
-                    Icon="@Icons.Material.Filled.FileUpload">Cost units
-                </MudNavLink>
-                <MudNavLink
-                    OnClick="@(() => OpenImportTransactionDialog())"
-                    Icon="@Icons.Material.Filled.FileUpload">Booking journals
-                </MudNavLink>
-            </MudNavGroup>
-            <MudNavGroup Title="Export data">
-                <MudNavLink  Href="/exportcashaudit" Match="NavLinkMatch.Prefix">Cash audit</MudNavLink>
-                <MudNavLink  Href="/exportbudget" Match="NavLinkMatch.Prefix">Budget plan</MudNavLink>
-            </MudNavGroup>
+        <MudNavLink Href="/persons" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People">Persons</MudNavLink>
+    </MudNavGroup>
+    <MudNavGroup Title="Import / Export data" Expanded="false" Icon="@Icons.Material.Filled.Save">
+        <MudNavGroup Title="Import data">
+            <MudNavLink
+                OnClick="@(() => OpenImportCostUnitDialog())"
+                Icon="@Icons.Material.Filled.FileUpload">Cost units
+            </MudNavLink>
+            <MudNavLink
+                OnClick="@(() => OpenImportTransactionDialog())"
+                Icon="@Icons.Material.Filled.FileUpload">Booking journals
+            </MudNavLink>
+        </MudNavGroup>
+        <MudNavGroup Title="Export data">
+            <MudNavLink Href="/exportcashaudit" Match="NavLinkMatch.Prefix">Cash audit</MudNavLink>
+            <MudNavLink Href="/exportbudget" Match="NavLinkMatch.Prefix">Budget plan</MudNavLink>
         </MudNavGroup>
     </MudNavGroup>
     <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
@@ -49,8 +50,16 @@
     private async Task OpenImportTransactionDialog()
     {
         var parameters = new DialogParameters();
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<ImportTransactionDialog>("Import booking journal", parameters, options);
+       
+        DialogOptions importDialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        BackdropClick = false,
+        BackgroundClass= "custom-dialog-background"
+    };
+        var dialog = await DialogService.ShowAsync<ImportTransactionDialog>("Import booking journal", parameters, 
+            importDialogOptions);
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
     }
     

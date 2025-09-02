@@ -14,8 +14,10 @@ using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.CostUnit;
 using TTCCashRegister.Data.Export;
 using TTCCashRegister.Data.Import;
+using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.Source;
 using TTCCashRegister.Data.SpecialItem;
+using TTCCashRegister.Data.SubTransaction;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.UnitDetail;
 
@@ -72,6 +74,8 @@ builder.Services.AddScoped<ExportService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ImportCostUnitService>();
 builder.Services.AddScoped<ImportBookingJournalService>();
+builder.Services.AddScoped<PersonService>();
+builder.Services.AddScoped<SubTransactionService>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
