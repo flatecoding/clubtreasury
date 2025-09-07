@@ -13,11 +13,7 @@ using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.EntityFrameworkCore;
-using TTCCashRegister.Data.BasicUnit;
-using TTCCashRegister.Data.CostUnit;
-using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.UnitDetail;
 using Path = System.IO.Path;
 
 
@@ -66,12 +62,16 @@ namespace TTCCashRegister.Data.Export
         private async Task<List<TransactionModel>> GetBudgetByDateRange(DateTime begin, DateTime end)
         {
             return await _context.Transactions
-                .Include(t => t.CostUnit)
-                .Include(t => t.BasicUnit)
-                .ThenInclude(bu => bu!.CostUnitDetails)
+                .Include(t => t.Accounts)
+                .ThenInclude(a => a.CostUnit)
+                .Include(t => t.Accounts)
+                .ThenInclude(a => a.BasicUnit)
+                .Include(t => t.Accounts)
+                .ThenInclude(a => a.UnitDetails)
                 .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
                 .ToListAsync();
         }
+
 
        public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
         {
@@ -228,7 +228,7 @@ namespace TTCCashRegister.Data.Export
             }
         }
         
-        
+        /*
         public async Task<bool> ExportBudgetToCsvOld(DateTime begin, DateTime end, string filename)
         {
             try
@@ -290,11 +290,12 @@ namespace TTCCashRegister.Data.Export
                 Debug.Write(ex.ToString());
                 return false;
             }
-        }
+        } */
         
         
  public async Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
 {
+    //ToDO: Export Funktion überprüfen. Beim Export tritt ein Fehler auf.
     try
     {
         if (!Directory.Exists(_exportPath))
@@ -307,16 +308,28 @@ namespace TTCCashRegister.Data.Export
         // Flatten: Transactions + SubTransactions in einheitliche, stark typisierte Einträge
         var flatEntries = transactions.SelectMany(t =>
         {
-            // Haupt-Transaction
-            var mainEntry = new (CostUnitModel CostUnit, BasicUnitModel? BasicUnit, UnitDetailsModel? UnitDetails, decimal Amount, PersonModel? Person)[]
+            var mainEntry = new []
             {
-                (t.CostUnit, t.BasicUnit, t.UnitDetails, t.AccountMovement, t.Person)
+                new
+                {
+                    t.Accounts.CostUnit,
+                    t.Accounts.BasicUnit,
+                    t.Accounts.UnitDetails,
+                    Amount = t.AccountMovement,
+                    t.Person
+                }
             };
 
-            // SubTransactions
-            IEnumerable<(CostUnitModel CostUnit, BasicUnitModel? BasicUnit, UnitDetailsModel? UnitDetails, decimal Amount, PersonModel? Person)> subEntries =
-                t.SubTransactions?.Select(st => (t.CostUnit, t.BasicUnit, t.UnitDetails, st.Sum, st.Person))
-                ?? [];
+            var subEntries = t.SubTransactions?.Select(st =>
+                new
+                {
+                    t.Accounts.CostUnit,
+                    t.Accounts.BasicUnit,
+                    t.Accounts.UnitDetails,
+                    Amount = st.Sum,
+                    st.Person
+                }
+            ) ?? Enumerable.Empty<dynamic>();
 
             return mainEntry.Concat(subEntries);
         }).ToList();
@@ -327,7 +340,7 @@ namespace TTCCashRegister.Data.Export
             .Select(costUnitGroup => new
             {
                 CostUnitId = costUnitGroup.Key.Id,
-                CostUnitName = costUnitGroup.Key.CostUnitName,
+                costUnitGroup.Key.CostUnitName,
                 SummeCostUnit = costUnitGroup.Sum(e => e.Amount),
 
                 BasicUnits = costUnitGroup
@@ -399,8 +412,8 @@ namespace TTCCashRegister.Data.Export
 
                     // Personen-Zeilen
                     if (unitDetailGroup.Persons.Count == 0) continue;
-                    // Einrückung: unter UnitDetail -> ";;;Name;Summe", sonst (wenn UnitDetail leer) unter Basic -> ";;Name;Summe"
-                    var personIndent = unitDetailGroup.UnitDetailId.HasValue ? ";;;" : ";;";
+                    // Einrückung: unter UnitDetail -> ";;;Name;Summe", sonst (wenn UnitDetail leer) unter Basic → ";;Name;Summe"
+                    var personIndent = unitDetailGroup.UnitDetailId?.HasValue ? ";;;" : ";;";
 
                     foreach (var personGroup in unitDetailGroup.Persons)
                     {
