@@ -44,11 +44,11 @@
             <MudTd DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Details">
-                @if (context.CostUnitDetails.Any())
+                @if (context.Accounts.Any())
                 {
-                        @foreach (var detail in context.CostUnitDetails)
+                        @foreach (var account in context.Accounts)
                         {
-                           <li> @detail.CostDetails</li>
+                           <li> @account.UnitDetails?.CostDetails</li>
                         }
                 }
                 else
@@ -89,11 +89,16 @@
     {
         if (string.IsNullOrWhiteSpace(searchstring))
             return true;
-        if (element == null || string.IsNullOrWhiteSpace(searchstring)) return false;
-        if (element.CostUnitDetails.Any(c => c.CostDetails.ToLower().Contains(searchstring.ToLowerInvariant())))
-            return true;
-        return element.Name.ToLower().Contains(searchstring.ToLowerInvariant());
+        if (element == null) return false;
+
+        searchstring = searchstring.ToLowerInvariant();
+
+        // Suche über UnitDetails in Accounts
+        return element.Accounts.Any(a =>
+            a.UnitDetails != null &&
+            a.UnitDetails.CostDetails.ToLower().Contains(searchstring)) || element.Name.ToLower().Contains(searchstring);
     }
+
 
     private async Task ShowAddBasicUnitDialog()
     {

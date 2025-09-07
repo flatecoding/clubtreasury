@@ -8,47 +8,35 @@ namespace TTCCashRegister.Data.CostUnit
 
         public CostUnitService(CashDataContext context)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
-
+        
         public async Task<List<CostUnitModel>> GetAllUnitsAsync()
         {
-            try
-            {
-                if (_context.CostUnits == null)
-                {
-                    throw new Exception("Cost units in DbContext is null");
-                }
-
-                var result = await _context.CostUnits
-                                           .Include(c => c.BasicUnitDetails)
-                                           .OrderBy(x => x.Id)
-                                           .ToListAsync();
-
-                if (result == null)
-                {
-                    throw new Exception("Ergebnis ist null");
-                }
-
-                return result;
-            }
-            catch (DbUpdateException dbEx)
-            {
-                Console.WriteLine($"Datenbankfehler: {dbEx.Message}");
-                throw; // Rethrow um den Stacktrace zu erhalten
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Allgemeiner Fehler: {ex.Message}");
-                throw; // Rethrow um den Stacktrace zu erhalten
-            }
+            return await _context.CostUnits
+                .Include(c => c.Accounts)
+                    .ThenInclude(a => a.BasicUnit)
+                .Include(c => c.Accounts)
+                    .ThenInclude(a => a.UnitDetails)
+                .OrderBy(c => c.Id)
+                .ToListAsync();
+        }
+        
+        public async Task<CostUnitModel?> GetCostUnitByIdAsync(int id)
+        {
+            return await _context.CostUnits
+                .Include(c => c.Accounts)
+                    .ThenInclude(a => a.BasicUnit)
+                .Include(c => c.Accounts)
+                    .ThenInclude(a => a.UnitDetails)
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<bool> AddCostUnit(CostUnitModel costUnitModel)
+        public async Task<bool> AddCostUnitAsync(CostUnitModel costUnit)
         {
             try
             {
-                await _context.CostUnits.AddAsync(costUnitModel);
+                await _context.CostUnits.AddAsync(costUnit);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -59,26 +47,11 @@ namespace TTCCashRegister.Data.CostUnit
             }
         }
 
-        public async Task<CostUnitModel?> GetCostUnitByIdAsync(int id)
+        public async Task<bool> UpdateCostUnitAsync(CostUnitModel costUnit)
         {
             try
             {
-                return await _context.CostUnits
-                                     .Include(c => c.BasicUnitDetails)
-                                     .FirstOrDefaultAsync(c => c.Id == id);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex}");
-                return null;
-            }
-        }
-
-        public async Task<bool> UpdateCostUnitAsync(CostUnitModel costUnitModel)
-        {
-            try
-            {
-                _context.CostUnits.Update(costUnitModel);
+                _context.CostUnits.Update(costUnit);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -94,11 +67,7 @@ namespace TTCCashRegister.Data.CostUnit
             try
             {
                 var costUnit = await _context.CostUnits.FindAsync(id);
-                if (costUnit == null)
-                {
-                    return false;
-                }
-
+                if (costUnit == null) return false;
                 _context.CostUnits.Remove(costUnit);
                 await _context.SaveChangesAsync();
                 return true;

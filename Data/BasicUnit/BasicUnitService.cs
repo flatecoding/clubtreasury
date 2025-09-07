@@ -2,59 +2,60 @@
 
 namespace TTCCashRegister.Data.BasicUnit
 {
-    public class BasicUnitService(CashDataContext context)
+    public class BasicUnitService
     {
-        // Create
-        public async Task AddBasicUnitAsync(BasicUnitModel unit)
-        {
-            context.BasicUnits.Add(unit);
-            await context.SaveChangesAsync();
-        }
+        private readonly CashDataContext _context;
 
-        // Read
-        public async Task<BasicUnitModel?> GetBasicUnitByIdAsync(int id)
+        public BasicUnitService(CashDataContext context)
         {
-            return await context.BasicUnits
-                                 .Include(b => b.CostUnitDetails)
-                                 .FirstOrDefaultAsync(b => b.Id == id);
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
         
-        public async Task<IEnumerable<BasicUnitModel>?> GetBasicUnitsByCostUnitIdAsync(int costunitId)
+        public async Task<List<BasicUnitModel>> GetAllBasicUnitsAsync()
         {
-            try
-            {
-                return await context.BasicUnits
-                    .Where(x => x.CostUnit != null && x.CostUnit.Id == costunitId)
-                    .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex}");
-                return null;
-            }
+            return await _context.BasicUnits
+                .Include(b => b.Accounts)
+                    .ThenInclude(a => a.CostUnit)
+                .Include(b => b.Accounts)
+                    .ThenInclude(a => a.UnitDetails)
+                .ToListAsync();
         }
 
-        public async Task<IEnumerable<BasicUnitModel>> GetAllBasicUnitsAsync()
+        public async Task<BasicUnitModel?> GetBasicUnitByIdAsync(int id)
         {
-            return await context.BasicUnits
-                                 .Include(b => b.CostUnitDetails)
-                                 .ToListAsync();
+            return await _context.BasicUnits
+                .Include(b => b.Accounts)
+                    .ThenInclude(a => a.CostUnit)
+                .Include(b => b.Accounts)
+                    .ThenInclude(a => a.UnitDetails)
+                .FirstOrDefaultAsync(b => b.Id == id);
         }
 
-        // Update
+        public async Task<IEnumerable<BasicUnitModel>> GetBasicUnitsByCostUnitIdAsync(int costUnitId)
+        {
+            return await _context.BasicUnits
+                .Where(b => b.Accounts.Any(a => a.CostUnitId == costUnitId))
+                .ToListAsync();
+        }
+
+        public async Task AddBasicUnitAsync(BasicUnitModel unit)
+        {
+            _context.BasicUnits.Add(unit);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task UpdateBasicUnitAsync(BasicUnitModel unit)
         {
-            context.BasicUnits.Update(unit);
-            await context.SaveChangesAsync();
+            _context.BasicUnits.Update(unit);
+            await _context.SaveChangesAsync();
         }
 
-        // Delete
         public async Task<bool> DeleteBasicUnitAsync(int id)
         {
-            var unit = await context.BasicUnits.FindAsync(id);
-            if (unit is null) return false;
-            context.BasicUnits.Remove(unit);
-            await context.SaveChangesAsync();
+            var unit = await _context.BasicUnits.FindAsync(id);
+            if (unit == null) return false;
+            _context.BasicUnits.Remove(unit);
+            await _context.SaveChangesAsync();
             return true;
         }
     }

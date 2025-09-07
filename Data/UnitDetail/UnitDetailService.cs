@@ -8,54 +8,44 @@ namespace TTCCashRegister.Data.UnitDetail
 
         public UnitDetailService(CashDataContext context)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<List<UnitDetailsModel>?> GetAllDetailsAsync()
+        public async Task<List<UnitDetailsModel>> GetAllDetailsAsync()
         {
             return await _context.UnitDetails
-                .Include(x => x.BasicUnits)
-                .OrderByDescending<UnitDetailsModel, int>(c => c.Id)
+                .Include(ud => ud.Accounts)
+                .ThenInclude(a => a.BasicUnit)
+                .Include(ud => ud.Accounts)
+                .ThenInclude(a => a.CostUnit)
+                .OrderByDescending(c => c.Id)
                 .ToListAsync();
-        }
-
-        public async Task<bool> AddUnitDetailAsync(UnitDetailsModel detailModel)
-        {
-            try
-            {
-                await _context.UnitDetails.AddAsync(detailModel);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex}");
-                return false;
-            }
         }
 
         public async Task<UnitDetailsModel?> GetUnitDetailsByIdAsync(int id)
         {
-            try
-            {
-                return await _context.UnitDetails
-                                     .Include(x => x.BasicUnits)
-                                     .FirstOrDefaultAsync(x => x.Id == id);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex}");
-                return null;
-            }
+            return await _context.UnitDetails
+                .Include(ud => ud.Accounts)
+                .ThenInclude(a => a.BasicUnit)
+                .Include(ud => ud.Accounts)
+                .ThenInclude(a => a.CostUnit)
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
-        
-        public async Task<List<UnitDetailsModel>?> GetUnitDetailsByBasicUnitAsync(int id)
+
+        public async Task<List<UnitDetailsModel>> GetUnitDetailsByBasicUnitIdAsync(int basicUnitId)
+        {
+            return await _context.UnitDetails
+                .Where(u => u.Accounts.Any(a => a.BasicUnitId == basicUnitId))
+                .ToListAsync();
+        }
+
+        public async Task<UnitDetailsModel?> AddUnitDetailAsync(UnitDetailsModel unitDetail)
         {
             try
             {
-                return await _context.UnitDetails
-                    .Where(ud => ud.BasicUnits.Any(bu => bu.Id == id))
-                    .ToListAsync();
+                await _context.UnitDetails.AddAsync(unitDetail);
+                await _context.SaveChangesAsync();
+                return unitDetail;
             }
             catch (Exception ex)
             {
@@ -64,11 +54,11 @@ namespace TTCCashRegister.Data.UnitDetail
             }
         }
 
-        public async Task<bool> UpdateUnitDetailsAsync(UnitDetailsModel detailModel)
+        public async Task<bool> UpdateUnitDetailsAsync(UnitDetailsModel unitDetail)
         {
             try
             {
-                _context.UnitDetails.Update(detailModel);
+                _context.UnitDetails.Update(unitDetail);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -83,13 +73,9 @@ namespace TTCCashRegister.Data.UnitDetail
         {
             try
             {
-                var detail = await _context.UnitDetails.FindAsync(id);
-                if (detail == null)
-                {
-                    return false;
-                }
-
-                _context.UnitDetails.Remove(detail);
+                var unitDetail = await _context.UnitDetails.FindAsync(id);
+                if (unitDetail == null) return false;
+                _context.UnitDetails.Remove(unitDetail);
                 await _context.SaveChangesAsync();
                 return true;
             }

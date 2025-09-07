@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TTCCashRegister.Data;
 
@@ -11,9 +12,11 @@ using TTCCashRegister.Data;
 namespace TTCCashRegister.Migrations
 {
     [DbContext(typeof(CashDataContext))]
-    partial class CashDataContextModelSnapshot : ModelSnapshot
+    [Migration("20250907195455_ImplementConnetionTableAccountInDb")]
+    partial class ImplementConnetionTableAccountInDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

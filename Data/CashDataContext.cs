@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TTCCashRegister.Data.Accounts;
 using TTCCashRegister.Data.CostUnit;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.UnitDetail;
@@ -20,29 +21,54 @@ namespace TTCCashRegister.Data
         public DbSet<BasicUnitModel> BasicUnits { get; set; }
         public DbSet<PersonModel> Persons { get; set; }
         public DbSet<SubTransactionModel> SubTransactions { get; set; }
+        public DbSet<AccountsModel> Accounts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
+
+            // CostUnit ↔ BasicUnit (1:n)
             modelBuilder.Entity<BasicUnitModel>()
                 .HasOne(b => b.CostUnit)
-                .WithMany(c => c.BasicUnitDetails)
+                .WithMany(c => c.BasicUnitDetails) 
                 .HasForeignKey(b => b.CostUnitId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<CostUnitModel>()
-                .HasMany(c => c.BasicUnitDetails);
-            modelBuilder.Entity<UnitDetailsModel>()
-                .HasMany(b => b.BasicUnits)
-                .WithMany(u => u.CostUnitDetails)
-                .UsingEntity(j => j.ToTable("PositionDetails"));
-            
-            modelBuilder.Entity<TransactionModel>()
-                .HasOne(t => t.BasicUnit)
-                .WithMany()
-                .HasForeignKey(t => t.BasicUnitId)
+            // Accounts ↔ BasicUnit (n:1)
+            modelBuilder.Entity<AccountsModel>()
+                .HasOne(a => a.BasicUnit)
+                .WithMany(b => b.Accounts)
+                .HasForeignKey(a => a.BasicUnitId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Accounts ↔ UnitDetails (n:1)
+            modelBuilder.Entity<AccountsModel>()
+                .HasOne(a => a.UnitDetails)
+                .WithMany(ud => ud.Accounts)
+                .HasForeignKey(a => a.UnitDetailsId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // SubTransaction ↔ Person (n:1)
+            modelBuilder.Entity<SubTransactionModel>()
+                .HasOne(st => st.Person)
+                .WithMany()
+                .HasForeignKey(st => st.PersonId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Optional: Unique Constraints für Documentnumber
+            modelBuilder.Entity<TransactionModel>()
+                .HasIndex(t => t.Documentnumber)
+                .IsUnique();
+
+            // Optional: Decimal Precision
+            modelBuilder.Entity<TransactionModel>()
+                .Property(t => t.Sum)
+                .HasColumnType("decimal(10,2)");
+
+            modelBuilder.Entity<TransactionModel>()
+                .Property(t => t.AccountMovement)
+                .HasColumnType("decimal(10,2)");
         }
+
     }
 }
