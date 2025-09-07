@@ -11,8 +11,7 @@ public class TransactionValidator : AbstractValidator<TransactionModel>
         RuleFor(t => t.Description).NotEmpty().WithMessage("Description is required");
         RuleFor(t => t.Sum).GreaterThanOrEqualTo(0.01m).WithMessage("Sum must be greater than or equal to 0.01");
         RuleFor(t => t.AccountMovement).NotEmpty().WithMessage("Account Movement is required");
-        RuleFor(t => t.CostUnit).NotNull().WithMessage("Cost Unit is required");
-        RuleFor(t => t.BasicUnit).NotNull().WithMessage("Basic Unit is required");
+        RuleFor(t => t.Accounts).NotNull().WithMessage("Account for transaction is required");
         RuleFor(t => t.SpecialItemId).NotEmpty().WithMessage("Special Item is required");
     }
     

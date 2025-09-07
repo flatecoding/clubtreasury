@@ -42,11 +42,11 @@
             <MudTd DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Details">@context.CostDetails</MudTd>
             <MudTd DataLabel="Basic position">
-                @if (context?.BasicUnits is not null && context.BasicUnits.Any())
+                @if (context.Accounts.Any())
                 {
-                    @foreach (var detail in context.BasicUnits)
+                    @foreach (var account in context.Accounts)
                     {
-                        <li> @detail.Name</li>
+                        <li> @account.BasicUnit.Name</li>
                     }
                 }
                 else

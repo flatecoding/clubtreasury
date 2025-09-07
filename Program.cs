@@ -9,6 +9,7 @@ using MudBlazor.Services;
 using MudExtensions.Services;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
+using TTCCashRegister.Data.Accounts;
 using TTCCashRegister.Data.BasicUnit;
 using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.CostUnit;
@@ -76,6 +77,7 @@ builder.Services.AddScoped<ImportCostUnitService>();
 builder.Services.AddScoped<ImportBookingJournalService>();
 builder.Services.AddScoped<PersonService>();
 builder.Services.AddScoped<SubTransactionService>();
+builder.Services.AddScoped<AccountsService>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
