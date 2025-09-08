@@ -14,7 +14,6 @@ namespace TTCCashRegister.Data.Import
     {
         public async Task<bool> ImportTransactions(Stream? fileStream)
         {
-            //ToDo: Import Funktion überprüfen
             if (fileStream == null) 
             {
                 logger.LogError("The data-stream is null.");
@@ -60,15 +59,13 @@ namespace TTCCashRegister.Data.Import
                 {
                     try
                     {
-                        // Datum
                         if (!DateTime.TryParse(row.ItemArray[0]?.ToString(), out var datum))
                         {
                             logger.LogWarning("Invalid date format in row: {0}", string.Join(", ", row.ItemArray));
                             continue;
                         }
                         var date = DateOnly.FromDateTime(datum);
-
-                        // Document number
+                        
                         var documentRaw = row.ItemArray[1]?.ToString()?.TrimStart('B');
                         if (!int.TryParse(documentRaw, out var documentNumber))
                         {
@@ -81,11 +78,9 @@ namespace TTCCashRegister.Data.Import
                             logger.LogInformation("Skipping duplicate document number: {0}", documentNumber);
                             continue;
                         }
-
-                        // Description
+                        
                         var description = row.ItemArray[2]?.ToString();
-
-                        // Sum
+                        
                         var sumStr = row.ItemArray[3]?.ToString()?.Trim();
                         if (string.IsNullOrEmpty(sumStr))
                             sumStr = row.ItemArray[4]?.ToString()?.Trim();
@@ -95,15 +90,13 @@ namespace TTCCashRegister.Data.Import
                             logger.LogWarning("Missing or invalid sum value in row: {0}", string.Join(", ", row.ItemArray));
                             continue;
                         }
-
-                        // Account movement
+                        
                         var accountMovement = 0m;
                         if (row.ItemArray[5] != DBNull.Value && decimal.TryParse(row.ItemArray[5]?.ToString(), out var accMove))
                         {
                             accountMovement = accMove;
                         }
-
-                        // CostUnit / BasicUnit
+                        
                         var costUnitBasicUnit = row.ItemArray[6]?.ToString();
                         var parts = costUnitBasicUnit?.Split('/');
                         if (parts == null || parts.Length == 0)
@@ -131,27 +124,15 @@ namespace TTCCashRegister.Data.Import
                             basicUnits.Add(basicUnit);
                             context.BasicUnits.Add(basicUnit);
                         }
-
-                        // --- Allocation prüfen / erstellen ---
-                        var accounts = await context.Accounts.FirstOrDefaultAsync(a =>
-                            a.CostUnitId == costUnit.Id &&
-                            a.BasicUnitId == basicUnit.Id &&
-                            a.UnitDetailsId == null); // keine UnitDetails in Import
-
-                        if (accounts == null)
+                        
+                        var accounts = new AccountsModel
                         {
-                            accounts = new AccountsModel
-                            {
-                                CostUnitId = costUnit.Id,
-                                CostUnit = costUnit,
-                                BasicUnitId = basicUnit.Id,
-                                BasicUnit = basicUnit
-                            };
-                            context.Accounts.Add(accounts);
-                            await context.SaveChangesAsync();
-                        }
-
-                        // Transaction erstellen
+                            CostUnitId = costUnit.Id,
+                            CostUnit = costUnit,
+                            BasicUnitId = basicUnit.Id,
+                            BasicUnit = basicUnit
+                        };
+                        
                         var transaction = new TransactionModel
                         {
                             CashRegisterId = cashRegister.Id,
@@ -160,7 +141,7 @@ namespace TTCCashRegister.Data.Import
                             Description = description,
                             Sum = sumValue,
                             AccountMovement = accountMovement,
-                            AccountsId = accounts.Id
+                            Accounts = accounts
                         };
 
                         if (!await transactionService.AddTransaction(transaction))

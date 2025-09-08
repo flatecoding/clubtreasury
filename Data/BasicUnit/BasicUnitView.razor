@@ -44,18 +44,24 @@
             <MudTd DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Details">
-                @if (context.Accounts.Any())
+                
+                @{
+                    var accountsWithDetails = context.Accounts.Where(a => a.UnitDetails != null).ToList();
+                }
+
+                @if (accountsWithDetails.Any())
                 {
-                        @foreach (var account in context.Accounts)
+                    <ul>
+                        @foreach (var account in accountsWithDetails)
                         {
-                           <li> @account.UnitDetails?.CostDetails</li>
+                            <li>@account.UnitDetails?.CostDetails</li>
                         }
+                    </ul>
                 }
                 else
                 {
                     <em>No details assigned</em>
                 }
-
             </MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" OnClick="() => ShowEditBasicUnitDialog(context.Id)"></MudIconButton>
