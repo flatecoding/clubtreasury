@@ -16,7 +16,7 @@ public class SubTransactionModel
     [ForeignKey("TransactionId")]
     public TransactionModel Transaction { get; init; } = null!;
     
-    public string? DocumentNumber { get; set; }
+    public int? DocumentNumber { get; set; }
 
     [MaxLength(300)]
     public string? Description { get; set; }

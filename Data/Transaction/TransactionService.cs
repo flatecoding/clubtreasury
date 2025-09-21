@@ -22,7 +22,7 @@ public class TransactionService(
                 .ThenInclude(a => a.BasicUnit)
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.UnitDetails)
-            .Include(t => t.SubTransactions)!
+            .Include(t => t.SubTransactions)
                 .ThenInclude(st => st.Person)
             .OrderByDescending(x => x.Id)
             .AsNoTracking()
@@ -53,7 +53,7 @@ public class TransactionService(
             .ThenInclude(a => a.BasicUnit)
             .Include(t => t.Accounts)
             .ThenInclude(a => a.UnitDetails)
-            .Include(t => t.SubTransactions)!
+            .Include(t => t.SubTransactions)
             .ThenInclude(st => st.Person)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
@@ -187,8 +187,7 @@ public class TransactionService(
                 .ThenInclude(a => a.BasicUnit)
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.UnitDetails)
-            .Include(t => t.Person)
-            .Include(t => t.SubTransactions)!
+            .Include(t => t.SubTransactions)
                 .ThenInclude(st => st.Person)
             .AsNoTracking();
 
@@ -212,7 +211,6 @@ public class TransactionService(
                 (x.Accounts.CostUnit.CostUnitName.ToLower().Contains(term)) ||
                 (x.Accounts.BasicUnit.Name.ToLower().Contains(term)) ||
                 (x.Accounts.UnitDetails != null && x.Accounts.UnitDetails.CostDetails.ToLower().Contains(term)) ||
-                (x.Person != null && x.Person.Name.ToLower().Contains(term)) ||
                 x.SubTransactions.Any(st => st.Person != null && st.Person.Name.ToLower().Contains(term))
             );
         }
@@ -221,8 +219,7 @@ public class TransactionService(
         if (personId is not null)
         {
             query = query.Where(t =>
-                t.SubTransactions != null && ((t.Person != null && t.Person.Id == personId) ||
-                                              t.SubTransactions.Any(st => st.Person != null && st.Person.Id == personId)));
+                t.SubTransactions.Any(st => st.PersonId == personId));
         }
 
         // 🔽 Sortierung
