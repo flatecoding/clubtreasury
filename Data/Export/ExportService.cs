@@ -13,11 +13,8 @@ using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.EntityFrameworkCore;
-using TTCCashRegister.Data.BasicUnit;
-using TTCCashRegister.Data.CostUnit;
 using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.UnitDetail;
 using Path = System.IO.Path;
 
 
@@ -66,12 +63,18 @@ namespace TTCCashRegister.Data.Export
         private async Task<List<TransactionModel>> GetBudgetByDateRange(DateTime begin, DateTime end)
         {
             return await _context.Transactions
-                .Include(t => t.CostUnit)
-                .Include(t => t.BasicUnit)
-                .ThenInclude(bu => bu!.CostUnitDetails)
+                .Include(t => t.Accounts)
+                .ThenInclude(a => a.CostUnit)
+                .Include(t => t.Accounts)
+                .ThenInclude(a => a.BasicUnit)
+                .Include(t => t.Accounts)
+                .ThenInclude(a => a.UnitDetails)
+                .Include(t => t.SubTransactions)
+                .ThenInclude(st => st.Person)
                 .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
                 .ToListAsync();
         }
+
 
        public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
         {
@@ -126,7 +129,7 @@ namespace TTCCashRegister.Data.Export
                 var font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
                 var bold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
                 // EventHandler registrieren
-                var handler = new PageNumberEventHandler(font, 9, footerPageCounterBottomMargin: 20f, placeholderWidth: 50f);
+                var handler = new PageNumberEventHandler(font, footerPageCounterBottomMargin: 20f, placeholderWidth: 50f);
                 pdf.AddEventHandler(PdfDocumentEvent.END_PAGE, handler);
                 
                 var table = new Table(5);
@@ -228,8 +231,7 @@ namespace TTCCashRegister.Data.Export
             }
         }
         
-        
-        public async Task<bool> ExportBudgetToCsvOld(DateTime begin, DateTime end, string filename)
+        public async Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
         {
             try
             {
@@ -239,43 +241,121 @@ namespace TTCCashRegister.Data.Export
                 }
 
                 var transactions = await GetBudgetByDateRange(begin, end);
+                
+                var flatEntries = transactions.SelectMany(t =>
+                {
+                    var entries = new List<dynamic>();
 
-                var groupedTransactions = 
-                    transactions
-                    .GroupBy(t => t.CostUnit)
+                    if (!t.SubTransactions.Any())
+                    {
+                        entries.Add(new
+                        {
+                            t.Accounts.CostUnit,
+                            t.Accounts.BasicUnit,
+                            t.Accounts.UnitDetails,
+                            Amount = t.AccountMovement,
+                            Person = (PersonModel?)null
+                        });
+                    }
+
+                    entries.AddRange(t.SubTransactions.Select(st => new
+                    {
+                        t.Accounts.CostUnit,
+                        t.Accounts.BasicUnit,
+                        t.Accounts.UnitDetails,
+                        Amount = st.Sum,
+                        st.Person
+                    }));
+
+                    return entries;
+                }).ToList();
+
+                var grouped = flatEntries
+                    .GroupBy(e => new { e.CostUnit.Id, e.CostUnit.CostUnitName })
                     .Select(costUnitGroup => new
                     {
-                        CostUnit = costUnitGroup.Key,
-                        SummeCostUnit = costUnitGroup.Sum(t => t.AccountMovement),
+                        CostUnitId = costUnitGroup.Key.Id,
+                        costUnitGroup.Key.CostUnitName,
+                        SummeCostUnit = costUnitGroup.Sum(e => (decimal)e.Amount),
+
                         BasicUnits = costUnitGroup
-                        .GroupBy(t => t.BasicUnit)
-                        .Select(basicUnitGroup => new 
-                        {
-                            BasicUnit = basicUnitGroup.Key,
-                            SummeBasicUnit = basicUnitGroup.Sum(t => t.AccountMovement),
-                            UnitDetails = basicUnitGroup
-                                            .GroupBy(t => t.UnitDetails)
-                                            .Select(unitDetailGroup => new
+                            .GroupBy(e => new
+                            {
+                                BasicUnitId = e.BasicUnit?.Id,
+                                BasicUnitName = e.BasicUnit?.Name ?? string.Empty
+                            })
+                            .Select(basicUnitGroup => new
+                            {
+                                basicUnitGroup.Key.BasicUnitId,
+                                basicUnitGroup.Key.BasicUnitName,
+                                SummeBasicUnit = basicUnitGroup.Sum(e => (decimal)e.Amount),
+
+                                UnitDetails = basicUnitGroup
+                                    .GroupBy(e => new
+                                    {
+                                        UnitDetailId = e.UnitDetails?.Id,
+                                        UnitDetailName = e.UnitDetails?.CostDetails ?? string.Empty
+                                    })
+                                    .Select(unitDetailGroup => new
+                                    {
+                                        unitDetailGroup.Key.UnitDetailId,
+                                        unitDetailGroup.Key.UnitDetailName,
+                                        SummeUnitDetails = unitDetailGroup.Sum(e => (decimal)e.Amount),
+
+                                        Persons = unitDetailGroup
+                                            .Where(e => e.Person != null)
+                                            .GroupBy(e => new
                                             {
-                                                UnitDetail = unitDetailGroup.Key,
-                                                SummeUnitDetails = unitDetailGroup.Sum(t => t.AccountMovement)
-                                            }).ToList()
-                        }).ToList()
-                    }).ToList();
+                                                PersonId = e.Person!.Id,
+                                                PersonName = e.Person!.Name
+                                            })
+                                            .Select(personGroup => new
+                                            {
+                                                personGroup.Key.PersonId,
+                                                personGroup.Key.PersonName,
+                                                SummePerson = personGroup.Sum(e => (decimal)e.Amount)
+                                            })
+                                            .OrderBy(p => p.PersonName)
+                                            .ToList()
+                                    })
+                                    .OrderBy(ud => ud.UnitDetailName)
+                                    .ToList()
+                            })
+                            .OrderBy(bu => bu.BasicUnitName)
+                            .ToList()
+                    })
+                    .OrderBy(cu => cu.CostUnitName)
+                    .ToList();
 
                 var csv = new StringBuilder();
                 csv.AppendLine(CsvBudgetHeader);
 
-                foreach (var costUnitGroup in groupedTransactions)
-                {   
-                    csv.AppendLine($"{costUnitGroup.CostUnit.CostUnitName};;;{costUnitGroup.SummeCostUnit.ToString("C", CultureInfo.CurrentCulture)}");
+                foreach (var costUnitGroup in grouped)
+                {
+                    csv.AppendLine($"{costUnitGroup.CostUnitName};;;{costUnitGroup.SummeCostUnit.ToString("C", CultureInfo.CurrentCulture)}");
+
                     foreach (var basicUnitGroup in costUnitGroup.BasicUnits)
                     {
-                        csv.AppendLine($";{basicUnitGroup.BasicUnit?.Name};;{basicUnitGroup.SummeBasicUnit.ToString("C", CultureInfo.CurrentCulture)}");
+                        csv.AppendLine($";{basicUnitGroup.BasicUnitName};;{basicUnitGroup.SummeBasicUnit.ToString("C", CultureInfo.CurrentCulture)}");
+
                         foreach (var unitDetailGroup in basicUnitGroup.UnitDetails)
                         {
-                            var unitDetailName = unitDetailGroup.UnitDetail is not null ? unitDetailGroup.UnitDetail.CostDetails : "";
-                            csv.AppendLine($";;{unitDetailName};{unitDetailGroup.SummeUnitDetails.ToString("C", CultureInfo.CurrentCulture)}");
+                            var unitDetailName = unitDetailGroup.UnitDetailName;
+                            var summePersonen = unitDetailGroup.Persons.Sum(p => p.SummePerson);
+
+                            if (!string.IsNullOrWhiteSpace(unitDetailName) ||
+                                unitDetailGroup.Persons.Count == 0 ||
+                                summePersonen != unitDetailGroup.SummeUnitDetails)
+                            {
+                                csv.AppendLine($";;{unitDetailName};{unitDetailGroup.SummeUnitDetails.ToString("C", CultureInfo.CurrentCulture)}");
+                            }
+
+                            if (unitDetailGroup.Persons.Count == 0) continue;
+                            const string personIndent = ";;";
+                            foreach (var personGroup in unitDetailGroup.Persons)
+                            {
+                                csv.AppendLine($"{personIndent}{personGroup.PersonName};{personGroup.SummePerson.ToString("C", CultureInfo.CurrentCulture)}");
+                            }
                         }
                     }
                 }
@@ -291,138 +371,6 @@ namespace TTCCashRegister.Data.Export
                 return false;
             }
         }
-        
-        
- public async Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
-{
-    try
-    {
-        if (!Directory.Exists(_exportPath))
-        {
-            Directory.CreateDirectory(_exportPath);
-        }
-
-        var transactions = await GetBudgetByDateRange(begin, end);
-
-        // Flatten: Transactions + SubTransactions in einheitliche, stark typisierte Einträge
-        var flatEntries = transactions.SelectMany(t =>
-        {
-            // Haupt-Transaction
-            var mainEntry = new (CostUnitModel CostUnit, BasicUnitModel? BasicUnit, UnitDetailsModel? UnitDetails, decimal Amount, PersonModel? Person)[]
-            {
-                (t.CostUnit, t.BasicUnit, t.UnitDetails, t.AccountMovement, t.Person)
-            };
-
-            // SubTransactions
-            IEnumerable<(CostUnitModel CostUnit, BasicUnitModel? BasicUnit, UnitDetailsModel? UnitDetails, decimal Amount, PersonModel? Person)> subEntries =
-                t.SubTransactions?.Select(st => (t.CostUnit, t.BasicUnit, t.UnitDetails, st.Sum, st.Person))
-                ?? [];
-
-            return mainEntry.Concat(subEntries);
-        }).ToList();
-
-        // Gruppierung: CostUnit → BasicUnit → UnitDetail → Person
-        var grouped = flatEntries
-            .GroupBy(e => new { e.CostUnit.Id, e.CostUnit.CostUnitName })
-            .Select(costUnitGroup => new
-            {
-                CostUnitId = costUnitGroup.Key.Id,
-                CostUnitName = costUnitGroup.Key.CostUnitName,
-                SummeCostUnit = costUnitGroup.Sum(e => e.Amount),
-
-                BasicUnits = costUnitGroup
-                    .GroupBy(e => new
-                    {
-                        BasicUnitId = e.BasicUnit?.Id,
-                        BasicUnitName = e.BasicUnit?.Name ?? string.Empty
-                    })
-                    .Select(basicUnitGroup => new
-                    {
-                        basicUnitGroup.Key.BasicUnitId,
-                        basicUnitGroup.Key.BasicUnitName,
-                        SummeBasicUnit = basicUnitGroup.Sum(e => e.Amount),
-
-                        UnitDetails = basicUnitGroup
-                            .GroupBy(e => new
-                            {
-                                UnitDetailId = e.UnitDetails?.Id,
-                                UnitDetailName = e.UnitDetails?.CostDetails ?? string.Empty
-                            })
-                            .Select(unitDetailGroup => new
-                            {
-                                unitDetailGroup.Key.UnitDetailId,
-                                unitDetailGroup.Key.UnitDetailName,
-                                SummeUnitDetails = unitDetailGroup.Sum(e => e.Amount),
-
-                                Persons = unitDetailGroup
-                                    .Where(e => e.Person != null)
-                                    .GroupBy(e => new
-                                    {
-                                        PersonId = e.Person!.Id,
-                                        PersonName = e.Person!.Name
-                                    })
-                                    .Select(personGroup => new
-                                    {
-                                        personGroup.Key.PersonId,
-                                        personGroup.Key.PersonName,
-                                        SummePerson = personGroup.Sum(e => e.Amount)
-                                    })
-                                    .OrderBy(p => p.PersonName)
-                                    .ToList()
-                            })
-                            .OrderBy(ud => ud.UnitDetailName)
-                            .ToList()
-                    })
-                    .OrderBy(bu => bu.BasicUnitName)
-                    .ToList()
-            })
-            .OrderBy(cu => cu.CostUnitName)
-            .ToList();
-
-        // CSV aufbauen
-        var csv = new StringBuilder();
-        csv.AppendLine(CsvBudgetHeader);
-
-        foreach (var costUnitGroup in grouped)
-        {
-            csv.AppendLine($"{costUnitGroup.CostUnitName};;;{costUnitGroup.SummeCostUnit.ToString("C", CultureInfo.CurrentCulture)}");
-
-            foreach (var basicUnitGroup in costUnitGroup.BasicUnits)
-            {
-                csv.AppendLine($";{basicUnitGroup.BasicUnitName};;{basicUnitGroup.SummeBasicUnit.ToString("C", CultureInfo.CurrentCulture)}");
-
-                foreach (var unitDetailGroup in basicUnitGroup.UnitDetails)
-                {
-                    // UnitDetail-Zeile (auch wenn leer)
-                    var unitDetailName = unitDetailGroup.UnitDetailName ?? string.Empty;
-                    csv.AppendLine($";;{unitDetailName};{unitDetailGroup.SummeUnitDetails.ToString("C", CultureInfo.CurrentCulture)}");
-
-                    // Personen-Zeilen
-                    if (unitDetailGroup.Persons.Count == 0) continue;
-                    // Einrückung: unter UnitDetail -> ";;;Name;Summe", sonst (wenn UnitDetail leer) unter Basic -> ";;Name;Summe"
-                    var personIndent = unitDetailGroup.UnitDetailId.HasValue ? ";;;" : ";;";
-
-                    foreach (var personGroup in unitDetailGroup.Persons)
-                    {
-                        csv.AppendLine($"{personIndent}{personGroup.PersonName};{personGroup.SummePerson.ToString("C", CultureInfo.CurrentCulture)}");
-                    }
-                }
-            }
-        }
-
-        await using var sw = new StreamWriter(Path.Combine(_exportPath, filename));
-        await sw.WriteAsync(csv.ToString());
-
-        return true;
-    }
-    catch (Exception ex)
-    {
-        Debug.Write(ex.ToString());
-        return false;
-    }
-}
-
-
     }
 }
 

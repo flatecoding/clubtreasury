@@ -1,5 +1,6 @@
 @page "/transactiondialog"
 @using System.Globalization
+@using TTCCashRegister.Data.Accounts
 @using TTCCashRegister.Data.BasicUnit
 @using TTCCashRegister.Data.CashRegister
 @using TTCCashRegister.Data.CostUnit
@@ -50,9 +51,9 @@
                           Immediate="true" />
 
             <MudTextField @bind-Value="_transactionModel.Sum"
-                             Label="Sum" 
-                             For="@(() => _transactionModel.Sum)" 
-                             Immediate="true" />
+                          Label="Sum" 
+                          For="@(() => _transactionModel.Sum)" 
+                          Immediate="true" />
 
             <MudTextField @bind-Value="_transactionModel.AccountMovement"
                           Label="Account Movement" 
@@ -102,18 +103,6 @@
                     }
                 }
             </MudSelect>
-
-            <MudSelect T="PersonModel"
-                       Label="Person"
-                       ToStringFunc="@_personConverter"
-                       @bind-Value="_selectedPerson">
-                <MudSelectItem T="PersonModel" Value="@null">None</MudSelectItem>
-                @foreach (var p in _persons)
-                {
-                    <MudSelectItem T="PersonModel" Value="@p">@p.Name</MudSelectItem>
-                }
-            </MudSelect>
-
             <MudSelect T="SpecialItemModel" 
                        Label="SpecialItem"
                        ToStringFunc="@_specialItemConverter"
@@ -136,14 +125,13 @@
 </MudDialog>
 
 @code {
-    [Parameter] public int? TransactionId { get; set; } // null = Add, Wert = Edit
+    [Parameter] public int? TransactionId { get; set; }
 
     private MudForm _form = new();
     private TransactionModel _transactionModel = new();
     private readonly TransactionValidator _transactionValidator = new();
 
     private bool _isEditMode;
-    private string _dialogTitle = string.Empty;
 
     private DateTime? TransactionDateTime { get; set; } = DateTime.Now;
 
@@ -152,7 +140,6 @@
     private IEnumerable<UnitDetailsModel>? _unitDetails = [];
     private IEnumerable<CashRegisterModel> _cashRegisters = [];
     private IEnumerable<SpecialItemModel> _specialItemList = [];
-    private IEnumerable<PersonModel> _persons = [];
 
     private CostUnitModel? _selectedCostUnit;
     private BasicUnitModel? _selectedBasicUnit;
@@ -162,50 +149,59 @@
     private PersonModel? _selectedPerson;
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-
-    // Converter-Funktionen
-    private readonly Func<PersonModel, string> _personConverter = p => p?.Name ?? string.Empty;
+    
     private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
     private readonly Func<CostUnitModel, string> _unitConverter = p => p?.CostUnitName ?? string.Empty;
     private readonly Func<UnitDetailsModel, string> _detailsConverter = d => d?.CostDetails ?? string.Empty;
     private readonly Func<SpecialItemModel, string> _specialItemConverter = s => s?.Name ?? string.Empty;
     private readonly Func<BasicUnitModel, string> _basicUnitConverter = b => b?.Name ?? string.Empty;
 
-    protected override async Task OnInitializedAsync()
+   protected override async Task OnInitializedAsync()
+{
+    _isEditMode = TransactionId.HasValue;
+
+    // Stammdaten laden
+    _costUnits = await CostUnitService.GetAllUnitsAsync();
+    _specialItemList = await SpecialItemService.GetAllSpecialItems();
+    _cashRegisters = await CashRegisterService.GetAllCashRegisters();
+
+    if (_isEditMode && TransactionId is not null)
     {
-        _isEditMode = TransactionId.HasValue;
+        _transactionModel = await TransactionService.GetTransactionByIdAsync(TransactionId.Value) ?? new TransactionModel();
 
-        // Stammdaten laden
-        _costUnits = await CostUnitService.GetAllUnitsAsync();
-        _basicUnits = await BasicUnitService.GetAllBasicUnitsAsync();
-        _specialItemList = await SpecialItemService.GetAllSpecialItems();
-        _cashRegisters = await CashRegisterService.GetAllCashRegisters();
-        _persons = await PersonService.GetAllPersonsAsync();
+        // Vorbelegung aus gespeicherter Transaktion
+        _selectedCashRegisterModel = _transactionModel.CashRegister;
+        _selectedCostUnit = _transactionModel.Accounts?.CostUnit;
+        _selectedBasicUnit = _transactionModel.Accounts?.BasicUnit;
+        _selectedUnitDetail = _transactionModel.Accounts?.UnitDetails;
+        _selectedSpecialItem = _transactionModel.SpecialItem;
+        TransactionDateTime = _transactionModel.Date?.ToDateTime(TimeOnly.MinValue);
 
-        string dialogTitle;
-        
-        if (_isEditMode && TransactionId is not null)
+        // Nachladen der abhängigen Dropdowns
+        if (_selectedCostUnit is not null)
         {
-            _transactionModel = await TransactionService.GetTransactionByIdAsync(TransactionId.Value) ?? new TransactionModel();
-            dialogTitle = "Edit transaction";
+            _basicUnits = await BasicUnitService.GetBasicUnitsByCostUnitIdAsync(_selectedCostUnit.Id);
 
-            // Auswahlfelder vorbelegen
-            _selectedCashRegisterModel = _transactionModel.CashRegister;
-            _selectedCostUnit = _transactionModel.CostUnit;
-            _selectedBasicUnit = _transactionModel.BasicUnit;
-            _selectedUnitDetail = _transactionModel.UnitDetails;
-            _selectedPerson = _transactionModel.Person;
-            _selectedSpecialItem = _transactionModel.SpecialItem;
-            TransactionDateTime = _transactionModel.Date?.ToDateTime(TimeOnly.MinValue);
+            if (_selectedBasicUnit is not null && _basicUnits.All(b => b.Id != _selectedBasicUnit.Id))
+                _selectedBasicUnit = _basicUnits.FirstOrDefault();
+
+            if (_selectedBasicUnit is not null)
+            {
+                _unitDetails = await UnitDetailService.GetUnitDetailsByBasicUnitIdAsync(_selectedBasicUnit.Id);
+
+                if (_selectedUnitDetail is not null && _unitDetails.All(u => u.Id != _selectedUnitDetail.Id))
+                    _selectedUnitDetail = _unitDetails.FirstOrDefault();
+            }
         }
-        else
-        {
-            _transactionModel = new TransactionModel();
-            dialogTitle = "Add new transaction";
-        }
-        await MudDialog.SetTitleAsync(dialogTitle);
-        StateHasChanged();
     }
+    else
+    {
+        _transactionModel = new TransactionModel();
+    }
+
+    await MudDialog.SetTitleAsync(_isEditMode ? "Edit transaction" : "Add new transaction");
+    StateHasChanged();
+}
 
     private async Task OnCostUnitChangedAsync()
     {
@@ -221,7 +217,7 @@
             await OnBasicUnitChangedAsync();
         }
 
-        await InvokeAsync(StateHasChanged);
+       StateHasChanged();
     }
 
     private async Task OnBasicUnitChangedAsync()
@@ -230,12 +226,12 @@
         _selectedUnitDetail = null;
 
         if (_selectedBasicUnit is not null)
-        {
-            _unitDetails = await UnitDetailService.GetUnitDetailsByBasicUnitAsync(_selectedBasicUnit.Id);
+        {                                          
+            _unitDetails = await UnitDetailService.GetUnitDetailsByBasicUnitIdAsync(_selectedBasicUnit.Id);
             if (_unitDetails != null) _selectedUnitDetail = _unitDetails.FirstOrDefault();
         }
 
-        await InvokeAsync(StateHasChanged);
+        StateHasChanged();
     }
 
     private Task OnCashRegisterChangedAsync() => InvokeAsync(StateHasChanged);
@@ -257,67 +253,51 @@
         }
     }
 
+
     private void MapFormToModel()
     {
+        // CashRegister
         (_transactionModel.CashRegister, _transactionModel.CashRegisterId) =
             SetRequired<CashRegisterModel, CashRegisterModel>(_selectedCashRegisterModel, c => c.Id);
 
-        (_transactionModel.CostUnit, _transactionModel.CostUnitId) =
-            SetRequired<CostUnitModel, CostUnitModel>(_selectedCostUnit, c => c.Id);
+        // AccountsModel vorbereiten
+        _transactionModel.Accounts = new AccountsModel
+        {
+            CostUnitId = _selectedCostUnit?.Id ?? 0,
+            CostUnit = _selectedCostUnit,
+            BasicUnitId = _selectedBasicUnit?.Id ?? 0,
+            BasicUnit = _selectedBasicUnit,
+            UnitDetailsId = _selectedUnitDetail?.Id,
+            UnitDetails = _selectedUnitDetail
+        };
 
-        (_transactionModel.BasicUnit, _transactionModel.BasicUnitId) =
-            SetRequired<BasicUnitModel, BasicUnitModel>(_selectedBasicUnit, b => b.Id);
-        
-        (_transactionModel.UnitDetails, _transactionModel.UnitDetailsId) =
-            SetOrClear<UnitDetailsModel, UnitDetailsModel>(_selectedUnitDetail, u => u.Id);
-
-        (_transactionModel.Person, _transactionModel.PersonId) =
-            SetOrClear<PersonModel, PersonModel>(_selectedPerson, p => p.Id);
-
+        // SpecialItem
         (_transactionModel.SpecialItem, _transactionModel.SpecialItemId) =
             SetOrClear<SpecialItemModel, SpecialItemModel>(_selectedSpecialItem, s => s.Id);
-        
+
+        // Datum
         if (TransactionDateTime.HasValue)
             _transactionModel.Date = DateOnly.FromDateTime(TransactionDateTime.Value);
         else
             throw new InvalidOperationException("Das Transaktionsdatum ist erforderlich.");
     }
 
-    
-    private static (TModel?, int?) SetOrClear<TModel, TSelected>(
-        TSelected? selected,
-        Func<TSelected, int> getId
-    ) where TModel : class
+    private static (TModel?, int?) SetOrClear<TModel, TSelected>(TSelected? selected, Func<TSelected, int> getId)
+        where TModel : class
         where TSelected : class
-    {
-        if (selected is not null)
-        {
-            return (selected as TModel, getId(selected));
-        }
-        return (null, null);
-    }
+        => selected is not null ? (selected as TModel, getId(selected)) : (null, null);
 
-// für Pflichtfelder
-    private (TModel, int) SetRequired<TModel, TSelected>(
-        TSelected? selected,
-        Func<TSelected, int> getId
-    ) where TModel : class
+    private (TModel, int) SetRequired<TModel, TSelected>(TSelected? selected, Func<TSelected, int> getId)
+        where TModel : class
         where TSelected : class
-    {
-        if (selected is null)
-            throw new InvalidOperationException($"{typeof(TModel).Name} ist erforderlich, wurde aber nicht ausgewählt.");
-
-        return (selected as TModel ?? throw new InvalidCastException(), getId(selected));
-    }
-
+        => selected is null ? throw new InvalidOperationException($"{typeof(TModel).Name} is required.") : 
+            (selected as TModel ?? throw new InvalidCastException(), getId(selected));
 
     private bool IsProcessable()
-    {
-        return _selectedCostUnit?.Id >= 1
-               && _selectedBasicUnit?.Id >= 1
-               && _selectedCashRegisterModel?.Id >= 1
-               && TransactionDateTime.HasValue;
-    }
+        => _selectedCostUnit?.Id >= 1
+           && _selectedBasicUnit?.Id >= 1
+           && _selectedCashRegisterModel?.Id >= 1
+           && TransactionDateTime.HasValue;
 
     private void Cancel() => MudDialog.Close(DialogResult.Cancel());
 }
