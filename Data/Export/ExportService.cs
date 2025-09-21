@@ -13,6 +13,7 @@ using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.EntityFrameworkCore;
+using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.Transaction;
 using Path = System.IO.Path;
 
@@ -68,6 +69,8 @@ namespace TTCCashRegister.Data.Export
                 .ThenInclude(a => a.BasicUnit)
                 .Include(t => t.Accounts)
                 .ThenInclude(a => a.UnitDetails)
+                .Include(t => t.SubTransactions)
+                .ThenInclude(st => st.Person)
                 .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
                 .ToListAsync();
         }
@@ -126,7 +129,7 @@ namespace TTCCashRegister.Data.Export
                 var font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
                 var bold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
                 // EventHandler registrieren
-                var handler = new PageNumberEventHandler(font, 9, footerPageCounterBottomMargin: 20f, placeholderWidth: 50f);
+                var handler = new PageNumberEventHandler(font, footerPageCounterBottomMargin: 20f, placeholderWidth: 50f);
                 pdf.AddEventHandler(PdfDocumentEvent.END_PAGE, handler);
                 
                 var table = new Table(5);
@@ -241,41 +244,39 @@ namespace TTCCashRegister.Data.Export
                 
                 var flatEntries = transactions.SelectMany(t =>
                 {
-                    var mainEntry = new []
+                    var entries = new List<dynamic>();
+
+                    if (!t.SubTransactions.Any())
                     {
-                        new
+                        entries.Add(new
                         {
                             t.Accounts.CostUnit,
                             t.Accounts.BasicUnit,
                             t.Accounts.UnitDetails,
-                            AccountMovement = t.AccountMovement,
-                            t.Person
-                        }
-                    };
-                    
+                            Amount = t.AccountMovement,
+                            Person = (PersonModel?)null
+                        });
+                    }
 
-                    var subEntries = t.SubTransactions?.Select(st =>
-                        new
-                        {
-                            t.Accounts.CostUnit,
-                            t.Accounts.BasicUnit,
-                            t.Accounts.UnitDetails,
-                            AccountMovement = st.Sum,
-                            st.Person
-                        }
-                    ) ?? Enumerable.Empty<dynamic>();
+                    entries.AddRange(t.SubTransactions.Select(st => new
+                    {
+                        t.Accounts.CostUnit,
+                        t.Accounts.BasicUnit,
+                        t.Accounts.UnitDetails,
+                        Amount = st.Sum,
+                        st.Person
+                    }));
 
-                    return mainEntry.Concat(subEntries);
+                    return entries;
                 }).ToList();
 
-                // Gruppierung: CostUnit → BasicUnit → UnitDetail → Person
                 var grouped = flatEntries
                     .GroupBy(e => new { e.CostUnit.Id, e.CostUnit.CostUnitName })
                     .Select(costUnitGroup => new
                     {
                         CostUnitId = costUnitGroup.Key.Id,
                         costUnitGroup.Key.CostUnitName,
-                        SummeCostUnit = costUnitGroup.Sum(e => (decimal)e.AccountMovement),
+                        SummeCostUnit = costUnitGroup.Sum(e => (decimal)e.Amount),
 
                         BasicUnits = costUnitGroup
                             .GroupBy(e => new
@@ -287,7 +288,7 @@ namespace TTCCashRegister.Data.Export
                             {
                                 basicUnitGroup.Key.BasicUnitId,
                                 basicUnitGroup.Key.BasicUnitName,
-                                SummeBasicUnit = basicUnitGroup.Sum(e => (decimal)e.AccountMovement),
+                                SummeBasicUnit = basicUnitGroup.Sum(e => (decimal)e.Amount),
 
                                 UnitDetails = basicUnitGroup
                                     .GroupBy(e => new
@@ -299,7 +300,7 @@ namespace TTCCashRegister.Data.Export
                                     {
                                         unitDetailGroup.Key.UnitDetailId,
                                         unitDetailGroup.Key.UnitDetailName,
-                                        SummeUnitDetails = unitDetailGroup.Sum(e => (decimal)e.AccountMovement),
+                                        SummeUnitDetails = unitDetailGroup.Sum(e => (decimal)e.Amount),
 
                                         Persons = unitDetailGroup
                                             .Where(e => e.Person != null)
@@ -312,7 +313,7 @@ namespace TTCCashRegister.Data.Export
                                             {
                                                 personGroup.Key.PersonId,
                                                 personGroup.Key.PersonName,
-                                                SummePerson = personGroup.Sum(e => (decimal)e.AccountMovement)
+                                                SummePerson = personGroup.Sum(e => (decimal)e.Amount)
                                             })
                                             .OrderBy(p => p.PersonName)
                                             .ToList()
@@ -326,7 +327,6 @@ namespace TTCCashRegister.Data.Export
                     .OrderBy(cu => cu.CostUnitName)
                     .ToList();
 
-                // CSV aufbauen
                 var csv = new StringBuilder();
                 csv.AppendLine(CsvBudgetHeader);
 
@@ -340,15 +340,18 @@ namespace TTCCashRegister.Data.Export
 
                         foreach (var unitDetailGroup in basicUnitGroup.UnitDetails)
                         {
-                            // UnitDetail-Zeile (auch wenn leer)
-                            var unitDetailName = unitDetailGroup.UnitDetailName ?? string.Empty;
-                            csv.AppendLine($";;{unitDetailName};{unitDetailGroup.SummeUnitDetails.ToString("C", CultureInfo.CurrentCulture)}");
+                            var unitDetailName = unitDetailGroup.UnitDetailName;
+                            var summePersonen = unitDetailGroup.Persons.Sum(p => p.SummePerson);
 
-                            // Personen-Zeilen
+                            if (!string.IsNullOrWhiteSpace(unitDetailName) ||
+                                unitDetailGroup.Persons.Count == 0 ||
+                                summePersonen != unitDetailGroup.SummeUnitDetails)
+                            {
+                                csv.AppendLine($";;{unitDetailName};{unitDetailGroup.SummeUnitDetails.ToString("C", CultureInfo.CurrentCulture)}");
+                            }
+
                             if (unitDetailGroup.Persons.Count == 0) continue;
-                            // Einrückung: unter UnitDetail -> ";;;Name;Summe", sonst (wenn UnitDetail leer) unter Basic → ";;Name;Summe"
-                            var personIndent = unitDetailGroup.UnitDetailId?.HasValue ? ";;;" : ";;";
-
+                            const string personIndent = ";;";
                             foreach (var personGroup in unitDetailGroup.Persons)
                             {
                                 csv.AppendLine($"{personIndent}{personGroup.PersonName};{personGroup.SummePerson.ToString("C", CultureInfo.CurrentCulture)}");

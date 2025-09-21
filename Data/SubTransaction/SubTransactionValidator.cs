@@ -15,8 +15,7 @@ namespace TTCCashRegister.Data.SubTransaction
                 .WithMessage("Description max length is 300 characters.");
             
             RuleFor(st => st.Sum)
-                .NotEmpty().WithMessage("Sum is required.")
-                .GreaterThan(0).WithMessage("Sum must be greater than 0.");
+                .NotEmpty().WithMessage("Sum is required.");
         }
         
         public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>

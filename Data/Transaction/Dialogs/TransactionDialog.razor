@@ -103,18 +103,6 @@
                     }
                 }
             </MudSelect>
-
-            <MudSelect T="PersonModel"
-                       Label="Person"
-                       ToStringFunc="@_personConverter"
-                       @bind-Value="_selectedPerson">
-                <MudSelectItem T="PersonModel" Value="@null">None</MudSelectItem>
-                @foreach (var p in _persons)
-                {
-                    <MudSelectItem T="PersonModel" Value="@p">@p.Name</MudSelectItem>
-                }
-            </MudSelect>
-
             <MudSelect T="SpecialItemModel" 
                        Label="SpecialItem"
                        ToStringFunc="@_specialItemConverter"
@@ -152,7 +140,6 @@
     private IEnumerable<UnitDetailsModel>? _unitDetails = [];
     private IEnumerable<CashRegisterModel> _cashRegisters = [];
     private IEnumerable<SpecialItemModel> _specialItemList = [];
-    private IEnumerable<PersonModel> _persons = [];
 
     private CostUnitModel? _selectedCostUnit;
     private BasicUnitModel? _selectedBasicUnit;
@@ -162,8 +149,7 @@
     private PersonModel? _selectedPerson;
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-
-    private readonly Func<PersonModel, string> _personConverter = p => p?.Name ?? string.Empty;
+    
     private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
     private readonly Func<CostUnitModel, string> _unitConverter = p => p?.CostUnitName ?? string.Empty;
     private readonly Func<UnitDetailsModel, string> _detailsConverter = d => d?.CostDetails ?? string.Empty;
@@ -178,7 +164,6 @@
     _costUnits = await CostUnitService.GetAllUnitsAsync();
     _specialItemList = await SpecialItemService.GetAllSpecialItems();
     _cashRegisters = await CashRegisterService.GetAllCashRegisters();
-    _persons = await PersonService.GetAllPersonsAsync();
 
     if (_isEditMode && TransactionId is not null)
     {
@@ -189,7 +174,6 @@
         _selectedCostUnit = _transactionModel.Accounts?.CostUnit;
         _selectedBasicUnit = _transactionModel.Accounts?.BasicUnit;
         _selectedUnitDetail = _transactionModel.Accounts?.UnitDetails;
-        _selectedPerson = _transactionModel.Person;
         _selectedSpecialItem = _transactionModel.SpecialItem;
         TransactionDateTime = _transactionModel.Date?.ToDateTime(TimeOnly.MinValue);
 
@@ -286,10 +270,6 @@
             UnitDetailsId = _selectedUnitDetail?.Id,
             UnitDetails = _selectedUnitDetail
         };
-
-        // Person
-        (_transactionModel.Person, _transactionModel.PersonId) =
-            SetOrClear<PersonModel, PersonModel>(_selectedPerson, p => p.Id);
 
         // SpecialItem
         (_transactionModel.SpecialItem, _transactionModel.SpecialItemId) =

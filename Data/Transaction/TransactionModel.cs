@@ -38,10 +38,7 @@ namespace TTCCashRegister.Data.Transaction
 
         [ForeignKey("SpecialItemId")]
         public SpecialItemModel? SpecialItem { get; set; }
-        public int? PersonId { get; set; }
-        public PersonModel? Person { get; set; }
-
-        public List<SubTransactionModel>? SubTransactions { get; init; } = [];
+        public List<SubTransactionModel> SubTransactions { get; } = [];
 
     }
 }
