@@ -1,12 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using TTCCashRegister.Data.BasicUnit;
 using TTCCashRegister.Data.CashRegister;
-using TTCCashRegister.Data.CostUnit;
 using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.SpecialItem;
 using TTCCashRegister.Data.SubTransaction;
-using TTCCashRegister.Data.UnitDetail;
+using TTCCashRegister.Data.Accounts;
 
 namespace TTCCashRegister.Data.Transaction
 {
@@ -27,17 +25,11 @@ namespace TTCCashRegister.Data.Transaction
         [Required]
         [Column(TypeName = "decimal(10,2)")]
         public decimal AccountMovement { get; set; } = decimal.Zero;
+        
         [Required]
-        public int CostUnitId { get; set; }
-        [ForeignKey("CostUnitId")]
-        public CostUnitModel CostUnit { get; set; } = new();
-        [Required]
-        public int BasicUnitId { get; set; }
-        [ForeignKey("BasicUnitId")]
-        public BasicUnitModel? BasicUnit { get; set; } = new();
-        public int? UnitDetailsId { get; set; } // Optional
-        [ForeignKey("UnitDetailsId")]
-        public UnitDetailsModel? UnitDetails { get; set; } // Optional
+        public int AccountsId { get; set; }
+        public AccountsModel Accounts { get; set; } = null!;
+        
         [Required]
         public int CashRegisterId { get; set; }
         [ForeignKey("CashRegisterId")]
@@ -46,10 +38,7 @@ namespace TTCCashRegister.Data.Transaction
 
         [ForeignKey("SpecialItemId")]
         public SpecialItemModel? SpecialItem { get; set; }
-        public int? PersonId { get; set; }
-        public PersonModel? Person { get; set; }
-
-        public List<SubTransactionModel>? SubTransactions { get; init; } = [];
+        public List<SubTransactionModel> SubTransactions { get; } = [];
 
     }
 }

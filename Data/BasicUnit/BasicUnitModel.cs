@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TTCCashRegister.Data.Accounts;
 using TTCCashRegister.Data.CostUnit;
 using TTCCashRegister.Data.UnitDetail;
 
@@ -9,12 +10,15 @@ namespace TTCCashRegister.Data.BasicUnit
     {
         [Key]
         public int Id { get; set; }
+
         [Required]
         public string Name { get; set; } = string.Empty;
-        public ICollection<UnitDetailsModel> CostUnitDetails { get; set; } =  new List<UnitDetailsModel>();
-        public int? CostUnitId { get; set; }
-        [ForeignKey("CostUnitId")]
-        public CostUnitModel? CostUnit { get; set; }
+
+        [Required]
+        public int CostUnitId { get; set; }
+        public CostUnitModel CostUnit { get; set; } = null!;
+
+        public ICollection<AccountsModel> Accounts { get; set; } = new List<AccountsModel>();
 
         public override string ToString()
         {

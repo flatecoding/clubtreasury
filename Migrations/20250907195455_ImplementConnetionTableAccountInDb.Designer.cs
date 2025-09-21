@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TTCCashRegister.Data;
 
@@ -11,9 +12,11 @@ using TTCCashRegister.Data;
 namespace TTCCashRegister.Migrations
 {
     [DbContext(typeof(CashDataContext))]
-    partial class CashDataContextModelSnapshot : ModelSnapshot
+    [Migration("20250907195455_ImplementConnetionTableAccountInDb")]
+    partial class ImplementConnetionTableAccountInDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -156,8 +159,8 @@ namespace TTCCashRegister.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("varchar(300)");
 
-                    b.Property<int?>("DocumentNumber")
-                        .HasColumnType("int");
+                    b.Property<string>("DocumentNumber")
+                        .HasColumnType("longtext");
 
                     b.Property<int?>("PersonId")
                         .HasColumnType("int");
@@ -205,6 +208,9 @@ namespace TTCCashRegister.Migrations
                     b.Property<int>("Documentnumber")
                         .HasColumnType("int");
 
+                    b.Property<int?>("PersonId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("SpecialItemId")
                         .HasColumnType("int");
 
@@ -219,6 +225,8 @@ namespace TTCCashRegister.Migrations
 
                     b.HasIndex("Documentnumber")
                         .IsUnique();
+
+                    b.HasIndex("PersonId");
 
                     b.HasIndex("SpecialItemId");
 
@@ -311,6 +319,10 @@ namespace TTCCashRegister.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TTCCashRegister.Data.Person.PersonModel", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonId");
+
                     b.HasOne("TTCCashRegister.Data.SpecialItem.SpecialItemModel", "SpecialItem")
                         .WithMany("Transactions")
                         .HasForeignKey("SpecialItemId");
@@ -318,6 +330,8 @@ namespace TTCCashRegister.Migrations
                     b.Navigation("Accounts");
 
                     b.Navigation("CashRegister");
+
+                    b.Navigation("Person");
 
                     b.Navigation("SpecialItem");
                 });

@@ -60,9 +60,9 @@
         <MudTd>@context.Description</MudTd>
         <MudTd>@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
         <MudTd>@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
-        <MudTd>@context.CostUnit.CostUnitName</MudTd>
-        <MudTd>@context.BasicUnit?.Name</MudTd>
-        <MudTd>@context.UnitDetails?.CostDetails</MudTd>
+        <MudTd>@context.Accounts.CostUnit.CostUnitName</MudTd>
+        <MudTd>@context.Accounts.BasicUnit?.Name</MudTd>
+        <MudTd>@context.Accounts.UnitDetails?.CostDetails</MudTd>
         <MudTd>
             <MudIconButton Icon="@Icons.Material.Filled.List"
                            Color="Color.Secondary"
@@ -137,8 +137,7 @@
             _searchString1 = values.SearchText;
             _personId = values.PersonId;
 
-            if (_table is not null)
-                await _table.ReloadServerData();
+            await UpdateView();
         }
     }
 
@@ -194,8 +193,8 @@
 
     private async Task UpdateView()
     {
-        await TransactionService.GetAllTransactions();
-        await InvokeAsync(StateHasChanged);
+        if (_table is not null)
+            await _table.ReloadServerData();
     }
     
     private async Task<TableData<TransactionModel>> LoadServerData(TableState state, CancellationToken cancellationToken)

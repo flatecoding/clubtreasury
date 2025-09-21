@@ -1,9 +1,11 @@
 ﻿@page "/editunitdetails"
 @using System.Diagnostics
+@using TTCCashRegister.Data.Accounts
 @using TTCCashRegister.Data.BasicUnit
 @using TTCCashRegister.Data.UnitDetail
 @inject UnitDetailService UnitDetailService
 @inject BasicUnitService BasicUnitService
+@inject AccountsService AccountsService
 
 <MudDialog>
     <DialogContent>
@@ -11,9 +13,9 @@
             <MudTextField @bind-Value="_editUnitDetailsModel.CostDetails" Label="Cost Details"
                           For="@(() => _editUnitDetailsModel.CostDetails)"/>
             <MudSelect T="BasicUnitModel" Label="Basic Unit" 
-                       @bind-SelectedValues="_editUnitDetailsModel.BasicUnits" 
+                       @bind-SelectedValues="_selectedBasicUnits" 
                        MultiSelection="true"
-                       >
+                       Required="true">
                 @foreach (var basicUnit in _allBasicUnits)
                 {
                     <MudSelectItem T="BasicUnitModel" Value="@basicUnit">@basicUnit.Name</MudSelectItem>
@@ -23,7 +25,7 @@
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveUnitDetails())">Save</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -32,6 +34,7 @@
     private MudForm _form = new();
     private UnitDetailsModel _editUnitDetailsModel = new();
     private IEnumerable<BasicUnitModel> _allBasicUnits = new List<BasicUnitModel>();
+    private IEnumerable<BasicUnitModel> _selectedBasicUnits = new List<BasicUnitModel>();
     private readonly UnitDetailValidator _unitDetailValidator = new();
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
@@ -42,27 +45,43 @@
         {
             _allBasicUnits = await BasicUnitService.GetAllBasicUnitsAsync();
             _editUnitDetailsModel = await UnitDetailService.GetUnitDetailsByIdAsync(UnitDetailsId) ?? new UnitDetailsModel();
+
+            // Vorbelegung: BasicUnits über Accounts abrufen
+            _selectedBasicUnits = _editUnitDetailsModel.Accounts
+                .Select(a => a.BasicUnit)
+                .Distinct()
+                .ToList();
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Error initializing component: {ex.Message}");
         }
-        
     }
 
     private async Task SaveUnitDetails()
     {
         await _form.Validate();
-        if (_form.IsValid)
-        { 
-            await UnitDetailService.UpdateUnitDetailsAsync(_editUnitDetailsModel);
-            MudDialog.Close(DialogResult.Ok(true));
+        if (!_form.IsValid) return;
+
+        // Update UnitDetails selbst
+        var success = await UnitDetailService.UpdateUnitDetailsAsync(_editUnitDetailsModel);
+        if (!success) return;
+        
+        foreach (var account in _selectedBasicUnits.Select(basicUnit => new AccountsModel
+                 {
+                     BasicUnitId = basicUnit.Id,
+                     CostUnitId = basicUnit.CostUnitId,
+                     UnitDetailsId = _editUnitDetailsModel.Id
+                 }))
+        {
+            await AccountsService.EnsureAccountExistsAsync(account);
         }
+
+        MudDialog.Close(DialogResult.Ok(true));
     }
 
     private void Cancel()
     {
         MudDialog.Close(DialogResult.Cancel());
     }
-
 }
