@@ -1,9 +1,9 @@
 ﻿@page "/addunitdetail"
-@using TTCCashRegister.Data.BasicUnit
 @using TTCCashRegister.Data.UnitDetail
 @using TTCCashRegister.Data.Accounts
+@using TTCCashRegister.Data.Category
 @inject UnitDetailService UnitDetailService
-@inject BasicUnitService BasicUnitService
+@inject CategoryService CategoryService
 @inject AccountsService AccountsService
 
 <MudDialog>
@@ -16,14 +16,14 @@
                           Required="true" 
                           Immediate="true" />
 
-            <MudSelect T="BasicUnitModel" 
-                       Label="Basic Unit" 
-                       @bind-SelectedValues="_selectedBasicUnits"
+            <MudSelect T="CategoryModel" 
+                       Label="Category" 
+                       @bind-SelectedValues="_selectedCategories"
                        MultiSelection="true"
                        Required="true">
-                @foreach (var basicUnit in _allBasicUnits)
+                @foreach (var category in _allCategories)
                 {
-                    <MudSelectItem T="BasicUnitModel" Value="@basicUnit">@basicUnit.Name</MudSelectItem>
+                    <MudSelectItem T="CategoryModel" Value="@category">@category.Name</MudSelectItem>
                 }
             </MudSelect>
         </MudForm>
@@ -43,29 +43,29 @@
     private MudForm _form = new();
     private readonly UnitDetailsModel _newDetailModel = new();
     private readonly UnitDetailValidator _unitDetailValidator = new();
-    private IEnumerable<BasicUnitModel> _allBasicUnits = new List<BasicUnitModel>();
-    private IEnumerable<BasicUnitModel> _selectedBasicUnits = new List<BasicUnitModel>();
+    private IEnumerable<CategoryModel> _allCategories = new List<CategoryModel>();
+    private IEnumerable<CategoryModel> _selectedCategories = new List<CategoryModel>();
 
     protected override async Task OnInitializedAsync()
     {
         // Alle BasicUnits laden
-        _allBasicUnits = await BasicUnitService.GetAllBasicUnitsAsync();
+        _allCategories = await CategoryService.GetAllCategoriesAsync();
     }
 
     private async Task AddUnitDetailAsync()
     {
         await _form.Validate();
-        if (!_form.IsValid || !_selectedBasicUnits.Any())
+        if (!_form.IsValid || !_selectedCategories.Any())
             return;
 
         // 1. UnitDetail speichern
         var createdDetail = await UnitDetailService.AddUnitDetailAsync(_newDetailModel);
 
         // 2. N:M-Beziehung über Accounts erstellen
-        foreach (var account in _selectedBasicUnits.Select(basicUnit => new AccountsModel
+        foreach (var account in _selectedCategories.Select(category => new AccountsModel
                  {
-                     BasicUnitId = basicUnit.Id,
-                     CostCenterId = basicUnit.CostCenterId,
+                     CategoryId = category.Id,
+                     CostCenterId = category.CostCenterId,
                      UnitDetailsId = createdDetail?.Id
                  }))
         {

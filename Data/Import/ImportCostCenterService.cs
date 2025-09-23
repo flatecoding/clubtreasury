@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TTCCashRegister.Data.BasicUnit;
+using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
 
 namespace TTCCashRegister.Data.Import
@@ -28,51 +28,51 @@ namespace TTCCashRegister.Data.Import
                 }
 
                 var costCenters = await context.CostCenters
-                    .Include(cu => cu.BasicUnitDetails)
+                    .Include(cu => cu.Categories)
                     .ToListAsync();
 
-                var basicUnits = await context.BasicUnits
+                var categories = await context.Categories
                     .ToListAsync();
 
                 foreach (var line in lines)
                 {
                     var parts = line.Split('/');
-                    string costUnitName;
+                    string costCenterName;
                     string positionName;
                     switch (parts.Length)
                     {
                         case 1:
                         {
-                            costUnitName = parts[0].Trim();
+                            costCenterName = parts[0].Trim();
                             positionName = "Undefined"; 
                         }
                             break;
                         case >= 2:
                         {
-                            costUnitName = parts[0].Trim();
+                            costCenterName = parts[0].Trim();
                             positionName = parts[1].Trim();
                         }
                             break;
                         default: continue;
                     }
 
-                    var costCenter = costCenters.FirstOrDefault(cu => cu.CostUnitName == costUnitName);
+                    var costCenter = costCenters.FirstOrDefault(cu => cu.CostUnitName == costCenterName);
 
                     if (costCenter == null)
                     {
-                        costCenter = new CostCenterModel { CostUnitName = costUnitName };
+                        costCenter = new CostCenterModel { CostUnitName = costCenterName };
                         costCenters.Add(costCenter);
                         context.CostCenters.Add(costCenter);
                     }
 
-                    var basicUnit = basicUnits.FirstOrDefault(bu => bu.Name == positionName && bu.CostCenterId == costCenter.Id);
+                    var category = categories.FirstOrDefault(bu => bu.Name == positionName && bu.CostCenterId == costCenter.Id);
 
-                    if (basicUnit == null)
+                    if (category == null)
                     {
-                        basicUnit = new BasicUnitModel { Name = positionName, CostCenter = costCenter };
-                        costCenter.BasicUnitDetails.Add(basicUnit);
-                        basicUnits.Add(basicUnit);
-                        context.BasicUnits.Add(basicUnit);
+                        category = new CategoryModel { Name = positionName, CostCenter = costCenter };
+                        costCenter.Categories.Add(category);
+                        categories.Add(category);
+                        context.Categories.Add(category);
                     }
                 }
 

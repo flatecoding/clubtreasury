@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TTCCashRegister.Data.Accounts;
-using TTCCashRegister.Data.BasicUnit;
 
 namespace TTCCashRegister.Data.UnitDetail
 {

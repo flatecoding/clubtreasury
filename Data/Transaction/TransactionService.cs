@@ -19,7 +19,7 @@ public class TransactionService(
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.CostCenter)
             .Include(t => t.Accounts)
-                .ThenInclude(a => a.BasicUnit)
+                .ThenInclude(a => a.Category)
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.UnitDetails)
             .Include(t => t.SubTransactions)
@@ -35,7 +35,7 @@ public class TransactionService(
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.CostCenter)
             .Include(t => t.Accounts)
-                .ThenInclude(a => a.BasicUnit)
+                .ThenInclude(a => a.Category)
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.UnitDetails)
             .Where(t => t.Date.HasValue &&
@@ -50,7 +50,7 @@ public class TransactionService(
             .Include(t => t.Accounts)
             .ThenInclude(a => a.CostCenter)
             .Include(t => t.Accounts)
-            .ThenInclude(a => a.BasicUnit)
+            .ThenInclude(a => a.Category)
             .Include(t => t.Accounts)
             .ThenInclude(a => a.UnitDetails)
             .Include(t => t.SubTransactions)
@@ -99,7 +99,7 @@ public class TransactionService(
             // Allocation prüfen oder anlegen
             var account = await context.Accounts.FirstOrDefaultAsync(a =>
                 a.CostCenterId == entry.Accounts.CostCenterId &&
-                a.BasicUnitId == entry.Accounts.BasicUnitId &&
+                a.CategoryId == entry.Accounts.CategoryId &&
                 a.UnitDetailsId == entry.Accounts.UnitDetailsId);
 
             if (account == null)
@@ -184,7 +184,7 @@ public class TransactionService(
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.CostCenter)
             .Include(t => t.Accounts)
-                .ThenInclude(a => a.BasicUnit)
+                .ThenInclude(a => a.Category)
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.UnitDetails)
             .Include(t => t.SubTransactions)
@@ -209,7 +209,7 @@ public class TransactionService(
                 (x.Description != null && x.Description.ToLower().Contains(term)) ||
                 x.Documentnumber.ToString().Contains(term) ||
                 (x.Accounts.CostCenter.CostUnitName.ToLower().Contains(term)) ||
-                (x.Accounts.BasicUnit.Name.ToLower().Contains(term)) ||
+                (x.Accounts.Category.Name.ToLower().Contains(term)) ||
                 (x.Accounts.UnitDetails != null && x.Accounts.UnitDetails.CostDetails.ToLower().Contains(term)) ||
                 x.SubTransactions.Any(st => st.Person != null && st.Person.Name.ToLower().Contains(term))
             );

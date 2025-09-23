@@ -15,7 +15,7 @@ public class AccountsService
     {
         return await _context.Accounts
             .Include(a => a.CostCenter)
-            .Include(a => a.BasicUnit)
+            .Include(a => a.Category)
             .Include(a => a.UnitDetails)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
@@ -24,7 +24,7 @@ public class AccountsService
     {
         return await _context.Accounts
             .Include(a => a.CostCenter)
-            .Include(a => a.BasicUnit)
+            .Include(a => a.Category)
             .Include(a => a.UnitDetails)
             .ToListAsync();
     }
@@ -33,7 +33,7 @@ public class AccountsService
     {
         var existing = await _context.Accounts.FirstOrDefaultAsync(a =>
             a.CostCenterId == account.CostCenterId &&
-            a.BasicUnitId == account.BasicUnitId &&
+            a.CategoryId == account.CategoryId &&
             a.UnitDetailsId == account.UnitDetailsId);
 
         if (existing != null)

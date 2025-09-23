@@ -2,37 +2,32 @@
 
 namespace TTCCashRegister.Data.CostCenter
 {
-    public class CostCenterService
+    public class CostCenterService(CashDataContext context)
     {
-        private readonly CashDataContext _context;
+        private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-        public CostCenterService(CashDataContext context)
-        {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-        }
-        
-        public async Task<List<CostCenterModel>> GetAllUnitsAsync()
+        public async Task<List<CostCenterModel>> GetAllCostCentersAsync()
         {
             return await _context.CostCenters
                 .Include(c => c.Accounts)
-                    .ThenInclude(a => a.BasicUnit)
+                    .ThenInclude(a => a.Category)
                 .Include(c => c.Accounts)
                     .ThenInclude(a => a.UnitDetails)
                 .OrderBy(c => c.Id)
                 .ToListAsync();
         }
         
-        public async Task<CostCenterModel?> GetCostUnitByIdAsync(int id)
+        public async Task<CostCenterModel?> GetCostCenterByIdAsync(int id)
         {
             return await _context.CostCenters
                 .Include(c => c.Accounts)
-                    .ThenInclude(a => a.BasicUnit)
+                    .ThenInclude(a => a.Category)
                 .Include(c => c.Accounts)
                     .ThenInclude(a => a.UnitDetails)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<bool> AddCostUnitAsync(CostCenterModel costCenter)
+        public async Task<bool> AddCostCenterAsync(CostCenterModel costCenter)
         {
             try
             {
@@ -47,7 +42,7 @@ namespace TTCCashRegister.Data.CostCenter
             }
         }
 
-        public async Task<bool> UpdateCostUnitAsync(CostCenterModel costCenter)
+        public async Task<bool> UpdateCostCenterAsync(CostCenterModel costCenter)
         {
             try
             {
@@ -62,7 +57,7 @@ namespace TTCCashRegister.Data.CostCenter
             }
         }
 
-        public async Task<bool> DeleteCostUnitAsync(int id)
+        public async Task<bool> DeleteCostCenterAsync(int id)
         {
             try
             {

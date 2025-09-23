@@ -1,10 +1,10 @@
 ﻿@page "/editunitdetails"
 @using System.Diagnostics
 @using TTCCashRegister.Data.Accounts
-@using TTCCashRegister.Data.BasicUnit
+@using TTCCashRegister.Data.Category
 @using TTCCashRegister.Data.UnitDetail
 @inject UnitDetailService UnitDetailService
-@inject BasicUnitService BasicUnitService
+@inject CategoryService CategoryService
 @inject AccountsService AccountsService
 
 <MudDialog>
@@ -12,13 +12,13 @@
         <MudForm @ref="_form" Model="_editUnitDetailsModel" Validation="_unitDetailValidator.ValidateValue" ValidationDelay="0">
             <MudTextField @bind-Value="_editUnitDetailsModel.CostDetails" Label="Cost Details"
                           For="@(() => _editUnitDetailsModel.CostDetails)"/>
-            <MudSelect T="BasicUnitModel" Label="Basic Unit" 
-                       @bind-SelectedValues="_selectedBasicUnits" 
+            <MudSelect T="CategoryModel" Label="Category" 
+                       @bind-SelectedValues="_selectedCategories" 
                        MultiSelection="true"
                        Required="true">
-                @foreach (var basicUnit in _allBasicUnits)
+                @foreach (var category in _allCategories)
                 {
-                    <MudSelectItem T="BasicUnitModel" Value="@basicUnit">@basicUnit.Name</MudSelectItem>
+                    <MudSelectItem T="CategoryModel" Value="@category">@category.Name</MudSelectItem>
                 }
             </MudSelect>
         </MudForm>
@@ -33,8 +33,8 @@
     [Parameter] public int UnitDetailsId { get; set; }
     private MudForm _form = new();
     private UnitDetailsModel _editUnitDetailsModel = new();
-    private IEnumerable<BasicUnitModel> _allBasicUnits = new List<BasicUnitModel>();
-    private IEnumerable<BasicUnitModel> _selectedBasicUnits = new List<BasicUnitModel>();
+    private IEnumerable<CategoryModel> _allCategories = new List<CategoryModel>();
+    private IEnumerable<CategoryModel> _selectedCategories = new List<CategoryModel>();
     private readonly UnitDetailValidator _unitDetailValidator = new();
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
@@ -43,12 +43,12 @@
     {
         try
         {
-            _allBasicUnits = await BasicUnitService.GetAllBasicUnitsAsync();
+            _allCategories = await CategoryService.GetAllCategoriesAsync();
             _editUnitDetailsModel = await UnitDetailService.GetUnitDetailsByIdAsync(UnitDetailsId) ?? new UnitDetailsModel();
 
             // Vorbelegung: BasicUnits über Accounts abrufen
-            _selectedBasicUnits = _editUnitDetailsModel.Accounts
-                .Select(a => a.BasicUnit)
+            _selectedCategories = _editUnitDetailsModel.Accounts
+                .Select(a => a.Category)
                 .Distinct()
                 .ToList();
         }
@@ -67,10 +67,10 @@
         var success = await UnitDetailService.UpdateUnitDetailsAsync(_editUnitDetailsModel);
         if (!success) return;
         
-        foreach (var account in _selectedBasicUnits.Select(basicUnit => new AccountsModel
+        foreach (var account in _selectedCategories.Select(category => new AccountsModel
                  {
-                     BasicUnitId = basicUnit.Id,
-                     CostCenterId = basicUnit.CostCenterId,
+                     CategoryId = category.Id,
+                     CostCenterId = category.CostCenterId,
                      UnitDetailsId = _editUnitDetailsModel.Id
                  }))
         {

@@ -20,20 +20,20 @@
             </MudButton>
         </ToolBarContent>
         <ColGroup>
-            <col style="width:200px;"/>    @*Cost unit*@
-            <col style="width:200px;"/>   @*Basic unit*@
+            <col style="width:200px;"/>    @*Cost center*@
+            <col style="width:200px;"/>   @*Categories*@
             <col />    @*Position details*@
             <col style="min-width:80px;" />    @*Acc. mvm.*@
         </ColGroup>
         <HeaderContent>
-            <MudTh>Cost unit</MudTh>
-            <MudTh>Position</MudTh>
+            <MudTh>Cost center</MudTh>
+            <MudTh>Category</MudTh>
             <MudTh>Position detail</MudTh>
             <MudTh>Acc. mvm.</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Cost unit">@context.Accounts.CostCenter.CostUnitName</MudTd>
-            <MudTd DataLabel="Position">@context.Accounts.BasicUnit?.Name</MudTd>
+            <MudTd DataLabel="Cost center">@context.Accounts.CostCenter.CostUnitName</MudTd>
+            <MudTd DataLabel="Category">@context.Accounts.Category?.Name</MudTd>
             <MudTd DataLabel="Position detail">@context.Accounts.UnitDetails?.CostDetails</MudTd>
             <MudTd DataLabel="Acc. mvm.">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
         </RowTemplate>

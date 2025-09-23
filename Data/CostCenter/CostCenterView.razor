@@ -5,7 +5,7 @@
 @inject IDialogService DialogService
 @inject NotificationService NotificationService
 
-<h2>Cost units</h2>
+<h2>Cost centers</h2>
 <MudPaper Class="mt-4" Style="width:55%;">
     <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
               @bind-SelectedItem="_selectedItem"
@@ -43,9 +43,9 @@
             <MudTd DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Unit">@context.CostUnitName</MudTd>
             <MudTd DataLabel="Details">
-                @if (context.BasicUnitDetails.Any())
+                @if (context.Categories.Any())
                 {
-                    @foreach (var detail in context.BasicUnitDetails)
+                    @foreach (var detail in context.Categories)
                     {
                         <li> @detail.Name</li>
                     }
@@ -81,7 +81,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _allEntries = await CostCenterService.GetAllUnitsAsync();
+        _allEntries = await CostCenterService.GetAllCostCentersAsync();
     }
 
     private bool FilterFunc(CostCenterModel element) => FilterFunc1(element, _searchString1);
@@ -94,7 +94,7 @@
             return false;
         if (string.IsNullOrWhiteSpace(searchString)) return false;
         var lowerString = searchString.ToLowerInvariant();
-        return element.CostUnitName.ToLower().Contains(lowerString) || element.BasicUnitDetails.Any(b => b.Name.ToLower().Contains(lowerString));
+        return element.CostUnitName.ToLower().Contains(lowerString) || element.Categories.Any(b => b.Name.ToLower().Contains(lowerString));
     }
 
     private async Task ShowAddCostUnitDialog()
@@ -107,7 +107,7 @@
     private async Task ShowEditCostUnitDialog(int costUnitId)
     {
         var dialog = await DialogService.ShowAsync<EditCostCenterDialog>("Edit Cost center", 
-            new DialogParameters { ["CostUnitId"] = costUnitId });
+            new DialogParameters { ["CostCenterId"] = costUnitId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
@@ -115,14 +115,14 @@
     private async Task ShowDeleteCostUnitDialog(int costUnitId)
     {
         var dialog = await DialogService.ShowAsync<DeleteCostCenterDialog>("Delete Cost center", 
-            new DialogParameters { ["CostUnitId"] = costUnitId });
+            new DialogParameters { ["CostCenterId"] = costUnitId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
     
     private async Task UpdateView()
     {
-        _allEntries = await CostCenterService.GetAllUnitsAsync();
+        _allEntries = await CostCenterService.GetAllCostCentersAsync();
         await InvokeAsync(StateHasChanged);
     }
 
