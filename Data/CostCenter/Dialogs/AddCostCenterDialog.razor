@@ -25,7 +25,7 @@
         await _form.Validate();
         if (_form.IsValid)
         {
-            await CostCenterService.AddCostUnitAsync(_newCostCenterModel);
+            await CostCenterService.AddCostCenterAsync(_newCostCenterModel);
             MudDialog.Close(DialogResult.Ok(true));
         }
     }

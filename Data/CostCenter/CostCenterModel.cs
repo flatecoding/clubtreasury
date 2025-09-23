@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using TTCCashRegister.Data.Accounts;
-using TTCCashRegister.Data.BasicUnit;
+using TTCCashRegister.Data.Category;
 
 namespace TTCCashRegister.Data.CostCenter
 {
@@ -10,12 +10,12 @@ namespace TTCCashRegister.Data.CostCenter
         [Key]
         public int Id { get; set; }
         [Required]
-        [StringLength(100, ErrorMessage = "The cost unit name cannot exceed 100 characters.")]
+        [StringLength(100, ErrorMessage = "The cost center name cannot exceed 100 characters.")]
         public string CostUnitName { get; set; } = string.Empty;
-        public ICollection<BasicUnitModel> BasicUnitDetails { get; set; } = new List<BasicUnitModel>();
+        public ICollection<CategoryModel> Categories { get; set; } = new List<CategoryModel>();
         public ICollection<AccountsModel> Accounts { get; set; } = new List<AccountsModel>();
 
         [NotMapped]
-        public int BasicUnitDetailsCount => BasicUnitDetails.Count;
+        public int CategoriesCount => Categories.Count;
     }
 }
