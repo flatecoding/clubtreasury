@@ -1,12 +1,11 @@
-﻿@page "/addcostunit"
-@using TTCCashRegister.Data.CostUnit
-@inject CostUnitService CostUnitService
+﻿@page "/addCostCenter"
+@inject CostCenterService CostCenterService
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" Model="_newCostUnitModel" Validation="_costunitvalidator.ValidateValue" ValidationDelay="0">
-            <MudTextField @bind-Value="_newCostUnitModel.CostUnitName" Label="Unit Name"
-                          For="@(() => _newCostUnitModel.CostUnitName)" Immediate="true" />
+        <MudForm @ref="_form" Model="_newCostCenterModel" Validation="_costunitvalidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_newCostCenterModel.CostUnitName" Label="Unit Name"
+                          For="@(() => _newCostCenterModel.CostUnitName)" Immediate="true" />
         </MudForm>
     </DialogContent>
     <DialogActions>
@@ -17,8 +16,8 @@
 
 @code {
     private MudForm _form = new();
-    private readonly CostUnitValidator _costunitvalidator = new(); 
-    private readonly CostUnitModel _newCostUnitModel = new();
+    private readonly CostCenterValidator _costunitvalidator = new(); 
+    private readonly CostCenterModel _newCostCenterModel = new();
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     
     private async Task AddCostUnit()
@@ -26,7 +25,7 @@
         await _form.Validate();
         if (_form.IsValid)
         {
-            await CostUnitService.AddCostUnitAsync(_newCostUnitModel);
+            await CostCenterService.AddCostUnitAsync(_newCostCenterModel);
             MudDialog.Close(DialogResult.Ok(true));
         }
     }

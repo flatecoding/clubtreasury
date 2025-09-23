@@ -64,7 +64,7 @@ namespace TTCCashRegister.Data.Export
         {
             return await _context.Transactions
                 .Include(t => t.Accounts)
-                .ThenInclude(a => a.CostUnit)
+                .ThenInclude(a => a.CostCenter)
                 .Include(t => t.Accounts)
                 .ThenInclude(a => a.BasicUnit)
                 .Include(t => t.Accounts)
@@ -250,7 +250,7 @@ namespace TTCCashRegister.Data.Export
                     {
                         entries.Add(new
                         {
-                            t.Accounts.CostUnit,
+                            CostUnit = t.Accounts.CostCenter,
                             t.Accounts.BasicUnit,
                             t.Accounts.UnitDetails,
                             Amount = t.AccountMovement,
@@ -260,7 +260,7 @@ namespace TTCCashRegister.Data.Export
 
                     entries.AddRange(t.SubTransactions.Select(st => new
                     {
-                        t.Accounts.CostUnit,
+                        CostUnit = t.Accounts.CostCenter,
                         t.Accounts.BasicUnit,
                         t.Accounts.UnitDetails,
                         Amount = st.Sum,
@@ -271,7 +271,7 @@ namespace TTCCashRegister.Data.Export
                 }).ToList();
 
                 var grouped = flatEntries
-                    .GroupBy(e => new { e.CostUnit.Id, e.CostUnit.CostUnitName })
+                    .GroupBy(e => new { e.CostCenter.Id, e.CostCenter.CostUnitName })
                     .Select(costUnitGroup => new
                     {
                         CostUnitId = costUnitGroup.Key.Id,

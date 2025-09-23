@@ -17,7 +17,7 @@ public class TransactionService(
     {
         return await context.Transactions
             .Include(t => t.Accounts)
-                .ThenInclude(a => a.CostUnit)
+                .ThenInclude(a => a.CostCenter)
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.BasicUnit)
             .Include(t => t.Accounts)
@@ -33,7 +33,7 @@ public class TransactionService(
     {
         return await context.Transactions
             .Include(t => t.Accounts)
-                .ThenInclude(a => a.CostUnit)
+                .ThenInclude(a => a.CostCenter)
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.BasicUnit)
             .Include(t => t.Accounts)
@@ -48,7 +48,7 @@ public class TransactionService(
     {
         return await context.Transactions
             .Include(t => t.Accounts)
-            .ThenInclude(a => a.CostUnit)
+            .ThenInclude(a => a.CostCenter)
             .Include(t => t.Accounts)
             .ThenInclude(a => a.BasicUnit)
             .Include(t => t.Accounts)
@@ -98,7 +98,7 @@ public class TransactionService(
 
             // Allocation prüfen oder anlegen
             var account = await context.Accounts.FirstOrDefaultAsync(a =>
-                a.CostUnitId == entry.Accounts.CostUnitId &&
+                a.CostCenterId == entry.Accounts.CostCenterId &&
                 a.BasicUnitId == entry.Accounts.BasicUnitId &&
                 a.UnitDetailsId == entry.Accounts.UnitDetailsId);
 
@@ -182,7 +182,7 @@ public class TransactionService(
     {
         var query = context.Transactions
             .Include(t => t.Accounts)
-                .ThenInclude(a => a.CostUnit)
+                .ThenInclude(a => a.CostCenter)
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.BasicUnit)
             .Include(t => t.Accounts)
@@ -208,7 +208,7 @@ public class TransactionService(
             query = query.Where(x =>
                 (x.Description != null && x.Description.ToLower().Contains(term)) ||
                 x.Documentnumber.ToString().Contains(term) ||
-                (x.Accounts.CostUnit.CostUnitName.ToLower().Contains(term)) ||
+                (x.Accounts.CostCenter.CostUnitName.ToLower().Contains(term)) ||
                 (x.Accounts.BasicUnit.Name.ToLower().Contains(term)) ||
                 (x.Accounts.UnitDetails != null && x.Accounts.UnitDetails.CostDetails.ToLower().Contains(term)) ||
                 x.SubTransactions.Any(st => st.Person != null && st.Person.Name.ToLower().Contains(term))

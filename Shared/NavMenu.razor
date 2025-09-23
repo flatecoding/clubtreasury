@@ -8,7 +8,7 @@
     <MudNavLink Href="/transactions" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Money">Transaction</MudNavLink>
     <MudNavGroup Title="Settings" Expanded="false" Icon="@Icons.Material.Filled.Settings">
         <MudNavGroup Title="Cost unit" Expanded="false" Icon="@Icons.Material.Filled.Settings">
-            <MudNavLink Href="/costunits" Match="NavLinkMatch.Prefix">Cost units</MudNavLink>
+            <MudNavLink Href="/costCenters" Match="NavLinkMatch.Prefix">Cost units</MudNavLink>
             <MudNavLink Href="/basicunits" Match="NavLinkMatch.Prefix">Basic position</MudNavLink>
             <MudNavLink Href="/unitdetails" Match="NavLinkMatch.Prefix">Position details</MudNavLink>
             <MudNavLink Href="/accounts" Match="NavLinkMatch.Prefix">Accounts</MudNavLink>
@@ -45,7 +45,7 @@
     {
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<ImportCostunits>("Import cost units", parameters, options);
+        var dialog = await DialogService.ShowAsync<ImportCostCenters>("Import cost units", parameters, options);
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
     }
     

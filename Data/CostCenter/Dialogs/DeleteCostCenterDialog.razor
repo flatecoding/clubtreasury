@@ -1,6 +1,5 @@
 ﻿@page "/deletecostunit"
-@using TTCCashRegister.Data.CostUnit
-@inject CostUnitService CostUnitService
+@inject CostCenterService CostCenterService
 
 <MudDialog>
     <DialogContent>
@@ -21,7 +20,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var costUnit = await CostUnitService.GetCostUnitByIdAsync(CostUnitId);
+        var costUnit = await CostCenterService.GetCostUnitByIdAsync(CostUnitId);
         if (costUnit != null)
         {
             _costUnitName = costUnit.CostUnitName;
@@ -30,7 +29,7 @@
 
     private async Task DeleteCostUnit()
     {
-        var success = await CostUnitService.DeleteCostUnitAsync(CostUnitId);
+        var success = await CostCenterService.DeleteCostUnitAsync(CostUnitId);
         MudDialog.Close(success ? DialogResult.Ok(true) : DialogResult.Ok(false));
     }
 
