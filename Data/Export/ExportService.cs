@@ -66,7 +66,7 @@ namespace TTCCashRegister.Data.Export
                 .Include(t => t.Accounts)
                 .ThenInclude(a => a.CostCenter)
                 .Include(t => t.Accounts)
-                .ThenInclude(a => a.BasicUnit)
+                .ThenInclude(a => a.Category)
                 .Include(t => t.Accounts)
                 .ThenInclude(a => a.UnitDetails)
                 .Include(t => t.SubTransactions)
@@ -250,8 +250,8 @@ namespace TTCCashRegister.Data.Export
                     {
                         entries.Add(new
                         {
-                            CostUnit = t.Accounts.CostCenter,
-                            t.Accounts.BasicUnit,
+                            CostCenter = t.Accounts.CostCenter,
+                            Category = t.Accounts.Category,
                             t.Accounts.UnitDetails,
                             Amount = t.AccountMovement,
                             Person = (PersonModel?)null
@@ -260,8 +260,8 @@ namespace TTCCashRegister.Data.Export
 
                     entries.AddRange(t.SubTransactions.Select(st => new
                     {
-                        CostUnit = t.Accounts.CostCenter,
-                        t.Accounts.BasicUnit,
+                        CostCenter = t.Accounts.CostCenter,
+                        Category = t.Accounts.Category,
                         t.Accounts.UnitDetails,
                         Amount = st.Sum,
                         st.Person
@@ -272,25 +272,25 @@ namespace TTCCashRegister.Data.Export
 
                 var grouped = flatEntries
                     .GroupBy(e => new { e.CostCenter.Id, e.CostCenter.CostUnitName })
-                    .Select(costUnitGroup => new
+                    .Select(costCenterGroup => new
                     {
-                        CostUnitId = costUnitGroup.Key.Id,
-                        costUnitGroup.Key.CostUnitName,
-                        SummeCostUnit = costUnitGroup.Sum(e => (decimal)e.Amount),
+                        CostCenterId = costCenterGroup.Key.Id,
+                        costCenterGroup.Key.CostUnitName,
+                        SummeCostUnit = costCenterGroup.Sum(e => (decimal)e.Amount),
 
-                        BasicUnits = costUnitGroup
+                        Catergories = costCenterGroup
                             .GroupBy(e => new
                             {
-                                BasicUnitId = e.BasicUnit?.Id,
-                                BasicUnitName = e.BasicUnit?.Name ?? string.Empty
+                                CategoryId = e.Category?.Id,
+                                CategoryName = e.Catergory?.Name ?? string.Empty
                             })
-                            .Select(basicUnitGroup => new
+                            .Select(categoryGroup => new
                             {
-                                basicUnitGroup.Key.BasicUnitId,
-                                basicUnitGroup.Key.BasicUnitName,
-                                SummeBasicUnit = basicUnitGroup.Sum(e => (decimal)e.Amount),
+                                categoryGroup.Key.CategoryId,
+                                CategoryName = categoryGroup.Key.CategoryName,
+                                SumOfCatergories = categoryGroup.Sum(e => (decimal)e.Amount),
 
-                                UnitDetails = basicUnitGroup
+                                UnitDetails = categoryGroup
                                     .GroupBy(e => new
                                     {
                                         UnitDetailId = e.UnitDetails?.Id,
@@ -321,7 +321,7 @@ namespace TTCCashRegister.Data.Export
                                     .OrderBy(ud => ud.UnitDetailName)
                                     .ToList()
                             })
-                            .OrderBy(bu => bu.BasicUnitName)
+                            .OrderBy(bu => bu.CategoryName)
                             .ToList()
                     })
                     .OrderBy(cu => cu.CostUnitName)
@@ -330,15 +330,15 @@ namespace TTCCashRegister.Data.Export
                 var csv = new StringBuilder();
                 csv.AppendLine(CsvBudgetHeader);
 
-                foreach (var costUnitGroup in grouped)
+                foreach (var costCenterGroup in grouped)
                 {
-                    csv.AppendLine($"{costUnitGroup.CostUnitName};;;{costUnitGroup.SummeCostUnit.ToString("C", CultureInfo.CurrentCulture)}");
+                    csv.AppendLine($"{costCenterGroup.CostUnitName};;;{costCenterGroup.SummeCostUnit.ToString("C", CultureInfo.CurrentCulture)}");
 
-                    foreach (var basicUnitGroup in costUnitGroup.BasicUnits)
+                    foreach (var categoryGroup in costCenterGroup.Catergories)
                     {
-                        csv.AppendLine($";{basicUnitGroup.BasicUnitName};;{basicUnitGroup.SummeBasicUnit.ToString("C", CultureInfo.CurrentCulture)}");
+                        csv.AppendLine($";{categoryGroup.CategoryName};;{categoryGroup.SumOfCatergories.ToString("C", CultureInfo.CurrentCulture)}");
 
-                        foreach (var unitDetailGroup in basicUnitGroup.UnitDetails)
+                        foreach (var unitDetailGroup in categoryGroup.UnitDetails)
                         {
                             var unitDetailName = unitDetailGroup.UnitDetailName;
                             var summePersonen = unitDetailGroup.Persons.Sum(p => p.SummePerson);

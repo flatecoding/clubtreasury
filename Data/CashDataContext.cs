@@ -2,8 +2,8 @@
 using TTCCashRegister.Data.Accounts;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.UnitDetail;
-using TTCCashRegister.Data.BasicUnit;
 using TTCCashRegister.Data.CashRegister;
+using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
 using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.SpecialItem;
@@ -18,7 +18,7 @@ namespace TTCCashRegister.Data
         public DbSet<CashRegisterModel> CashRegisters { get; set; }
         public DbSet<UnitDetailsModel> UnitDetails { get; set; }
         public DbSet<SpecialItemModel> SpecialItems { get; set; }
-        public DbSet<BasicUnitModel> BasicUnits { get; set; }
+        public DbSet<CategoryModel> Categories { get; set; }
         public DbSet<PersonModel> Persons { get; set; }
         public DbSet<SubTransactionModel> SubTransactions { get; set; }
         public DbSet<AccountsModel> Accounts { get; set; }
@@ -28,17 +28,17 @@ namespace TTCCashRegister.Data
             base.OnModelCreating(modelBuilder);
 
             // CostUnit ↔ BasicUnit (1:n)
-            modelBuilder.Entity<BasicUnitModel>()
+            modelBuilder.Entity<CategoryModel>()
                 .HasOne(b => b.CostCenter)
-                .WithMany(c => c.BasicUnitDetails) 
+                .WithMany(c => c.Categories) 
                 .HasForeignKey(b => b.CostCenterId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Accounts ↔ BasicUnit (n:1)
             modelBuilder.Entity<AccountsModel>()
-                .HasOne(a => a.BasicUnit)
+                .HasOne(a => a.Category)
                 .WithMany(b => b.Accounts)
-                .HasForeignKey(a => a.BasicUnitId)
+                .HasForeignKey(a => a.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Accounts ↔ UnitDetails (n:1)

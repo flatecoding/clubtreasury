@@ -1,16 +1,17 @@
 using FluentValidation;
-namespace TTCCashRegister.Data.BasicUnit;
 
-public class BasicUnitValidator : AbstractValidator<BasicUnitModel>
+namespace TTCCashRegister.Data.Category;
+
+public class CategoryValidator : AbstractValidator<CategoryModel>
 {
-    public BasicUnitValidator()
+    public CategoryValidator()
     {
         RuleFor(s => s.Name).NotEmpty().WithMessage("Position description is required");
     }
     
     public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>
     {
-        var result = await ValidateAsync(ValidationContext<BasicUnitModel>.CreateWithOptions((BasicUnitModel)model, x => x.IncludeProperties(propertyName)));
+        var result = await ValidateAsync(ValidationContext<CategoryModel>.CreateWithOptions((CategoryModel)model, x => x.IncludeProperties(propertyName)));
         return result.IsValid ? [] : result.Errors.Select(e => e.ErrorMessage);
     };
 }

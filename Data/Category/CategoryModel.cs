@@ -1,12 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using TTCCashRegister.Data.Accounts;
 using TTCCashRegister.Data.CostCenter;
-using TTCCashRegister.Data.UnitDetail;
 
-namespace TTCCashRegister.Data.BasicUnit
+namespace TTCCashRegister.Data.Category
 {
-    public class BasicUnitModel
+    public class CategoryModel
     {
         [Key]
         public int Id { get; set; }

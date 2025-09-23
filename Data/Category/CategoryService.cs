@@ -1,19 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace TTCCashRegister.Data.BasicUnit
+namespace TTCCashRegister.Data.Category
 {
-    public class BasicUnitService
+    public class CategoryService
     {
         private readonly CashDataContext _context;
 
-        public BasicUnitService(CashDataContext context)
+        public CategoryService(CashDataContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
         
-        public async Task<List<BasicUnitModel>> GetAllBasicUnitsAsync()
+        public async Task<List<CategoryModel>> GetAllCategoriesAsync()
         {
-            return await _context.BasicUnits
+            return await _context.Categories
                 .Include(b => b.Accounts)
                     .ThenInclude(a => a.CostCenter)
                 .Include(b => b.Accounts)
@@ -21,9 +21,9 @@ namespace TTCCashRegister.Data.BasicUnit
                 .ToListAsync();
         }
 
-        public async Task<BasicUnitModel?> GetBasicUnitByIdAsync(int id)
+        public async Task<CategoryModel?> GetCategoryByIdAsync(int id)
         {
-            return await _context.BasicUnits
+            return await _context.Categories
                 .Include(b => b.Accounts)
                     .ThenInclude(a => a.CostCenter)
                 .Include(b => b.Accounts)
@@ -31,30 +31,30 @@ namespace TTCCashRegister.Data.BasicUnit
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
 
-        public async Task<IEnumerable<BasicUnitModel>> GetBasicUnitsByCostUnitIdAsync(int costUnitId)
+        public async Task<IEnumerable<CategoryModel>> GetCategoriesByCostCenterIdAsync(int costUnitId)
         {
-            return await _context.BasicUnits
+            return await _context.Categories
                 .Where(b => b.Accounts.Any(a => a.CostCenterId == costUnitId))
                 .ToListAsync();
         }
 
-        public async Task AddBasicUnitAsync(BasicUnitModel unit)
+        public async Task AddCategoryAsync(CategoryModel unit)
         {
-            _context.BasicUnits.Add(unit);
+            _context.Categories.Add(unit);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateBasicUnitAsync(BasicUnitModel unit)
+        public async Task UpdateCategoryAsync(CategoryModel unit)
         {
-            _context.BasicUnits.Update(unit);
+            _context.Categories.Update(unit);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteBasicUnitAsync(int id)
+        public async Task<bool> DeleteCategoryAsync(int id)
         {
-            var unit = await _context.BasicUnits.FindAsync(id);
+            var unit = await _context.Categories.FindAsync(id);
             if (unit == null) return false;
-            _context.BasicUnits.Remove(unit);
+            _context.Categories.Remove(unit);
             await _context.SaveChangesAsync();
             return true;
         }

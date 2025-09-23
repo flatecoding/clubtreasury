@@ -1,14 +1,14 @@
 @page "/transactiondialog"
 @using TTCCashRegister.Data.Accounts
-@using TTCCashRegister.Data.BasicUnit
 @using TTCCashRegister.Data.CashRegister
+@using TTCCashRegister.Data.Category
 @using TTCCashRegister.Data.CostCenter
 @using TTCCashRegister.Data.SpecialItem
 @using TTCCashRegister.Data.Transaction
 @using TTCCashRegister.Data.UnitDetail
 @inject TransactionService TransactionService
 @inject CostCenterService CostCenterService
-@inject BasicUnitService BasicUnitService
+@inject CategoryService CategoryService
 @inject UnitDetailService UnitDetailService
 @inject CashRegisterService CashRegisterService
 @inject SpecialItemService SpecialItemService
@@ -58,7 +58,7 @@
                           Immediate="true" />
 
             <MudSelect T="CostCenterModel" 
-                       Label="Cost Unit" 
+                       Label="Cost center" 
                        Required="true" 
                        ToStringFunc="@_unitConverter"
                        Immediate="true"
@@ -70,8 +70,8 @@
                 }
             </MudSelect>
 
-            <MudSelect T="BasicUnitModel" 
-                       Label="Basic Unit"  
+            <MudSelect T="CategoryModel" 
+                       Label="Category"  
                        Disabled="@(_selectedCostUnit == null)" 
                        Required="true" 
                        ToStringFunc="@_basicUnitConverter"
@@ -81,7 +81,7 @@
                 {
                     @foreach (var basicUnit in _basicUnits)
                     {
-                        <MudSelectItem T="BasicUnitModel" Value="@basicUnit">@basicUnit.Name</MudSelectItem>
+                        <MudSelectItem T="CategoryModel" Value="@basicUnit">@basicUnit.Name</MudSelectItem>
                     }
                 }
             </MudSelect>
@@ -133,13 +133,13 @@
     private DateTime? TransactionDateTime { get; set; } = DateTime.Now;
 
     private IEnumerable<CostCenterModel> _costCenters = [];
-    private IEnumerable<BasicUnitModel>? _basicUnits = [];
+    private IEnumerable<CategoryModel>? _basicUnits = [];
     private IEnumerable<UnitDetailsModel>? _unitDetails = [];
     private IEnumerable<CashRegisterModel> _cashRegisters = [];
     private IEnumerable<SpecialItemModel> _specialItemList = [];
 
     private CostCenterModel? _selectedCostUnit;
-    private BasicUnitModel? _selectedBasicUnit;
+    private CategoryModel? _selectedBasicUnit;
     private UnitDetailsModel? _selectedUnitDetail;
     private CashRegisterModel? _selectedCashRegisterModel;
     private SpecialItemModel? _selectedSpecialItem;
@@ -150,14 +150,14 @@
     private readonly Func<CostCenterModel, string> _unitConverter = p => p?.CostUnitName ?? string.Empty;
     private readonly Func<UnitDetailsModel, string> _detailsConverter = d => d?.CostDetails ?? string.Empty;
     private readonly Func<SpecialItemModel, string> _specialItemConverter = s => s?.Name ?? string.Empty;
-    private readonly Func<BasicUnitModel, string> _basicUnitConverter = b => b?.Name ?? string.Empty;
+    private readonly Func<CategoryModel, string> _basicUnitConverter = b => b?.Name ?? string.Empty;
 
    protected override async Task OnInitializedAsync()
 {
     _isEditMode = TransactionId.HasValue;
 
     // Stammdaten laden
-    _costCenters = await CostCenterService.GetAllUnitsAsync();
+    _costCenters = await CostCenterService.GetAllCostCentersAsync();
     _specialItemList = await SpecialItemService.GetAllSpecialItems();
     _cashRegisters = await CashRegisterService.GetAllCashRegisters();
 
@@ -168,7 +168,7 @@
         // Vorbelegung aus gespeicherter Transaktion
         _selectedCashRegisterModel = _transactionModel.CashRegister;
         _selectedCostUnit = _transactionModel.Accounts?.CostCenter;
-        _selectedBasicUnit = _transactionModel.Accounts?.BasicUnit;
+        _selectedBasicUnit = _transactionModel.Accounts?.Category;
         _selectedUnitDetail = _transactionModel.Accounts?.UnitDetails;
         _selectedSpecialItem = _transactionModel.SpecialItem;
         TransactionDateTime = _transactionModel.Date?.ToDateTime(TimeOnly.MinValue);
@@ -176,14 +176,14 @@
         // Nachladen der abhängigen Dropdowns
         if (_selectedCostUnit is not null)
         {
-            _basicUnits = await BasicUnitService.GetBasicUnitsByCostUnitIdAsync(_selectedCostUnit.Id);
+            _basicUnits = await CategoryService.GetCategoriesByCostCenterIdAsync(_selectedCostUnit.Id);
 
             if (_selectedBasicUnit is not null && _basicUnits.All(b => b.Id != _selectedBasicUnit.Id))
                 _selectedBasicUnit = _basicUnits.FirstOrDefault();
 
             if (_selectedBasicUnit is not null)
             {
-                _unitDetails = await UnitDetailService.GetUnitDetailsByBasicUnitIdAsync(_selectedBasicUnit.Id);
+                _unitDetails = await UnitDetailService.GetUnitDetailsByCategoryIdAsync(_selectedBasicUnit.Id);
 
                 if (_selectedUnitDetail is not null && _unitDetails.All(u => u.Id != _selectedUnitDetail.Id))
                     _selectedUnitDetail = _unitDetails.FirstOrDefault();
@@ -208,7 +208,7 @@
 
         if (_selectedCostUnit is not null)
         {
-            _basicUnits = await BasicUnitService.GetBasicUnitsByCostUnitIdAsync(_selectedCostUnit.Id);
+            _basicUnits = await CategoryService.GetCategoriesByCostCenterIdAsync(_selectedCostUnit.Id);
             if (_basicUnits != null) _selectedBasicUnit = _basicUnits.FirstOrDefault();
             await OnBasicUnitChangedAsync();
         }
@@ -223,7 +223,7 @@
 
         if (_selectedBasicUnit is not null)
         {                                          
-            _unitDetails = await UnitDetailService.GetUnitDetailsByBasicUnitIdAsync(_selectedBasicUnit.Id);
+            _unitDetails = await UnitDetailService.GetUnitDetailsByCategoryIdAsync(_selectedBasicUnit.Id);
             if (_unitDetails != null) _selectedUnitDetail = _unitDetails.FirstOrDefault();
         }
 
@@ -261,8 +261,8 @@
         {
             CostCenterId = _selectedCostUnit?.Id ?? 0,
             CostCenter = _selectedCostUnit,
-            BasicUnitId = _selectedBasicUnit?.Id ?? 0,
-            BasicUnit = _selectedBasicUnit,
+            CategoryId = _selectedBasicUnit?.Id ?? 0,
+            Category = _selectedBasicUnit,
             UnitDetailsId = _selectedUnitDetail?.Id,
             UnitDetails = _selectedUnitDetail
         };

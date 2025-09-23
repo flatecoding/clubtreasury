@@ -19,14 +19,14 @@
         </ToolBarContent>
         <HeaderContent>
             <MudTh>Id<MudTableSortLabel SortBy="new Func<AccountsModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>Cost Unit<MudTableSortLabel SortBy="new Func<AccountsModel, object>(x => x.CostCenter.CostUnitName)"></MudTableSortLabel></MudTh>
-            <MudTh>Basic Unit<MudTableSortLabel SortBy="new Func<AccountsModel, object>(x => x.BasicUnit.Name)"></MudTableSortLabel></MudTh>
+            <MudTh>Cost center<MudTableSortLabel SortBy="new Func<AccountsModel, object>(x => x.CostCenter.CostUnitName)"></MudTableSortLabel></MudTh>
+            <MudTh>Category<MudTableSortLabel SortBy="new Func<AccountsModel, object>(x => x.Category.Name)"></MudTableSortLabel></MudTh>
             <MudTh>Unit Details<MudTableSortLabel SortBy="new Func<AccountsModel, object>(x => x.UnitDetails.CostDetails)"></MudTableSortLabel></MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="ID">@context.Id</MudTd>
-            <MudTd DataLabel="Cost Unit">@context.CostCenter?.CostUnitName</MudTd>
-            <MudTd DataLabel="Basic Unit">@context.BasicUnit?.Name</MudTd>
+            <MudTd DataLabel="Cost center">@context.CostCenter?.CostUnitName</MudTd>
+            <MudTd DataLabel="Category">@context.Category?.Name</MudTd>
             <MudTd DataLabel="Unit Details">@context.UnitDetails?.CostDetails</MudTd>
         </RowTemplate>
         <PagerContent>
@@ -62,7 +62,7 @@
         var term = _searchString.Trim().ToLowerInvariant();
 
         var matchesCostUnit = account.CostCenter.CostUnitName.ToLowerInvariant().Contains(term);
-        var matchesBasicUnit = account.BasicUnit.Name.ToLowerInvariant().Contains(term);
+        var matchesBasicUnit = account.Category.Name.ToLowerInvariant().Contains(term);
         var matchesUnitDetails = account.UnitDetails != null && account.UnitDetails.CostDetails.ToLowerInvariant().Contains(term);
 
         return matchesCostUnit || matchesBasicUnit || matchesUnitDetails;
