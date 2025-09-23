@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TTCCashRegister.Data;
 
@@ -11,9 +12,11 @@ using TTCCashRegister.Data;
 namespace TTCCashRegister.Migrations
 {
     [DbContext(typeof(CashDataContext))]
-    partial class CashDataContextModelSnapshot : ModelSnapshot
+    [Migration("20250923103252_RenameCostUnitToCostCenter")]
+    partial class RenameCostUnitToCostCenter
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,6 +37,9 @@ namespace TTCCashRegister.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("CostCenterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CostUnitId")
                         .HasColumnType("int");
 
                     b.Property<int?>("UnitDetailsId")
@@ -58,7 +64,7 @@ namespace TTCCashRegister.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CostCenterId")
+                    b.Property<int>("CostUnitId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -67,7 +73,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CostCenterId");
+                    b.HasIndex("CostUnitId");
 
                     b.ToTable("BasicUnits");
                 });
@@ -272,7 +278,7 @@ namespace TTCCashRegister.Migrations
                 {
                     b.HasOne("TTCCashRegister.Data.CostCenter.CostCenterModel", "CostCenter")
                         .WithMany("BasicUnitDetails")
-                        .HasForeignKey("CostCenterId")
+                        .HasForeignKey("CostUnitId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

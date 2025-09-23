@@ -1,6 +1,6 @@
 @page "/import-cost-center-dialog"
 @using MudExtensions
-@inject ImportCostUnitService ImportCostUnitService
+@inject ImportCostCenterService ImportCostCenterService
 
 <MudDialog>
     <DialogContent>
@@ -56,7 +56,7 @@
             try
             {
                 await using var stream = _file?.OpenReadStream();
-                var result = stream != null && await ImportCostUnitService.ImportCostUnitsAndPositions(stream);
+                var result = stream != null && await ImportCostCenterService.ImportCostCentersAndPositions(stream);
                 MudDialog.Close(DialogResult.Ok(result));
             }
             catch (Exception ex)

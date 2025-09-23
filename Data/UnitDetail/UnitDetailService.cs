@@ -17,7 +17,7 @@ namespace TTCCashRegister.Data.UnitDetail
                 .Include(ud => ud.Accounts)
                 .ThenInclude(a => a.BasicUnit)
                 .Include(ud => ud.Accounts)
-                .ThenInclude(a => a.CostUnit)
+                .ThenInclude(a => a.CostCenter)
                 .OrderByDescending(c => c.Id)
                 .ToListAsync();
         }
@@ -28,7 +28,7 @@ namespace TTCCashRegister.Data.UnitDetail
                 .Include(ud => ud.Accounts)
                 .ThenInclude(a => a.BasicUnit)
                 .Include(ud => ud.Accounts)
-                .ThenInclude(a => a.CostUnit)
+                .ThenInclude(a => a.CostCenter)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using TTCCashRegister.Data.BasicUnit;
-using TTCCashRegister.Data.CostUnit;
+using TTCCashRegister.Data.CostCenter;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.UnitDetail;
 
@@ -12,8 +12,8 @@ public class AccountsModel
     public int Id { get; set; }
 
     [Required]
-    public int CostUnitId { get; set; }
-    public CostUnitModel CostUnit { get; set; } = null!;
+    public int CostCenterId { get; set; }
+    public CostCenterModel CostCenter { get; set; } = null!;
 
     [Required]
     public int BasicUnitId { get; set; }

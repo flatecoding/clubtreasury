@@ -3,10 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using TTCCashRegister.Data.Accounts;
 using TTCCashRegister.Data.BasicUnit;
 
-
-namespace TTCCashRegister.Data.CostUnit
+namespace TTCCashRegister.Data.CostCenter
 {
-    public class CostUnitModel
+    public class CostCenterModel
     {
         [Key]
         public int Id { get; set; }

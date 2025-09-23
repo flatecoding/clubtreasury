@@ -3,9 +3,9 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using ExcelDataReader;
 using TTCCashRegister.Data.BasicUnit;
-using TTCCashRegister.Data.CostUnit;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.Accounts;
+using TTCCashRegister.Data.CostCenter;
 
 namespace TTCCashRegister.Data.Import
 {
@@ -45,7 +45,7 @@ namespace TTCCashRegister.Data.Import
                     return false;
                 }
 
-                var costUnits = await context.CostUnits.Include(cu => cu.BasicUnitDetails).ToListAsync();
+                var costCenters = await context.CostCenters.Include(cu => cu.BasicUnitDetails).ToListAsync();
                 var basicUnits = await context.BasicUnits.ToListAsync();
                 var cashRegister = await context.CashRegisters.FirstOrDefaultAsync();
 
@@ -108,18 +108,18 @@ namespace TTCCashRegister.Data.Import
                         var costUnitName = parts[0].Trim();
                         var basicUnitName = parts.Length >= 2 ? parts[1].Trim() : "Undefined";
 
-                        var costUnit = costUnits.FirstOrDefault(cu => cu.CostUnitName == costUnitName);
+                        var costUnit = costCenters.FirstOrDefault(cu => cu.CostUnitName == costUnitName);
                         if (costUnit == null)
                         {
-                            costUnit = new CostUnitModel { CostUnitName = costUnitName };
-                            costUnits.Add(costUnit);
-                            context.CostUnits.Add(costUnit);
+                            costUnit = new CostCenterModel { CostUnitName = costUnitName };
+                            costCenters.Add(costUnit);
+                            context.CostCenters.Add(costUnit);
                         }
 
-                        var basicUnit = basicUnits.FirstOrDefault(bu => bu.Name == basicUnitName && bu.CostUnitId == costUnit.Id);
+                        var basicUnit = basicUnits.FirstOrDefault(bu => bu.Name == basicUnitName && bu.CostCenterId == costUnit.Id);
                         if (basicUnit == null)
                         {
-                            basicUnit = new BasicUnitModel { Name = basicUnitName, CostUnit = costUnit };
+                            basicUnit = new BasicUnitModel { Name = basicUnitName, CostCenter = costUnit };
                             costUnit.BasicUnitDetails.Add(basicUnit);
                             basicUnits.Add(basicUnit);
                             context.BasicUnits.Add(basicUnit);
@@ -127,8 +127,8 @@ namespace TTCCashRegister.Data.Import
                         
                         var accounts = new AccountsModel
                         {
-                            CostUnitId = costUnit.Id,
-                            CostUnit = costUnit,
+                            CostCenterId = costUnit.Id,
+                            CostCenter = costUnit,
                             BasicUnitId = basicUnit.Id,
                             BasicUnit = basicUnit
                         };
