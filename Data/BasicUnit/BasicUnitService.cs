@@ -15,7 +15,7 @@ namespace TTCCashRegister.Data.BasicUnit
         {
             return await _context.BasicUnits
                 .Include(b => b.Accounts)
-                    .ThenInclude(a => a.CostUnit)
+                    .ThenInclude(a => a.CostCenter)
                 .Include(b => b.Accounts)
                     .ThenInclude(a => a.UnitDetails)
                 .ToListAsync();
@@ -25,7 +25,7 @@ namespace TTCCashRegister.Data.BasicUnit
         {
             return await _context.BasicUnits
                 .Include(b => b.Accounts)
-                    .ThenInclude(a => a.CostUnit)
+                    .ThenInclude(a => a.CostCenter)
                 .Include(b => b.Accounts)
                     .ThenInclude(a => a.UnitDetails)
                 .FirstOrDefaultAsync(b => b.Id == id);
@@ -34,7 +34,7 @@ namespace TTCCashRegister.Data.BasicUnit
         public async Task<IEnumerable<BasicUnitModel>> GetBasicUnitsByCostUnitIdAsync(int costUnitId)
         {
             return await _context.BasicUnits
-                .Where(b => b.Accounts.Any(a => a.CostUnitId == costUnitId))
+                .Where(b => b.Accounts.Any(a => a.CostCenterId == costUnitId))
                 .ToListAsync();
         }
 

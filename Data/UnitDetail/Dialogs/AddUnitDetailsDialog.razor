@@ -65,7 +65,7 @@
         foreach (var account in _selectedBasicUnits.Select(basicUnit => new AccountsModel
                  {
                      BasicUnitId = basicUnit.Id,
-                     CostUnitId = basicUnit.CostUnitId,
+                     CostCenterId = basicUnit.CostCenterId,
                      UnitDetailsId = createdDetail?.Id
                  }))
         {

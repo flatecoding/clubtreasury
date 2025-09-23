@@ -1,7 +1,7 @@
-﻿@page "/costunits"
-@using TTCCashRegister.Data.CostUnit.Dialogs
+﻿@page "/costCenters"
+@using TTCCashRegister.Data.CostCenter.Dialogs
 @using TTCCashRegister.Data.Source
-@inject CostUnitService CostUnitService
+@inject CostCenterService CostCenterService
 @inject IDialogService DialogService
 @inject NotificationService NotificationService
 
@@ -9,7 +9,7 @@
 <MudPaper Class="mt-4" Style="width:55%;">
     <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
               @bind-SelectedItem="_selectedItem"
-              Filter="new Func<CostUnitModel,bool>(FilterFunc)"
+              Filter="new Func<CostCenterModel,bool>(FilterFunc)"
               SortLabel="Sort By">
         <ToolBarContent>
             <MudButton Variant="Variant.Filled"
@@ -34,8 +34,8 @@
             <col style="width: 110px;" />
         </ColGroup>
         <HeaderContent>
-            <MudTh>Id<MudTableSortLabel SortBy="new Func<CostUnitModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>Unit<MudTableSortLabel SortBy="new Func<CostUnitModel, object>(x => x.CostUnitName ?? string.Empty)"></MudTableSortLabel></MudTh>
+            <MudTh>Id<MudTableSortLabel SortBy="new Func<CostCenterModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
+            <MudTh>Unit<MudTableSortLabel SortBy="new Func<CostCenterModel, object>(x => x.CostUnitName ?? string.Empty)"></MudTableSortLabel></MudTh>
             <MudTh>Positions</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
@@ -57,8 +57,10 @@
 
             </MudTd>
             <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" OnClick="() => ShowEditCostUnitDialog(context.Id)"></MudIconButton>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" OnClick="() => ShowDeleteCostUnitDialog(context.Id)">Delete</MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" 
+                               OnClick="@(() => ShowEditCostUnitDialog(context.Id))"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" 
+                               OnClick="@(() => ShowDeleteCostUnitDialog(context.Id))">Delete</MudIconButton>
             </MudTd>
         </RowTemplate>
         <PagerContent>
@@ -68,23 +70,23 @@
 </MudPaper>
 
 @code {
-    private IEnumerable<CostUnitModel>? _allEntries;
+    private IEnumerable<CostCenterModel>? _allEntries;
     private const bool Dense = true;
     private const bool Hover = true;
     private const bool Striped = true;
     private const bool Bordered = false;
     private string _searchString1 = string.Empty;
-    private CostUnitModel _selectedItem = new();
+    private CostCenterModel _selectedItem = new();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _allEntries = await CostUnitService.GetAllUnitsAsync();
+        _allEntries = await CostCenterService.GetAllUnitsAsync();
     }
 
-    private bool FilterFunc(CostUnitModel element) => FilterFunc1(element, _searchString1);
+    private bool FilterFunc(CostCenterModel element) => FilterFunc1(element, _searchString1);
 
-    private bool FilterFunc1(CostUnitModel? element, string searchString)
+    private bool FilterFunc1(CostCenterModel? element, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
@@ -97,14 +99,14 @@
 
     private async Task ShowAddCostUnitDialog()
     {
-        var dialog = await DialogService.ShowAsync<AddCostUnitDialog>("Add cost unit", new DialogParameters());
+        var dialog = await DialogService.ShowAsync<AddCostCenterDialog>("Add cost center", new DialogParameters());
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
 
     private async Task ShowEditCostUnitDialog(int costUnitId)
     {
-        var dialog = await DialogService.ShowAsync<EditCostUnitDialog>("Edit Cost Unit", 
+        var dialog = await DialogService.ShowAsync<EditCostCenterDialog>("Edit Cost center", 
             new DialogParameters { ["CostUnitId"] = costUnitId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
@@ -112,7 +114,7 @@
 
     private async Task ShowDeleteCostUnitDialog(int costUnitId)
     {
-        var dialog = await DialogService.ShowAsync<DeleteCostUnitDialog>("Delete Cost Unit", 
+        var dialog = await DialogService.ShowAsync<DeleteCostCenterDialog>("Delete Cost center", 
             new DialogParameters { ["CostUnitId"] = costUnitId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
@@ -120,7 +122,7 @@
     
     private async Task UpdateView()
     {
-        _allEntries = await CostUnitService.GetAllUnitsAsync();
+        _allEntries = await CostCenterService.GetAllUnitsAsync();
         await InvokeAsync(StateHasChanged);
     }
 

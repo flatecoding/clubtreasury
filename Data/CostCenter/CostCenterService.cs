@@ -1,19 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace TTCCashRegister.Data.CostUnit
+namespace TTCCashRegister.Data.CostCenter
 {
-    public class CostUnitService
+    public class CostCenterService
     {
         private readonly CashDataContext _context;
 
-        public CostUnitService(CashDataContext context)
+        public CostCenterService(CashDataContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
         
-        public async Task<List<CostUnitModel>> GetAllUnitsAsync()
+        public async Task<List<CostCenterModel>> GetAllUnitsAsync()
         {
-            return await _context.CostUnits
+            return await _context.CostCenters
                 .Include(c => c.Accounts)
                     .ThenInclude(a => a.BasicUnit)
                 .Include(c => c.Accounts)
@@ -22,9 +22,9 @@ namespace TTCCashRegister.Data.CostUnit
                 .ToListAsync();
         }
         
-        public async Task<CostUnitModel?> GetCostUnitByIdAsync(int id)
+        public async Task<CostCenterModel?> GetCostUnitByIdAsync(int id)
         {
-            return await _context.CostUnits
+            return await _context.CostCenters
                 .Include(c => c.Accounts)
                     .ThenInclude(a => a.BasicUnit)
                 .Include(c => c.Accounts)
@@ -32,11 +32,11 @@ namespace TTCCashRegister.Data.CostUnit
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<bool> AddCostUnitAsync(CostUnitModel costUnit)
+        public async Task<bool> AddCostUnitAsync(CostCenterModel costCenter)
         {
             try
             {
-                await _context.CostUnits.AddAsync(costUnit);
+                await _context.CostCenters.AddAsync(costCenter);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -47,11 +47,11 @@ namespace TTCCashRegister.Data.CostUnit
             }
         }
 
-        public async Task<bool> UpdateCostUnitAsync(CostUnitModel costUnit)
+        public async Task<bool> UpdateCostUnitAsync(CostCenterModel costCenter)
         {
             try
             {
-                _context.CostUnits.Update(costUnit);
+                _context.CostCenters.Update(costCenter);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -66,9 +66,9 @@ namespace TTCCashRegister.Data.CostUnit
         {
             try
             {
-                var costUnit = await _context.CostUnits.FindAsync(id);
+                var costUnit = await _context.CostCenters.FindAsync(id);
                 if (costUnit == null) return false;
-                _context.CostUnits.Remove(costUnit);
+                _context.CostCenters.Remove(costUnit);
                 await _context.SaveChangesAsync();
                 return true;
             }

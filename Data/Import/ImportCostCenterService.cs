@@ -1,19 +1,12 @@
 using Microsoft.EntityFrameworkCore;
-using TTCCashRegister.Data.CostUnit;
 using TTCCashRegister.Data.BasicUnit;
+using TTCCashRegister.Data.CostCenter;
 
 namespace TTCCashRegister.Data.Import
 {
-    public class ImportCostUnitService
+    public class ImportCostCenterService(CashDataContext context)
     {
-        private readonly CashDataContext _context;
-
-        public ImportCostUnitService(CashDataContext context)
-        {
-            _context = context;
-        }
-        
-        public async Task<bool> ImportCostUnitsAndPositions(Stream fileStream)
+        public async Task<bool> ImportCostCentersAndPositions(Stream fileStream)
         {
             if (fileStream == null)
             {
@@ -34,11 +27,11 @@ namespace TTCCashRegister.Data.Import
                     }
                 }
 
-                var costUnits = await _context.CostUnits
+                var costCenters = await context.CostCenters
                     .Include(cu => cu.BasicUnitDetails)
                     .ToListAsync();
 
-                var basicUnits = await _context.BasicUnits
+                var basicUnits = await context.BasicUnits
                     .ToListAsync();
 
                 foreach (var line in lines)
@@ -63,27 +56,27 @@ namespace TTCCashRegister.Data.Import
                         default: continue;
                     }
 
-                    var costUnit = costUnits.FirstOrDefault(cu => cu.CostUnitName == costUnitName);
+                    var costCenter = costCenters.FirstOrDefault(cu => cu.CostUnitName == costUnitName);
 
-                    if (costUnit == null)
+                    if (costCenter == null)
                     {
-                        costUnit = new CostUnitModel { CostUnitName = costUnitName };
-                        costUnits.Add(costUnit);
-                        _context.CostUnits.Add(costUnit);
+                        costCenter = new CostCenterModel { CostUnitName = costUnitName };
+                        costCenters.Add(costCenter);
+                        context.CostCenters.Add(costCenter);
                     }
 
-                    var basicUnit = basicUnits.FirstOrDefault(bu => bu.Name == positionName && bu.CostUnitId == costUnit.Id);
+                    var basicUnit = basicUnits.FirstOrDefault(bu => bu.Name == positionName && bu.CostCenterId == costCenter.Id);
 
                     if (basicUnit == null)
                     {
-                        basicUnit = new BasicUnitModel { Name = positionName, CostUnit = costUnit };
-                        costUnit.BasicUnitDetails.Add(basicUnit);
+                        basicUnit = new BasicUnitModel { Name = positionName, CostCenter = costCenter };
+                        costCenter.BasicUnitDetails.Add(basicUnit);
                         basicUnits.Add(basicUnit);
-                        _context.BasicUnits.Add(basicUnit);
+                        context.BasicUnits.Add(basicUnit);
                     }
                 }
 
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
