@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using TTCCashRegister.Data.Accounts;
+using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.Category;
 
 namespace TTCCashRegister.Data.CostCenter
@@ -13,7 +13,7 @@ namespace TTCCashRegister.Data.CostCenter
         [StringLength(100, ErrorMessage = "The cost center name cannot exceed 100 characters.")]
         public string CostUnitName { get; set; } = string.Empty;
         public ICollection<CategoryModel> Categories { get; set; } = new List<CategoryModel>();
-        public ICollection<AccountsModel> Accounts { get; set; } = new List<AccountsModel>();
+        public ICollection<AllocationModel> Accounts { get; set; } = new List<AllocationModel>();
 
         [NotMapped]
         public int CategoriesCount => Categories.Count;

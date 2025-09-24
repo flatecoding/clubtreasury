@@ -22,7 +22,7 @@ namespace TTCCashRegister.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("TTCCashRegister.Data.Accounts.AccountsModel", b =>
+            modelBuilder.Entity("TTCCashRegister.Data.Allocation.AllocationModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -47,7 +47,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasIndex("ItemDetailId");
 
-                    b.ToTable("Accounts");
+                    b.ToTable("Allocations");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.CashRegister.CashRegisterModel", b =>
@@ -206,7 +206,7 @@ namespace TTCCashRegister.Migrations
                     b.Property<decimal>("AccountMovement")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("AccountsId")
+                    b.Property<int>("AllocationId")
                         .HasColumnType("int");
 
                     b.Property<int>("CashRegisterId")
@@ -231,7 +231,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountsId");
+                    b.HasIndex("AllocationId");
 
                     b.HasIndex("CashRegisterId");
 
@@ -243,7 +243,7 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("Transactions");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Accounts.AccountsModel", b =>
+            modelBuilder.Entity("TTCCashRegister.Data.Allocation.AllocationModel", b =>
                 {
                     b.HasOne("TTCCashRegister.Data.Category.CategoryModel", "Category")
                         .WithMany("Accounts")
@@ -300,9 +300,9 @@ namespace TTCCashRegister.Migrations
 
             modelBuilder.Entity("TTCCashRegister.Data.Transaction.TransactionModel", b =>
                 {
-                    b.HasOne("TTCCashRegister.Data.Accounts.AccountsModel", "Accounts")
+                    b.HasOne("TTCCashRegister.Data.Allocation.AllocationModel", "Allocation")
                         .WithMany("Transactions")
-                        .HasForeignKey("AccountsId")
+                        .HasForeignKey("AllocationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -316,14 +316,14 @@ namespace TTCCashRegister.Migrations
                         .WithMany("Transactions")
                         .HasForeignKey("SpecialItemId");
 
-                    b.Navigation("Accounts");
+                    b.Navigation("Allocation");
 
                     b.Navigation("CashRegister");
 
                     b.Navigation("SpecialItem");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Accounts.AccountsModel", b =>
+            modelBuilder.Entity("TTCCashRegister.Data.Allocation.AllocationModel", b =>
                 {
                     b.Navigation("Transactions");
                 });

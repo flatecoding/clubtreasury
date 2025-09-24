@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TTCCashRegister.Data.Accounts;
+using TTCCashRegister.Data.Allocation;
 
 namespace TTCCashRegister.Data.ItemDetail
 {
@@ -10,6 +10,6 @@ namespace TTCCashRegister.Data.ItemDetail
         [Required]
         [MaxLength(100)]
         public string CostDetails { get; set; } = string.Empty;
-        public ICollection<AccountsModel> Accounts { get; set; } = new List<AccountsModel>();
+        public ICollection<AllocationModel> Accounts { get; set; } = new List<AllocationModel>();
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
-using TTCCashRegister.Data.Accounts;
+using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Export;
 
@@ -11,16 +11,16 @@ public class TransactionService(
     CashDataContext context,
     CashRegisterService cashRegisterService,
     ExportService exportService,
-    AccountsService accountsService)
+    AllocationService allocationService)
 {
     public async Task<List<TransactionModel>?> GetAllTransactions()
     {
         return await context.Transactions
-            .Include(t => t.Accounts)
+            .Include(t => t.Allocation)
                 .ThenInclude(a => a.CostCenter)
-            .Include(t => t.Accounts)
+            .Include(t => t.Allocation)
                 .ThenInclude(a => a.Category)
-            .Include(t => t.Accounts)
+            .Include(t => t.Allocation)
                 .ThenInclude(a => a.ItemDetail)
             .Include(t => t.SubTransactions)
                 .ThenInclude(st => st.Person)
@@ -32,11 +32,11 @@ public class TransactionService(
     public async Task<IEnumerable<TransactionModel>> GetTransactionsByDateRange(DateTime start, DateTime end)
     {
         return await context.Transactions
-            .Include(t => t.Accounts)
+            .Include(t => t.Allocation)
                 .ThenInclude(a => a.CostCenter)
-            .Include(t => t.Accounts)
+            .Include(t => t.Allocation)
                 .ThenInclude(a => a.Category)
-            .Include(t => t.Accounts)
+            .Include(t => t.Allocation)
                 .ThenInclude(a => a.ItemDetail)
             .Where(t => t.Date.HasValue &&
                         t.Date.Value >= DateOnly.FromDateTime(start) &&
@@ -47,11 +47,11 @@ public class TransactionService(
     public async Task<TransactionModel?> GetTransactionByIdAsync(int id)
     {
         return await context.Transactions
-            .Include(t => t.Accounts)
+            .Include(t => t.Allocation)
             .ThenInclude(a => a.CostCenter)
-            .Include(t => t.Accounts)
+            .Include(t => t.Allocation)
             .ThenInclude(a => a.Category)
-            .Include(t => t.Accounts)
+            .Include(t => t.Allocation)
             .ThenInclude(a => a.ItemDetail)
             .Include(t => t.SubTransactions)
             .ThenInclude(st => st.Person)
@@ -69,9 +69,9 @@ public class TransactionService(
                 throw new Exception($"No cash register with '{entry.CashRegisterId}' found.");
 
             // ✅ Account prüfen oder neu anlegen
-            var account = await accountsService.EnsureAccountExistsAsync(entry.Accounts);
-            entry.AccountsId = account.Id;
-            entry.Accounts = null;
+            var account = await allocationService.EnsureAllocationExistsAsync(entry.Allocation);
+            entry.AllocationId = account.Id;
+            entry.Allocation = null;
 
             await context.Transactions.AddAsync(entry);
             await context.SaveChangesAsync();
@@ -97,15 +97,15 @@ public class TransactionService(
                 throw new Exception("Transaction not found.");
 
             // Allocation prüfen oder anlegen
-            var account = await context.Accounts.FirstOrDefaultAsync(a =>
-                a.CostCenterId == entry.Accounts.CostCenterId &&
-                a.CategoryId == entry.Accounts.CategoryId &&
-                a.ItemDetailId == entry.Accounts.ItemDetailId);
+            var account = await context.Allocations.FirstOrDefaultAsync(a =>
+                a.CostCenterId == entry.Allocation.CostCenterId &&
+                a.CategoryId == entry.Allocation.CategoryId &&
+                a.ItemDetailId == entry.Allocation.ItemDetailId);
 
             if (account == null)
             {
-                account = entry.Accounts;
-                context.Accounts.Add(account);
+                account = entry.Allocation;
+                context.Allocations.Add(account);
                 await context.SaveChangesAsync();
             }
 
@@ -115,8 +115,8 @@ public class TransactionService(
             existingTransaction.Date = entry.Date;
             existingTransaction.Documentnumber = entry.Documentnumber;
             existingTransaction.Sum = entry.Sum;
-            existingTransaction.AccountsId = account.Id;
-            existingTransaction.Accounts = null; // nur Id speichern
+            existingTransaction.AllocationId = account.Id;
+            existingTransaction.Allocation = null; // nur Id speichern
             existingTransaction.SpecialItemId = entry.SpecialItemId;
             existingTransaction.CashRegisterId = entry.CashRegisterId;
 
@@ -181,11 +181,11 @@ public class TransactionService(
         int? personId)
     {
         var query = context.Transactions
-            .Include(t => t.Accounts)
+            .Include(t => t.Allocation)
                 .ThenInclude(a => a.CostCenter)
-            .Include(t => t.Accounts)
+            .Include(t => t.Allocation)
                 .ThenInclude(a => a.Category)
-            .Include(t => t.Accounts)
+            .Include(t => t.Allocation)
                 .ThenInclude(a => a.ItemDetail)
             .Include(t => t.SubTransactions)
                 .ThenInclude(st => st.Person)
@@ -208,9 +208,9 @@ public class TransactionService(
             query = query.Where(x =>
                 (x.Description != null && x.Description.ToLower().Contains(term)) ||
                 x.Documentnumber.ToString().Contains(term) ||
-                (x.Accounts.CostCenter.CostUnitName.ToLower().Contains(term)) ||
-                (x.Accounts.Category.Name.ToLower().Contains(term)) ||
-                (x.Accounts.ItemDetail != null && x.Accounts.ItemDetail.CostDetails.ToLower().Contains(term)) ||
+                (x.Allocation.CostCenter.CostUnitName.ToLower().Contains(term)) ||
+                (x.Allocation.Category.Name.ToLower().Contains(term)) ||
+                (x.Allocation.ItemDetail != null && x.Allocation.ItemDetail.CostDetails.ToLower().Contains(term)) ||
                 x.SubTransactions.Any(st => st.Person != null && st.Person.Name.ToLower().Contains(term))
             );
         }

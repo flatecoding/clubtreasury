@@ -4,9 +4,9 @@ using TTCCashRegister.Data.CostCenter;
 using TTCCashRegister.Data.ItemDetail;
 using TTCCashRegister.Data.Transaction;
 
-namespace TTCCashRegister.Data.Accounts;
+namespace TTCCashRegister.Data.Allocation;
 
-public class AccountsModel
+public class AllocationModel
 {
     [Key]
     public int Id { get; set; }

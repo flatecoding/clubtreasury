@@ -63,11 +63,11 @@ namespace TTCCashRegister.Data.Export
         private async Task<List<TransactionModel>> GetBudgetByDateRange(DateTime begin, DateTime end)
         {
             return await _context.Transactions
-                .Include(t => t.Accounts)
+                .Include(t => t.Allocation)
                 .ThenInclude(a => a.CostCenter)
-                .Include(t => t.Accounts)
+                .Include(t => t.Allocation)
                 .ThenInclude(a => a.Category)
-                .Include(t => t.Accounts)
+                .Include(t => t.Allocation)
                 .ThenInclude(a => a.ItemDetail)
                 .Include(t => t.SubTransactions)
                 .ThenInclude(st => st.Person)
@@ -250,9 +250,9 @@ namespace TTCCashRegister.Data.Export
                     {
                         entries.Add(new
                         {
-                            CostCenter = t.Accounts.CostCenter,
-                            Category = t.Accounts.Category,
-                            ItemDetail = t.Accounts.ItemDetail,
+                            CostCenter = t.Allocation.CostCenter,
+                            Category = t.Allocation.Category,
+                            ItemDetail = t.Allocation.ItemDetail,
                             Amount = t.AccountMovement,
                             Person = (PersonModel?)null
                         });
@@ -260,9 +260,9 @@ namespace TTCCashRegister.Data.Export
 
                     entries.AddRange(t.SubTransactions.Select(st => new
                     {
-                        CostCenter = t.Accounts.CostCenter,
-                        Category = t.Accounts.Category,
-                        ItemDetail = t.Accounts.ItemDetail,
+                        CostCenter = t.Allocation.CostCenter,
+                        Category = t.Allocation.Category,
+                        ItemDetail = t.Allocation.ItemDetail,
                         Amount = st.Sum,
                         st.Person
                     }));

@@ -1,9 +1,9 @@
 ﻿@page "/additemdetail"
-@using TTCCashRegister.Data.Accounts
+@using TTCCashRegister.Data.Allocation
 @using TTCCashRegister.Data.Category
 @inject ItemDetailService ItemDetailService
 @inject CategoryService CategoryService
-@inject AccountsService AccountsService
+@inject AllocationService AllocationService
 
 <MudDialog>
     <DialogContent>
@@ -61,14 +61,14 @@
         var createdDetail = await ItemDetailService.AddItemDetailAsync(_newItemDetailModel);
 
         // 2. N:M-Beziehung über Accounts erstellen
-        foreach (var account in _selectedCategories.Select(category => new AccountsModel
+        foreach (var account in _selectedCategories.Select(category => new AllocationModel
                  {
                      CategoryId = category.Id,
                      CostCenterId = category.CostCenterId,
                      ItemDetailId = createdDetail?.Id
                  }))
         {
-            await AccountsService.EnsureAccountExistsAsync(account);
+            await AllocationService.EnsureAllocationExistsAsync(account);
         }
 
         MudDialog.Close(DialogResult.Ok(true));

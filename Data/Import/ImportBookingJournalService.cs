@@ -2,8 +2,8 @@ using System.Data;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using ExcelDataReader;
+using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.Accounts;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
 
@@ -125,7 +125,7 @@ namespace TTCCashRegister.Data.Import
                             context.Categories.Add(category);
                         }
                         
-                        var accounts = new AccountsModel
+                        var accounts = new AllocationModel
                         {
                             CostCenterId = costCenter.Id,
                             CostCenter = costCenter,
@@ -141,7 +141,7 @@ namespace TTCCashRegister.Data.Import
                             Description = description,
                             Sum = sumValue,
                             AccountMovement = accountMovement,
-                            Accounts = accounts
+                            Allocation = accounts
                         };
 
                         if (!await transactionService.AddTransaction(transaction))

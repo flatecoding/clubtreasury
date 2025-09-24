@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TTCCashRegister.Data.Accounts;
+using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Category;
@@ -21,7 +21,7 @@ namespace TTCCashRegister.Data
         public DbSet<CategoryModel> Categories { get; set; }
         public DbSet<PersonModel> Persons { get; set; }
         public DbSet<SubTransactionModel> SubTransactions { get; set; }
-        public DbSet<AccountsModel> Accounts { get; set; }
+        public DbSet<AllocationModel> Allocations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,14 +35,14 @@ namespace TTCCashRegister.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Accounts ↔ BasicUnit (n:1)
-            modelBuilder.Entity<AccountsModel>()
+            modelBuilder.Entity<AllocationModel>()
                 .HasOne(a => a.Category)
                 .WithMany(b => b.Accounts)
                 .HasForeignKey(a => a.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Accounts ↔ UnitDetails (n:1)
-            modelBuilder.Entity<AccountsModel>()
+            modelBuilder.Entity<AllocationModel>()
                 .HasOne(a => a.ItemDetail)
                 .WithMany(ud => ud.Accounts)
                 .HasForeignKey(a => a.ItemDetailId)
