@@ -3,13 +3,13 @@
 @using TTCCashRegister.Data.CashRegister
 @using TTCCashRegister.Data.Category
 @using TTCCashRegister.Data.CostCenter
+@using TTCCashRegister.Data.ItemDetail
 @using TTCCashRegister.Data.SpecialItem
 @using TTCCashRegister.Data.Transaction
-@using TTCCashRegister.Data.UnitDetail
 @inject TransactionService TransactionService
 @inject CostCenterService CostCenterService
 @inject CategoryService CategoryService
-@inject UnitDetailService UnitDetailService
+@inject ItemDetailService ItemDetailService
 @inject CashRegisterService CashRegisterService
 @inject SpecialItemService SpecialItemService
 
@@ -77,26 +77,26 @@
                        ToStringFunc="@_basicUnitConverter"
                        @bind-Value="_selectedBasicUnit"
                        @bind-Value:after="OnBasicUnitChangedAsync">
-                @if (_basicUnits is not null)
+                @if (_categories is not null)
                 {
-                    @foreach (var basicUnit in _basicUnits)
+                    @foreach (var basicUnit in _categories)
                     {
                         <MudSelectItem T="CategoryModel" Value="@basicUnit">@basicUnit.Name</MudSelectItem>
                     }
                 }
             </MudSelect>
 
-            <MudSelect T="UnitDetailsModel" 
-                       Label="Unit Details"
+            <MudSelect T="ItemDetailModel" 
+                       Label="Item detail"
                        Disabled="@(_selectedBasicUnit == null)" 
                        ToStringFunc="@_detailsConverter"
                        @bind-Value="_selectedUnitDetail">
-                <MudSelectItem T="UnitDetailsModel" Value="@null">None</MudSelectItem>
+                <MudSelectItem T="ItemDetailModel" Value="@null">None</MudSelectItem>
                 @if (_unitDetails is not null)
                 {
                     foreach (var unitDetail in _unitDetails)
                     {
-                        <MudSelectItem T="UnitDetailsModel" Value="@unitDetail">@unitDetail.CostDetails</MudSelectItem>
+                        <MudSelectItem T="ItemDetailModel" Value="@unitDetail">@unitDetail.CostDetails</MudSelectItem>
                     }
                 }
             </MudSelect>
@@ -133,14 +133,14 @@
     private DateTime? TransactionDateTime { get; set; } = DateTime.Now;
 
     private IEnumerable<CostCenterModel> _costCenters = [];
-    private IEnumerable<CategoryModel>? _basicUnits = [];
-    private IEnumerable<UnitDetailsModel>? _unitDetails = [];
+    private IEnumerable<CategoryModel>? _categories = [];
+    private IEnumerable<ItemDetailModel>? _unitDetails = [];
     private IEnumerable<CashRegisterModel> _cashRegisters = [];
     private IEnumerable<SpecialItemModel> _specialItemList = [];
 
     private CostCenterModel? _selectedCostUnit;
     private CategoryModel? _selectedBasicUnit;
-    private UnitDetailsModel? _selectedUnitDetail;
+    private ItemDetailModel? _selectedUnitDetail;
     private CashRegisterModel? _selectedCashRegisterModel;
     private SpecialItemModel? _selectedSpecialItem;
 
@@ -148,7 +148,7 @@
     
     private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
     private readonly Func<CostCenterModel, string> _unitConverter = p => p?.CostUnitName ?? string.Empty;
-    private readonly Func<UnitDetailsModel, string> _detailsConverter = d => d?.CostDetails ?? string.Empty;
+    private readonly Func<ItemDetailModel, string> _detailsConverter = d => d?.CostDetails ?? string.Empty;
     private readonly Func<SpecialItemModel, string> _specialItemConverter = s => s?.Name ?? string.Empty;
     private readonly Func<CategoryModel, string> _basicUnitConverter = b => b?.Name ?? string.Empty;
 
@@ -169,21 +169,22 @@
         _selectedCashRegisterModel = _transactionModel.CashRegister;
         _selectedCostUnit = _transactionModel.Accounts?.CostCenter;
         _selectedBasicUnit = _transactionModel.Accounts?.Category;
-        _selectedUnitDetail = _transactionModel.Accounts?.UnitDetails;
+        _selectedUnitDetail = _transactionModel.Accounts?.ItemDetail;
         _selectedSpecialItem = _transactionModel.SpecialItem;
         TransactionDateTime = _transactionModel.Date?.ToDateTime(TimeOnly.MinValue);
 
         // Nachladen der abhängigen Dropdowns
         if (_selectedCostUnit is not null)
         {
-            _basicUnits = await CategoryService.GetCategoriesByCostCenterIdAsync(_selectedCostUnit.Id);
+            _categories = await CategoryService.GetCategoriesByCostCenterIdAsync(_selectedCostUnit.Id);
 
-            if (_selectedBasicUnit is not null && _basicUnits.All(b => b.Id != _selectedBasicUnit.Id))
-                _selectedBasicUnit = _basicUnits.FirstOrDefault();
+            var categoryModels = _categories.ToList();
+            if (_selectedBasicUnit is not null && categoryModels.All(b => b.Id != _selectedBasicUnit.Id))
+                _selectedBasicUnit = categoryModels.FirstOrDefault();
 
             if (_selectedBasicUnit is not null)
             {
-                _unitDetails = await UnitDetailService.GetUnitDetailsByCategoryIdAsync(_selectedBasicUnit.Id);
+                _unitDetails = await ItemDetailService.GetItemDetailByCategoryIdAsync(_selectedBasicUnit.Id);
 
                 if (_selectedUnitDetail is not null && _unitDetails.All(u => u.Id != _selectedUnitDetail.Id))
                     _selectedUnitDetail = _unitDetails.FirstOrDefault();
@@ -201,15 +202,15 @@
 
     private async Task OnCostUnitChangedAsync()
     {
-        _basicUnits = [];
+        _categories = [];
         _selectedBasicUnit = null;
         _unitDetails = [];
         _selectedUnitDetail = null;
 
         if (_selectedCostUnit is not null)
         {
-            _basicUnits = await CategoryService.GetCategoriesByCostCenterIdAsync(_selectedCostUnit.Id);
-            if (_basicUnits != null) _selectedBasicUnit = _basicUnits.FirstOrDefault();
+            _categories = await CategoryService.GetCategoriesByCostCenterIdAsync(_selectedCostUnit.Id);
+            if (_categories != null) _selectedBasicUnit = _categories.FirstOrDefault();
             await OnBasicUnitChangedAsync();
         }
 
@@ -223,7 +224,7 @@
 
         if (_selectedBasicUnit is not null)
         {                                          
-            _unitDetails = await UnitDetailService.GetUnitDetailsByCategoryIdAsync(_selectedBasicUnit.Id);
+            _unitDetails = await ItemDetailService.GetItemDetailByCategoryIdAsync(_selectedBasicUnit.Id);
             if (_unitDetails != null) _selectedUnitDetail = _unitDetails.FirstOrDefault();
         }
 
@@ -263,8 +264,8 @@
             CostCenter = _selectedCostUnit,
             CategoryId = _selectedBasicUnit?.Id ?? 0,
             Category = _selectedBasicUnit,
-            UnitDetailsId = _selectedUnitDetail?.Id,
-            UnitDetails = _selectedUnitDetail
+            ItemDetailId = _selectedUnitDetail?.Id,
+            ItemDetail = _selectedUnitDetail
         };
 
         // SpecialItem

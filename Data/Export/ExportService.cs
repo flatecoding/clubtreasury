@@ -68,7 +68,7 @@ namespace TTCCashRegister.Data.Export
                 .Include(t => t.Accounts)
                 .ThenInclude(a => a.Category)
                 .Include(t => t.Accounts)
-                .ThenInclude(a => a.UnitDetails)
+                .ThenInclude(a => a.ItemDetail)
                 .Include(t => t.SubTransactions)
                 .ThenInclude(st => st.Person)
                 .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
@@ -252,7 +252,7 @@ namespace TTCCashRegister.Data.Export
                         {
                             CostCenter = t.Accounts.CostCenter,
                             Category = t.Accounts.Category,
-                            t.Accounts.UnitDetails,
+                            ItemDetail = t.Accounts.ItemDetail,
                             Amount = t.AccountMovement,
                             Person = (PersonModel?)null
                         });
@@ -262,7 +262,7 @@ namespace TTCCashRegister.Data.Export
                     {
                         CostCenter = t.Accounts.CostCenter,
                         Category = t.Accounts.Category,
-                        t.Accounts.UnitDetails,
+                        ItemDetail = t.Accounts.ItemDetail,
                         Amount = st.Sum,
                         st.Person
                     }));
@@ -278,31 +278,31 @@ namespace TTCCashRegister.Data.Export
                         costCenterGroup.Key.CostUnitName,
                         SummeCostUnit = costCenterGroup.Sum(e => (decimal)e.Amount),
 
-                        Catergories = costCenterGroup
+                        Categories = costCenterGroup
                             .GroupBy(e => new
                             {
                                 CategoryId = e.Category?.Id,
-                                CategoryName = e.Catergory?.Name ?? string.Empty
+                                CategoryName = e.Category?.Name ?? string.Empty
                             })
                             .Select(categoryGroup => new
                             {
                                 categoryGroup.Key.CategoryId,
                                 CategoryName = categoryGroup.Key.CategoryName,
-                                SumOfCatergories = categoryGroup.Sum(e => (decimal)e.Amount),
+                                SumOfCategories = categoryGroup.Sum(e => (decimal)e.Amount),
 
-                                UnitDetails = categoryGroup
+                                ItemDetails = categoryGroup
                                     .GroupBy(e => new
                                     {
-                                        UnitDetailId = e.UnitDetails?.Id,
-                                        UnitDetailName = e.UnitDetails?.CostDetails ?? string.Empty
+                                        ItemDetailId = e.ItemDetail?.Id,
+                                        ItemDetailName = e.ItemDetail?.CostDetails ?? string.Empty
                                     })
-                                    .Select(unitDetailGroup => new
+                                    .Select(itemDetailGroup => new
                                     {
-                                        unitDetailGroup.Key.UnitDetailId,
-                                        unitDetailGroup.Key.UnitDetailName,
-                                        SummeUnitDetails = unitDetailGroup.Sum(e => (decimal)e.Amount),
+                                        itemDetailGroup.Key.ItemDetailId,
+                                        itemDetailGroup.Key.ItemDetailName,
+                                        SumOfItemDetails = itemDetailGroup.Sum(e => (decimal)e.Amount),
 
-                                        Persons = unitDetailGroup
+                                        Persons = itemDetailGroup
                                             .Where(e => e.Person != null)
                                             .GroupBy(e => new
                                             {
@@ -318,7 +318,7 @@ namespace TTCCashRegister.Data.Export
                                             .OrderBy(p => p.PersonName)
                                             .ToList()
                                     })
-                                    .OrderBy(ud => ud.UnitDetailName)
+                                    .OrderBy(ud => ud.ItemDetailName)
                                     .ToList()
                             })
                             .OrderBy(bu => bu.CategoryName)
@@ -334,25 +334,25 @@ namespace TTCCashRegister.Data.Export
                 {
                     csv.AppendLine($"{costCenterGroup.CostUnitName};;;{costCenterGroup.SummeCostUnit.ToString("C", CultureInfo.CurrentCulture)}");
 
-                    foreach (var categoryGroup in costCenterGroup.Catergories)
+                    foreach (var categoryGroup in costCenterGroup.Categories)
                     {
-                        csv.AppendLine($";{categoryGroup.CategoryName};;{categoryGroup.SumOfCatergories.ToString("C", CultureInfo.CurrentCulture)}");
+                        csv.AppendLine($";{categoryGroup.CategoryName};;{categoryGroup.SumOfCategories.ToString("C", CultureInfo.CurrentCulture)}");
 
-                        foreach (var unitDetailGroup in categoryGroup.UnitDetails)
+                        foreach (var itemDetailGroup in categoryGroup.ItemDetails)
                         {
-                            var unitDetailName = unitDetailGroup.UnitDetailName;
-                            var summePersonen = unitDetailGroup.Persons.Sum(p => p.SummePerson);
+                            var itemDetailName = itemDetailGroup.ItemDetailName;
+                            var sumsOfPersons = itemDetailGroup.Persons.Sum(p => p.SummePerson);
 
-                            if (!string.IsNullOrWhiteSpace(unitDetailName) ||
-                                unitDetailGroup.Persons.Count == 0 ||
-                                summePersonen != unitDetailGroup.SummeUnitDetails)
+                            if (!string.IsNullOrWhiteSpace(itemDetailName) ||
+                                itemDetailGroup.Persons.Count == 0 ||
+                                sumsOfPersons != itemDetailGroup.SumOfItemDetails)
                             {
-                                csv.AppendLine($";;{unitDetailName};{unitDetailGroup.SummeUnitDetails.ToString("C", CultureInfo.CurrentCulture)}");
+                                csv.AppendLine($";;{itemDetailName};{itemDetailGroup.SumOfItemDetails.ToString("C", CultureInfo.CurrentCulture)}");
                             }
 
-                            if (unitDetailGroup.Persons.Count == 0) continue;
+                            if (itemDetailGroup.Persons.Count == 0) continue;
                             const string personIndent = ";;";
-                            foreach (var personGroup in unitDetailGroup.Persons)
+                            foreach (var personGroup in itemDetailGroup.Persons)
                             {
                                 csv.AppendLine($"{personIndent}{personGroup.PersonName};{personGroup.SummePerson.ToString("C", CultureInfo.CurrentCulture)}");
                             }

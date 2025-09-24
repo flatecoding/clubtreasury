@@ -1,21 +1,21 @@
-﻿@page "/unitdetails"
-@using TTCCashRegister.Data.UnitDetail.Dialogs
-@inject UnitDetailService UnitDetailsService
+﻿@page "/itemdetails"
+@using TTCCashRegister.Data.ItemDetail.Dialogs
+@inject ItemDetailService ItemDetailService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
-<h2>Position details</h2>
+<h2>Item details</h2>
 <MudPaper Class="mt-4" Style="width:55%;">
     <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
               @bind-SelectedItem="_selectedItem"
-              Filter="new Func<UnitDetailsModel,bool>(FilterFunc)"
+              Filter="new Func<ItemDetailModel,bool>(FilterFunc)"
               SortLabel="Sort By">
         <ToolBarContent>
             <MudButton Variant="Variant.Filled"
                        StartIcon="@Icons.Material.Filled.Add"
                        Color="Color.Primary"
                        @onclick="ShowAddUnitDetailsDialog">
-                Add position details
+                Add item detail
             </MudButton>
             <MudSpacer />
             <MudTextField @bind-Value="_searchString1"
@@ -33,15 +33,15 @@
             <col style="width: 110px;" />
         </ColGroup>
         <HeaderContent>
-            <MudTh>Id<MudTableSortLabel SortBy="new Func<UnitDetailsModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>Details<MudTableSortLabel SortBy="new Func<UnitDetailsModel, object>(x => x.CostDetails)"></MudTableSortLabel></MudTh>
-            <MudTh>Basic position</MudTh>
+            <MudTh>Id<MudTableSortLabel SortBy="new Func<ItemDetailModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
+            <MudTh>Details<MudTableSortLabel SortBy="new Func<ItemDetailModel, object>(x => x.CostDetails)"></MudTableSortLabel></MudTh>
+            <MudTh>Category</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Details">@context.CostDetails</MudTd>
-            <MudTd DataLabel="Basic position">
+            <MudTd DataLabel="Category">
                 @if (context.Accounts.Any())
                 {
                     @foreach (var account in context.Accounts)
@@ -66,13 +66,13 @@
 </MudPaper>
 
 @code {
-    private IEnumerable<UnitDetailsModel>? _allEntries;
+    private IEnumerable<ItemDetailModel>? _allEntries;
     private const bool Dense = true;
     private const bool Hover = true;
     private const bool Striped = true;
     private const bool Bordered = false;
     private string _searchString1 = string.Empty;
-    private UnitDetailsModel _selectedItem = new();
+    private ItemDetailModel _selectedItem = new();
     private readonly DialogOptions _dialogOptions = new()
     {
         MaxWidth = MaxWidth.Medium,
@@ -84,12 +84,12 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _allEntries = await UnitDetailsService.GetAllDetailsAsync();
+        _allEntries = await ItemDetailService.GetAllItemDetailsAsync();
     }
 
-    private bool FilterFunc(UnitDetailsModel? element) => FilterFunc1(element, _searchString1);
+    private bool FilterFunc(ItemDetailModel? element) => FilterFunc1(element, _searchString1);
 
-    private bool FilterFunc1(UnitDetailsModel? element, string searchstring)
+    private bool FilterFunc1(ItemDetailModel? element, string searchstring)
     {
         if (string.IsNullOrWhiteSpace(searchstring))
             return true;
@@ -107,36 +107,36 @@
     {
         var parameters = new DialogParameters();
         
-        var dialog = await DialogService.ShowAsync<AddUnitDetailsDialog>("Add Unit Details", 
+        var dialog = await DialogService.ShowAsync<AddItemDetailDialog>("Add item detail", 
             parameters, _dialogOptions);
         if ((await dialog.Result)?.Canceled == false)
         {
-            _allEntries = await UnitDetailsService.GetAllDetailsAsync();
-            Snackbar.Add("New unit details were added successfully", Severity.Success);
+            _allEntries = await ItemDetailService.GetAllItemDetailsAsync();
+            Snackbar.Add("New item detail were added successfully", Severity.Success);
         }
     }
 
-    private async Task ShowEditUnitDetailsDialog(int unitDetailsId)
+    private async Task ShowEditUnitDetailsDialog(int itemDetailId)
     {
-        var parameters = new DialogParameters { ["UnitDetailsId"] = unitDetailsId };
-        var dialog = await DialogService.ShowAsync<EditUnitDetailsDialog>("Edit Unit Details", 
+        var parameters = new DialogParameters { ["ItemDetailId"] = itemDetailId };
+        var dialog = await DialogService.ShowAsync<EditItemDetailDialog>("Edit item detail", 
             parameters, _dialogOptions);
         if ((await dialog.Result)?.Canceled == false)
         {
-            _allEntries = await UnitDetailsService.GetAllDetailsAsync();
-            Snackbar.Add("Unit details were updated successfully", Severity.Success);
+            _allEntries = await ItemDetailService.GetAllItemDetailsAsync();
+            Snackbar.Add("Item detail were updated successfully", Severity.Success);
         }
     }
 
-    private async Task ShowDeleteUnitDetailsDialog(int unitDetailsId)
+    private async Task ShowDeleteUnitDetailsDialog(int itemDetailId)
     {
-        var parameters = new DialogParameters { ["UnitDetailsId"] = unitDetailsId };
-        var dialog = await DialogService.ShowAsync<DeleteUnitDetailsDialog>("Delete Unit Details", 
+        var parameters = new DialogParameters { ["ItemDetailId"] = itemDetailId };
+        var dialog = await DialogService.ShowAsync<DeleteItemDetailDialog>("Delete item detail", 
             parameters, _dialogOptions);
         if ((await dialog.Result)?.Canceled == false)
         {
-            _allEntries = await UnitDetailsService.GetAllDetailsAsync();
-            Snackbar.Add("Unit details were deleted successfully", Severity.Success);
+            _allEntries = await ItemDetailService.GetAllItemDetailsAsync();
+            Snackbar.Add("Item detail were deleted successfully", Severity.Success);
         }
     }
 }

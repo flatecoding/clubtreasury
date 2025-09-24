@@ -1,19 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace TTCCashRegister.Data.UnitDetail
+namespace TTCCashRegister.Data.ItemDetail
 {
-    public class UnitDetailService
+    public class ItemDetailService(CashDataContext context)
     {
-        private readonly CashDataContext _context;
+        private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-        public UnitDetailService(CashDataContext context)
+        public async Task<List<ItemDetailModel>> GetAllItemDetailsAsync()
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-        }
-
-        public async Task<List<UnitDetailsModel>> GetAllDetailsAsync()
-        {
-            return await _context.UnitDetails
+            return await _context.ItemDetails
                 .Include(ud => ud.Accounts)
                 .ThenInclude(a => a.Category)
                 .Include(ud => ud.Accounts)
@@ -22,9 +17,9 @@ namespace TTCCashRegister.Data.UnitDetail
                 .ToListAsync();
         }
 
-        public async Task<UnitDetailsModel?> GetUnitDetailsByIdAsync(int id)
+        public async Task<ItemDetailModel?> GetItemDetailByIdAsync(int id)
         {
-            return await _context.UnitDetails
+            return await _context.ItemDetails
                 .Include(ud => ud.Accounts)
                 .ThenInclude(a => a.Category)
                 .Include(ud => ud.Accounts)
@@ -32,20 +27,20 @@ namespace TTCCashRegister.Data.UnitDetail
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task<List<UnitDetailsModel>> GetUnitDetailsByCategoryIdAsync(int categoryId)
+        public async Task<List<ItemDetailModel>> GetItemDetailByCategoryIdAsync(int categoryId)
         {
-            return await _context.UnitDetails
+            return await _context.ItemDetails
                 .Where(u => u.Accounts.Any(a => a.CategoryId == categoryId))
                 .ToListAsync();
         }
 
-        public async Task<UnitDetailsModel?> AddUnitDetailAsync(UnitDetailsModel unitDetail)
+        public async Task<ItemDetailModel?> AddItemDetailAsync(ItemDetailModel itemDetail)
         {
             try
             {
-                await _context.UnitDetails.AddAsync(unitDetail);
+                await _context.ItemDetails.AddAsync(itemDetail);
                 await _context.SaveChangesAsync();
-                return unitDetail;
+                return itemDetail;
             }
             catch (Exception ex)
             {
@@ -54,11 +49,11 @@ namespace TTCCashRegister.Data.UnitDetail
             }
         }
 
-        public async Task<bool> UpdateUnitDetailsAsync(UnitDetailsModel unitDetail)
+        public async Task<bool> UpdateItemDetailAsync(ItemDetailModel itemDetail)
         {
             try
             {
-                _context.UnitDetails.Update(unitDetail);
+                _context.ItemDetails.Update(itemDetail);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -69,13 +64,13 @@ namespace TTCCashRegister.Data.UnitDetail
             }
         }
 
-        public async Task<bool> DeleteUnitDetailsAsync(int id)
+        public async Task<bool> DeleteItemDetailAsync(int id)
         {
             try
             {
-                var unitDetail = await _context.UnitDetails.FindAsync(id);
-                if (unitDetail == null) return false;
-                _context.UnitDetails.Remove(unitDetail);
+                var itemDetail = await _context.ItemDetails.FindAsync(id);
+                if (itemDetail == null) return false;
+                _context.ItemDetails.Remove(itemDetail);
                 await _context.SaveChangesAsync();
                 return true;
             }
