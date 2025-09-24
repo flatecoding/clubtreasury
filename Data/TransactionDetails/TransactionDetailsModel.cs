@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.Transaction;
 
-namespace TTCCashRegister.Data.SubTransaction;
+namespace TTCCashRegister.Data.TransactionDetails;
 
-public class SubTransactionModel
+public class TransactionDetailsModel
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Key]

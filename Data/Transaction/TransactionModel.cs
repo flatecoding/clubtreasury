@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.SpecialItem;
-using TTCCashRegister.Data.SubTransaction;
+using TTCCashRegister.Data.TransactionDetails;
 
 namespace TTCCashRegister.Data.Transaction
 {
@@ -37,7 +37,7 @@ namespace TTCCashRegister.Data.Transaction
 
         [ForeignKey("SpecialItemId")]
         public SpecialItemModel? SpecialItem { get; set; }
-        public List<SubTransactionModel> SubTransactions { get; } = [];
+        public List<TransactionDetailsModel> TransactionDetails { get; } = [];
 
     }
 }
