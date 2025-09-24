@@ -12,7 +12,7 @@ namespace TTCCashRegister.Data.CostCenter
                 .Include(c => c.Accounts)
                     .ThenInclude(a => a.Category)
                 .Include(c => c.Accounts)
-                    .ThenInclude(a => a.UnitDetails)
+                    .ThenInclude(a => a.ItemDetail)
                 .OrderBy(c => c.Id)
                 .ToListAsync();
         }
@@ -23,7 +23,7 @@ namespace TTCCashRegister.Data.CostCenter
                 .Include(c => c.Accounts)
                     .ThenInclude(a => a.Category)
                 .Include(c => c.Accounts)
-                    .ThenInclude(a => a.UnitDetails)
+                    .ThenInclude(a => a.ItemDetail)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 

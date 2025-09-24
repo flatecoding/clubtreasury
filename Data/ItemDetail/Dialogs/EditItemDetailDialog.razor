@@ -1,17 +1,16 @@
-﻿@page "/editunitdetails"
+﻿@page "/edititemdetail"
 @using System.Diagnostics
 @using TTCCashRegister.Data.Accounts
 @using TTCCashRegister.Data.Category
-@using TTCCashRegister.Data.UnitDetail
-@inject UnitDetailService UnitDetailService
+@inject ItemDetailService ItemDetailService
 @inject CategoryService CategoryService
 @inject AccountsService AccountsService
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" Model="_editUnitDetailsModel" Validation="_unitDetailValidator.ValidateValue" ValidationDelay="0">
-            <MudTextField @bind-Value="_editUnitDetailsModel.CostDetails" Label="Cost Details"
-                          For="@(() => _editUnitDetailsModel.CostDetails)"/>
+        <MudForm @ref="_form" Model="_editItemDetailModel" Validation="_itemDetailValidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_editItemDetailModel.CostDetails" Label="Cost Details"
+                          For="@(() => _editItemDetailModel.CostDetails)"/>
             <MudSelect T="CategoryModel" Label="Category" 
                        @bind-SelectedValues="_selectedCategories" 
                        MultiSelection="true"
@@ -24,18 +23,18 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveUnitDetails())">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveItemDetail())">Save</MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [Parameter] public int UnitDetailsId { get; set; }
+    [Parameter] public int ItemDetailId { get; set; }
     private MudForm _form = new();
-    private UnitDetailsModel _editUnitDetailsModel = new();
+    private ItemDetailModel _editItemDetailModel = new();
     private IEnumerable<CategoryModel> _allCategories = new List<CategoryModel>();
     private IEnumerable<CategoryModel> _selectedCategories = new List<CategoryModel>();
-    private readonly UnitDetailValidator _unitDetailValidator = new();
+    private readonly ItemDetailValidator _itemDetailValidator = new();
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
@@ -44,10 +43,10 @@
         try
         {
             _allCategories = await CategoryService.GetAllCategoriesAsync();
-            _editUnitDetailsModel = await UnitDetailService.GetUnitDetailsByIdAsync(UnitDetailsId) ?? new UnitDetailsModel();
+            _editItemDetailModel = await ItemDetailService.GetItemDetailByIdAsync(ItemDetailId) ?? new ItemDetailModel();
 
             // Vorbelegung: BasicUnits über Accounts abrufen
-            _selectedCategories = _editUnitDetailsModel.Accounts
+            _selectedCategories = _editItemDetailModel.Accounts
                 .Select(a => a.Category)
                 .Distinct()
                 .ToList();
@@ -58,20 +57,20 @@
         }
     }
 
-    private async Task SaveUnitDetails()
+    private async Task SaveItemDetail()
     {
         await _form.Validate();
         if (!_form.IsValid) return;
 
         // Update UnitDetails selbst
-        var success = await UnitDetailService.UpdateUnitDetailsAsync(_editUnitDetailsModel);
+        var success = await ItemDetailService.UpdateItemDetailAsync(_editItemDetailModel);
         if (!success) return;
         
         foreach (var account in _selectedCategories.Select(category => new AccountsModel
                  {
                      CategoryId = category.Id,
                      CostCenterId = category.CostCenterId,
-                     UnitDetailsId = _editUnitDetailsModel.Id
+                     ItemDetailId = _editItemDetailModel.Id
                  }))
         {
             await AccountsService.EnsureAccountExistsAsync(account);

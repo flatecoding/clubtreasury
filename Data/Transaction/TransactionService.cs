@@ -21,7 +21,7 @@ public class TransactionService(
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.Category)
             .Include(t => t.Accounts)
-                .ThenInclude(a => a.UnitDetails)
+                .ThenInclude(a => a.ItemDetail)
             .Include(t => t.SubTransactions)
                 .ThenInclude(st => st.Person)
             .OrderByDescending(x => x.Id)
@@ -37,7 +37,7 @@ public class TransactionService(
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.Category)
             .Include(t => t.Accounts)
-                .ThenInclude(a => a.UnitDetails)
+                .ThenInclude(a => a.ItemDetail)
             .Where(t => t.Date.HasValue &&
                         t.Date.Value >= DateOnly.FromDateTime(start) &&
                         t.Date.Value <= DateOnly.FromDateTime(end))
@@ -52,7 +52,7 @@ public class TransactionService(
             .Include(t => t.Accounts)
             .ThenInclude(a => a.Category)
             .Include(t => t.Accounts)
-            .ThenInclude(a => a.UnitDetails)
+            .ThenInclude(a => a.ItemDetail)
             .Include(t => t.SubTransactions)
             .ThenInclude(st => st.Person)
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -100,7 +100,7 @@ public class TransactionService(
             var account = await context.Accounts.FirstOrDefaultAsync(a =>
                 a.CostCenterId == entry.Accounts.CostCenterId &&
                 a.CategoryId == entry.Accounts.CategoryId &&
-                a.UnitDetailsId == entry.Accounts.UnitDetailsId);
+                a.ItemDetailId == entry.Accounts.ItemDetailId);
 
             if (account == null)
             {
@@ -186,7 +186,7 @@ public class TransactionService(
             .Include(t => t.Accounts)
                 .ThenInclude(a => a.Category)
             .Include(t => t.Accounts)
-                .ThenInclude(a => a.UnitDetails)
+                .ThenInclude(a => a.ItemDetail)
             .Include(t => t.SubTransactions)
                 .ThenInclude(st => st.Person)
             .AsNoTracking();
@@ -210,7 +210,7 @@ public class TransactionService(
                 x.Documentnumber.ToString().Contains(term) ||
                 (x.Accounts.CostCenter.CostUnitName.ToLower().Contains(term)) ||
                 (x.Accounts.Category.Name.ToLower().Contains(term)) ||
-                (x.Accounts.UnitDetails != null && x.Accounts.UnitDetails.CostDetails.ToLower().Contains(term)) ||
+                (x.Accounts.ItemDetail != null && x.Accounts.ItemDetail.CostDetails.ToLower().Contains(term)) ||
                 x.SubTransactions.Any(st => st.Person != null && st.Person.Name.ToLower().Contains(term))
             );
         }

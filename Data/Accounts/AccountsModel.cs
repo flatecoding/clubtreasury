@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
+using TTCCashRegister.Data.ItemDetail;
 using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.UnitDetail;
 
 namespace TTCCashRegister.Data.Accounts;
 
@@ -19,8 +19,8 @@ public class AccountsModel
     public int CategoryId { get; set; }
     public CategoryModel Category { get; set; } = null!;
 
-    public int? UnitDetailsId { get; set; } // optional
-    public UnitDetailsModel? UnitDetails { get; set; }
+    public int? ItemDetailId { get; set; } // optional
+    public ItemDetailModel? ItemDetail { get; set; }
 
     // Navigation
     public ICollection<TransactionModel> Transactions { get; set; } = new List<TransactionModel>();

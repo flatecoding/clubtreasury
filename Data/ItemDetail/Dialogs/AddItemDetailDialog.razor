@@ -1,18 +1,17 @@
-﻿@page "/addunitdetail"
-@using TTCCashRegister.Data.UnitDetail
+﻿@page "/additemdetail"
 @using TTCCashRegister.Data.Accounts
 @using TTCCashRegister.Data.Category
-@inject UnitDetailService UnitDetailService
+@inject ItemDetailService ItemDetailService
 @inject CategoryService CategoryService
 @inject AccountsService AccountsService
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" Model="_newDetailModel" Validation="_unitDetailValidator.ValidateValue" ValidationDelay="0">
+        <MudForm @ref="_form" Model="_newItemDetailModel" Validation="_itemDetailValidator.ValidateValue" ValidationDelay="0">
             
-            <MudTextField @bind-Value="_newDetailModel.CostDetails" 
+            <MudTextField @bind-Value="_newItemDetailModel.CostDetails" 
                           Label="Detailed position"
-                          For="@(() => _newDetailModel.CostDetails)"
+                          For="@(() => _newItemDetailModel.CostDetails)"
                           Required="true" 
                           Immediate="true" />
 
@@ -29,7 +28,7 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await AddUnitDetailAsync())">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await AddItemDetailAsync())">
             Add
         </MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">
@@ -41,8 +40,8 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     private MudForm _form = new();
-    private readonly UnitDetailsModel _newDetailModel = new();
-    private readonly UnitDetailValidator _unitDetailValidator = new();
+    private readonly ItemDetailModel _newItemDetailModel = new();
+    private readonly ItemDetailValidator _itemDetailValidator = new();
     private IEnumerable<CategoryModel> _allCategories = new List<CategoryModel>();
     private IEnumerable<CategoryModel> _selectedCategories = new List<CategoryModel>();
 
@@ -52,21 +51,21 @@
         _allCategories = await CategoryService.GetAllCategoriesAsync();
     }
 
-    private async Task AddUnitDetailAsync()
+    private async Task AddItemDetailAsync()
     {
         await _form.Validate();
         if (!_form.IsValid || !_selectedCategories.Any())
             return;
 
         // 1. UnitDetail speichern
-        var createdDetail = await UnitDetailService.AddUnitDetailAsync(_newDetailModel);
+        var createdDetail = await ItemDetailService.AddItemDetailAsync(_newItemDetailModel);
 
         // 2. N:M-Beziehung über Accounts erstellen
         foreach (var account in _selectedCategories.Select(category => new AccountsModel
                  {
                      CategoryId = category.Id,
                      CostCenterId = category.CostCenterId,
-                     UnitDetailsId = createdDetail?.Id
+                     ItemDetailId = createdDetail?.Id
                  }))
         {
             await AccountsService.EnsureAccountExistsAsync(account);

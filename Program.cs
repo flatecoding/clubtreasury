@@ -13,12 +13,12 @@ using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
 using TTCCashRegister.Data.Export;
 using TTCCashRegister.Data.Import;
+using TTCCashRegister.Data.ItemDetail;
 using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.Source;
 using TTCCashRegister.Data.SpecialItem;
 using TTCCashRegister.Data.SubTransaction;
 using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.UnitDetail;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -63,7 +63,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
-builder.Services.AddScoped<UnitDetailService>();
+builder.Services.AddScoped<ItemDetailService>();
 builder.Services.AddScoped<CostCenterService>();
 builder.Services.AddScoped<TransactionService>();
 builder.Services.AddScoped<SpecialItemService>();

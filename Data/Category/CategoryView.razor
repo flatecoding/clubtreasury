@@ -46,7 +46,7 @@
             <MudTd DataLabel="Details">
                 
                 @{
-                    var accountsWithDetails = context.Accounts.Where(a => a.UnitDetails != null).ToList();
+                    var accountsWithDetails = context.Accounts.Where(a => a.ItemDetail != null).ToList();
                 }
 
                 @if (accountsWithDetails.Any())
@@ -54,7 +54,7 @@
                     <ul>
                         @foreach (var account in accountsWithDetails)
                         {
-                            <li>@account.UnitDetails?.CostDetails</li>
+                            <li>@account.ItemDetail?.CostDetails</li>
                         }
                     </ul>
                 }
@@ -103,8 +103,8 @@
 
         // Suche über UnitDetails in Accounts
         return element.Accounts.Any(a =>
-            a.UnitDetails != null &&
-            a.UnitDetails.CostDetails.ToLower().Contains(searchstring)) || element.Name.ToLower().Contains(searchstring);
+            a.ItemDetail != null &&
+            a.ItemDetail.CostDetails.ToLower().Contains(searchstring)) || element.Name.ToLower().Contains(searchstring);
     }
 
 

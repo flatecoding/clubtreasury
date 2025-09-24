@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TTCCashRegister.Data.Accounts;
 using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.UnitDetail;
 using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
+using TTCCashRegister.Data.ItemDetail;
 using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.SpecialItem;
 using TTCCashRegister.Data.SubTransaction;
@@ -16,7 +16,7 @@ namespace TTCCashRegister.Data
         public DbSet<TransactionModel> Transactions { get; set; }
         public DbSet<CostCenterModel> CostCenters { get; set; }
         public DbSet<CashRegisterModel> CashRegisters { get; set; }
-        public DbSet<UnitDetailsModel> UnitDetails { get; set; }
+        public DbSet<ItemDetailModel> ItemDetails { get; set; }
         public DbSet<SpecialItemModel> SpecialItems { get; set; }
         public DbSet<CategoryModel> Categories { get; set; }
         public DbSet<PersonModel> Persons { get; set; }
@@ -43,9 +43,9 @@ namespace TTCCashRegister.Data
 
             // Accounts ↔ UnitDetails (n:1)
             modelBuilder.Entity<AccountsModel>()
-                .HasOne(a => a.UnitDetails)
+                .HasOne(a => a.ItemDetail)
                 .WithMany(ud => ud.Accounts)
-                .HasForeignKey(a => a.UnitDetailsId)
+                .HasForeignKey(a => a.ItemDetailId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // SubTransaction ↔ Person (n:1)
