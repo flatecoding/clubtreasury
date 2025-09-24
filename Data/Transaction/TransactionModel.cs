@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.CashRegister;
-using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.SpecialItem;
 using TTCCashRegister.Data.SubTransaction;
-using TTCCashRegister.Data.Accounts;
 
 namespace TTCCashRegister.Data.Transaction
 {
@@ -27,8 +26,8 @@ namespace TTCCashRegister.Data.Transaction
         public decimal AccountMovement { get; set; } = decimal.Zero;
         
         [Required]
-        public int AccountsId { get; set; }
-        public AccountsModel Accounts { get; set; } = null!;
+        public int AllocationId { get; set; }
+        public AllocationModel Allocation { get; set; } = null!;
         
         [Required]
         public int CashRegisterId { get; set; }

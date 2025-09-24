@@ -2,10 +2,10 @@ using System.Data;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using ExcelDataReader;
-using TTCCashRegister.Data.BasicUnit;
-using TTCCashRegister.Data.CostUnit;
+using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.Accounts;
+using TTCCashRegister.Data.Category;
+using TTCCashRegister.Data.CostCenter;
 
 namespace TTCCashRegister.Data.Import
 {
@@ -45,8 +45,8 @@ namespace TTCCashRegister.Data.Import
                     return false;
                 }
 
-                var costUnits = await context.CostUnits.Include(cu => cu.BasicUnitDetails).ToListAsync();
-                var basicUnits = await context.BasicUnits.ToListAsync();
+                var costCenters = await context.CostCenters.Include(cu => cu.Categories).ToListAsync();
+                var categories = await context.Categories.ToListAsync();
                 var cashRegister = await context.CashRegisters.FirstOrDefaultAsync();
 
                 if (cashRegister == null)
@@ -97,40 +97,40 @@ namespace TTCCashRegister.Data.Import
                             accountMovement = accMove;
                         }
                         
-                        var costUnitBasicUnit = row.ItemArray[6]?.ToString();
-                        var parts = costUnitBasicUnit?.Split('/');
+                        var costCenterCategory = row.ItemArray[6]?.ToString();
+                        var parts = costCenterCategory?.Split('/');
                         if (parts == null || parts.Length == 0)
                         {
-                            logger.LogWarning("Missing cost unit info in row: {0}", string.Join(", ", row.ItemArray));
+                            logger.LogWarning("Missing cost center info in row: {0}", string.Join(", ", row.ItemArray));
                             continue;
                         }
 
-                        var costUnitName = parts[0].Trim();
-                        var basicUnitName = parts.Length >= 2 ? parts[1].Trim() : "Undefined";
+                        var costCenterName = parts[0].Trim();
+                        var categoryName = parts.Length >= 2 ? parts[1].Trim() : "Undefined";
 
-                        var costUnit = costUnits.FirstOrDefault(cu => cu.CostUnitName == costUnitName);
-                        if (costUnit == null)
+                        var costCenter = costCenters.FirstOrDefault(cu => cu.CostUnitName == costCenterName);
+                        if (costCenter == null)
                         {
-                            costUnit = new CostUnitModel { CostUnitName = costUnitName };
-                            costUnits.Add(costUnit);
-                            context.CostUnits.Add(costUnit);
+                            costCenter = new CostCenterModel { CostUnitName = costCenterName };
+                            costCenters.Add(costCenter);
+                            context.CostCenters.Add(costCenter);
                         }
 
-                        var basicUnit = basicUnits.FirstOrDefault(bu => bu.Name == basicUnitName && bu.CostUnitId == costUnit.Id);
-                        if (basicUnit == null)
+                        var category = categories.FirstOrDefault(bu => bu.Name == categoryName && bu.CostCenterId == costCenter.Id);
+                        if (category == null)
                         {
-                            basicUnit = new BasicUnitModel { Name = basicUnitName, CostUnit = costUnit };
-                            costUnit.BasicUnitDetails.Add(basicUnit);
-                            basicUnits.Add(basicUnit);
-                            context.BasicUnits.Add(basicUnit);
+                            category = new CategoryModel { Name = categoryName, CostCenter = costCenter };
+                            costCenter.Categories.Add(category);
+                            categories.Add(category);
+                            context.Categories.Add(category);
                         }
                         
-                        var accounts = new AccountsModel
+                        var accounts = new AllocationModel
                         {
-                            CostUnitId = costUnit.Id,
-                            CostUnit = costUnit,
-                            BasicUnitId = basicUnit.Id,
-                            BasicUnit = basicUnit
+                            CostCenterId = costCenter.Id,
+                            CostCenter = costCenter,
+                            CategoryId = category.Id,
+                            Category = category
                         };
                         
                         var transaction = new TransactionModel
@@ -141,7 +141,7 @@ namespace TTCCashRegister.Data.Import
                             Description = description,
                             Sum = sumValue,
                             AccountMovement = accountMovement,
-                            Accounts = accounts
+                            Allocation = accounts
                         };
 
                         if (!await transactionService.AddTransaction(transaction))

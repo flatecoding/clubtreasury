@@ -48,9 +48,9 @@
         <MudTh>Sum<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Sum)" 
                                      SortLabel="Sum"></MudTableSortLabel></MudTh>
         <MudTh>Acc. mvm.</MudTh>
-        <MudTh>Cost unit</MudTh>
-        <MudTh>Basic unit</MudTh>
-        <MudTh>Unit details</MudTh>
+        <MudTh>Cost center</MudTh>
+        <MudTh>Category</MudTh>
+        <MudTh>Item detail</MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
 
@@ -60,9 +60,9 @@
         <MudTd>@context.Description</MudTd>
         <MudTd>@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
         <MudTd>@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
-        <MudTd>@context.Accounts.CostUnit.CostUnitName</MudTd>
-        <MudTd>@context.Accounts.BasicUnit?.Name</MudTd>
-        <MudTd>@context.Accounts.UnitDetails?.CostDetails</MudTd>
+        <MudTd>@context.Allocation.CostCenter.CostUnitName</MudTd>
+        <MudTd>@context.Allocation.Category?.Name</MudTd>
+        <MudTd>@context.Allocation.ItemDetail?.CostDetails</MudTd>
         <MudTd>
             <MudIconButton Icon="@Icons.Material.Filled.List"
                            Color="Color.Secondary"

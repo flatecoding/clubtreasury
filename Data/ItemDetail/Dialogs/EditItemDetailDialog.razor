@@ -1,0 +1,86 @@
+﻿@page "/edititemdetail"
+@using System.Diagnostics
+@using TTCCashRegister.Data.Allocation
+@using TTCCashRegister.Data.Category
+@inject ItemDetailService ItemDetailService
+@inject CategoryService CategoryService
+@inject AllocationService AllocationService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_editItemDetailModel" Validation="_itemDetailValidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_editItemDetailModel.CostDetails" Label="Cost Details"
+                          For="@(() => _editItemDetailModel.CostDetails)"/>
+            <MudSelect T="CategoryModel" Label="Category" 
+                       @bind-SelectedValues="_selectedCategories" 
+                       MultiSelection="true"
+                       Required="true">
+                @foreach (var category in _allCategories)
+                {
+                    <MudSelectItem T="CategoryModel" Value="@category">@category.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveItemDetail())">Save</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int ItemDetailId { get; set; }
+    private MudForm _form = new();
+    private ItemDetailModel _editItemDetailModel = new();
+    private IEnumerable<CategoryModel> _allCategories = new List<CategoryModel>();
+    private IEnumerable<CategoryModel> _selectedCategories = new List<CategoryModel>();
+    private readonly ItemDetailValidator _itemDetailValidator = new();
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _allCategories = await CategoryService.GetAllCategoriesAsync();
+            _editItemDetailModel = await ItemDetailService.GetItemDetailByIdAsync(ItemDetailId) ?? new ItemDetailModel();
+
+            // Vorbelegung: BasicUnits über Accounts abrufen
+            _selectedCategories = _editItemDetailModel.Accounts
+                .Select(a => a.Category)
+                .Distinct()
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error initializing component: {ex.Message}");
+        }
+    }
+
+    private async Task SaveItemDetail()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        // Update UnitDetails selbst
+        var success = await ItemDetailService.UpdateItemDetailAsync(_editItemDetailModel);
+        if (!success) return;
+        
+        foreach (var account in _selectedCategories.Select(category => new AllocationModel
+                 {
+                     CategoryId = category.Id,
+                     CostCenterId = category.CostCenterId,
+                     ItemDetailId = _editItemDetailModel.Id
+                 }))
+        {
+            await AllocationService.EnsureAllocationExistsAsync(account);
+        }
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

@@ -1,6 +1,4 @@
 //using Devart.Data.MySql;
-
-using System.Diagnostics;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,18 +7,18 @@ using MudBlazor.Services;
 using MudExtensions.Services;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
-using TTCCashRegister.Data.Accounts;
-using TTCCashRegister.Data.BasicUnit;
+using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.CashRegister;
-using TTCCashRegister.Data.CostUnit;
+using TTCCashRegister.Data.Category;
+using TTCCashRegister.Data.CostCenter;
 using TTCCashRegister.Data.Export;
 using TTCCashRegister.Data.Import;
+using TTCCashRegister.Data.ItemDetail;
 using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.Source;
 using TTCCashRegister.Data.SpecialItem;
 using TTCCashRegister.Data.SubTransaction;
 using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.UnitDetail;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -65,19 +63,19 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
-builder.Services.AddScoped<UnitDetailService>();
-builder.Services.AddScoped<CostUnitService>();
+builder.Services.AddScoped<ItemDetailService>();
+builder.Services.AddScoped<CostCenterService>();
 builder.Services.AddScoped<TransactionService>();
 builder.Services.AddScoped<SpecialItemService>();
 builder.Services.AddScoped<CashRegisterService>();
-builder.Services.AddScoped<BasicUnitService>();
+builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<ExportService>();
 builder.Services.AddScoped<NotificationService>();
-builder.Services.AddScoped<ImportCostUnitService>();
+builder.Services.AddScoped<ImportCostCenterService>();
 builder.Services.AddScoped<ImportBookingJournalService>();
 builder.Services.AddScoped<PersonService>();
 builder.Services.AddScoped<SubTransactionService>();
-builder.Services.AddScoped<AccountsService>();
+builder.Services.AddScoped<AllocationService>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;

@@ -1,0 +1,129 @@
+﻿@page "/costCenters"
+@using TTCCashRegister.Data.CostCenter.Dialogs
+@using TTCCashRegister.Data.Source
+@inject CostCenterService CostCenterService
+@inject IDialogService DialogService
+@inject NotificationService NotificationService
+
+<h2>Cost centers</h2>
+<MudPaper Class="mt-4" Style="width:55%;">
+    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
+              @bind-SelectedItem="_selectedItem"
+              Filter="new Func<CostCenterModel,bool>(FilterFunc)"
+              SortLabel="Sort By">
+        <ToolBarContent>
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Color="Color.Primary"
+                       OnClick="@(() => ShowAddCostUnitDialog())">
+                Add cost center
+            </MudButton>
+            <MudSpacer />
+            <MudTextField @bind-Value="_searchString1"
+                          Placeholder="Search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0">
+            </MudTextField>
+        </ToolBarContent>
+        <ColGroup>
+            <col style="width: 20px;" />
+            <col style="width: 110px;" />
+            <col style="width: 110px;" />
+            <col style="width: 110px;" />
+        </ColGroup>
+        <HeaderContent>
+            <MudTh>Id<MudTableSortLabel SortBy="new Func<CostCenterModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
+            <MudTh>Unit<MudTableSortLabel SortBy="new Func<CostCenterModel, object>(x => x.CostUnitName ?? string.Empty)"></MudTableSortLabel></MudTh>
+            <MudTh>Positions</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Unit">@context.CostUnitName</MudTd>
+            <MudTd DataLabel="Details">
+                @if (context.Categories.Any())
+                {
+                    @foreach (var detail in context.Categories)
+                    {
+                        <li> @detail.Name</li>
+                    }
+                }
+                else
+                {
+                    <em>No details assigned</em>
+                }
+
+            </MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" 
+                               OnClick="@(() => ShowEditCostUnitDialog(context.Id))"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" 
+                               OnClick="@(() => ShowDeleteCostUnitDialog(context.Id))">Delete</MudIconButton>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private IEnumerable<CostCenterModel>? _allEntries;
+    private const bool Dense = true;
+    private const bool Hover = true;
+    private const bool Striped = true;
+    private const bool Bordered = false;
+    private string _searchString1 = string.Empty;
+    private CostCenterModel _selectedItem = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _allEntries = await CostCenterService.GetAllCostCentersAsync();
+    }
+
+    private bool FilterFunc(CostCenterModel element) => FilterFunc1(element, _searchString1);
+
+    private bool FilterFunc1(CostCenterModel? element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element is null)
+            return false;
+        if (string.IsNullOrWhiteSpace(searchString)) return false;
+        var lowerString = searchString.ToLowerInvariant();
+        return element.CostUnitName.ToLower().Contains(lowerString) || element.Categories.Any(b => b.Name.ToLower().Contains(lowerString));
+    }
+
+    private async Task ShowAddCostUnitDialog()
+    {
+        var dialog = await DialogService.ShowAsync<AddCostCenterDialog>("Add cost center", new DialogParameters());
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
+    }
+
+    private async Task ShowEditCostUnitDialog(int costUnitId)
+    {
+        var dialog = await DialogService.ShowAsync<EditCostCenterDialog>("Edit Cost center", 
+            new DialogParameters { ["CostCenterId"] = costUnitId });
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
+    }
+
+    private async Task ShowDeleteCostUnitDialog(int costUnitId)
+    {
+        var dialog = await DialogService.ShowAsync<DeleteCostCenterDialog>("Delete Cost center", 
+            new DialogParameters { ["CostCenterId"] = costUnitId });
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
+    }
+    
+    private async Task UpdateView()
+    {
+        _allEntries = await CostCenterService.GetAllCostCentersAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

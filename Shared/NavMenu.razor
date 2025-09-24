@@ -7,11 +7,11 @@
     <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
     <MudNavLink Href="/transactions" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Money">Transaction</MudNavLink>
     <MudNavGroup Title="Settings" Expanded="false" Icon="@Icons.Material.Filled.Settings">
-        <MudNavGroup Title="Cost unit" Expanded="false" Icon="@Icons.Material.Filled.Settings">
-            <MudNavLink Href="/costunits" Match="NavLinkMatch.Prefix">Cost units</MudNavLink>
-            <MudNavLink Href="/basicunits" Match="NavLinkMatch.Prefix">Basic position</MudNavLink>
-            <MudNavLink Href="/unitdetails" Match="NavLinkMatch.Prefix">Position details</MudNavLink>
-            <MudNavLink Href="/accounts" Match="NavLinkMatch.Prefix">Accounts</MudNavLink>
+        <MudNavGroup Title="Cost unit setting" Expanded="false" Icon="@Icons.Material.Filled.Settings">
+            <MudNavLink Href="/costCenters" Match="NavLinkMatch.Prefix">Cost centers</MudNavLink>
+            <MudNavLink Href="/categories" Match="NavLinkMatch.Prefix">Categories</MudNavLink>
+            <MudNavLink Href="/itemdetails" Match="NavLinkMatch.Prefix">Item details</MudNavLink>
+            <MudNavLink Href="/allocations" Match="NavLinkMatch.Prefix">Allocations</MudNavLink>
             
         </MudNavGroup>
         <MudNavGroup Title="Cash register" Expanded="false" Icon="@Icons.Material.Filled.AttachMoney">
@@ -24,7 +24,7 @@
         <MudNavGroup Title="Import data">
             <MudNavLink
                 OnClick="@(() => OpenImportCostUnitDialog())"
-                Icon="@Icons.Material.Filled.FileUpload">Cost units
+                Icon="@Icons.Material.Filled.FileUpload">Cost centers
             </MudNavLink>
             <MudNavLink
                 OnClick="@(() => OpenImportTransactionDialog())"
@@ -45,7 +45,7 @@
     {
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<ImportCostunits>("Import cost units", parameters, options);
+        var dialog = await DialogService.ShowAsync<ImportCostCenters>("Import cost centers", parameters, options);
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
     }
     

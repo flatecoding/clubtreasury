@@ -1,0 +1,139 @@
+﻿@page "/categories"
+@using TTCCashRegister.Data.Category.Dialogs
+@using TTCCashRegister.Data.Source
+@inject CategoryService CategoryService
+@inject IDialogService DialogService
+@inject NotificationService NotificationService
+
+<h2>Categories</h2>
+
+<MudPaper Class="mt-4" Style="width:55%;">
+    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
+              @bind-SelectedItem="_selectedItem"
+              Filter="new Func<CategoryModel,bool>(FilterFunc)"
+              SortLabel="Sort By">
+        <ToolBarContent>
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Color="Color.Primary"
+                       OnClick="@(() => ShowAddCategoryDialog())">
+                Add category
+            </MudButton>
+            <MudSpacer />
+            <MudTextField @bind-Value="_searchString1"
+                          Placeholder="Search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0">
+            </MudTextField>
+        </ToolBarContent>
+        <ColGroup>
+            <col style="width: 20px;" />
+            <col style="width: 110px;" />
+            <col style="width: 110px;" />
+            <col style="width: 110px;" />
+        </ColGroup>
+        <HeaderContent>
+            <MudTh>Id<MudTableSortLabel SortBy="new Func<CategoryModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
+            <MudTh>Position<MudTableSortLabel SortBy="new Func<CategoryModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
+            <MudTh>Pos. details</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Details">
+                
+                @{
+                    var accountsWithDetails = context.Accounts.Where(a => a.ItemDetail != null).ToList();
+                }
+
+                @if (accountsWithDetails.Any())
+                {
+                    <ul>
+                        @foreach (var account in accountsWithDetails)
+                        {
+                            <li>@account.ItemDetail?.CostDetails</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <em>No details assigned</em>
+                }
+            </MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" 
+                               OnClick="@(() => ShowEditCategoryDialog(context.Id))"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" 
+                               OnClick="@(() => ShowDeleteCategoryDialog(context.Id))">Delete</MudIconButton>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private IEnumerable<CategoryModel>? _allEntries;
+    private const bool Dense = true;
+    private const bool Hover = true;
+    private const bool Striped = true;
+    private const bool Bordered = false;
+    private string _searchString1 = string.Empty;
+    private CategoryModel _selectedItem = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _allEntries = await CategoryService.GetAllCategoriesAsync();
+    }
+
+    private bool FilterFunc(CategoryModel? element) => FilterFunc1(element, _searchString1);
+
+    private bool FilterFunc1(CategoryModel? element, string searchstring)
+    {
+        if (string.IsNullOrWhiteSpace(searchstring))
+            return true;
+        if (element == null) return false;
+
+        searchstring = searchstring.ToLowerInvariant();
+
+        // Suche über UnitDetails in Accounts
+        return element.Accounts.Any(a =>
+            a.ItemDetail != null &&
+            a.ItemDetail.CostDetails.ToLower().Contains(searchstring)) || element.Name.ToLower().Contains(searchstring);
+    }
+
+
+    private async Task ShowAddCategoryDialog()
+    {
+        var dialog = await DialogService.ShowAsync<AddCategoryDialog>("Add category", new DialogParameters());
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
+    }
+
+    private async Task ShowEditCategoryDialog(int basicUnitId)
+    {
+        var dialog = await DialogService.ShowAsync<EditCategoryDialog>("Edit category", 
+            new DialogParameters { ["CategoryId"] = basicUnitId });
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
+    }
+
+    private async Task ShowDeleteCategoryDialog(int basicUnitId)
+    {
+        var dialog = await DialogService.ShowAsync<DeleteCategoryDialog>("Delete category", 
+            new DialogParameters { ["CategoryId"] = basicUnitId });
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateView();
+    }
+    
+    private async Task UpdateView() 
+    {    
+        _allEntries = await CategoryService.GetAllCategoriesAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+}

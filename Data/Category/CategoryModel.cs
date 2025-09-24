@@ -1,0 +1,26 @@
+﻿using System.ComponentModel.DataAnnotations;
+using TTCCashRegister.Data.Allocation;
+using TTCCashRegister.Data.CostCenter;
+
+namespace TTCCashRegister.Data.Category
+{
+    public class CategoryModel
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
+        public int CostCenterId { get; set; }
+        public CostCenterModel CostCenter { get; set; } = null!;
+
+        public ICollection<AllocationModel> Accounts { get; set; } = new List<AllocationModel>();
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
+}
