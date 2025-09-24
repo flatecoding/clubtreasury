@@ -17,8 +17,8 @@ using TTCCashRegister.Data.ItemDetail;
 using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.Source;
 using TTCCashRegister.Data.SpecialItem;
-using TTCCashRegister.Data.SubTransaction;
 using TTCCashRegister.Data.Transaction;
+using TTCCashRegister.Data.TransactionDetails;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -74,7 +74,7 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ImportCostCenterService>();
 builder.Services.AddScoped<ImportBookingJournalService>();
 builder.Services.AddScoped<PersonService>();
-builder.Services.AddScoped<SubTransactionService>();
+builder.Services.AddScoped<TransactionDetailsService>();
 builder.Services.AddScoped<AllocationService>();
 builder.Services.AddMudServices(config =>
 {
