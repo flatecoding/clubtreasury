@@ -1,35 +1,35 @@
-@page "/subtransactiondialog"
+@page "/transactiondetailsdialog"
 @using TTCCashRegister.Data.Person
-@inject SubTransactionService SubTransactionService
+@inject TransactionDetailsService TransactionDetailsService
 @inject PersonService PersonService
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" Model="_subTransactionModel" 
-                 Validation="_subTransactionValidator.ValidateValue"
+        <MudForm @ref="_form" Model="_transactionDetailsModel" 
+                 Validation="_transactionDetailsValidator.ValidateValue"
                  ValidationDelay="0">
             
-            <MudTextField @bind-Value="_subTransactionModel.DocumentNumber"
+            <MudTextField @bind-Value="_transactionDetailsModel.DocumentNumber"
                           Label="Document Number"
-                          For="@(() => _subTransactionModel.DocumentNumber)"
+                          For="@(() => _transactionDetailsModel.DocumentNumber)"
                           Immediate="true" />
             
-            <MudTextField @bind-Value="_subTransactionModel.Description"
+            <MudTextField @bind-Value="_transactionDetailsModel.Description"
                           Label="Description"
-                          For="@(() => _subTransactionModel.Description)"
+                          For="@(() => _transactionDetailsModel.Description)"
                           Immediate="true"
                           Required="true"
                           RequiredError="Description is required" />
             
-            <MudTextField @bind-Value="_subTransactionModel.Sum"
+            <MudTextField @bind-Value="_transactionDetailsModel.Sum"
                              Label="Sum"
-                             For="@(() => _subTransactionModel.Sum)"
+                             For="@(() => _transactionDetailsModel.Sum)"
                              Immediate="true"
                              Required="true"
                              RequiredError="Amount is required" />
             
             <MudSelect T="int?" Label="Person"
-                       @bind-Value="_subTransactionModel.PersonId"
+                       @bind-Value="_transactionDetailsModel.PersonId"
                        Clearable="true">
                 <MudSelectItem T="int?" Value="@null">None</MudSelectItem>
                 @foreach (var p in _persons)
@@ -55,12 +55,12 @@
 
 @code {
     [Parameter] public int TransactionId { get; set; }
-    [Parameter] public int? SubTransactionId { get; set; } // null = Add, Wert = Edit
+    [Parameter] public int? TransactionDetailsId { get; set; } // null = Add, Wert = Edit
 
     private MudForm _form = new();
-    private SubTransactionModel _subTransactionModel = new();
+    private TransactionDetailsModel _transactionDetailsModel = new();
     private bool _isEditMode;
-    private readonly SubTransactionValidator _subTransactionValidator = new();
+    private readonly TransactionDetailsValidator _transactionDetailsValidator = new();
 
     private IEnumerable<PersonModel> _persons = [];
 
@@ -68,25 +68,26 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _isEditMode = SubTransactionId.HasValue;
+        _isEditMode = TransactionDetailsId.HasValue;
         
         _persons = await PersonService.GetAllPersonsAsync();
         string dialogTitle;
         if (_isEditMode)
         {
-            if (SubTransactionId is not null) _subTransactionModel = 
-                await SubTransactionService.GetSubTransactionByIdAsync(SubTransactionId.Value)
-                  ?? new SubTransactionModel { TransactionId = TransactionId };
-            dialogTitle = "Edit subtransaction";
+            if (TransactionDetailsId is not null) 
+                _transactionDetailsModel = await TransactionDetailsService
+                                               .GetTransactionDetailsByIdAsync(TransactionDetailsId.Value)
+                                           ?? new TransactionDetailsModel { TransactionId = TransactionId };
+            dialogTitle = "Edit transaction details";
         }
         else
         {
-            _subTransactionModel = new SubTransactionModel
+            _transactionDetailsModel = new TransactionDetailsModel
             {
                 TransactionId = TransactionId,
                 Sum = 0m
             };
-            dialogTitle = "Add new subtransaction";
+            dialogTitle = "Add new transaction details";
         }
 
         await MudDialog.SetTitleAsync(dialogTitle);
@@ -99,9 +100,9 @@
         if (_form.IsValid)
         {
             if (_isEditMode)
-                await SubTransactionService.UpdateAsync(_subTransactionModel);
+                await TransactionDetailsService.UpdateTransactionDetailsAsync(_transactionDetailsModel);
             else
-                await SubTransactionService.AddSubTransactionAsync(_subTransactionModel);
+                await TransactionDetailsService.AddTransactionDetailsAsync(_transactionDetailsModel);
 
             MudDialog.Close(DialogResult.Ok(true));
         }

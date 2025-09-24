@@ -7,7 +7,7 @@ using TTCCashRegister.Data.CostCenter;
 using TTCCashRegister.Data.ItemDetail;
 using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.SpecialItem;
-using TTCCashRegister.Data.SubTransaction;
+using TTCCashRegister.Data.TransactionDetails;
 
 namespace TTCCashRegister.Data
 {
@@ -20,7 +20,7 @@ namespace TTCCashRegister.Data
         public DbSet<SpecialItemModel> SpecialItems { get; set; }
         public DbSet<CategoryModel> Categories { get; set; }
         public DbSet<PersonModel> Persons { get; set; }
-        public DbSet<SubTransactionModel> SubTransactions { get; set; }
+        public DbSet<TransactionDetailsModel> TransactionDetails { get; set; }
         public DbSet<AllocationModel> Allocations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -49,7 +49,7 @@ namespace TTCCashRegister.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             // SubTransaction ↔ Person (n:1)
-            modelBuilder.Entity<SubTransactionModel>()
+            modelBuilder.Entity<TransactionDetailsModel>()
                 .HasOne(st => st.Person)
                 .WithMany()
                 .HasForeignKey(st => st.PersonId)

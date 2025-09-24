@@ -1,10 +1,10 @@
 using FluentValidation;
 
-namespace TTCCashRegister.Data.SubTransaction
+namespace TTCCashRegister.Data.TransactionDetails
 {
-    public class SubTransactionValidator : AbstractValidator<SubTransactionModel>
+    public class TransactionDetailsValidator : AbstractValidator<TransactionDetailsModel>
     {
-        public SubTransactionValidator()
+        public TransactionDetailsValidator()
         {
             RuleFor(st => st.TransactionId)
                 .NotEmpty()
@@ -21,8 +21,8 @@ namespace TTCCashRegister.Data.SubTransaction
         public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>
         {
             var result = await ValidateAsync(
-                ValidationContext<SubTransactionModel>.CreateWithOptions(
-                    (SubTransactionModel)model,
+                ValidationContext<TransactionDetailsModel>.CreateWithOptions(
+                    (TransactionDetailsModel)model,
                     x => x.IncludeProperties(propertyName)
                 )
             );
