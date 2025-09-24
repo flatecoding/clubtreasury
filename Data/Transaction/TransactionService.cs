@@ -22,7 +22,7 @@ public class TransactionService(
                 .ThenInclude(a => a.Category)
             .Include(t => t.Allocation)
                 .ThenInclude(a => a.ItemDetail)
-            .Include(t => t.SubTransactions)
+            .Include(t => t.TransactionDetails)
                 .ThenInclude(st => st.Person)
             .OrderByDescending(x => x.Id)
             .AsNoTracking()
@@ -53,7 +53,7 @@ public class TransactionService(
             .ThenInclude(a => a.Category)
             .Include(t => t.Allocation)
             .ThenInclude(a => a.ItemDetail)
-            .Include(t => t.SubTransactions)
+            .Include(t => t.TransactionDetails)
             .ThenInclude(st => st.Person)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
@@ -187,7 +187,7 @@ public class TransactionService(
                 .ThenInclude(a => a.Category)
             .Include(t => t.Allocation)
                 .ThenInclude(a => a.ItemDetail)
-            .Include(t => t.SubTransactions)
+            .Include(t => t.TransactionDetails)
                 .ThenInclude(st => st.Person)
             .AsNoTracking();
 
@@ -211,7 +211,7 @@ public class TransactionService(
                 (x.Allocation.CostCenter.CostUnitName.ToLower().Contains(term)) ||
                 (x.Allocation.Category.Name.ToLower().Contains(term)) ||
                 (x.Allocation.ItemDetail != null && x.Allocation.ItemDetail.CostDetails.ToLower().Contains(term)) ||
-                x.SubTransactions.Any(st => st.Person != null && st.Person.Name.ToLower().Contains(term))
+                x.TransactionDetails.Any(st => st.Person != null && st.Person.Name.ToLower().Contains(term))
             );
         }
 
@@ -219,7 +219,7 @@ public class TransactionService(
         if (personId is not null)
         {
             query = query.Where(t =>
-                t.SubTransactions.Any(st => st.PersonId == personId));
+                t.TransactionDetails.Any(st => st.PersonId == personId));
         }
 
         // 🔽 Sortierung
