@@ -1,0 +1,72 @@
+@page "/allocations"
+@inject AllocationService AllocationService
+
+<h2>Allocations</h2>
+
+<MudPaper Class="mt-4" Style="width:70%;">
+    <MudTable Items="@_allAllocations" Dense="true" Hover="true" Bordered="false" Striped="true" 
+              @bind-SelectedItem="_selectedAllocation"
+              Filter="new Func<AllocationModel,bool>(FilterFunc)">
+        <ToolBarContent>
+            <MudTextField @bind-Value="_searchString"
+                          Placeholder="Search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0">
+            </MudTextField>
+            <MudSpacer />
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Id<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
+            <MudTh>Cost center<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.CostCenter.CostUnitName)"></MudTableSortLabel></MudTh>
+            <MudTh>Category<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.Category.Name)"></MudTableSortLabel></MudTh>
+            <MudTh>Item details<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.ItemDetail?.CostDetails)">
+                
+            </MudTableSortLabel></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Cost center">@context.CostCenter?.CostUnitName</MudTd>
+            <MudTd DataLabel="Category">@context.Category?.Name</MudTd>
+            <MudTd DataLabel="Item details">@context.ItemDetail?.CostDetails</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private IEnumerable<AllocationModel>? _allAllocations;
+    private AllocationModel? _selectedAllocation;
+    private string _searchString = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateAllocations();
+    }
+
+    private async Task UpdateAllocations()
+    {
+        _allAllocations = await AllocationService.GetAllAllocationsAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private bool FilterFunc(AllocationModel? allocation)
+    {
+        if (allocation == null)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        var term = _searchString.Trim().ToLowerInvariant();
+
+        var matchesCostCenter = allocation.CostCenter.CostUnitName.ToLowerInvariant().Contains(term);
+        var matchesCategory = allocation.Category.Name.ToLowerInvariant().Contains(term);
+        var matchesItemDetail = allocation.ItemDetail != null && allocation.ItemDetail.CostDetails.ToLowerInvariant().Contains(term);
+
+        return matchesCostCenter || matchesCategory || matchesItemDetail;
+    }
+}
