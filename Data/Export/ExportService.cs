@@ -69,7 +69,7 @@ namespace TTCCashRegister.Data.Export
                 .ThenInclude(a => a.Category)
                 .Include(t => t.Allocation)
                 .ThenInclude(a => a.ItemDetail)
-                .Include(t => t.SubTransactions)
+                .Include(t => t.TransactionDetails)
                 .ThenInclude(st => st.Person)
                 .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
                 .ToListAsync();
@@ -246,7 +246,7 @@ namespace TTCCashRegister.Data.Export
                 {
                     var entries = new List<dynamic>();
 
-                    if (!t.SubTransactions.Any())
+                    if (!t.TransactionDetails.Any())
                     {
                         entries.Add(new
                         {
@@ -258,7 +258,7 @@ namespace TTCCashRegister.Data.Export
                         });
                     }
 
-                    entries.AddRange(t.SubTransactions.Select(st => new
+                    entries.AddRange(t.TransactionDetails.Select(st => new
                     {
                         CostCenter = t.Allocation.CostCenter,
                         Category = t.Allocation.Category,
