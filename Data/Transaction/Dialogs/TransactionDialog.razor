@@ -1,5 +1,5 @@
 @page "/transactiondialog"
-@using TTCCashRegister.Data.Accounts
+@using TTCCashRegister.Data.Allocation
 @using TTCCashRegister.Data.CashRegister
 @using TTCCashRegister.Data.Category
 @using TTCCashRegister.Data.CostCenter
@@ -167,9 +167,9 @@
 
         // Vorbelegung aus gespeicherter Transaktion
         _selectedCashRegisterModel = _transactionModel.CashRegister;
-        _selectedCostUnit = _transactionModel.Accounts?.CostCenter;
-        _selectedBasicUnit = _transactionModel.Accounts?.Category;
-        _selectedUnitDetail = _transactionModel.Accounts?.ItemDetail;
+        _selectedCostUnit = _transactionModel.Allocation?.CostCenter;
+        _selectedBasicUnit = _transactionModel.Allocation?.Category;
+        _selectedUnitDetail = _transactionModel.Allocation?.ItemDetail;
         _selectedSpecialItem = _transactionModel.SpecialItem;
         TransactionDateTime = _transactionModel.Date?.ToDateTime(TimeOnly.MinValue);
 
@@ -258,7 +258,7 @@
             SetRequired<CashRegisterModel, CashRegisterModel>(_selectedCashRegisterModel, c => c.Id);
 
         // AccountsModel vorbereiten
-        _transactionModel.Accounts = new AccountsModel
+        _transactionModel.Allocation = new AllocationModel
         {
             CostCenterId = _selectedCostUnit?.Id ?? 0,
             CostCenter = _selectedCostUnit,

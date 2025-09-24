@@ -32,9 +32,9 @@
             <MudTh>Acc. mvm.</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Cost center">@context.Accounts.CostCenter.CostUnitName</MudTd>
-            <MudTd DataLabel="Category">@context.Accounts.Category?.Name</MudTd>
-            <MudTd DataLabel="Position detail">@context.Accounts.ItemDetail?.CostDetails</MudTd>
+            <MudTd DataLabel="Cost center">@context.Allocation.CostCenter.CostUnitName</MudTd>
+            <MudTd DataLabel="Category">@context.Allocation.Category?.Name</MudTd>
+            <MudTd DataLabel="Position detail">@context.Allocation.ItemDetail?.CostDetails</MudTd>
             <MudTd DataLabel="Acc. mvm.">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
         </RowTemplate>
         <PagerContent>

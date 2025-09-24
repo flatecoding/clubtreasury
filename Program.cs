@@ -7,7 +7,7 @@ using MudBlazor.Services;
 using MudExtensions.Services;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
-using TTCCashRegister.Data.Accounts;
+using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
@@ -75,7 +75,7 @@ builder.Services.AddScoped<ImportCostCenterService>();
 builder.Services.AddScoped<ImportBookingJournalService>();
 builder.Services.AddScoped<PersonService>();
 builder.Services.AddScoped<SubTransactionService>();
-builder.Services.AddScoped<AccountsService>();
+builder.Services.AddScoped<AllocationService>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;

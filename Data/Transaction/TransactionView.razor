@@ -60,9 +60,9 @@
         <MudTd>@context.Description</MudTd>
         <MudTd>@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
         <MudTd>@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
-        <MudTd>@context.Accounts.CostCenter.CostUnitName</MudTd>
-        <MudTd>@context.Accounts.Category?.Name</MudTd>
-        <MudTd>@context.Accounts.ItemDetail?.CostDetails</MudTd>
+        <MudTd>@context.Allocation.CostCenter.CostUnitName</MudTd>
+        <MudTd>@context.Allocation.Category?.Name</MudTd>
+        <MudTd>@context.Allocation.ItemDetail?.CostDetails</MudTd>
         <MudTd>
             <MudIconButton Icon="@Icons.Material.Filled.List"
                            Color="Color.Secondary"
