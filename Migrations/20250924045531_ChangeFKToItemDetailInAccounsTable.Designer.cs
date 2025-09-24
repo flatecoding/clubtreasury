@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TTCCashRegister.Data;
 
@@ -11,9 +12,11 @@ using TTCCashRegister.Data;
 namespace TTCCashRegister.Migrations
 {
     [DbContext(typeof(CashDataContext))]
-    partial class CashDataContextModelSnapshot : ModelSnapshot
+    [Migration("20250924045531_ChangeFKToItemDetailInAccounsTable")]
+    partial class ChangeFKToItemDetailInAccounsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace TTCCashRegister.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("TTCCashRegister.Data.Allocation.AllocationModel", b =>
+            modelBuilder.Entity("TTCCashRegister.Data.Accounts.AccountsModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -47,7 +50,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasIndex("ItemDetailId");
 
-                    b.ToTable("Allocations");
+                    b.ToTable("Accounts");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.CashRegister.CashRegisterModel", b =>
@@ -206,7 +209,7 @@ namespace TTCCashRegister.Migrations
                     b.Property<decimal>("AccountMovement")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("AllocationId")
+                    b.Property<int>("AccountsId")
                         .HasColumnType("int");
 
                     b.Property<int>("CashRegisterId")
@@ -231,7 +234,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AllocationId");
+                    b.HasIndex("AccountsId");
 
                     b.HasIndex("CashRegisterId");
 
@@ -243,7 +246,7 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("Transactions");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Allocation.AllocationModel", b =>
+            modelBuilder.Entity("TTCCashRegister.Data.Accounts.AccountsModel", b =>
                 {
                     b.HasOne("TTCCashRegister.Data.Category.CategoryModel", "Category")
                         .WithMany("Accounts")
@@ -300,9 +303,9 @@ namespace TTCCashRegister.Migrations
 
             modelBuilder.Entity("TTCCashRegister.Data.Transaction.TransactionModel", b =>
                 {
-                    b.HasOne("TTCCashRegister.Data.Allocation.AllocationModel", "Allocation")
+                    b.HasOne("TTCCashRegister.Data.Accounts.AccountsModel", "Accounts")
                         .WithMany("Transactions")
-                        .HasForeignKey("AllocationId")
+                        .HasForeignKey("AccountsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -316,14 +319,14 @@ namespace TTCCashRegister.Migrations
                         .WithMany("Transactions")
                         .HasForeignKey("SpecialItemId");
 
-                    b.Navigation("Allocation");
+                    b.Navigation("Accounts");
 
                     b.Navigation("CashRegister");
 
                     b.Navigation("SpecialItem");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Allocation.AllocationModel", b =>
+            modelBuilder.Entity("TTCCashRegister.Data.Accounts.AccountsModel", b =>
                 {
                     b.Navigation("Transactions");
                 });

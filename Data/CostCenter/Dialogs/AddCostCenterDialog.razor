@@ -1,0 +1,37 @@
+﻿@page "/addCostCenter"
+@inject CostCenterService CostCenterService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_newCostCenterModel" Validation="_costunitvalidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_newCostCenterModel.CostUnitName" Label="Unit Name"
+                          For="@(() => _newCostCenterModel.CostUnitName)" Immediate="true" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await AddCostUnit())">Add</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private MudForm _form = new();
+    private readonly CostCenterValidator _costunitvalidator = new(); 
+    private readonly CostCenterModel _newCostCenterModel = new();
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    private async Task AddCostUnit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            await CostCenterService.AddCostCenterAsync(_newCostCenterModel);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}
