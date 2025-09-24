@@ -2,8 +2,8 @@
 @using System.Globalization
 @using TTCCashRegister.Data.Dialog
 @using TTCCashRegister.Data.Source
-@using TTCCashRegister.Data.SubTransaction
 @using TTCCashRegister.Data.Transaction.Dialogs
+@using TTCCashRegister.Data.TransactionDetails
 @inject TransactionService TransactionService
 @inject IDialogService DialogService
 @inject NotificationService NotificationService
@@ -66,8 +66,8 @@
         <MudTd>
             <MudIconButton Icon="@Icons.Material.Filled.List"
                            Color="Color.Secondary"
-                           aria-label="show-subtransactions"
-                           OnClick="@(() => ShowSubTransactionsOverviewDialog(
+                           aria-label="show-transactionDetails"
+                           OnClick="@(() => ShowTransactionDetailsOverviewDialog(
                                         context.Id, 
                                         context.Documentnumber))">
             </MudIconButton>
@@ -141,9 +141,9 @@
         }
     }
 
-    private async Task ShowSubTransactionsOverviewDialog(int transactionId, int documentNumber)
+    private async Task ShowTransactionDetailsOverviewDialog(int transactionId, int documentNumber)
     {
-        var dialog = await DialogService.ShowAsync<SubTransactionsOverviewDialog>(null,
+        var dialog = await DialogService.ShowAsync<TransactionDetailsOverviewDialog>(null,
             new DialogParameters
             {
                 ["TransactionId"] = transactionId,

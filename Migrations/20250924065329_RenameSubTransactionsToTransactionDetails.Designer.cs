@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TTCCashRegister.Data;
 
@@ -11,9 +12,11 @@ using TTCCashRegister.Data;
 namespace TTCCashRegister.Migrations
 {
     [DbContext(typeof(CashDataContext))]
-    partial class CashDataContextModelSnapshot : ModelSnapshot
+    [Migration("20250924065329_RenameSubTransactionsToTransactionDetails")]
+    partial class RenameSubTransactionsToTransactionDetails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,7 +50,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasIndex("ItemDetailId");
 
-                    b.ToTable("Allocations", (string)null);
+                    b.ToTable("Allocations");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.CashRegister.CashRegisterModel", b =>
@@ -65,7 +68,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CashRegisters", (string)null);
+                    b.ToTable("CashRegisters");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.Category.CategoryModel", b =>
@@ -87,7 +90,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasIndex("CostCenterId");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.CostCenter.CostCenterModel", b =>
@@ -105,7 +108,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CostCenters", (string)null);
+                    b.ToTable("CostCenters");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.ItemDetail.ItemDetailModel", b =>
@@ -123,7 +126,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ItemDetails", (string)null);
+                    b.ToTable("ItemDetails");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.Person.PersonModel", b =>
@@ -141,7 +144,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Persons", (string)null);
+                    b.ToTable("Persons");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.SpecialItem.SpecialItemModel", b =>
@@ -159,7 +162,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SpecialItems", (string)null);
+                    b.ToTable("SpecialItems");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.Transaction.TransactionModel", b =>
@@ -207,7 +210,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasIndex("SpecialItemId");
 
-                    b.ToTable("Transactions", (string)null);
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.TransactionDetails.TransactionDetailsModel", b =>
@@ -240,7 +243,7 @@ namespace TTCCashRegister.Migrations
 
                     b.HasIndex("TransactionId");
 
-                    b.ToTable("TransactionDetails", (string)null);
+                    b.ToTable("TransactionDetails");
                 });
 
             modelBuilder.Entity("TTCCashRegister.Data.Allocation.AllocationModel", b =>
