@@ -1,0 +1,84 @@
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace TTCCashRegister.Data.ItemDetail
+{
+    public class ItemDetailService(CashDataContext context)
+    {
+        private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
+
+        public async Task<List<ItemDetailModel>> GetAllItemDetailsAsync()
+        {
+            return await _context.ItemDetails
+                .Include(ud => ud.Accounts)
+                .ThenInclude(a => a.Category)
+                .Include(ud => ud.Accounts)
+                .ThenInclude(a => a.CostCenter)
+                .OrderByDescending(c => c.Id)
+                .ToListAsync();
+        }
+
+        public async Task<ItemDetailModel?> GetItemDetailByIdAsync(int id)
+        {
+            return await _context.ItemDetails
+                .Include(ud => ud.Accounts)
+                .ThenInclude(a => a.Category)
+                .Include(ud => ud.Accounts)
+                .ThenInclude(a => a.CostCenter)
+                .FirstOrDefaultAsync(x => x.Id == id);
+        }
+
+        public async Task<List<ItemDetailModel>> GetItemDetailByCategoryIdAsync(int categoryId)
+        {
+            return await _context.ItemDetails
+                .Where(u => u.Accounts.Any(a => a.CategoryId == categoryId))
+                .ToListAsync();
+        }
+
+        public async Task<ItemDetailModel?> AddItemDetailAsync(ItemDetailModel itemDetail)
+        {
+            try
+            {
+                await _context.ItemDetails.AddAsync(itemDetail);
+                await _context.SaveChangesAsync();
+                return itemDetail;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex}");
+                return null;
+            }
+        }
+
+        public async Task<bool> UpdateItemDetailAsync(ItemDetailModel itemDetail)
+        {
+            try
+            {
+                _context.ItemDetails.Update(itemDetail);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex}");
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteItemDetailAsync(int id)
+        {
+            try
+            {
+                var itemDetail = await _context.ItemDetails.FindAsync(id);
+                if (itemDetail == null) return false;
+                _context.ItemDetails.Remove(itemDetail);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex}");
+                return false;
+            }
+        }
+    }
+}
