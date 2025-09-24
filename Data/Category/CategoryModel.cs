@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TTCCashRegister.Data.Accounts;
+using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.CostCenter;
 
 namespace TTCCashRegister.Data.Category
@@ -16,7 +16,7 @@ namespace TTCCashRegister.Data.Category
         public int CostCenterId { get; set; }
         public CostCenterModel CostCenter { get; set; } = null!;
 
-        public ICollection<AccountsModel> Accounts { get; set; } = new List<AccountsModel>();
+        public ICollection<AllocationModel> Accounts { get; set; } = new List<AllocationModel>();
 
         public override string ToString()
         {
