@@ -1,10 +1,10 @@
 ﻿@page "/edititemdetail"
 @using System.Diagnostics
-@using TTCCashRegister.Data.Accounts
+@using TTCCashRegister.Data.Allocation
 @using TTCCashRegister.Data.Category
 @inject ItemDetailService ItemDetailService
 @inject CategoryService CategoryService
-@inject AccountsService AccountsService
+@inject AllocationService AllocationService
 
 <MudDialog>
     <DialogContent>
@@ -66,14 +66,14 @@
         var success = await ItemDetailService.UpdateItemDetailAsync(_editItemDetailModel);
         if (!success) return;
         
-        foreach (var account in _selectedCategories.Select(category => new AccountsModel
+        foreach (var account in _selectedCategories.Select(category => new AllocationModel
                  {
                      CategoryId = category.Id,
                      CostCenterId = category.CostCenterId,
                      ItemDetailId = _editItemDetailModel.Id
                  }))
         {
-            await AccountsService.EnsureAccountExistsAsync(account);
+            await AllocationService.EnsureAllocationExistsAsync(account);
         }
 
         MudDialog.Close(DialogResult.Ok(true));
