@@ -14,9 +14,9 @@ namespace TTCCashRegister.Data.Category
         public async Task<List<CategoryModel>> GetAllCategoriesAsync()
         {
             return await _context.Categories
-                .Include(b => b.Accounts)
+                .Include(b => b.Allocations)
                     .ThenInclude(a => a.CostCenter)
-                .Include(b => b.Accounts)
+                .Include(b => b.Allocations)
                     .ThenInclude(a => a.ItemDetail)
                 .ToListAsync();
         }
@@ -24,9 +24,9 @@ namespace TTCCashRegister.Data.Category
         public async Task<CategoryModel?> GetCategoryByIdAsync(int id)
         {
             return await _context.Categories
-                .Include(b => b.Accounts)
+                .Include(b => b.Allocations)
                     .ThenInclude(a => a.CostCenter)
-                .Include(b => b.Accounts)
+                .Include(b => b.Allocations)
                     .ThenInclude(a => a.ItemDetail)
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
@@ -34,7 +34,8 @@ namespace TTCCashRegister.Data.Category
         public async Task<IEnumerable<CategoryModel>> GetCategoriesByCostCenterIdAsync(int costUnitId)
         {
             return await _context.Categories
-                .Where(b => b.Accounts.Any(a => a.CostCenterId == costUnitId))
+                .Where(b => b.Allocations.Any(a => a.CostCenterId == costUnitId))
+                .OrderBy(c => c.Name)
                 .ToListAsync();
         }
 

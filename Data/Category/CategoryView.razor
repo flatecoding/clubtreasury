@@ -46,7 +46,7 @@
             <MudTd DataLabel="Details">
                 
                 @{
-                    var accountsWithDetails = context.Accounts.Where(a => a.ItemDetail != null).ToList();
+                    var accountsWithDetails = context.Allocations.Where(a => a.ItemDetail != null).ToList();
                 }
 
                 @if (accountsWithDetails.Any())
@@ -60,7 +60,7 @@
                 }
                 else
                 {
-                    <em>No details assigned</em>
+                    <em>No item details assigned</em>
                 }
             </MudTd>
             <MudTd DataLabel="Actions">
@@ -102,7 +102,7 @@
         searchstring = searchstring.ToLowerInvariant();
 
         // Suche über UnitDetails in Accounts
-        return element.Accounts.Any(a =>
+        return element.Allocations.Any(a =>
             a.ItemDetail != null &&
             a.ItemDetail.CostDetails.ToLower().Contains(searchstring)) || element.Name.ToLower().Contains(searchstring);
     }
