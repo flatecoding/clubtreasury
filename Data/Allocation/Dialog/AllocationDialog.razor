@@ -1,0 +1,104 @@
+@page "/allocationdialog"
+@using TTCCashRegister.Data.Category
+@using TTCCashRegister.Data.CostCenter
+@using TTCCashRegister.Data.ItemDetail
+@inject AllocationService AllocationService
+@inject CostCenterService CostCenterService
+@inject CategoryService CategoryService
+@inject ItemDetailService ItemDetailService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_allocationModel">
+            <MudSelect T="int" Label="Cost Center" @bind-Value="_allocationModel.CostCenterId" Required="true">
+                @foreach (var cc in _costCenters)
+                {
+                    <MudSelectItem T="int" Value="@cc.Id">@cc.CostUnitName</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="int" Label="Category" @bind-Value="_allocationModel.CategoryId" Required="true">
+                @foreach (var cat in _categories)
+                {
+                    <MudSelectItem T="int" Value="@cat.Id">@cat.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="int?" Label="Item Detail" @bind-Value="_allocationModel.ItemDetailId">
+                <MudSelectItem T="int?" Value="null">None</MudSelectItem>
+                @foreach (var item in _itemDetails)
+                {
+                    <MudSelectItem T="int?" Value="@item.Id">@item.CostDetails</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Save())">
+            @(_isEditMode ? "Save" : "Add")
+        </MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int? AllocationId { get; set; }
+    private MudForm _form = new();
+    private AllocationModel _allocationModel = new();
+    private bool _isEditMode;
+
+    private List<CostCenterModel> _costCenters = new();
+    private List<CategoryModel> _categories = new();
+    private List<ItemDetailModel> _itemDetails = new();
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isEditMode = AllocationId.HasValue;
+
+        
+        _costCenters = (await CostCenterService.GetAllCostCentersAsync())
+            .OrderBy(c => c.CostUnitName)
+            .ToList();
+        _categories = (await CategoryService.GetAllCategoriesAsync())
+            .OrderBy(c => c.Name)
+            .ToList();
+        _itemDetails = (await ItemDetailService.GetAllItemDetailsAsync())
+            .OrderBy(i => i.CostDetails)
+            .ToList();
+            
+        if (_isEditMode && AllocationId is not null)
+        {
+            _allocationModel = await AllocationService.GetAllocationsByIdAsync(AllocationId.Value) ?? new AllocationModel();
+            await MudDialog.SetTitleAsync("Edit Allocation");
+        }
+        else
+        {
+            _allocationModel = new AllocationModel();
+            await MudDialog.SetTitleAsync("Add Allocation");
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            bool result;
+            if (_isEditMode) 
+                result = await AllocationService.UpdateAllocationAsync(_allocationModel);
+            else
+                result = await AllocationService.AddAllocationAsync(_allocationModel);
+
+            MudDialog.Close(DialogResult.Ok(result));
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Cancel());
+    }
+}

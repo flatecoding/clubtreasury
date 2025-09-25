@@ -1,13 +1,25 @@
 @page "/allocations"
+@using TTCCashRegister.Data.Allocation.Dialog
+@using TTCCashRegister.Data.Dialog
+@using TTCCashRegister.Data.Source
 @inject AllocationService AllocationService
-
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NotificationService NotificationService
 <h2>Allocations</h2>
 
 <MudPaper Class="mt-4" Style="width:70%;">
-    <MudTable Items="@_allAllocations" Dense="true" Hover="true" Bordered="false" Striped="true" 
+    <MudTable Items="@_allAllocations" Dense="true" Hover="true" Bordered="false" Striped="true"
               @bind-SelectedItem="_selectedAllocation"
               Filter="new Func<AllocationModel,bool>(FilterFunc)">
         <ToolBarContent>
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Color="Color.Primary"
+                       @onclick="ShowAddAllocationDialog">
+                Add allocation
+            </MudButton>
+            <MudSpacer />
             <MudTextField @bind-Value="_searchString"
                           Placeholder="Search"
                           Adornment="Adornment.Start"
@@ -15,21 +27,23 @@
                           IconSize="Size.Medium"
                           Class="mt-0">
             </MudTextField>
-            <MudSpacer />
         </ToolBarContent>
         <HeaderContent>
-            <MudTh>Id<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>Cost center<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.CostCenter.CostUnitName)"></MudTableSortLabel></MudTh>
-            <MudTh>Category<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.Category.Name)"></MudTableSortLabel></MudTh>
-            <MudTh>Item details<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.ItemDetail?.CostDetails)">
-                
-            </MudTableSortLabel></MudTh>
+            <MudTh>Id<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.Id)" /></MudTh>
+            <MudTh>Cost center<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.CostCenter.CostUnitName)" /></MudTh>
+            <MudTh>Category<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.Category.Name)" /></MudTh>
+            <MudTh>Item details<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.ItemDetail?.CostDetails)" /></MudTh>
+            <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Cost center">@context.CostCenter?.CostUnitName</MudTd>
             <MudTd DataLabel="Category">@context.Category?.Name</MudTd>
             <MudTd DataLabel="Item details">@context.ItemDetail?.CostDetails</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditAllocationDialog(context.Id)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteAllocationDialog(context)" />
+            </MudTd>
         </RowTemplate>
         <PagerContent>
             <MudTablePager />
@@ -41,6 +55,14 @@
     private IEnumerable<AllocationModel>? _allAllocations;
     private AllocationModel? _selectedAllocation;
     private string _searchString = string.Empty;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        BackdropClick = false,
+        CloseButton = true
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,5 +90,39 @@
         var matchesItemDetail = allocation.ItemDetail != null && allocation.ItemDetail.CostDetails.ToLowerInvariant().Contains(term);
 
         return matchesCostCenter || matchesCategory || matchesItemDetail;
+    }
+
+    private async Task ShowAddAllocationDialog()
+    {
+        var dialog = await DialogService.ShowAsync<AllocationDialog>(string.Empty);
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateAllocations();
+            
+        
+    }
+
+    private async Task ShowEditAllocationDialog(int allocationId)
+    {
+        var parameters = new DialogParameters { ["AllocationId"] = allocationId };
+        var dialog = await DialogService.ShowAsync<AllocationDialog>("Edit allocation", parameters, _dialogOptions);
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await UpdateAllocations();
+    }
+
+    private async Task ShowDeleteAllocationDialog(AllocationModel allocation)
+    {
+        var parameters = new DialogParameters
+        {
+            ["EntityName"] = "Allocation",
+            ["ItemName"] = $"{allocation.CostCenter.CostUnitName} - {allocation.Category.Name}",
+            ["OnConfirm"] = EventCallback.Factory.Create(this, async () =>
+            {
+                await AllocationService.DeleteAllocationAsync(allocation.Id);
+                await UpdateAllocations();
+                Snackbar.Add("Allocation deleted successfully", Severity.Success);
+            })
+        };
+
+        await DialogService.ShowAsync<ConfirmDeleteDialog>("Delete allocation", parameters, _dialogOptions);
     }
 }
