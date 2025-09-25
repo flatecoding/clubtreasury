@@ -9,13 +9,19 @@ namespace TTCCashRegister.Data.CostCenter
     {
         [Key]
         public int Id { get; set; }
+
         [Required]
         [StringLength(100, ErrorMessage = "The cost center name cannot exceed 100 characters.")]
         public string CostUnitName { get; set; } = string.Empty;
-        public ICollection<CategoryModel> Categories { get; set; } = new List<CategoryModel>();
-        public ICollection<AllocationModel> Accounts { get; set; } = new List<AllocationModel>();
+
+        public ICollection<AllocationModel> Allocations { get; set; } = new List<AllocationModel>();
 
         [NotMapped]
-        public int CategoriesCount => Categories.Count;
+        public int AllocationsCount => Allocations.Count;
+
+        // Optional: Zugriff auf verknüpfte Kategorien
+        [NotMapped]
+        public IEnumerable<CategoryModel> LinkedCategories => Allocations
+            .Select(a => a.Category).Distinct();
     }
 }

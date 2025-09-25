@@ -26,29 +26,25 @@ namespace TTCCashRegister.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            // CostUnit ↔ BasicUnit (1:n)
-            modelBuilder.Entity<CategoryModel>()
-                .HasOne(b => b.CostCenter)
-                .WithMany(c => c.Categories) 
-                .HasForeignKey(b => b.CostCenterId)
+            
+            modelBuilder.Entity<AllocationModel>()
+                .HasOne(a => a.CostCenter)
+                .WithMany(c => c.Allocations)
+                .HasForeignKey(a => a.CostCenterId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            // Accounts ↔ BasicUnit (n:1)
+            
             modelBuilder.Entity<AllocationModel>()
                 .HasOne(a => a.Category)
-                .WithMany(b => b.Accounts)
+                .WithMany(b => b.Allocations)
                 .HasForeignKey(a => a.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            // Accounts ↔ UnitDetails (n:1)
+            
             modelBuilder.Entity<AllocationModel>()
                 .HasOne(a => a.ItemDetail)
-                .WithMany(ud => ud.Accounts)
+                .WithMany(ud => ud.Allocations)
                 .HasForeignKey(a => a.ItemDetailId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            // SubTransaction ↔ Person (n:1)
+            
             modelBuilder.Entity<TransactionDetailsModel>()
                 .HasOne(st => st.Person)
                 .WithMany()
@@ -68,6 +64,17 @@ namespace TTCCashRegister.Data
             modelBuilder.Entity<TransactionModel>()
                 .Property(t => t.AccountMovement)
                 .HasColumnType("decimal(10,2)");
+
+            modelBuilder.Entity<TransactionModel>()
+                .HasOne(t => t.Allocation)
+                .WithMany(a => a.Transactions)
+                .HasForeignKey(t => t.AllocationId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<AllocationModel>()
+                .HasIndex(a => new { a.CostCenterId, a.CategoryId, a.ItemDetailId })
+                .IsUnique();
         }
 
     }

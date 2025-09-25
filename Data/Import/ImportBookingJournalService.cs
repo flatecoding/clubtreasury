@@ -9,12 +9,22 @@ using TTCCashRegister.Data.CostCenter;
 
 namespace TTCCashRegister.Data.Import
 {
-    public class ImportBookingJournalService(CashDataContext context, TransactionService transactionService, 
-        ILogger<ImportBookingJournalService> logger)
+    public class ImportBookingJournalService
     {
+        private readonly CashDataContext context;
+        private readonly TransactionService transactionService;
+        private readonly ILogger<ImportBookingJournalService> logger;
+
+        public ImportBookingJournalService(CashDataContext context, TransactionService transactionService, ILogger<ImportBookingJournalService> logger)
+        {
+            this.context = context;
+            this.transactionService = transactionService;
+            this.logger = logger;
+        }
+
         public async Task<bool> ImportTransactions(Stream? fileStream)
         {
-            if (fileStream == null) 
+            if (fileStream == null)
             {
                 logger.LogError("The data-stream is null.");
                 return false;
@@ -28,16 +38,9 @@ namespace TTCCashRegister.Data.Import
                 memoryStream.Position = 0;
 
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
                 using var reader = ExcelReaderFactory.CreateReader(memoryStream);
                 var result = reader.AsDataSet();
                 var dataTable = result.Tables["Buchungen"];
-               
-                var existingDocumentNumbers = new HashSet<int>(
-                    await context.Transactions
-                        .Select(t => t.Documentnumber)
-                        .ToListAsync()
-                );
 
                 if (dataTable?.Rows == null)
                 {
@@ -45,8 +48,13 @@ namespace TTCCashRegister.Data.Import
                     return false;
                 }
 
-                var costCenters = await context.CostCenters.Include(cu => cu.Categories).ToListAsync();
+                var existingDocumentNumbers = new HashSet<int>(
+                    await context.Transactions.Select(t => t.Documentnumber).ToListAsync()
+                );
+
+                var costCenters = await context.CostCenters.ToListAsync();
                 var categories = await context.Categories.ToListAsync();
+                var allocations = await context.Allocations.ToListAsync();
                 var cashRegister = await context.CashRegisters.FirstOrDefaultAsync();
 
                 if (cashRegister == null)
@@ -65,7 +73,7 @@ namespace TTCCashRegister.Data.Import
                             continue;
                         }
                         var date = DateOnly.FromDateTime(datum);
-                        
+
                         var documentRaw = row.ItemArray[1]?.ToString()?.TrimStart('B');
                         if (!int.TryParse(documentRaw, out var documentNumber))
                         {
@@ -78,9 +86,9 @@ namespace TTCCashRegister.Data.Import
                             logger.LogInformation("Skipping duplicate document number: {0}", documentNumber);
                             continue;
                         }
-                        
+
                         var description = row.ItemArray[2]?.ToString();
-                        
+
                         var sumStr = row.ItemArray[3]?.ToString()?.Trim();
                         if (string.IsNullOrEmpty(sumStr))
                             sumStr = row.ItemArray[4]?.ToString()?.Trim();
@@ -90,13 +98,13 @@ namespace TTCCashRegister.Data.Import
                             logger.LogWarning("Missing or invalid sum value in row: {0}", string.Join(", ", row.ItemArray));
                             continue;
                         }
-                        
+
                         var accountMovement = 0m;
                         if (row.ItemArray[5] != DBNull.Value && decimal.TryParse(row.ItemArray[5]?.ToString(), out var accMove))
                         {
                             accountMovement = accMove;
                         }
-                        
+
                         var costCenterCategory = row.ItemArray[6]?.ToString();
                         var parts = costCenterCategory?.Split('/');
                         if (parts == null || parts.Length == 0)
@@ -108,7 +116,7 @@ namespace TTCCashRegister.Data.Import
                         var costCenterName = parts[0].Trim();
                         var categoryName = parts.Length >= 2 ? parts[1].Trim() : "Undefined";
 
-                        var costCenter = costCenters.FirstOrDefault(cu => cu.CostUnitName == costCenterName);
+                        var costCenter = costCenters.FirstOrDefault(c => c.CostUnitName == costCenterName);
                         if (costCenter == null)
                         {
                             costCenter = new CostCenterModel { CostUnitName = costCenterName };
@@ -116,23 +124,31 @@ namespace TTCCashRegister.Data.Import
                             context.CostCenters.Add(costCenter);
                         }
 
-                        var category = categories.FirstOrDefault(bu => bu.Name == categoryName && bu.CostCenterId == costCenter.Id);
+                        var category = categories.FirstOrDefault(c => c.Name == categoryName);
                         if (category == null)
                         {
-                            category = new CategoryModel { Name = categoryName, CostCenter = costCenter };
-                            costCenter.Categories.Add(category);
+                            category = new CategoryModel { Name = categoryName };
                             categories.Add(category);
                             context.Categories.Add(category);
                         }
-                        
-                        var accounts = new AllocationModel
+
+                        var allocation = allocations.FirstOrDefault(a =>
+                            a.CostCenterId == costCenter.Id &&
+                            a.CategoryId == category.Id &&
+                            a.ItemDetailId == null);
+
+                        if (allocation == null)
                         {
-                            CostCenterId = costCenter.Id,
-                            CostCenter = costCenter,
-                            CategoryId = category.Id,
-                            Category = category
-                        };
-                        
+                            allocation = new AllocationModel
+                            {
+                                CostCenter = costCenter,
+                                Category = category,
+                                ItemDetailId = null
+                            };
+                            allocations.Add(allocation);
+                            context.Allocations.Add(allocation);
+                        }
+
                         var transaction = new TransactionModel
                         {
                             CashRegisterId = cashRegister.Id,
@@ -141,12 +157,12 @@ namespace TTCCashRegister.Data.Import
                             Description = description,
                             Sum = sumValue,
                             AccountMovement = accountMovement,
-                            Allocation = accounts
+                            Allocation = allocation
                         };
 
-                        if (!await transactionService.AddTransaction(transaction))
+                        if (!await transactionService.AddTransactionAsync(transaction))
                         {
-                            logger.LogError("Failed to add transaction for date {0}", documentNumber);
+                            logger.LogError("Failed to add transaction for document number {0}", documentNumber);
                             return false;
                         }
                     }

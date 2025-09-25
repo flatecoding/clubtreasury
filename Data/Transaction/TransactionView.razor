@@ -99,9 +99,9 @@
     private TransactionModel _selectedItem = new();
     private DateRange _dateRange = new(null, null);
 
-    private readonly DialogOptions _subTransactionsOverviewOptions = new()
+    private readonly DialogOptions _transactionDetailsOverviewOptions = new()
     {
-        MaxWidth = MaxWidth.Medium,
+        MaxWidth = MaxWidth.Large,
         FullWidth = true,
         BackdropClick = false,
         BackgroundClass= "custom-dialog-background"
@@ -149,7 +149,7 @@
                 ["TransactionId"] = transactionId,
                 ["ParentDocumentNumber"] = documentNumber
             },
-            _subTransactionsOverviewOptions);
+            _transactionDetailsOverviewOptions);
         await dialog.Result;
         
         await UpdateView();

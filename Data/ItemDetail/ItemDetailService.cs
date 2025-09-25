@@ -9,9 +9,9 @@ namespace TTCCashRegister.Data.ItemDetail
         public async Task<List<ItemDetailModel>> GetAllItemDetailsAsync()
         {
             return await _context.ItemDetails
-                .Include(ud => ud.Accounts)
+                .Include(ud => ud.Allocations)
                 .ThenInclude(a => a.Category)
-                .Include(ud => ud.Accounts)
+                .Include(ud => ud.Allocations)
                 .ThenInclude(a => a.CostCenter)
                 .OrderByDescending(c => c.Id)
                 .ToListAsync();
@@ -20,9 +20,9 @@ namespace TTCCashRegister.Data.ItemDetail
         public async Task<ItemDetailModel?> GetItemDetailByIdAsync(int id)
         {
             return await _context.ItemDetails
-                .Include(ud => ud.Accounts)
+                .Include(ud => ud.Allocations)
                 .ThenInclude(a => a.Category)
-                .Include(ud => ud.Accounts)
+                .Include(ud => ud.Allocations)
                 .ThenInclude(a => a.CostCenter)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
@@ -30,7 +30,7 @@ namespace TTCCashRegister.Data.ItemDetail
         public async Task<List<ItemDetailModel>> GetItemDetailByCategoryIdAsync(int categoryId)
         {
             return await _context.ItemDetails
-                .Where(u => u.Accounts.Any(a => a.CategoryId == categoryId))
+                .Where(u => u.Allocations.Any(a => a.CategoryId == categoryId))
                 .ToListAsync();
         }
 

@@ -10,6 +10,6 @@ namespace TTCCashRegister.Data.ItemDetail
         [Required]
         [MaxLength(100)]
         public string CostDetails { get; set; } = string.Empty;
-        public ICollection<AllocationModel> Accounts { get; set; } = new List<AllocationModel>();
+        public ICollection<AllocationModel> Allocations { get; set; } = new List<AllocationModel>();
     }
 }

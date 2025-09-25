@@ -14,17 +14,6 @@
                           For="@(() => _newItemDetailModel.CostDetails)"
                           Required="true" 
                           Immediate="true" />
-
-            <MudSelect T="CategoryModel" 
-                       Label="Category" 
-                       @bind-SelectedValues="_selectedCategories"
-                       MultiSelection="true"
-                       Required="true">
-                @foreach (var category in _allCategories)
-                {
-                    <MudSelectItem T="CategoryModel" Value="@category">@category.Name</MudSelectItem>
-                }
-            </MudSelect>
         </MudForm>
     </DialogContent>
     <DialogActions>
@@ -42,36 +31,15 @@
     private MudForm _form = new();
     private readonly ItemDetailModel _newItemDetailModel = new();
     private readonly ItemDetailValidator _itemDetailValidator = new();
-    private IEnumerable<CategoryModel> _allCategories = new List<CategoryModel>();
-    private IEnumerable<CategoryModel> _selectedCategories = new List<CategoryModel>();
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Alle BasicUnits laden
-        _allCategories = await CategoryService.GetAllCategoriesAsync();
-    }
 
     private async Task AddItemDetailAsync()
     {
         await _form.Validate();
-        if (!_form.IsValid || !_selectedCategories.Any())
+        if (!_form.IsValid)
             return;
 
-        // 1. UnitDetail speichern
-        var createdDetail = await ItemDetailService.AddItemDetailAsync(_newItemDetailModel);
-
-        // 2. N:M-Beziehung über Accounts erstellen
-        foreach (var account in _selectedCategories.Select(category => new AllocationModel
-                 {
-                     CategoryId = category.Id,
-                     CostCenterId = category.CostCenterId,
-                     ItemDetailId = createdDetail?.Id
-                 }))
-        {
-            await AllocationService.EnsureAllocationExistsAsync(account);
-        }
-
-        MudDialog.Close(DialogResult.Ok(true));
+        // 1. Item detail speichern
+        MudDialog.Close(DialogResult.Ok(await ItemDetailService.AddItemDetailAsync(_newItemDetailModel)));
     }
 
     private void Cancel()
