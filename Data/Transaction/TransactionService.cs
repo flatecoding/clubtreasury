@@ -60,81 +60,86 @@ public class TransactionService(
     
 
 
-    public async Task<bool> AddTransaction(TransactionModel entry)
+    public async Task<bool> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default)
     {
         try
         {
-            var cashRegister = await cashRegisterService.GetCashRegisterById(entry.CashRegisterId);
-            if (cashRegister is null)
-                throw new Exception($"No cash register with '{entry.CashRegisterId}' found.");
+            // 1) Guard: Kasse muss existieren
+            var cashRegisterExists = await context.CashRegisters
+                .AnyAsync(cr => cr.Id == entry.CashRegisterId, ct);
 
-            // ✅ Account prüfen oder neu anlegen
-            var account = await allocationService.EnsureAllocationExistsAsync(entry.Allocation);
-            entry.AllocationId = account.Id;
-            entry.Allocation = null;
+            if (!cashRegisterExists)
+                throw new InvalidOperationException($"No cash register with '{entry.CashRegisterId}' found.");
 
-            await context.Transactions.AddAsync(entry);
-            await context.SaveChangesAsync();
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error in AddTransaction: {ex}");
-            return false;
-        }
-    }
-
-
-    public async Task<bool> UpdateTransactionAsync(TransactionModel entry)
-    {
-        try
-        {
-            var existingTransaction = await context.Transactions
-                .FirstOrDefaultAsync(t => t.Id == entry.Id);
-
-            if (existingTransaction == null)
-                throw new Exception("Transaction not found.");
-
-            // Allocation prüfen oder anlegen
-            var account = await context.Allocations.FirstOrDefaultAsync(a =>
-                a.CostCenterId == entry.Allocation.CostCenterId &&
-                a.CategoryId == entry.Allocation.CategoryId &&
-                a.ItemDetailId == entry.Allocation.ItemDetailId);
-
-            if (account == null)
+            // 2) Allocation sicherstellen (ohne Save)
+            var account = await allocationService.EnsureAllocationExistsAsync(entry.Allocation, ct);
+            
+            var tx = new TransactionModel
             {
-                account = entry.Allocation;
-                context.Allocations.Add(account);
-                await context.SaveChangesAsync();
-            }
+                Description     = entry.Description,
+                AccountMovement = entry.AccountMovement,
+                Date            = entry.Date,
+                Documentnumber  = entry.Documentnumber,
+                Sum             = entry.Sum,
+                SpecialItemId   = entry.SpecialItemId,
+                CashRegisterId  = entry.CashRegisterId,
+                Allocation      = account // Navigation setzen
+            };
 
-            // Transaction aktualisieren
-            existingTransaction.Description = entry.Description;
-            existingTransaction.AccountMovement = entry.AccountMovement;
-            existingTransaction.Date = entry.Date;
-            existingTransaction.Documentnumber = entry.Documentnumber;
-            existingTransaction.Sum = entry.Sum;
-            existingTransaction.AllocationId = account.Id;
-            existingTransaction.Allocation = null; // nur Id speichern
-            existingTransaction.SpecialItemId = entry.SpecialItemId;
-            existingTransaction.CashRegisterId = entry.CashRegisterId;
-
-            await context.SaveChangesAsync();
+            context.Transactions.Add(tx);
+            
+            await context.SaveChangesAsync(ct);
             return true;
         }
         catch (DbUpdateException dbEx)
         {
-            Debug.WriteLine($"DBUpdateException: {dbEx.Message}");
+            Debug.WriteLine($"DB error in AddTransactionAsync: {dbEx}");
             return false;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error: {ex.Message}");
+            Debug.WriteLine($"Error in AddTransactionAsync: {ex}");
             return false;
         }
     }
+    
+    public async Task<bool> UpdateTransactionAsync(TransactionModel entry, CancellationToken ct = default)
+    {
+        try
+        {
+            var tx = await context.Transactions
+                .FirstOrDefaultAsync(t => t.Id == entry.Id, ct);
 
+            if (tx == null)
+                throw new KeyNotFoundException("Transaction not found.");
+            
+            var account = await allocationService.EnsureAllocationExistsAsync(entry.Allocation, ct);
+            
+            tx.Description     = entry.Description;
+            tx.AccountMovement = entry.AccountMovement;
+            tx.Date            = entry.Date;
+            tx.Documentnumber  = entry.Documentnumber;
+            tx.Sum             = entry.Sum;
+            tx.SpecialItemId   = entry.SpecialItemId;
+            tx.CashRegisterId  = entry.CashRegisterId;
+            tx.Allocation   = account;    
+            tx.AllocationId = account.Id;
+            
+            await context.SaveChangesAsync(ct);
+            return true;
+        }
+        catch (DbUpdateException dbEx)
+        {
+            Debug.WriteLine($"DB error in UpdateTransactionAsync: {dbEx}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error in UpdateTransactionAsync: {ex}");
+            return false;
+        }
+    }
+    
     public async Task<bool> DeleteTransactionAsync(int id)
     {
         try

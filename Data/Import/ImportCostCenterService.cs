@@ -1,11 +1,19 @@
 using Microsoft.EntityFrameworkCore;
+using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
 
 namespace TTCCashRegister.Data.Import
 {
-    public class ImportCostCenterService(CashDataContext context)
+    public class ImportCostCenterService
     {
+        private readonly CashDataContext _context;
+
+        public ImportCostCenterService(CashDataContext context)
+        {
+            _context = context;
+        }
+
         public async Task<bool> ImportCostCentersAndPositions(Stream fileStream)
         {
             if (fileStream == null)
@@ -27,56 +35,65 @@ namespace TTCCashRegister.Data.Import
                     }
                 }
 
-                var costCenters = await context.CostCenters
-                    .Include(cu => cu.Categories)
-                    .ToListAsync();
-
-                var categories = await context.Categories
-                    .ToListAsync();
+                var costCenters = await _context.CostCenters.ToListAsync();
+                var categories = await _context.Categories.ToListAsync();
+                var allocations = await _context.Allocations.ToListAsync();
 
                 foreach (var line in lines)
                 {
                     var parts = line.Split('/');
                     string costCenterName;
-                    string positionName;
+                    string categoryName;
+
                     switch (parts.Length)
                     {
                         case 1:
-                        {
                             costCenterName = parts[0].Trim();
-                            positionName = "Undefined"; 
-                        }
+                            categoryName = "Undefined";
                             break;
                         case >= 2:
-                        {
                             costCenterName = parts[0].Trim();
-                            positionName = parts[1].Trim();
-                        }
+                            categoryName = parts[1].Trim();
                             break;
-                        default: continue;
+                        default:
+                            continue;
                     }
 
-                    var costCenter = costCenters.FirstOrDefault(cu => cu.CostUnitName == costCenterName);
-
+                    var costCenter = costCenters.FirstOrDefault(c => c.CostUnitName == costCenterName);
                     if (costCenter == null)
                     {
                         costCenter = new CostCenterModel { CostUnitName = costCenterName };
                         costCenters.Add(costCenter);
-                        context.CostCenters.Add(costCenter);
+                        _context.CostCenters.Add(costCenter);
                     }
 
-                    var category = categories.FirstOrDefault(bu => bu.Name == positionName && bu.CostCenterId == costCenter.Id);
-
+                    var category = categories.FirstOrDefault(c => c.Name == categoryName);
                     if (category == null)
                     {
-                        category = new CategoryModel { Name = positionName, CostCenter = costCenter };
-                        costCenter.Categories.Add(category);
+                        category = new CategoryModel { Name = categoryName };
                         categories.Add(category);
-                        context.Categories.Add(category);
+                        _context.Categories.Add(category);
+                    }
+
+                    var allocationExists = allocations.Any(a =>
+                        a.CostCenterId == costCenter.Id &&
+                        a.CategoryId == category.Id &&
+                        a.ItemDetailId == null);
+
+                    if (!allocationExists)
+                    {
+                        var allocation = new AllocationModel
+                        {
+                            CostCenter = costCenter,
+                            Category = category,
+                            ItemDetailId = null
+                        };
+                        _context.Allocations.Add(allocation);
+                        allocations.Add(allocation);
                     }
                 }
 
-                await context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
@@ -85,6 +102,5 @@ namespace TTCCashRegister.Data.Import
                 return false;
             }
         }
-    }//ImportCostunitService
-    
-}//namespace
+    }
+}

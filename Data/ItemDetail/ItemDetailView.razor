@@ -42,9 +42,9 @@
             <MudTd DataLabel="ID">@context.Id</MudTd>
             <MudTd DataLabel="Details">@context.CostDetails</MudTd>
             <MudTd DataLabel="Category">
-                @if (context.Accounts.Any())
+                @if (context.Allocations.Any())
                 {
-                    @foreach (var account in context.Accounts)
+                    @foreach (var account in context.Allocations)
                     {
                         <li> @account.Category.Name</li>
                     }
