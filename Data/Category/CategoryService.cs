@@ -1,16 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Serilog.Data;
 
 namespace TTCCashRegister.Data.Category
 {
-    public class CategoryService
+    public class CategoryService(CashDataContext context, ILogger<CategoryService> logger)
     {
-        private readonly CashDataContext _context;
+        private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-        public CategoryService(CashDataContext context)
-        {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-        }
-        
         public async Task<List<CategoryModel>> GetAllCategoriesAsync()
         {
             return await _context.Categories
@@ -33,30 +29,40 @@ namespace TTCCashRegister.Data.Category
 
         public async Task<IEnumerable<CategoryModel>> GetCategoriesByCostCenterIdAsync(int costUnitId)
         {
-            return await _context.Categories
+            var categories = await _context.Categories
                 .Where(b => b.Allocations.Any(a => a.CostCenterId == costUnitId))
                 .OrderBy(c => c.Name)
                 .ToListAsync();
+            if (categories.Count == 0) return new List<CategoryModel>();
+            logger.LogInformation("Available categories found");
+            return categories;
         }
 
         public async Task AddCategoryAsync(CategoryModel unit)
         {
             _context.Categories.Add(unit);
             await _context.SaveChangesAsync();
+            logger.LogInformation("Category added: {@unit}", unit);
         }
 
         public async Task UpdateCategoryAsync(CategoryModel unit)
         {
             _context.Categories.Update(unit);
             await _context.SaveChangesAsync();
+            logger.LogInformation("Category updated: {@unit}", unit);
         }
 
         public async Task<bool> DeleteCategoryAsync(int id)
         {
             var unit = await _context.Categories.FindAsync(id);
-            if (unit == null) return false;
+            if (unit == null)
+            {
+                logger.LogError("Category not found");
+                return false;
+            }
             _context.Categories.Remove(unit);
             await _context.SaveChangesAsync();
+            logger.LogInformation("Category deleted: {@unit}", unit);
             return true;
         }
     }

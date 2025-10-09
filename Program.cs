@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
+using Serilog;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
 using TTCCashRegister.Data.Allocation;
@@ -46,7 +47,7 @@ builder.Services.AddDbContext<CashDataContext>(options =>
     {
         if (dbPassword is null)
         {
-            logger.LogInformation($"Password not found");
+            logger.LogError($"Password not found");
             throw new Exception("Db password not found");
         }
         connectionString = connectionString.Replace("{DbPassword}", dbPassword);
@@ -92,7 +93,11 @@ builder.Services.AddMudBlazorDialog();
 builder.Services.AddMudPopoverService();
 builder.Services.AddMudExtensions();
 
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
+
 var app = builder.Build();
+app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
