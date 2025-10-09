@@ -1,5 +1,6 @@
 @page "/confirmdelete"
 @using MudExtensions
+@inject ILogger<ConfirmDeleteDialog> Logger
 
 <MudDialog>
     <DialogContent>
@@ -22,11 +23,12 @@
     private string _deleteQuestion = "Are you sure you want to delete this ";
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-
+    
     protected override async void OnInitialized()
     {
         try
         {
+            Logger.LogInformation("Open delete dialog for: {EntityName}; {ItemName}", EntityName, ItemName);
             _deleteQuestion = $"{_deleteQuestion}{EntityName.ToLower()} entry?";
             _entityName = $"{ItemName}";
             await MudDialog.SetTitleAsync($"Delete {EntityName.ToLower()}");
@@ -34,7 +36,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"An error occured during delete operation! Error: {ex}");
+            Logger.LogCritical(ex, "An exception occurred while deleting entity: {EntityName}", EntityName);
         }
     }
 
@@ -42,12 +44,13 @@
     {
         if (OnConfirm.HasDelegate)
             await OnConfirm.InvokeAsync();
-
+        Logger.LogInformation("An entity was deleted: {EntityName}, {ItemName}", EntityName, ItemName);
         MudDialog.Close(DialogResult.Ok(true));
     }
 
     private void Cancel()
     {
+        Logger.LogInformation("Delete dialog for {EntityName} => {ItemName} was aborted", EntityName, ItemName);
         MudDialog.Close(DialogResult.Cancel());
     }
 }
