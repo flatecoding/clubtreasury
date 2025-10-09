@@ -13,20 +13,20 @@ namespace TTCCashRegister.Data.Import
     {
         private readonly CashDataContext context;
         private readonly TransactionService transactionService;
-        private readonly ILogger<ImportBookingJournalService> logger;
+        private readonly ILogger<ImportBookingJournalService> _logger;
 
         public ImportBookingJournalService(CashDataContext context, TransactionService transactionService, ILogger<ImportBookingJournalService> logger)
         {
             this.context = context;
             this.transactionService = transactionService;
-            this.logger = logger;
+            _logger = logger;
         }
 
         public async Task<bool> ImportTransactions(Stream? fileStream)
         {
             if (fileStream == null)
             {
-                logger.LogError("The data-stream is null.");
+                _logger.LogError("The data-stream during import of bookingjournal is null.");
                 return false;
             }
 
@@ -44,7 +44,7 @@ namespace TTCCashRegister.Data.Import
 
                 if (dataTable?.Rows == null)
                 {
-                    logger.LogWarning("No rows found in 'Buchungen' sheet.");
+                    _logger.LogWarning("No rows found in sheet: 'Buchungen'!");
                     return false;
                 }
 
@@ -59,17 +59,19 @@ namespace TTCCashRegister.Data.Import
 
                 if (cashRegister == null)
                 {
-                    logger.LogError("No cash register found in database.");
+                    _logger.LogError("Cash register not found: {@CashRegister}.", cashRegister);
                     return false;
                 }
 
+                var importCounter = 0;
                 foreach (DataRow row in dataTable.Rows)
                 {
                     try
                     {
                         if (!DateTime.TryParse(row.ItemArray[0]?.ToString(), out var datum))
                         {
-                            logger.LogWarning("Invalid date format in row: {0}", string.Join(", ", row.ItemArray));
+                            _logger.LogWarning("Invalid date format in row {@RowData} at index {RowIndex}", 
+                                row.ItemArray, row.Table.Rows.IndexOf(row));
                             continue;
                         }
                         var date = DateOnly.FromDateTime(datum);
@@ -77,13 +79,14 @@ namespace TTCCashRegister.Data.Import
                         var documentRaw = row.ItemArray[1]?.ToString()?.TrimStart('B');
                         if (!int.TryParse(documentRaw, out var documentNumber))
                         {
-                            logger.LogWarning("Invalid document number in row: {0}", string.Join(", ", row.ItemArray));
+                            _logger.LogWarning("Invalid document number in row {@RowData} at index {RowIndex}", 
+                                row.ItemArray, row.Table.Rows.IndexOf(row));
                             continue;
                         }
 
                         if (existingDocumentNumbers.Contains(documentNumber))
                         {
-                            logger.LogInformation("Skipping duplicate document number: {0}", documentNumber);
+                            _logger.LogInformation("Skipping duplicate document number: {DocumentNumber}", documentNumber);
                             continue;
                         }
 
@@ -95,7 +98,7 @@ namespace TTCCashRegister.Data.Import
 
                         if (!decimal.TryParse(sumStr, out var sumValue))
                         {
-                            logger.LogWarning("Missing or invalid sum value in row: {0}", string.Join(", ", row.ItemArray));
+                            _logger.LogWarning("Missing or invalid sum value in row {@RowData}", row.ItemArray);
                             continue;
                         }
 
@@ -109,7 +112,7 @@ namespace TTCCashRegister.Data.Import
                         var parts = costCenterCategory?.Split('/');
                         if (parts == null || parts.Length == 0)
                         {
-                            logger.LogWarning("Missing cost center info in row: {0}", string.Join(", ", row.ItemArray));
+                            _logger.LogWarning("Missing cost center info in row: {@RowData}", row.ItemArray);
                             continue;
                         }
 
@@ -159,27 +162,33 @@ namespace TTCCashRegister.Data.Import
                             AccountMovement = accountMovement,
                             Allocation = allocation
                         };
+                        importCounter++;
 
                         if (!await transactionService.AddTransactionAsync(transaction))
                         {
-                            logger.LogError("Failed to add transaction for document number {0}", documentNumber);
+                            _logger.LogError("Failed to add transaction for document number: {DocumentNumber}", documentNumber);
                             return false;
                         }
                     }
                     catch (Exception rowEx)
                     {
-                        logger.LogError("Error processing row: {0} — {1}", string.Join(", ", row.ItemArray), rowEx.Message);
+                        _logger.LogError(rowEx, "Error processing row: {@RowData}", row.ItemArray);
                         return false;
                     }
                 }
 
                 await dbTransaction.CommitAsync();
-                logger.LogInformation("Booking journal was successfully imported.");
+                if (importCounter > 0)
+                {
+                    _logger.LogInformation("Booking journal was successfully imported.");
+                    _logger.LogInformation("Number of imported transactions: {ImportCounter}", importCounter);
+                }
+                
                 return true;
             }
             catch (Exception ex)
             {
-                logger.LogError("An error occurred during import: {0}", ex.Message);
+                _logger.LogError(ex,"An error occurred during import");
                 return false;
             }
         }

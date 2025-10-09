@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TTCCashRegister.Data.TransactionDetails;
 
-public class TransactionDetailsService(CashDataContext context)
+public class TransactionDetailsService(CashDataContext context, ILogger<TransactionDetailsService> logger)
 {
     public async Task<List<TransactionDetailsModel>> GetAllTransactionDetailsAsync()
     {
@@ -33,6 +33,7 @@ public class TransactionDetailsService(CashDataContext context)
     {
         context.TransactionDetails.Add(detailsModel);
         await context.SaveChangesAsync();
+        logger.LogInformation("Transaction details added: {@DetailsModel}", detailsModel);
     }
     
     public async Task UpdateTransactionDetailsAsync(TransactionDetailsModel detailsModel)
@@ -46,14 +47,32 @@ public class TransactionDetailsService(CashDataContext context)
         existing.PersonId = detailsModel.PersonId;
 
         await context.SaveChangesAsync();
+        logger.LogInformation("Transaction details updated: {@DetailsModel}", detailsModel);
     }
     
     public async Task DeleteAsync(int id)
     {
-        var existing = await context.TransactionDetails.FindAsync(id);
-        if (existing == null) return;
+        try
+        {
+            var existing = await context.TransactionDetails.FindAsync(id);
+            if (existing == null)
+            {
+                logger.LogError("Transaction details not found with id: {Id}", id);
+                return;
+            }
 
-        context.TransactionDetails.Remove(existing);
-        await context.SaveChangesAsync();
+            context.TransactionDetails.Remove(existing);
+            await context.SaveChangesAsync();
+            logger.LogInformation("Transaction details deleted: {@Existing}", existing);
+
+        }
+        catch (DbUpdateException dbUpdateException)
+        {
+            logger.LogCritical(dbUpdateException, "An exception occurred while deleting transaction with id: {Id}", id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(ex, "An exception occurred while deleting transaction with id: {Id}", id);
+        }
     }
 }

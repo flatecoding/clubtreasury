@@ -5,39 +5,33 @@ using TTCCashRegister.Data.CostCenter;
 
 namespace TTCCashRegister.Data.Import
 {
-    public class ImportCostCenterService
+    public class ImportCostCenterService(CashDataContext context, ILogger<ImportCostCenterService> logger)
     {
-        private readonly CashDataContext _context;
-
-        public ImportCostCenterService(CashDataContext context)
-        {
-            _context = context;
-        }
-
         public async Task<bool> ImportCostCentersAndPositions(Stream fileStream)
         {
             if (fileStream == null)
             {
-                Console.WriteLine("Der Datei-Stream ist null.");
+                logger.LogError("Import cost center file stream is null");
                 return false;
             }
 
             try
             {
+                logger.LogDebug("Start import of cost centers");
                 using var reader = new StreamReader(fileStream);
                 var lines = new List<string>();
 
-                while (await reader.ReadLineAsync() is { } currentline)
+                while (await reader.ReadLineAsync() is { } currentLine)
                 {
-                    if (!string.IsNullOrWhiteSpace(currentline))
+                    if (!string.IsNullOrWhiteSpace(currentLine))
                     {
-                        lines.Add(currentline);
+                        lines.Add(currentLine);
                     }
                 }
 
-                var costCenters = await _context.CostCenters.ToListAsync();
-                var categories = await _context.Categories.ToListAsync();
-                var allocations = await _context.Allocations.ToListAsync();
+                var costCenters = await context.CostCenters.ToListAsync();
+                var categories = await context.Categories.ToListAsync();
+                var allocations = await context.Allocations.ToListAsync();
 
                 foreach (var line in lines)
                 {
@@ -64,7 +58,8 @@ namespace TTCCashRegister.Data.Import
                     {
                         costCenter = new CostCenterModel { CostUnitName = costCenterName };
                         costCenters.Add(costCenter);
-                        _context.CostCenters.Add(costCenter);
+                        context.CostCenters.Add(costCenter);
+                        logger.LogInformation("Add cost center: '{@CostCenter}' during import ", costCenter);
                     }
 
                     var category = categories.FirstOrDefault(c => c.Name == categoryName);
@@ -72,7 +67,8 @@ namespace TTCCashRegister.Data.Import
                     {
                         category = new CategoryModel { Name = categoryName };
                         categories.Add(category);
-                        _context.Categories.Add(category);
+                        context.Categories.Add(category);
+                        logger.LogInformation("Add category: '{@Category}' during import ", category);
                     }
 
                     var allocationExists = allocations.Any(a =>
@@ -88,17 +84,19 @@ namespace TTCCashRegister.Data.Import
                             Category = category,
                             ItemDetailId = null
                         };
-                        _context.Allocations.Add(allocation);
+                        context.Allocations.Add(allocation);
                         allocations.Add(allocation);
+                        logger.LogInformation("Add allocation: '{@Allocation}' during import ", allocation);
                     }
                 }
 
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
+                logger.LogInformation("Import of const centers completed successfully");
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fehler beim Lesen des Datei-Streams: {ex.Message}");
+                logger.LogError(ex, "Import of const centers failed");
                 return false;
             }
         }

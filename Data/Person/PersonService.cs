@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TTCCashRegister.Data.Person
 {
-    public class PersonService(CashDataContext context)
+    public class PersonService(CashDataContext context, ILogger<PersonService> logger)
     {
         public async Task<List<PersonModel>> GetAllPersonsAsync()
         {
@@ -26,10 +26,12 @@ namespace TTCCashRegister.Data.Person
             {
                 await context.Persons.AddAsync(personModel);
                 await context.SaveChangesAsync();
+                logger.LogInformation("Person added: {@PersonModel}", personModel);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex}");
+                logger.LogError($"Error: {ex}");
             }
         }
 
@@ -39,10 +41,12 @@ namespace TTCCashRegister.Data.Person
             {
                 context.Persons.Update(personModel);
                 await context.SaveChangesAsync();
+                logger.LogInformation("Person updated: {@PersonModel}", personModel);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex}");
+                logger.LogError($"Error: {ex}");
             }
         }
 
@@ -58,11 +62,13 @@ namespace TTCCashRegister.Data.Person
 
                 context.Persons.Remove(person);
                 await context.SaveChangesAsync();
+                logger.LogInformation("Person deleted: {@PersonModel}", person);
                 return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex}");
+                logger.LogError($"Error: {ex}");
                 return false;
             }
         }

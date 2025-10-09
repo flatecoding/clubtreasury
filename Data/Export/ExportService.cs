@@ -23,6 +23,7 @@ namespace TTCCashRegister.Data.Export
     public class ExportService
     {
         private readonly CashDataContext _context;
+        private readonly ILogger<ExportService> _logger;
         private readonly string _exportPath;
         private const string SelectedFolder = "Export";
         private const string CsvHeader = "Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung";
@@ -36,9 +37,10 @@ namespace TTCCashRegister.Data.Export
         private const string PdfHeaderSum = "Summe";
         private const string PdfHeaderAccountMovement = "Konto";
 
-        public ExportService(CashDataContext context)
+        public ExportService(CashDataContext context, ILogger<ExportService> logger)
         {
             _context = context;
+            _logger = logger;
             var projectDirectory = AppContext.BaseDirectory;
             var binDirectory = Directory.GetParent(projectDirectory)?.Parent?.Parent?.FullName;
             if (binDirectory is null)
@@ -80,9 +82,11 @@ namespace TTCCashRegister.Data.Export
         {
             try
             {
+                _logger.LogInformation("Beginning export transactions to csv");
                 if (!Directory.Exists(_exportPath))
                 {
                     Directory.CreateDirectory(_exportPath);
+                    _logger.LogInformation("Export directory created {path}", _exportPath);
                 }
                 var transactions = await GetTransactionsInDateRange(begin, end);
                 transactions = transactions.OrderBy(t => t.Documentnumber).ToList();
@@ -95,18 +99,19 @@ namespace TTCCashRegister.Data.Export
 
                 if (string.IsNullOrWhiteSpace(csv.ToString()))
                 {
-                    Console.WriteLine("No data for export available.");
+                    _logger.LogError("CSV file for transactions could not be created");
                     return false;
                 }
                 
                 await using var sw = new StreamWriter(Path.Combine(_exportPath, filename));
                 await sw.WriteLineAsync(CsvHeader);
                 await sw.WriteAsync(csv);
+                _logger.LogInformation("Export transactions to csv completed");
                 return true;
             }
             catch (Exception ex)
             {
-                Debug.Write(ex.ToString());
+                _logger.LogError(ex, "Error while exporting transactions to csv");
                 return false;
             }
         }
@@ -115,6 +120,7 @@ namespace TTCCashRegister.Data.Export
         {
             try
             {
+                _logger.LogInformation("Beginning export transactions to pdf");
                 if (!Directory.Exists(_exportPath))
                 {
                     Directory.CreateDirectory(_exportPath);
@@ -222,11 +228,12 @@ namespace TTCCashRegister.Data.Export
                 document.Add(table);
                 handler.WriteTotal(pdf);
                 document.Close();
+                _logger.LogInformation("Export transactions to pdf completed successfully");
                 return true;
             }
             catch (Exception ex)
             {
-                Debug.Write(ex.ToString());
+                _logger.LogError(ex, "Export transactions to pdf failed");
                 return false;
             }
         }
@@ -235,6 +242,7 @@ namespace TTCCashRegister.Data.Export
         {
             try
             {
+                _logger.LogInformation("Export budget to csv started");
                 if (!Directory.Exists(_exportPath))
                 {
                     Directory.CreateDirectory(_exportPath);
@@ -326,7 +334,8 @@ namespace TTCCashRegister.Data.Export
                     })
                     .OrderBy(cu => cu.CostUnitName)
                     .ToList();
-
+                _logger.LogInformation("Export budget to csv: Gathering data completed");
+                _logger.LogInformation("Export budget to csv: Start creating csv file");
                 var csv = new StringBuilder();
                 csv.AppendLine(CsvBudgetHeader);
 
@@ -362,12 +371,13 @@ namespace TTCCashRegister.Data.Export
 
                 await using var sw = new StreamWriter(Path.Combine(_exportPath, filename));
                 await sw.WriteAsync(csv.ToString());
+                _logger.LogInformation("Export budget to csv: Finish creating csv file");
 
                 return true;
             }
             catch (Exception ex)
             {
-                Debug.Write(ex.ToString());
+                _logger.LogError(ex, "Export budget to csv: Error creating csv file");
                 return false;
             }
         }

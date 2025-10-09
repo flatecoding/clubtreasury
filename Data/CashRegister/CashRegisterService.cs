@@ -2,7 +2,7 @@
 
 namespace TTCCashRegister.Data.CashRegister
 {
-    public class CashRegisterService(CashDataContext context)
+    public class CashRegisterService(CashDataContext context, ILogger<CashRegisterService> logger)
     {
         public async Task<List<CashRegisterModel>> GetAllCashRegisters()
         {
@@ -13,12 +13,26 @@ namespace TTCCashRegister.Data.CashRegister
 
         public async Task<CashRegisterModel?> GetCashRegisterById(int id)
         {
-            return await context.CashRegisters.FindAsync(id);
+            var cashRegister = await context.CashRegisters.FindAsync(id);
+            if (cashRegister is not null)
+            {
+                logger.LogInformation("Cashregister found: {@CashRegister}", cashRegister);
+                return cashRegister;
+            }
+            logger.LogError($"Cashregister not found: {cashRegister}");
+            return null;
         }
 
         public async Task<CashRegisterModel?> GetFirstEntry()
         {
-            return await context.CashRegisters.FirstOrDefaultAsync();
+            var cashRegister = await context.CashRegisters.FirstOrDefaultAsync();
+            if (cashRegister is not null)
+            {
+                logger.LogInformation("First cashregister found: {@CashRegister}", cashRegister);
+                return cashRegister;
+            }
+            logger.LogError($"No cahsregister data found: {cashRegister}");
+            return null;
         }
 
         public async Task AddCashRegister(CashRegisterModel cashRegisterModel)
@@ -27,10 +41,11 @@ namespace TTCCashRegister.Data.CashRegister
             {
                 await context.CashRegisters.AddAsync(cashRegisterModel);
                 await context.SaveChangesAsync();
+                logger.LogInformation("Cashregister added: {@CashRegister}", cashRegisterModel);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex}");
+                logger.LogError(ex, "An error occured while adding cash register entry do database.");
             }
         }
 
@@ -40,10 +55,12 @@ namespace TTCCashRegister.Data.CashRegister
             {
                 context.CashRegisters.Update(cashRegisterModel);
                 await context.SaveChangesAsync();
+                logger.LogInformation("Cashregister updated: {@CashRegister}", cashRegisterModel);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex}");
+                logger.LogError(ex, "An error occured during update of cash register: {@CashRegister}"
+                    , cashRegisterModel);
             }
         }
 
@@ -52,18 +69,20 @@ namespace TTCCashRegister.Data.CashRegister
             try
             {
                 var cashRegister = await context.CashRegisters.FindAsync(id);
-                if (cashRegister == null)
+                if (cashRegister is null)
                 {
+                    logger.LogError("Cashregister not found: {Id}", id);
                     return false;
                 }
 
                 context.CashRegisters.Remove(cashRegister);
                 await context.SaveChangesAsync();
+                logger.LogInformation("Cashregister deleted: {@CashRegister}", cashRegister);
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex}");
+                logger.LogError(ex, "An error occured during delete of cash register: {Id}", id);
                 return false;
             }
         }
