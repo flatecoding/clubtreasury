@@ -33,12 +33,12 @@ namespace TTCCashRegister.Data.CostCenter
             {
                 await _context.CostCenters.AddAsync(costCenter);
                 await _context.SaveChangesAsync();
-                logger.LogInformation("Cost center added: {@costCenter}", costCenter);
+                logger.LogInformation("Cost center added: {@costCenter}", costCenter.CostUnitName);
                 return true;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occured during add cost center: {@costCenter}", costCenter);
+                logger.LogError(ex, "An error occured during add cost center: {@costCenter}", costCenter.CostUnitName);
                 return false;
             }
         }
@@ -49,12 +49,12 @@ namespace TTCCashRegister.Data.CostCenter
             {
                 _context.CostCenters.Update(costCenter);
                 await _context.SaveChangesAsync();
-                logger.LogInformation("Cost center updated: {@costCenter}", costCenter);
+                logger.LogInformation("Cost center updated: {@costCenter}", costCenter.CostUnitName);
                 return true;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occured during update of cost center: {@costCenter}", costCenter);
+                logger.LogError(ex, "An error occured during update of cost center: {@costCenter}", costCenter.CostUnitName);
                 return false;
             }
         }
@@ -67,7 +67,7 @@ namespace TTCCashRegister.Data.CostCenter
                 if (costUnit == null) return false;
                 _context.CostCenters.Remove(costUnit);
                 await _context.SaveChangesAsync();
-                logger.LogInformation("Cost center deleted: {@costUnit}", costUnit);
+                logger.LogInformation("Cost center deleted: {@costUnit}", costUnit.CostUnitName);
                 return true;
             }
             catch (Exception ex)

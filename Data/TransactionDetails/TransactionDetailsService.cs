@@ -33,7 +33,9 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
     {
         context.TransactionDetails.Add(detailsModel);
         await context.SaveChangesAsync();
-        logger.LogInformation("Transaction details added: {@DetailsModel}", detailsModel);
+        logger.LogInformation("Transaction details added: {@DetailsModelDescription}, Sum: {@Sum}" +
+                              " Name: {@Name}" , 
+            detailsModel.Description,  decimal.Round(detailsModel.Sum, 2), detailsModel.Person?.Name ?? "null");
     }
     
     public async Task UpdateTransactionDetailsAsync(TransactionDetailsModel detailsModel)
@@ -47,7 +49,9 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
         existing.PersonId = detailsModel.PersonId;
 
         await context.SaveChangesAsync();
-        logger.LogInformation("Transaction details updated: {@DetailsModel}", detailsModel);
+        logger.LogInformation("Transaction details updated: {@DetailsModelDescription}, Sum: {@SUm}" +
+                              " Name: {@Name}" , 
+            detailsModel.Description, decimal.Round(detailsModel.Sum, 2),  detailsModel.Person?.Name ?? "null");
     }
     
     public async Task DeleteAsync(int id)
@@ -63,8 +67,8 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
 
             context.TransactionDetails.Remove(existing);
             await context.SaveChangesAsync();
-            logger.LogInformation("Transaction details deleted: {@Existing}", existing);
-
+            logger.LogInformation("Transaction details deleted: {@DetailsModelDescription}, Sum: {@Sum} Name: {@Name}", 
+                existing.Description,  decimal.Round(existing.Sum, 2),  existing.Person?.Name ?? "null");
         }
         catch (DbUpdateException dbUpdateException)
         {
