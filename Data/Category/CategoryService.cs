@@ -42,14 +42,14 @@ namespace TTCCashRegister.Data.Category
         {
             _context.Categories.Add(unit);
             await _context.SaveChangesAsync();
-            logger.LogInformation("Category added: {@unit}", unit);
+            logger.LogInformation("Category added: {@unit}", unit.Name);
         }
 
         public async Task UpdateCategoryAsync(CategoryModel unit)
         {
             _context.Categories.Update(unit);
             await _context.SaveChangesAsync();
-            logger.LogInformation("Category updated: {@unit}", unit);
+            logger.LogInformation("Category updated: {@unit}", unit.Name);
         }
 
         public async Task<bool> DeleteCategoryAsync(int id)
@@ -62,7 +62,7 @@ namespace TTCCashRegister.Data.Category
             }
             _context.Categories.Remove(unit);
             await _context.SaveChangesAsync();
-            logger.LogInformation("Category deleted: {@unit}", unit);
+            logger.LogInformation("Category deleted: {@unit}", unit.Name);
             return true;
         }
     }

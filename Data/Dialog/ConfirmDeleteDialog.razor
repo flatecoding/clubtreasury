@@ -44,7 +44,7 @@
     {
         if (OnConfirm.HasDelegate)
             await OnConfirm.InvokeAsync();
-        Logger.LogInformation("An entity was deleted: {EntityName}, {ItemName}", EntityName, ItemName);
+        Logger.LogInformation("An entity was deleted: EntityType: {EntityName}, Item: {ItemName}", EntityName, ItemName);
         MudDialog.Close(DialogResult.Ok(true));
     }
 
