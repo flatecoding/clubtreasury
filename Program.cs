@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
+using OfficeOpenXml;
 using Serilog;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
@@ -13,6 +14,7 @@ using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
 using TTCCashRegister.Data.Export;
+using TTCCashRegister.Data.Export.Mapping;
 using TTCCashRegister.Data.Import;
 using TTCCashRegister.Data.ItemDetail;
 using TTCCashRegister.Data.Person;
@@ -20,6 +22,7 @@ using TTCCashRegister.Data.Source;
 using TTCCashRegister.Data.SpecialItem;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.TransactionDetails;
+using TTCCashRegister.Data.Export.Mapping;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -89,6 +92,7 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.ShowTransitionDuration = 500;
     config.SnackbarConfiguration.SnackbarVariant = Variant.Text;
 });
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddMudBlazorDialog();
 builder.Services.AddMudPopoverService();
 builder.Services.AddMudExtensions();
