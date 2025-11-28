@@ -1,0 +1,13 @@
+Polyform Noncommercial License 1.0.0
+
+Copyright (c) EPPlus Software AB
+
+This software is licensed under the Polyform Noncommercial License 1.0.0.
+This license permits use, modification, and distribution **only for non-commercial purposes**. 
+
+Commercial use requires the purchase of a commercial license from EPPlus Software AB.
+
+The full license text is available at:
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+
+By using this software, you agree to the terms of the Polyform Noncommercial License.

@@ -27,6 +27,15 @@
             Color="Color.Primary"
         >Export as CSV
         </MudLoadingButton>
+        <MudLoadingButton 
+            @bind-Loading="_isExporting" 
+            Size="Size.Small" 
+            LoadingAdornment="Adornment" 
+            OnClick="@(() => ExportXlsx())" 
+            Variant="Variant.Filled" 
+            Color="Color.Primary"
+        >Export as Xml
+        </MudLoadingButton>
         @*<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ExportPdf">Export as PDF</MudButton> *@
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
     </DialogActions>
@@ -77,7 +86,38 @@
             _isExporting = false;
         }
     }
-
+    
+    private async Task ExportXlsx()
+    {
+        _isExporting = true;
+        try
+        {
+            if (DateRange is { Start: not null, End: not null })
+            {
+                var start = DateRange.Start.Value.Date;
+                var end = DateRange.End.Value.Date;
+                if (start > end)
+                {
+                    Snackbar.Add("Start can't be after end date!", Severity.Warning);
+                    Console.WriteLine("Start can't be after end date!");
+                    return;
+                }
+                
+                var fileName = $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
+                var result = await TransactionService.ExportBudgetToExcel(start, end, fileName);
+                MudDialog.Close(DialogResult.Ok(result));
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error occured during export to xls-file: {ex.Message}");
+            MudDialog.Close(DialogResult.Ok(false));
+        }
+        finally
+        {
+            _isExporting = false;
+        }
+    }
 
     private async Task ExportPdf()
     {
