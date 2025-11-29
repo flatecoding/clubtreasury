@@ -2,7 +2,7 @@ namespace TTCCashRegister.Data.Source;
 
 using MudBlazor;
 
-public class NotificationService(ISnackbar snackbar)
+public class NotificationService(ISnackbar snackbar) : INotificationService
 {
     public Task ShowDialogResultAsync(DialogResult? result)
     {

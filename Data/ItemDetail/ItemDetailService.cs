@@ -2,7 +2,7 @@
 
 namespace TTCCashRegister.Data.ItemDetail
 {
-    public class ItemDetailService(CashDataContext context, ILogger<ItemDetailService> logger)
+    public class ItemDetailService(CashDataContext context, ILogger<ItemDetailService> logger) : IItemDetailService
     {
         private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
