@@ -2,7 +2,7 @@
 
 namespace TTCCashRegister.Data.ItemDetail
 {
-    public class ItemDetailService(CashDataContext context)
+    public class ItemDetailService(CashDataContext context, ILogger<ItemDetailService> logger) : IItemDetailService
     {
         private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
@@ -40,11 +40,12 @@ namespace TTCCashRegister.Data.ItemDetail
             {
                 await _context.ItemDetails.AddAsync(itemDetail);
                 await _context.SaveChangesAsync();
+                logger.LogInformation("ItemDetail added: {@ItemDetail}", itemDetail.CostDetails);
                 return itemDetail;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex}");
+                logger.LogError(ex, "ItemDetail could not be added");
                 return null;
             }
         }
@@ -55,11 +56,12 @@ namespace TTCCashRegister.Data.ItemDetail
             {
                 _context.ItemDetails.Update(itemDetail);
                 await _context.SaveChangesAsync();
+                logger.LogInformation("ItemDetail updated: {@ItemDetail}", itemDetail.CostDetails);
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex}");
+                logger.LogError(ex, "ItemDetail {@ItemDetail} could not be updated", itemDetail.CostDetails);
                 return false;
             }
         }
@@ -72,11 +74,12 @@ namespace TTCCashRegister.Data.ItemDetail
                 if (itemDetail == null) return false;
                 _context.ItemDetails.Remove(itemDetail);
                 await _context.SaveChangesAsync();
+                logger.LogInformation("ItemDetail deleted: {@ItemDetail}", itemDetail.CostDetails);
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex}");
+                logger.LogError(ex, "ItemDetail with {ID} could not be deleted", id );
                 return false;
             }
         }

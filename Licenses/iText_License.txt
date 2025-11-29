@@ -1,0 +1,10 @@
+AGPL (Affero General Public License)
+
+Copyright (c) iText Software
+
+This software is licensed under the AGPL. Internal and non-commercial use is allowed. 
+If the project is made public or distributed externally, the AGPL requires that the complete source code of the project 
+be made available under the same license.
+
+Full license text is available at:
+https://www.gnu.org/licenses/agpl-3.0.html

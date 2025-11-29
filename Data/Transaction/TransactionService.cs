@@ -10,8 +10,9 @@ namespace TTCCashRegister.Data.Transaction;
 public class TransactionService(
     CashDataContext context,
     CashRegisterService cashRegisterService,
-    ExportService exportService,
-    AllocationService allocationService)
+    IExportService exportService,
+    AllocationService allocationService,
+    ILogger<TransactionService> logger) : ITransactionService
 {
     public async Task<List<TransactionModel>?> GetAllTransactions()
     {
@@ -89,16 +90,19 @@ public class TransactionService(
             context.Transactions.Add(tx);
             
             await context.SaveChangesAsync(ct);
+            logger.LogInformation("Transaction added: B{@DocumentNumber}; Desc.:{@Description}; Sum:{@Sum} " +
+                                  "AccMov.: {@AccMov}", tx.Documentnumber, tx.Description, tx.Sum, tx.AccountMovement);
             return true;
         }
         catch (DbUpdateException dbEx)
         {
-            Debug.WriteLine($"DB error in AddTransactionAsync: {dbEx}");
+            logger.LogCritical(dbEx, "An exception occurred while adding transaction: B{@DocumentNumber} " +
+                                     "{@Description}", entry.Documentnumber, entry.Description);
             return false;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error in AddTransactionAsync: {ex}");
+            logger.LogCritical(ex, "An exception occurred while adding transaction");
             return false;
         }
     }
@@ -126,16 +130,19 @@ public class TransactionService(
             tx.AllocationId = account.Id;
             
             await context.SaveChangesAsync(ct);
+            logger.LogInformation("Transaction updated: B{@DocumentNumber}; Desc.:{@Description}; Sum:{@Sum} " +
+                                  "AccMov.: {@AccMov}", tx.Documentnumber, tx.Description, tx.Sum, tx.AccountMovement);
             return true;
         }
         catch (DbUpdateException dbEx)
         {
-            Debug.WriteLine($"DB error in UpdateTransactionAsync: {dbEx}");
+            logger.LogCritical(dbEx, "An exception occurred while updating transaction: {@DocumentNumber} " +
+                                     "{@Description}", entry.Documentnumber, entry.Description);
             return false;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error in UpdateTransactionAsync: {ex}");
+            logger.LogCritical(ex, "An exception occurred while updating transaction");
             return false;
         }
     }
@@ -146,25 +153,26 @@ public class TransactionService(
         {
             var transaction = await context.Transactions.FindAsync(id);
             if (transaction is null)
-                throw new Exception("Transaction not found.");
-
-            var cashRegister = await cashRegisterService.GetCashRegisterById(transaction.CashRegisterId);
-            if (cashRegister is null)
-                throw new Exception($"Cash Register with Id: '{id}' not found.");
-
+            {
+                logger.LogError("Transaction with id '{Id}' could not be found", id);
+                return false;
+            }
+  
             context.Transactions.Remove(transaction);
             await context.SaveChangesAsync();
-            
+            logger.LogInformation("Transaction deleted: B{@DocumentNumber}; Desc.:{@Description}; Sum:{@Sum} " +
+                                  "AccMov.: {@AccMov}", transaction.Documentnumber, transaction.Description, 
+                transaction.Sum, transaction.AccountMovement);
             return true;
         }
         catch (DbUpdateException dbEx)
         {
-            Debug.WriteLine($"DBUpdateException: {dbEx.Message}");
+            logger.LogCritical(dbEx, "An exception occurred while deleting transaction with id: {Id}", id);
             return false;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error: {ex}");
+            logger.LogCritical(ex, "An exception occurred while deleting transaction with id: {Id}", id);
             return false;
         }
     }
@@ -174,7 +182,10 @@ public class TransactionService(
 
     public async Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
         => await exportService.ExportBudgetToCsv(begin, end, filename);
-
+    
+    public async Task<bool> ExportBudgetToExcel(DateTime begin, DateTime end, string filename)
+    => await exportService.ExportBudgetToExcelWithCharts(begin, end, filename);
+    
     public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename)
         => await exportService.ExportTransactionsToPdf(begin, end, filename);
 
