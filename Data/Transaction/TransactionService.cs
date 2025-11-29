@@ -10,9 +10,9 @@ namespace TTCCashRegister.Data.Transaction;
 public class TransactionService(
     CashDataContext context,
     CashRegisterService cashRegisterService,
-    ExportService exportService,
+    IExportService exportService,
     AllocationService allocationService,
-    ILogger<TransactionService> logger)
+    ILogger<TransactionService> logger) : ITransactionService
 {
     public async Task<List<TransactionModel>?> GetAllTransactions()
     {

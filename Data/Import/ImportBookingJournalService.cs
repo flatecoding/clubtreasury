@@ -9,13 +9,13 @@ using TTCCashRegister.Data.CostCenter;
 
 namespace TTCCashRegister.Data.Import
 {
-    public class ImportBookingJournalService
+    public class ImportBookingJournalService : IImportBookingJournalService
     {
         private readonly CashDataContext context;
-        private readonly TransactionService transactionService;
+        private readonly ITransactionService transactionService;
         private readonly ILogger<ImportBookingJournalService> _logger;
 
-        public ImportBookingJournalService(CashDataContext context, TransactionService transactionService, ILogger<ImportBookingJournalService> logger)
+        public ImportBookingJournalService(CashDataContext context, ITransactionService transactionService, ILogger<ImportBookingJournalService> logger)
         {
             this.context = context;
             this.transactionService = transactionService;

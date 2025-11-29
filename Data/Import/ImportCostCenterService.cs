@@ -5,7 +5,7 @@ using TTCCashRegister.Data.CostCenter;
 
 namespace TTCCashRegister.Data.Import
 {
-    public class ImportCostCenterService(CashDataContext context, ILogger<ImportCostCenterService> logger)
+    public class ImportCostCenterService(CashDataContext context, ILogger<ImportCostCenterService> logger) : IImportCostCenterService
     {
         public async Task<bool> ImportCostCentersAndPositions(Stream fileStream)
         {

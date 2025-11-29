@@ -10,7 +10,7 @@ using iText.Layout.Properties;
 
 namespace TTCCashRegister.Data.Export;
 
-public class PageNumberEventHandler : IEventHandler
+public class PageNumberEventHandler : IPageNumberEventHandler
 {
     private readonly PdfFont _font;
     private readonly int _fontSize;

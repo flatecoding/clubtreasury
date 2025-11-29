@@ -3,7 +3,7 @@ using Serilog.Data;
 
 namespace TTCCashRegister.Data.Category
 {
-    public class CategoryService(CashDataContext context, ILogger<CategoryService> logger)
+    public class CategoryService(CashDataContext context, ILogger<CategoryService> logger): ICategoryService
     {
         private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
 

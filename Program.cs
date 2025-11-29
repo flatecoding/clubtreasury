@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
-using OfficeOpenXml;
 using Serilog;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
@@ -14,7 +13,6 @@ using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
 using TTCCashRegister.Data.Export;
-using TTCCashRegister.Data.Export.Mapping;
 using TTCCashRegister.Data.Import;
 using TTCCashRegister.Data.ItemDetail;
 using TTCCashRegister.Data.Person;
@@ -22,8 +20,7 @@ using TTCCashRegister.Data.Source;
 using TTCCashRegister.Data.SpecialItem;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.TransactionDetails;
-using TTCCashRegister.Data.Export.Mapping;
-
+using TTCCashRegister.Data.Mapper;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMudServices();
@@ -67,19 +64,20 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
-builder.Services.AddScoped<ItemDetailService>();
-builder.Services.AddScoped<CostCenterService>();
-builder.Services.AddScoped<TransactionService>();
-builder.Services.AddScoped<SpecialItemService>();
-builder.Services.AddScoped<CashRegisterService>();
-builder.Services.AddScoped<CategoryService>();
-builder.Services.AddScoped<ExportService>();
-builder.Services.AddScoped<NotificationService>();
-builder.Services.AddScoped<ImportCostCenterService>();
-builder.Services.AddScoped<ImportBookingJournalService>();
-builder.Services.AddScoped<PersonService>();
-builder.Services.AddScoped<TransactionDetailsService>();
-builder.Services.AddScoped<AllocationService>();
+builder.Services.AddScoped<IItemDetailService, ItemDetailService>();
+builder.Services.AddScoped<ICostCenterService, CostCenterService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<ISpecialItemService, SpecialItemService>();
+builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IExportService, ExportService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ImportCostCenterService, ImportCostCenterService>();
+builder.Services.AddScoped<IImportBookingJournalService, ImportBookingJournalService>();
+builder.Services.AddScoped<IPersonService, PersonService>();
+builder.Services.AddScoped<ITransactionDetailsService, TransactionDetailsService>();
+builder.Services.AddScoped<IAllocationService, AllocationService>();
+builder.Services.AddScoped<IBudgetMapper, BudgetMapper>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
@@ -92,7 +90,7 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.ShowTransitionDuration = 500;
     config.SnackbarConfiguration.SnackbarVariant = Variant.Text;
 });
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 builder.Services.AddMudBlazorDialog();
 builder.Services.AddMudPopoverService();
 builder.Services.AddMudExtensions();

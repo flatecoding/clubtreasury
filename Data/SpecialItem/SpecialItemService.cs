@@ -2,7 +2,7 @@
 
 namespace TTCCashRegister.Data.SpecialItem
 {
-    public class SpecialItemService(CashDataContext context, ILogger<SpecialItemService> logger)
+    public class SpecialItemService(CashDataContext context, ILogger<SpecialItemService> logger) : ISpecialItemService
     {
         public async Task<List<SpecialItemModel>> GetAllSpecialItems()
         {

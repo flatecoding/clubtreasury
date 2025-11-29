@@ -2,7 +2,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TTCCashRegister.Data.TransactionDetails;
 
-public class TransactionDetailsService(CashDataContext context, ILogger<TransactionDetailsService> logger)
+public class TransactionDetailsService(CashDataContext context, ILogger<TransactionDetailsService> logger) 
+    : ITransactionDetailsService
 {
     public async Task<List<TransactionDetailsModel>> GetAllTransactionDetailsAsync()
     {

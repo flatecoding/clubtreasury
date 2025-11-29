@@ -4,9 +4,9 @@
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction.Dialogs
 @using TTCCashRegister.Data.TransactionDetails
-@inject TransactionService TransactionService
+@inject ITransactionService TransactionService
 @inject IDialogService DialogService
-@inject NotificationService NotificationService
+@inject INotificationService NotificationService
 
 <h2>Transactions</h2>
 <MudTable @ref="_table"

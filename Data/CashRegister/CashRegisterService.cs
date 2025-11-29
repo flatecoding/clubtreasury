@@ -2,7 +2,7 @@
 
 namespace TTCCashRegister.Data.CashRegister
 {
-    public class CashRegisterService(CashDataContext context, ILogger<CashRegisterService> logger)
+    public class CashRegisterService(CashDataContext context, ILogger<CashRegisterService> logger) : ICashRegisterService
     {
         public async Task<List<CashRegisterModel>> GetAllCashRegisters()
         {

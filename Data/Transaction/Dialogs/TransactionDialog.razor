@@ -6,12 +6,12 @@
 @using TTCCashRegister.Data.ItemDetail
 @using TTCCashRegister.Data.SpecialItem
 @using TTCCashRegister.Data.Transaction
-@inject TransactionService TransactionService
-@inject CostCenterService CostCenterService
-@inject CategoryService CategoryService
-@inject ItemDetailService ItemDetailService
-@inject CashRegisterService CashRegisterService
-@inject SpecialItemService SpecialItemService
+@inject ITransactionService TransactionService
+@inject ICostCenterService CostCenterService
+@inject ICategoryService CategoryService
+@inject IItemDetailService ItemDetailService
+@inject ICashRegisterService CashRegisterService
+@inject ISpecialItemService SpecialItemService
 
 <MudDialog>
     <DialogContent>

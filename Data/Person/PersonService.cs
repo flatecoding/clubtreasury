@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TTCCashRegister.Data.Person
 {
-    public class PersonService(CashDataContext context, ILogger<PersonService> logger)
+    public class PersonService(CashDataContext context, ILogger<PersonService> logger) : IPersonService
     {
         public async Task<List<PersonModel>> GetAllPersonsAsync()
         {
