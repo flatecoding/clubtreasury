@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TTCCashRegister.Data.Allocation;
 
-public class AllocationService(CashDataContext context, ILogger<AllocationService> logger)
+public class AllocationService(CashDataContext context, ILogger<AllocationService> logger) :IAllocationService
 {
     public async Task<AllocationModel?> GetAllocationsByIdAsync(int id)
     {

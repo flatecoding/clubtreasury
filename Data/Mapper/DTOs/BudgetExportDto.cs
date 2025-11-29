@@ -1,4 +1,4 @@
-namespace TTCCashRegister.Data.Export.DTOs;
+namespace TTCCashRegister.Data.Mapper.DTOs;
 
 public class BudgetFlatEntryDto
 {
@@ -8,7 +8,7 @@ public class BudgetFlatEntryDto
     public int CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
 
-    public int ItemDetailId { get; set; }
+    public int? ItemDetailId { get; set; }
     public string ItemDetailName { get; set; } = string.Empty;
 
     public decimal Amount { get; set; }

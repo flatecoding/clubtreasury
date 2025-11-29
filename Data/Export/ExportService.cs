@@ -14,8 +14,8 @@ using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing.Chart;
 using OfficeOpenXml.Style;
-using TTCCashRegister.Data.Export.DTOs;
-using TTCCashRegister.Data.Person;
+using TTCCashRegister.Data.Mapper;
+using TTCCashRegister.Data.Mapper.DTOs;
 using TTCCashRegister.Data.Transaction;
 using Path = System.IO.Path;
 using Border = iText.Layout.Borders.Border;
@@ -25,11 +25,11 @@ using Table = iText.Layout.Element.Table;
 
 namespace TTCCashRegister.Data.Export
 {
-    public class ExportService
+    public class ExportService :IExportService
     {
         private readonly CashDataContext _context;
         private readonly ILogger<ExportService> _logger;
-        private readonly IMapper _mapper;
+        private readonly IBudgetMapper _mapper;
         private readonly string _exportPath;
         private const string SelectedFolder = "Export";
         private const string CsvHeader = "Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung";
@@ -43,11 +43,12 @@ namespace TTCCashRegister.Data.Export
         private const string PdfHeaderSum = "Summe";
         private const string PdfHeaderAccountMovement = "Konto";
 
-        public ExportService(CashDataContext context, ILogger<ExportService> logger, IMapper mapper )
+        public ExportService(CashDataContext context, ILogger<ExportService> logger, IBudgetMapper mapper)
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
+            
             var projectDirectory = AppContext.BaseDirectory;
             var binDirectory = Directory.GetParent(projectDirectory)?.Parent?.Parent?.FullName;
             if (binDirectory is null)
@@ -249,243 +250,205 @@ namespace TTCCashRegister.Data.Export
                 return false;
             }
         }
-
+        
         public async Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
-{
-    try
-    {
-        _logger.LogInformation("Export budget to csv started");
-
-        if (!Directory.Exists(_exportPath))
-            Directory.CreateDirectory(_exportPath);
-
-        var transactions = await GetBudgetByDateRange(begin, end);
-
-        // Mapping flach machen
-        var flatEntries = new List<BudgetFlatEntryDto>();
-
-        foreach (var t in transactions)
         {
-            if (!t.TransactionDetails.Any())
-            {
-                flatEntries.Add(_mapper.Map<BudgetFlatEntryDto>(t));
-            }
-
-            foreach (var td in t.TransactionDetails)
-            {
-                flatEntries.Add(_mapper.Map<BudgetFlatEntryDto>(td));
-            }
-        }
-
-        // --- Gruppierung ---
-        var grouped = flatEntries
-            .GroupBy(e => new { e.CostCenterId, e.CostCenterName })
-            .Select(costCenterGroup => new BudgetGroupedDto
-            {
-                CostCenterId = costCenterGroup.Key.CostCenterId,
-                CostUnitName = costCenterGroup.Key.CostCenterName,
-                SumCostCenter = costCenterGroup.Sum(e => e.Amount),
-
-                Categories = costCenterGroup
-                    .GroupBy(e => new { e.CategoryId, e.CategoryName })
-                    .Select(cat => new BudgetCategoryDto
-                    {
-                        CategoryId = cat.Key.CategoryId,
-                        CategoryName = cat.Key.CategoryName,
-                        SumCategories = cat.Sum(e => e.Amount),
-
-                        ItemDetails = cat
-                            .GroupBy(e => new { e.ItemDetailId, e.ItemDetailName })
-                            .Select(item => new BudgetItemDetailDto
-                            {
-                                ItemDetailId = item.Key.ItemDetailId,
-                                ItemDetailName = item.Key.ItemDetailName,
-                                SumItemDetails = item.Sum(e => e.Amount),
-
-                                Persons = item
-                                    .Where(p => p.PersonId != null)
-                                    .GroupBy(p => new { p.PersonId, p.PersonName })
-                                    .Select(p => new BudgetPersonDto
-                                    {
-                                        PersonId = p.Key.PersonId!.Value,
-                                        PersonName = p.Key.PersonName!,
-                                        SumPerson = p.Sum(x => x.Amount)
-                                    })
-                                    .OrderBy(x => x.PersonName)
-                                    .ToList()
-                            })
-                            .OrderBy(i => i.ItemDetailName)
-                            .ToList()
-                    })
-                    .OrderBy(c => c.CategoryName)
-                    .ToList()
-            })
-            .OrderBy(cc => cc.CostUnitName)
-            .ToList();
-
-
-        // --- CSV erzeugen ---
-        var csv = new StringBuilder();
-        csv.AppendLine(CsvBudgetHeader);
-
-        foreach (var costCenter in grouped)
-        {
-            csv.AppendLine($"{costCenter.CostUnitName};;;{costCenter.SumCostCenter:C}");
-
-            foreach (var cat in costCenter.Categories)
-            {
-                csv.AppendLine($";{cat.CategoryName};;{cat.SumCategories:C}");
-
-                foreach (var item in cat.ItemDetails)
-                {
-                    var personSum = item.Persons.Sum(p => p.SumPerson);
-
-                    if (!string.IsNullOrWhiteSpace(item.ItemDetailName) ||
-                        item.Persons.Count == 0 ||
-                        personSum != item.SumItemDetails)
-                    {
-                        csv.AppendLine($";;{item.ItemDetailName};{item.SumItemDetails:C}");
-                    }
-
-                    foreach (var person in item.Persons)
-                    {
-                        csv.AppendLine($";;{person.PersonName};{person.SumPerson:C}");
-                    }
-                }
-            }
-        }
-
-        await File.WriteAllTextAsync(Path.Combine(_exportPath, filename), csv.ToString());
-
-        return true;
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error creating CSV");
-        return false;
-    }
-}
-
-
-
-        public async Task<bool> ExportBudgetToExcelWithCharts(DateTime begin, DateTime end, string filename)
-        {
-            // EPPlus Lizenz setzen (erforderlich ab Version 5.0)
-            ExcelPackage.License.SetNonCommercialOrganization("TTC Hagen e.V."); // Oder Commercial
             try
             {
-                _logger.LogInformation("Export budget to Excel started");
+                _logger.LogInformation("Export budget to csv started");
+
                 if (!Directory.Exists(_exportPath))
-                {
                     Directory.CreateDirectory(_exportPath);
-                }
 
                 var transactions = await GetBudgetByDateRange(begin, end);
+                
+                var flatEntries = new List<BudgetFlatEntryDto>();
 
-                var flatEntries = transactions.SelectMany(t =>
+                foreach (var t in transactions)
                 {
-                    var entries = new List<dynamic>();
-
                     if (!t.TransactionDetails.Any())
-                    {
-                        entries.Add(new
-                        {
-                            CostCenter = t.Allocation.CostCenter,
-                            Category = t.Allocation.Category,
-                            ItemDetail = t.Allocation.ItemDetail,
-                            Amount = t.AccountMovement,
-                            Person = (PersonModel?)null
-                        });
-                    }
+                        flatEntries.Add(_mapper.MapTransaction(t));
 
-                    entries.AddRange(t.TransactionDetails.Select(st => new
-                    {
-                        CostCenter = t.Allocation.CostCenter,
-                        Category = t.Allocation.Category,
-                        ItemDetail = t.Allocation.ItemDetail,
-                        Amount = st.Sum,
-                        st.Person
-                    }));
+                    foreach (var td in t.TransactionDetails)
+                        flatEntries.Add(_mapper.MapTransactionDetail(td));
+                }
 
-                    return entries;
-                }).ToList();
-
+                // --- Gruppierung ---
                 var grouped = flatEntries
-                    .GroupBy(e => new { e.CostCenter.Id, e.CostCenter.CostUnitName })
-                    .Select(costCenterGroup => new
+                    .GroupBy(e => new { e.CostCenterId, e.CostCenterName })
+                    .Select(costCenterGroup => new BudgetGroupedDto
                     {
-                        CostCenterId = costCenterGroup.Key.Id,
-                        costCenterGroup.Key.CostUnitName,
-                        SummeCostUnit = costCenterGroup.Sum(e => (decimal)e.Amount),
+                        CostCenterId = costCenterGroup.Key.CostCenterId,
+                        CostUnitName = costCenterGroup.Key.CostCenterName,
+                        SumCostCenter = costCenterGroup.Sum(e => e.Amount),
 
                         Categories = costCenterGroup
-                            .GroupBy(e => new
+                            .GroupBy(e => new { e.CategoryId, e.CategoryName })
+                            .Select(cat => new BudgetCategoryDto
                             {
-                                CategoryId = e.Category?.Id,
-                                CategoryName = e.Category?.Name ?? string.Empty
-                            })
-                            .Select(categoryGroup => new
-                            {
-                                categoryGroup.Key.CategoryId,
-                                CategoryName = categoryGroup.Key.CategoryName,
-                                SumOfCategories = categoryGroup.Sum(e => (decimal)e.Amount),
+                                CategoryId = cat.Key.CategoryId,
+                                CategoryName = cat.Key.CategoryName,
+                                SumCategories = cat.Sum(e => e.Amount),
 
-                                ItemDetails = categoryGroup
-                                    .GroupBy(e => new
+                                ItemDetails = cat
+                                    .GroupBy(e => new { e.ItemDetailId, e.ItemDetailName })
+                                    .Select(item => new BudgetItemDetailDto
                                     {
-                                        ItemDetailId = e.ItemDetail?.Id,
-                                        ItemDetailName = e.ItemDetail?.CostDetails ?? string.Empty
-                                    })
-                                    .Select(itemDetailGroup => new
-                                    {
-                                        itemDetailGroup.Key.ItemDetailId,
-                                        itemDetailGroup.Key.ItemDetailName,
-                                        SumOfItemDetails = itemDetailGroup.Sum(e => (decimal)e.Amount),
+                                        ItemDetailId = item.Key.ItemDetailId,
+                                        ItemDetailName = item.Key.ItemDetailName,
+                                        SumItemDetails = item.Sum(e => e.Amount),
 
-                                        Persons = itemDetailGroup
-                                            .Where(e => e.Person != null)
-                                            .GroupBy(e => new
+                                        Persons = item
+                                            .Where(p => p.PersonId != null)
+                                            .GroupBy(p => new { p.PersonId, p.PersonName })
+                                            .Select(p => new BudgetPersonDto
                                             {
-                                                PersonId = e.Person!.Id,
-                                                PersonName = e.Person!.Name
+                                                PersonId = p.Key.PersonId!.Value,
+                                                PersonName = p.Key.PersonName!,
+                                                SumPerson = p.Sum(x => x.Amount)
                                             })
-                                            .Select(personGroup => new
-                                            {
-                                                personGroup.Key.PersonId,
-                                                personGroup.Key.PersonName,
-                                                SummePerson = personGroup.Sum(e => (decimal)e.Amount)
-                                            })
-                                            .OrderBy(p => p.PersonName)
+                                            .OrderBy(x => x.PersonName)
                                             .ToList()
                                     })
-                                    .OrderBy(ud => ud.ItemDetailName)
+                                    .OrderBy(i => i.ItemDetailName)
                                     .ToList()
                             })
-                            .OrderBy(bu => bu.CategoryName)
+                            .OrderBy(c => c.CategoryName)
                             .ToList()
                     })
-                    .OrderBy(cu => cu.CostUnitName)
+                    .OrderBy(cc => cc.CostUnitName)
                     .ToList();
 
-                _logger.LogInformation("Export budget to Excel: Gathering data completed");
+                // --- CSV erzeugen ---
+                var csv = new StringBuilder();
+                csv.AppendLine(CsvBudgetHeader);
 
-                using var package = new ExcelPackage();
+                foreach (var costCenter in grouped)
+                {
+                    csv.AppendLine($"{costCenter.CostUnitName};;;{costCenter.SumCostCenter:C}");
 
-                // Sheet 1: Transaktionen
-                CreateTransactionsSheetEpPlus(package, grouped, begin, end);
+                    foreach (var cat in costCenter.Categories)
+                    {
+                        csv.AppendLine($";{cat.CategoryName};;{cat.SumCategories:C}");
 
-                // Sheet 2: Auswertungen mit Diagrammen
-                CreateAnalysisSheetEpPlus(package, grouped);
+                        foreach (var item in cat.ItemDetails)
+                        {
+                            var personSum = item.Persons.Sum(p => p.SumPerson);
 
-                var filePath = Path.Combine(_exportPath, filename);
-                await package.SaveAsAsync(new FileInfo(filePath));
+                            if (!string.IsNullOrWhiteSpace(item.ItemDetailName) ||
+                                item.Persons.Count == 0 ||
+                                personSum != item.SumItemDetails)
+                            {
+                                csv.AppendLine($";;{item.ItemDetailName};{item.SumItemDetails:C}");
+                            }
 
-                _logger.LogInformation("Export budget to Excel: Finish creating Excel file");
+                            foreach (var person in item.Persons)
+                            {
+                                csv.AppendLine($";;{person.PersonName};{person.SumPerson:C}");
+                            }
+                        }
+                    }
+                }
+
+                await File.WriteAllTextAsync(Path.Combine(_exportPath, filename), csv.ToString());
+
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Export budget to Excel: Error creating Excel file");
+                _logger.LogError(ex, "Error creating CSV");
+                return false;
+            }
+        }
+
+
+
+        // -------------------------------------------------------
+        // Excel Export mit Charts (angepasst auf manuelles Mapping)
+        // -------------------------------------------------------
+        public async Task<bool> ExportBudgetToExcelWithCharts(DateTime begin, DateTime end, string filename)
+        {
+            ExcelPackage.License.SetNonCommercialOrganization("TTC Hagen e.V.");
+
+            try
+            {
+                _logger.LogInformation("Export budget to Excel started");
+
+                if (!Directory.Exists(_exportPath))
+                    Directory.CreateDirectory(_exportPath);
+
+                var transactions = await GetBudgetByDateRange(begin, end);
+
+                // --- MANUELLES MAPPING ---
+                var flatEntries = new List<BudgetFlatEntryDto>();
+
+                foreach (var t in transactions)
+                {
+                    if (!t.TransactionDetails.Any())
+                        flatEntries.Add(_mapper.MapTransaction(t));
+
+                    foreach (var td in t.TransactionDetails)
+                        flatEntries.Add(_mapper.MapTransactionDetail(td));
+                }
+
+                // Gruppierung wie bisher, aber mit flatEntries statt dyn
+                var grouped = flatEntries
+                    .GroupBy(e => new { e.CostCenterId, e.CostCenterName })
+                    .Select(costCenterGroup => new
+                    {
+                        CostCenterId = costCenterGroup.Key.CostCenterId,
+                        CostUnitName = costCenterGroup.Key.CostCenterName,
+                        SummeCostUnit = costCenterGroup.Sum(e => e.Amount),
+
+                        Categories = costCenterGroup
+                            .GroupBy(e => new { e.CategoryId, e.CategoryName })
+                            .Select(categoryGroup => new
+                            {
+                                categoryGroup.Key.CategoryId,
+                                CategoryName = categoryGroup.Key.CategoryName,
+                                SumOfCategories = categoryGroup.Sum(e => e.Amount),
+
+                                ItemDetails = categoryGroup
+                                    .GroupBy(e => new { e.ItemDetailId, e.ItemDetailName })
+                                    .Select(itemDetailGroup => new
+                                    {
+                                        itemDetailGroup.Key.ItemDetailId,
+                                        itemDetailGroup.Key.ItemDetailName,
+                                        SumOfItemDetails = itemDetailGroup.Sum(e => e.Amount),
+
+                                        Persons = itemDetailGroup
+                                            .Where(x => x.PersonId != null)
+                                            .GroupBy(x => new { x.PersonId, x.PersonName })
+                                            .Select(p => new
+                                            {
+                                                PersonId = p.Key.PersonId!,
+                                                PersonName = p.Key.PersonName!,
+                                                SummePerson = p.Sum(x => x.Amount)
+                                            })
+                                            .OrderBy(p => p.PersonName)
+                                            .ToList()
+                                    })
+                                    .OrderBy(id => id.ItemDetailName)
+                                    .ToList()
+                            })
+                            .OrderBy(cat => cat.CategoryName)
+                            .ToList()
+                    })
+                    .OrderBy(cc => cc.CostUnitName)
+                    .ToList();
+
+                using var package = new ExcelPackage();
+
+                CreateTransactionsSheetEpPlus(package, grouped, begin, end);
+                CreateAnalysisSheetEpPlus(package, grouped);
+
+                await package.SaveAsAsync(new FileInfo(Path.Combine(_exportPath, filename)));
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Export budget to Excel failed");
                 return false;
             }
         }

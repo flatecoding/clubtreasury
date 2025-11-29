@@ -1,4 +1,4 @@
-namespace TTCCashRegister.Data.Export.DTOs;
+namespace TTCCashRegister.Data.Mapper.DTOs;
 
 
 public class BudgetGroupedDto
@@ -19,7 +19,7 @@ public class BudgetCategoryDto
 
 public class BudgetItemDetailDto
 {
-    public int ItemDetailId { get; set; }
+    public int? ItemDetailId { get; set; }
     public string ItemDetailName { get; set; } = string.Empty;
     public decimal SumItemDetails { get; set; }
     public List<BudgetPersonDto> Persons { get; set; } = new();

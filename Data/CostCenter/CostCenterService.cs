@@ -2,7 +2,7 @@
 
 namespace TTCCashRegister.Data.CostCenter
 {
-    public class CostCenterService(CashDataContext context, ILogger<CostCenterService> logger)
+    public class CostCenterService(CashDataContext context, ILogger<CostCenterService> logger) : ICostCenterService
     {
         private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
