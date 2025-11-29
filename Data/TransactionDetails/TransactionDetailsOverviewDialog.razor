@@ -1,10 +1,10 @@
 @using System.Globalization
 @using TTCCashRegister.Data.Dialog
 @using TTCCashRegister.Data.Source
-@inject TransactionDetailsService TransactionDetailsService
+@inject ITransactionDetailsService TransactionDetailsService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
-@inject NotificationService NotificationService
+@inject INotificationService NotificationService
 
 <MudDialog>
     <DialogContent>
