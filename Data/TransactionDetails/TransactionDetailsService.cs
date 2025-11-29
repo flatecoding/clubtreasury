@@ -2,7 +2,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace TTCCashRegister.Data.TransactionDetails;
 
-public class TransactionDetailsService(CashDataContext context)
+public class TransactionDetailsService(CashDataContext context, ILogger<TransactionDetailsService> logger) 
+    : ITransactionDetailsService
 {
     public async Task<List<TransactionDetailsModel>> GetAllTransactionDetailsAsync()
     {
@@ -33,6 +34,9 @@ public class TransactionDetailsService(CashDataContext context)
     {
         context.TransactionDetails.Add(detailsModel);
         await context.SaveChangesAsync();
+        logger.LogInformation("Transaction details added: {@DetailsModelDescription}, Sum: {@Sum}" +
+                              " Name: {@Name}" , 
+            detailsModel.Description,  decimal.Round(detailsModel.Sum, 2), detailsModel.Person?.Name ?? "null");
     }
     
     public async Task UpdateTransactionDetailsAsync(TransactionDetailsModel detailsModel)
@@ -46,14 +50,34 @@ public class TransactionDetailsService(CashDataContext context)
         existing.PersonId = detailsModel.PersonId;
 
         await context.SaveChangesAsync();
+        logger.LogInformation("Transaction details updated: {@DetailsModelDescription}, Sum: {@SUm}" +
+                              " Name: {@Name}" , 
+            detailsModel.Description, decimal.Round(detailsModel.Sum, 2),  detailsModel.Person?.Name ?? "null");
     }
     
     public async Task DeleteAsync(int id)
     {
-        var existing = await context.TransactionDetails.FindAsync(id);
-        if (existing == null) return;
+        try
+        {
+            var existing = await context.TransactionDetails.FindAsync(id);
+            if (existing == null)
+            {
+                logger.LogError("Transaction details not found with id: {Id}", id);
+                return;
+            }
 
-        context.TransactionDetails.Remove(existing);
-        await context.SaveChangesAsync();
+            context.TransactionDetails.Remove(existing);
+            await context.SaveChangesAsync();
+            logger.LogInformation("Transaction details deleted: {@DetailsModelDescription}, Sum: {@Sum} Name: {@Name}", 
+                existing.Description,  decimal.Round(existing.Sum, 2),  existing.Person?.Name ?? "null");
+        }
+        catch (DbUpdateException dbUpdateException)
+        {
+            logger.LogCritical(dbUpdateException, "An exception occurred while deleting transaction with id: {Id}", id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogCritical(ex, "An exception occurred while deleting transaction with id: {Id}", id);
+        }
     }
 }

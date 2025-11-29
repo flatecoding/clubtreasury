@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
+using Serilog;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
 using TTCCashRegister.Data.Allocation;
@@ -19,7 +20,7 @@ using TTCCashRegister.Data.Source;
 using TTCCashRegister.Data.SpecialItem;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.TransactionDetails;
-
+using TTCCashRegister.Data.Mapper;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMudServices();
@@ -46,7 +47,7 @@ builder.Services.AddDbContext<CashDataContext>(options =>
     {
         if (dbPassword is null)
         {
-            logger.LogInformation($"Password not found");
+            logger.LogError($"Password not found");
             throw new Exception("Db password not found");
         }
         connectionString = connectionString.Replace("{DbPassword}", dbPassword);
@@ -63,19 +64,20 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
-builder.Services.AddScoped<ItemDetailService>();
-builder.Services.AddScoped<CostCenterService>();
-builder.Services.AddScoped<TransactionService>();
-builder.Services.AddScoped<SpecialItemService>();
-builder.Services.AddScoped<CashRegisterService>();
-builder.Services.AddScoped<CategoryService>();
-builder.Services.AddScoped<ExportService>();
-builder.Services.AddScoped<NotificationService>();
-builder.Services.AddScoped<ImportCostCenterService>();
-builder.Services.AddScoped<ImportBookingJournalService>();
-builder.Services.AddScoped<PersonService>();
-builder.Services.AddScoped<TransactionDetailsService>();
-builder.Services.AddScoped<AllocationService>();
+builder.Services.AddScoped<IItemDetailService, ItemDetailService>();
+builder.Services.AddScoped<ICostCenterService, CostCenterService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<ISpecialItemService, SpecialItemService>();
+builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IExportService, ExportService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ImportCostCenterService, ImportCostCenterService>();
+builder.Services.AddScoped<IImportBookingJournalService, ImportBookingJournalService>();
+builder.Services.AddScoped<IPersonService, PersonService>();
+builder.Services.AddScoped<ITransactionDetailsService, TransactionDetailsService>();
+builder.Services.AddScoped<IAllocationService, AllocationService>();
+builder.Services.AddScoped<IBudgetMapper, BudgetMapper>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
@@ -88,11 +90,16 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.ShowTransitionDuration = 500;
     config.SnackbarConfiguration.SnackbarVariant = Variant.Text;
 });
+
 builder.Services.AddMudBlazorDialog();
 builder.Services.AddMudPopoverService();
 builder.Services.AddMudExtensions();
 
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
+
 var app = builder.Build();
+app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

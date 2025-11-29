@@ -3,9 +3,9 @@
 @using TTCCashRegister.Data.Export.Dialogs
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction
-@inject TransactionService TransactionService
+@inject ITransactionService TransactionService
 @inject IDialogService DialogService
-@inject NotificationService NotificationService
+@inject INotificationService NotificationService
 
 <h2>Export data for budget plan</h2>
 <MudPaper Class="mt-4" Style="width:50%;">
