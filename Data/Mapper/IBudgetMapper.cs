@@ -8,4 +8,6 @@ public interface IBudgetMapper
 {
     BudgetFlatEntryDto MapTransaction(TransactionModel t);
     BudgetFlatEntryDto MapTransactionDetail(TransactionDetailsModel td);
+    IEnumerable<BudgetFlatEntryDto> BuildFlatEntries(IEnumerable<TransactionModel> transactions);
+    List<BudgetGroupedDto> BuildBudgetHierarchy(IEnumerable<BudgetFlatEntryDto> flatEntries);
 }
