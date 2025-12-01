@@ -78,6 +78,8 @@ builder.Services.AddScoped<IPersonService, PersonService>();
 builder.Services.AddScoped<ITransactionDetailsService, TransactionDetailsService>();
 builder.Services.AddScoped<IAllocationService, AllocationService>();
 builder.Services.AddScoped<IBudgetMapper, BudgetMapper>();
+builder.Services.AddScoped<ICsvBudgetWriter, CsvBudgetWriter>();
+builder.Services.AddScoped<IExcelBudgetWriter, ExcelBudgetWriter>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
