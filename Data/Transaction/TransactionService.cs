@@ -9,7 +9,6 @@ namespace TTCCashRegister.Data.Transaction;
 
 public class TransactionService(
     CashDataContext context,
-    ICashRegisterService cashRegisterService,
     IExportService exportService,
     IAllocationService allocationService,
     ILogger<TransactionService> logger) : ITransactionService

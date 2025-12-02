@@ -3,18 +3,6 @@
 This project uses the following third-party libraries:
 
 ---
-
-## AutoMapper 12.0.1
-
-- **License:** MIT
-- **Copyright:** (c) Jimmy Bogard
-- **License text:** see `Licenses/AutoMapper_LICENSE.txt`
-
-**Description:**  
-AutoMapper is a library for object-to-object mapping. The MIT license allows free use, modification, and distribution — both internally and externally — as long as the license notice is preserved.
-
----
-
 ## EPPlus 5.x
 
 - **License:** Polyform Noncommercial 1.0.0
@@ -24,18 +12,6 @@ AutoMapper is a library for object-to-object mapping. The MIT license allows fre
 **Description:**  
 EPPlus is a library for working with Excel files (XLSX). The Polyform Noncommercial License allows use **only for non-commercial purposes**.  
 **Note:** Since this project is currently private and used in a non-profit association, it complies with the license. If the project is made public in the future, EPPlus usage may need to be replaced or excluded to comply with open-source licensing.
-
----
-
-## iText 5.x / 7.x
-
-- **License:** AGPL (Affero General Public License)
-- **Copyright:** iText Software
-- **License text:** see `Licenses/iText_LICENSE.txt`
-
-**Description:**  
-iText is a library for creating and manipulating PDF files. Under the AGPL license, internal and non-commercial use is allowed.  
-If the project is made public, the AGPL requires that the complete source code of the project be made available under the same license.
 
 ---
 

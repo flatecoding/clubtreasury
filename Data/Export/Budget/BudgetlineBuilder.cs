@@ -1,8 +1,8 @@
 using TTCCashRegister.Data.Mapper.DTOs;
 
-namespace TTCCashRegister.Data.Export;
+namespace TTCCashRegister.Data.Export.Budget;
 
-public class BudgetLineBuilder
+public abstract class BudgetLineBuilder
 {
     public static IEnumerable<BudgetLine> EnumerateBudgetLines(IEnumerable<BudgetGroupedDto> grouped)
     {
