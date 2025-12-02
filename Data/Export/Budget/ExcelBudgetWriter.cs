@@ -1,16 +1,14 @@
+using System.Drawing;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using System.Drawing;
 using TTCCashRegister.Data.Mapper.DTOs;
 
-namespace TTCCashRegister.Data.Export;
+namespace TTCCashRegister.Data.Export.Budget;
 
 public class ExcelBudgetWriter : IExcelBudgetWriter
 {
     public async Task WriteAsync(string filePath, IEnumerable<BudgetGroupedDto> grouped, DateTime begin, DateTime end)
     {
-        ExcelPackage.License.SetNonCommercialOrganization("TTC Hagen e.V.");
-
         using var package = new ExcelPackage();
         var ws = package.Workbook.Worksheets.Add("Budget");
 

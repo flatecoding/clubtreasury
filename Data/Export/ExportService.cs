@@ -1,22 +1,10 @@
-﻿using System.Globalization;
-using System.Text;
-using iText.IO.Font.Constants;
-using iText.IO.Image;
-using iText.Kernel.Events;
-using iText.Kernel.Font;
-using iText.Kernel.Geom;
-using iText.Kernel.Pdf;
-using iText.Layout;
-using iText.Layout.Element;
-using iText.Layout.Properties;
+﻿using System.Text;
 using Microsoft.EntityFrameworkCore;
+using TTCCashRegister.Data.Export.Budget;
+using TTCCashRegister.Data.Export.Transaction;
 using TTCCashRegister.Data.Mapper;
 using TTCCashRegister.Data.Transaction;
 using Path = System.IO.Path;
-using Border = iText.Layout.Borders.Border;
-using Cell = iText.Layout.Element.Cell;
-using Color = iText.Kernel.Colors.Color;
-using Table = iText.Layout.Element.Table;
 
 namespace TTCCashRegister.Data.Export
 {
@@ -28,25 +16,19 @@ namespace TTCCashRegister.Data.Export
         private readonly ICsvBudgetWriter _csvWriter;
         private readonly IExcelBudgetWriter _excelWriter;
         private readonly string _exportPath;
+        private readonly IPdfTransactionRenderer _transactionPdfRenderer;
         private const string SelectedFolder = "Export";
         private const string CsvHeader = "Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung";
-        private const string Image = "Logo TTC Hagen.bmp";
-        private const string PdfTitle = "Kassenbuch TTC Hagen";
-        private const string Range = "Zeitraum";
-        private const string PdfHeaderDate = "Datum";
-        private const string PdfHeaderDocumentNumber = "Belegnr.";
-        private const string PdfHeaderDescription = "Beschreibung";
-        private const string PdfHeaderSum = "Summe";
-        private const string PdfHeaderAccountMovement = "Konto";
 
         public ExportService(CashDataContext context, ILogger<ExportService> logger, IBudgetMapper budgetMapper, 
-            ICsvBudgetWriter csvWriter, IExcelBudgetWriter excelWriter)
+            ICsvBudgetWriter csvWriter, IExcelBudgetWriter excelWriter, IPdfTransactionRenderer pdfTransactionRenderer)
         {
             _context = context;
             _logger = logger;
             _budgetMapper = budgetMapper;
             _csvWriter = csvWriter;
             _excelWriter = excelWriter;
+            _transactionPdfRenderer = pdfTransactionRenderer;
             
             var projectDirectory = AppContext.BaseDirectory;
             var binDirectory = Directory.GetParent(projectDirectory)?.Parent?.Parent?.FullName;
@@ -124,131 +106,27 @@ namespace TTCCashRegister.Data.Export
                 return false;
             }
         }
-
+        
+        
         public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename)
         {
             try
             {
-                _logger.LogInformation("Beginning export transactions to pdf");
-                if (!Directory.Exists(_exportPath))
-                {
-                    Directory.CreateDirectory(_exportPath);
-                }
-
                 var transactions = await GetTransactionsInDateRange(begin, end);
-                var orderedTransactions = transactions.OrderBy(t => t.Documentnumber).ToList();
-                var writer = new PdfWriter(Path.Combine(_exportPath, filename));
-                var pdf = new PdfDocument(writer);
-                //var document = new Document(pdf, PageSize.A4.Rotate());
-                var document = new Document(pdf, PageSize.A4);
-                document.SetMargins(20, 30, 40, 30);
-                var font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
-                var bold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
-                // EventHandler registrieren
-                IPageNumberEventHandler handler =
-                    new PageNumberEventHandler(font, footerPageCounterBottomMargin: 20f, placeholderWidth: 50f);
-                pdf.AddEventHandler(PdfDocumentEvent.END_PAGE, handler);
 
-                var table = new Table(5);
-                table.SetWidth(UnitValue.CreatePercentValue(100));
+                var filePath = Path.Combine(_exportPath, filename);
 
-                //Add header
-                var imagePath = $"{Directory.GetCurrentDirectory()}{@"/wwwroot/images"}";
-                var fullFileName = Path.Combine(imagePath, Image);
+                await _transactionPdfRenderer.RenderTransactionPdfExportAsync(transactions, begin, end, filePath);
 
-                if (File.Exists(fullFileName))
-                {
-                    // Create a table with a row and two cells
-                    var headerTable = new Table(3);
-                    headerTable.SetWidth(UnitValue.CreatePercentValue(100));
-                    //headerTable.SetBorder(Border.NO_BORDER);
-
-                    // Add image in first row
-                    var img = new Image(ImageDataFactory.Create(fullFileName));
-                    img.ScaleToFit(60, 60);
-                    var imageCell = new Cell(2, 1).Add(img)
-                        .SetBorder(Border.NO_BORDER);
-                    headerTable.AddCell(imageCell);
-
-                    var title = new Paragraph(PdfTitle)
-                        .SetFont(bold)
-                        .SetFontSize(20)
-                        .SetTextAlignment(TextAlignment.CENTER);
-                    var titleCell = new Cell().Add(title).SetBorder(Border.NO_BORDER);
-                    headerTable.AddCell(titleCell);
-
-                    var imageRightSide = new Cell(2, 1).Add(img)
-                        .SetBorder(Border.NO_BORDER)
-                        .SetHorizontalAlignment(HorizontalAlignment.LEFT);
-                    headerTable.AddCell(imageRightSide);
-
-                    var period = new Paragraph($"{Range}: {begin:dd.MM.yyyy} - {end:dd.MM.yyyy}")
-                        .SetFont(font)
-                        .SetFontSize(14)
-                        .SetTextAlignment(TextAlignment.CENTER);
-                    var periodCell = new Cell().Add(period).SetBorder(Border.NO_BORDER);
-                    headerTable.AddCell(periodCell);
-
-                    document.Add(headerTable);
-                }
-
-                document.Add(new Paragraph("\n"));
-                table.AddHeaderCell(new Cell().Add(new Paragraph(PdfHeaderDate).SetFont(bold))
-                    .SetBackgroundColor(PdfColors.HeaderColor));
-                table.AddHeaderCell(new Cell().Add(new Paragraph(PdfHeaderDocumentNumber).SetFont(bold))
-                    .SetBackgroundColor(PdfColors.HeaderColor));
-                table.AddHeaderCell(new Cell().Add(new Paragraph(PdfHeaderDescription).SetFont(bold))
-                    .SetBackgroundColor(PdfColors.HeaderColor));
-                table.AddHeaderCell(new Cell().Add(new Paragraph(PdfHeaderSum).SetFont(bold))
-                    .SetBackgroundColor(PdfColors.HeaderColor));
-                table.AddHeaderCell(new Cell().Add(new Paragraph(PdfHeaderAccountMovement).SetFont(bold))
-                    .SetBackgroundColor(PdfColors.HeaderColor));
-
-                for (var i = 0; i < orderedTransactions.Count; i++)
-                {
-                    var transaction = orderedTransactions[i];
-                    Color rowColor = i % 2 == 0 ? PdfColors.RowColorEven : PdfColors.RowColorOdd;
-                    var accColor = transaction.AccountMovement > 0
-                        ? PdfColors.PositiveSum
-                        : PdfColors.NegativeSum;
-
-                    table.AddCell(new Cell()
-                        .Add(new Paragraph(transaction.Date.ToString())
-                            .SetFont(font))
-                        .SetBackgroundColor(rowColor));
-                    table.AddCell(new Cell()
-                        .Add(new Paragraph(transaction.Documentnumber.ToString())
-                            .SetFont(font)
-                            .SetTextAlignment(TextAlignment.CENTER))
-                        .SetHorizontalAlignment(HorizontalAlignment.CENTER)
-                        .SetBackgroundColor(rowColor));
-                    table.AddCell(new Cell()
-                        .Add(new Paragraph(transaction.Description)
-                            .SetFont(font))
-                        .SetBackgroundColor(rowColor));
-                    table.AddCell(new Cell()
-                        .Add(new Paragraph(transaction.Sum.ToString(CultureInfo.CurrentCulture))
-                            .SetFont(font))
-                        .SetBackgroundColor(rowColor));
-                    table.AddCell(new Cell().Add(
-                            new Paragraph(transaction.AccountMovement.ToString(CultureInfo.CurrentCulture))
-                                .SetFont(font)
-                                .SetFontColor(accColor))
-                        .SetBackgroundColor(rowColor));
-                }
-
-                document.Add(table);
-                handler.WriteTotal(pdf);
-                document.Close();
-                _logger.LogInformation("Export transactions to pdf completed successfully");
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Export transactions to pdf failed");
+                _logger.LogError(ex, "PDF export failed");
                 return false;
             }
         }
+        
         
         public async Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
         {

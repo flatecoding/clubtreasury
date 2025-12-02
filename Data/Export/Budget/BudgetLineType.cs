@@ -1,4 +1,4 @@
-namespace TTCCashRegister.Data.Export;
+namespace TTCCashRegister.Data.Export.Budget;
 
 public enum BudgetLineType
 {
