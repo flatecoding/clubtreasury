@@ -1,37 +1,77 @@
-# Third-Party Libraries
+# Third-Party Licenses
 
-This project uses the following third-party libraries:
-
----
-## EPPlus 5.x
-
-- **License:** Polyform Noncommercial 1.0.0
-- **Copyright:** (c) EPPlus Software AB
-- **License text:** see `Licenses/EPPlus_LICENSE.txt`
-
-**Description:**  
-EPPlus is a library for working with Excel files (XLSX). The Polyform Noncommercial License allows use **only for non-commercial purposes**.  
-**Note:** Since this project is currently private and used in a non-profit association, it complies with the license. If the project is made public in the future, EPPlus usage may need to be replaced or excluded to comply with open-source licensing.
+This project uses several third-party NuGet packages.  
+All packages retain their original licenses.  
+The complete license texts are available through the NuGet gallery links provided below.
 
 ---
 
-## Serilog
+## User Interface
 
-- **License:** Apache License 2.0
-- **Copyright:** Serilog Contributors
-- **License text:** see `Licenses/Serilog_LICENSE.txt`
+### MudBlazor — MIT License
+NuGet: https://www.nuget.org/packages/MudBlazor
 
-**Description:**  
-Serilog is a logging library for .NET. The Apache License 2.0 allows free use, modification, and distribution, provided that copyright notices and license texts are retained.
+### CodeBeam.MudBlazor.Extensions — MIT License
+NuGet: https://www.nuget.org/packages/CodeBeam.MudBlazor.Extensions
+
+---
+
+## Database & ORM
+
+### Microsoft.EntityFrameworkCore.* — MIT License
+NuGet: https://www.nuget.org/packages/Microsoft.EntityFrameworkCore
+
+### Pomelo.EntityFrameworkCore.MySql — MIT License
+NuGet: https://www.nuget.org/packages/Pomelo.EntityFrameworkCore.MySql
+
+### MySqlConnector — MIT License
+NuGet: https://www.nuget.org/packages/MySqlConnector
+
+### MySqlConnector.DependencyInjection — MIT License
+NuGet: https://www.nuget.org/packages/MySqlConnector.DependencyInjection
+
+---
+
+## PDF & Excel
+
+### QuestPDF (Community Edition) — QuestPDF Open License
+NuGet: https://www.nuget.org/packages/QuestPDF  
+License: https://www.questpdf.com/license/
+
+### EPPlus — Polyform NonCommercial 1.0.0
+NuGet: https://www.nuget.org/packages/EPPlus  
+License: https://polyformproject.org/licenses/noncommercial/1.0.0/
+
+### ExcelDataReader & ExcelDataReader.DataSet — MIT License
+NuGet: https://www.nuget.org/packages/ExcelDataReader  
+NuGet: https://www.nuget.org/packages/ExcelDataReader.DataSet
+
+---
+
+## Validation
+
+### FluentValidation — Apache License 2.0
+NuGet: https://www.nuget.org/packages/FluentValidation
+
+### Blazored.FluentValidation — MIT License
+NuGet: https://www.nuget.org/packages/Blazored.FluentValidation
+
+### Accelist.FluentValidation.Blazor — MIT License
+NuGet: https://www.nuget.org/packages/Accelist.FluentValidation.Blazor
+
+---
+
+## Logging
+
+### Serilog.AspNetCore — Apache License 2.0
+NuGet: https://www.nuget.org/packages/Serilog.AspNetCore
 
 ---
 
 ## Notes
 
-- License texts are stored in the `Licenses/` folder:
-  - `Licenses/AutoMapper_LICENSE.txt`
-  - `Licenses/EPPlus_LICENSE.txt`
-  - `Licenses/iText_LICENSE.txt`
-  - `Licenses/Serilog_LICENSE.txt`
+- This project itself is licensed under the **MIT License** (see `LICENSE` file).
+- All third-party libraries remain under their respective licenses.
+- Full license texts can be retrieved directly from the NuGet package links above.
+- EPPlus is limited to **non-commercial use**, which matches the intended use-case of this application.
 
-- This file serves as documentation and traceability for all third-party libraries used in the project.
