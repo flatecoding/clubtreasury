@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
+using OfficeOpenXml;
+using QuestPDF.Infrastructure;
 using Serilog;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
@@ -13,6 +15,8 @@ using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
 using TTCCashRegister.Data.Export;
+using TTCCashRegister.Data.Export.Budget;
+using TTCCashRegister.Data.Export.Transaction;
 using TTCCashRegister.Data.Import;
 using TTCCashRegister.Data.ItemDetail;
 using TTCCashRegister.Data.Person;
@@ -30,6 +34,9 @@ var loggerFactory = LoggerFactory.Create(loggingBuilder =>
     loggingBuilder.AddConsole();
 });
 var logger = loggerFactory.CreateLogger<Program>();
+
+QuestPDF.Settings.License = LicenseType.Community;
+ExcelPackage.License.SetNonCommercialOrganization("TTC Hagen e.V.");
 
 // Add services to the container.
 builder.Services.AddDbContext<CashDataContext>(options =>
@@ -80,6 +87,7 @@ builder.Services.AddScoped<IAllocationService, AllocationService>();
 builder.Services.AddScoped<IBudgetMapper, BudgetMapper>();
 builder.Services.AddScoped<ICsvBudgetWriter, CsvBudgetWriter>();
 builder.Services.AddScoped<IExcelBudgetWriter, ExcelBudgetWriter>();
+builder.Services.AddScoped<IPdfTransactionRenderer, PdfTransactionRenderer>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;

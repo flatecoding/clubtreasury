@@ -1,7 +1,7 @@
 using System.Text;
 using TTCCashRegister.Data.Mapper.DTOs;
 
-namespace TTCCashRegister.Data.Export;
+namespace TTCCashRegister.Data.Export.Budget;
 
 public class CsvBudgetWriter : ICsvBudgetWriter
 {
