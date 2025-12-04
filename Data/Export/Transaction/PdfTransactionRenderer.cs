@@ -29,7 +29,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger) : IP
                     page.Margin(10, Unit.Millimetre);
                     page.Size(PageSizes.A4);
                     page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(11).FontColor(Colors.Black));
+                    page.DefaultTextStyle(x => x.FontSize(10).FontColor(Colors.Black));
                     page.Header().Element(lContainer => ComposeHeader(lContainer, begin, end));
                     page.Content().Element(c => ComposeContent(c, ordered));
                     page.Footer()
@@ -102,20 +102,22 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger) : IP
     private static void ComposeContent(IContainer container, List<TransactionModel> ordered)
     {
         const string headerBackgroundColor = "#DDEBF7";
-        var headerStyle = TextStyle.Default.SemiBold();
-        container
-            .PaddingTop(5, Unit.Millimetre)
-            .Table(table =>
+    var headerStyle = TextStyle.Default.SemiBold();
+    var culture = new CultureInfo("de-DE");
+
+    container.PaddingTop(5, Unit.Millimetre).Column(col =>
+    {
+        col.Item().Table(table =>
+        {
+            table.ColumnsDefinition(columns =>
             {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.ConstantColumn(80);  // Date
-                    columns.ConstantColumn(60);  // Document number
-                    columns.RelativeColumn();         // Description
-                    columns.ConstantColumn(70);  // Sum
-                    columns.ConstantColumn(70);  // Account
+                columns.ConstantColumn(80);  
+                columns.ConstantColumn(60);  
+                columns.RelativeColumn();    
+                columns.ConstantColumn(70);  
+                columns.ConstantColumn(70);  
             });
-                
+
             table.Header(header =>
             {
                 header.Cell().Element(CellHeaderStyle).Text("Datum").Style(headerStyle).AlignCenter();
@@ -127,32 +129,74 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger) : IP
                 IContainer CellHeaderStyle(IContainer containerHeader)
                     => DefaultCellStyle(containerHeader, headerBackgroundColor);
             });
-            
+
             var index = 0;
-            foreach (var transaction in ordered)
+            foreach (var t in ordered)
             {
                 var background = GetRowBackgroundColor(index);
-                table.Cell().Element(c => DefaultCellStyle(c, background)).Text(transaction.Date.ToString()).AlignCenter();
-                table.Cell().Element(c => DefaultCellStyle(c, background)).Text($"B{transaction.Documentnumber}").AlignCenter();
-                table.Cell().Element(c => DefaultCellStyle(c, background)).Text(transaction.Description);
+
+                table.Cell().Element(c => DefaultCellStyle(c, background)).Text(t.Date.ToString()).AlignCenter();
+                table.Cell().Element(c => DefaultCellStyle(c, background)).Text($"B{t.Documentnumber}").AlignCenter();
+                table.Cell().Element(c => DefaultCellStyle(c, background)).Text(t.Description);
 
                 table.Cell().Element(c => DefaultCellStyle(c, background))
-                    .Text(transaction.Sum.ToString("C2", new CultureInfo("de-DE")))
+                    .Text(t.Sum.ToString("C2", culture))
                     .AlignRight();
 
-                var textColor = transaction.AccountMovement >= 0
-                    ? Colors.Green.Darken2
-                    : Colors.Red.Darken2;
+                var textColor = t.AccountMovement >= 0 ? Colors.Green.Darken2 : Colors.Red.Darken2;
 
                 table.Cell().Element(c => DefaultCellStyle(c, background))
-                    .Text(transaction.AccountMovement.ToString("C2", new CultureInfo("de-DE")))
+                    .Text(t.AccountMovement.ToString("C2", culture))
                     .Style(TextStyle.Default.FontColor(textColor))
                     .AlignRight();
 
                 index++;
             }
+        });
+        
+        var totalIncome = ordered.Where(x => x.AccountMovement > 0).Sum(x => x.AccountMovement);
+        var totalExpense = ordered.Where(x => x.AccountMovement < 0).Sum(x => x.AccountMovement);
+        var balance = ordered.Sum(x => x.AccountMovement);
+
+        col.Item().PaddingTop(10).Row(row =>
+        {
+            row.RelativeItem().Text(""); // Platzhalter links
+
+            row.ConstantItem(200).Column(sumCol =>
+            {
+                sumCol.Item().Text($"Gesamteinnahmen:  {totalIncome.ToString("C2", culture)}")
+                    .Style(TextStyle.Default.SemiBold())
+                    .FontColor(Colors.Green.Darken2)
+                    .AlignRight();
+
+                sumCol.Item().Text($"Gesamtausgaben:  {totalExpense.ToString("C2", culture)}")
+                    .Style(TextStyle.Default.SemiBold())
+                    .FontColor(Colors.Red.Darken2)
+                    .AlignRight();
+
+                sumCol.Item().PaddingTop(5)
+                    .Text($"Saldo:  {balance.ToString("C2", culture)}")
+                    .Style(TextStyle.Default.SemiBold())
+                    .FontColor(balance >= 0 ? Colors.Green.Darken3 : Colors.Red.Darken3)
+                    .AlignRight();
             });
+        });
+        col.Item().Row(row =>
+        {
+            row.ConstantItem(100).AlignMiddle().Text("Kontostand 01.01:");
+            row.ConstantItem(100).AlignBottom().LineHorizontal(1)
+                .LineColor(Colors.Grey.Lighten1);
+        });
+            
+        col.Item().PaddingTop(10).Row(row =>
+        {
+            row.ConstantItem(100).AlignMiddle().Text("Kontostand 31.12:");
+            row.ConstantItem(100).AlignBottom().LineHorizontal(1)
+                .LineColor(Colors.Grey.Lighten1);
+        });
+    });
     }
+    
     
     private static string GetRowBackgroundColor(int rowIndex)
     {
