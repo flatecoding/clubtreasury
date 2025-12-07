@@ -27,6 +27,11 @@ using TTCCashRegister.Data.TransactionDetails;
 using TTCCashRegister.Data.Mapper;
 
 var builder = WebApplication.CreateBuilder(args);
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
+
 builder.Services.AddMudServices();
 
 var loggerFactory = LoggerFactory.Create(loggingBuilder =>
@@ -42,28 +47,33 @@ ExcelPackage.License.SetNonCommercialOrganization("TTC Hagen e.V.");
 builder.Services.AddDbContext<CashDataContext>(options =>
 {
     var configuration = builder.Configuration;
-    configuration.AddUserSecrets<Program>();
+
+    // Passwort aus Docker-Secret oder Dev-UserSecrets holen
     var dbPassword = Environment.GetEnvironmentVariable("DbPassword");
+
     if (builder.Environment.IsDevelopment())
     {
-        dbPassword = builder.Configuration["DbPassword"];
+        dbPassword ??= configuration["DbPassword"];
     }
-    var connectionString = builder.Configuration.GetConnectionString(builder.Environment.IsDevelopment() ? "DefaultConnection" : "ProductionConnection");
 
-    if (connectionString is not null)
-    {
-        if (dbPassword is null)
-        {
-            logger.LogError($"Password not found");
-            throw new Exception("Db password not found");
-        }
-        connectionString = connectionString.Replace("{DbPassword}", dbPassword);
-        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-    }
-    else
-    {
-        throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-    }
+    var connectionString = configuration.GetConnectionString(
+        builder.Environment.IsDevelopment() ? "DefaultConnection" : "ProductionConnection"
+    );
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+        throw new InvalidOperationException("Connection string missing");
+
+    if (string.IsNullOrWhiteSpace(dbPassword))
+        throw new Exception("Db password not found in environment or secrets");
+
+    // Passwort einsetzen
+    connectionString = connectionString.Replace("{DbPassword}", dbPassword);
+
+    // Pomelo 8.0.2 + EF Core 8 → AutoDetect wieder stabil
+    options.UseMySql(
+        connectionString,
+        ServerVersion.AutoDetect(connectionString)
+    );
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -109,6 +119,32 @@ builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<CashDataContext>(); 
+    try
+    {
+        var pending = db.Database.GetPendingMigrations().ToList();
+
+        if (pending.Any())
+        {
+            logger.LogInformation("Found {Count} pending migrations: {Migrations}", pending.Count, string.Join(", ", pending));
+            db.Database.Migrate();
+            logger.LogInformation("Database migrated successfully");
+        }
+        else
+        {
+            logger.LogInformation("No pending migrations. Database is up-to-date.");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Database migration failed!");
+        throw;
+    }
+}
+
+
 app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline.
