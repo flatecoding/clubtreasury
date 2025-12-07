@@ -20,8 +20,10 @@ namespace TTCCashRegister.Data.Export
         private const string SelectedFolder = "Export";
         private const string CsvHeader = "Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung";
 
-        public ExportService(CashDataContext context, ILogger<ExportService> logger, IBudgetMapper budgetMapper, 
-            ICsvBudgetWriter csvWriter, IExcelBudgetWriter excelWriter, IPdfTransactionRenderer pdfTransactionRenderer)
+        public ExportService(CashDataContext context, ILogger<ExportService> logger, 
+            IBudgetMapper budgetMapper, ICsvBudgetWriter csvWriter, 
+            IExcelBudgetWriter excelWriter, IPdfTransactionRenderer pdfTransactionRenderer,
+            IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
@@ -29,12 +31,20 @@ namespace TTCCashRegister.Data.Export
             _csvWriter = csvWriter;
             _excelWriter = excelWriter;
             _transactionPdfRenderer = pdfTransactionRenderer;
+    
+            var exportBasePath = configuration["ExportSettings:ExportPath"] ?? "Exports";
             
-            var projectDirectory = AppContext.BaseDirectory;
-            var binDirectory = Directory.GetParent(projectDirectory)?.Parent?.Parent?.FullName;
-            if (binDirectory is null)
-                throw new DirectoryNotFoundException($"The bin directory could not be found: {projectDirectory}");
-            _exportPath = Path.Combine(binDirectory, SelectedFolder);
+            if (!Path.IsPathRooted(exportBasePath))
+            {
+                var projectDirectory = AppContext.BaseDirectory;
+                var binDirectory = Directory.GetParent(projectDirectory)?.Parent?.Parent?.FullName;
+                var basePath = binDirectory ?? projectDirectory;
+                exportBasePath = Path.Combine(basePath, exportBasePath);
+            }
+    
+            _exportPath = Path.Combine(exportBasePath, SelectedFolder);
+            Directory.CreateDirectory(_exportPath);
+            _logger.LogInformation("Export path configured: {ExportPath}", _exportPath);
         }
 
         private async Task<List<TransactionModel>> GetTransactionsInDateRange(DateTime begin, DateTime end)

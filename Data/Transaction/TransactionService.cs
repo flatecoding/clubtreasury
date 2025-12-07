@@ -206,7 +206,7 @@ public class TransactionService(
                 .ThenInclude(st => st.Person)
             .AsNoTracking();
 
-        // 🔍 Datum
+        //Datum
         if (dateRange?.Start is not null && dateRange?.End is not null)
         {
             var start = dateRange.Start.Value.Date;
@@ -216,7 +216,7 @@ public class TransactionService(
                                      t.Date.Value <= DateOnly.FromDateTime(end));
         }
 
-        // 🔎 Suchtext
+        //Suchtext
         if (!string.IsNullOrWhiteSpace(searchText))
         {
             var term = searchText.ToLower();
@@ -230,14 +230,14 @@ public class TransactionService(
             );
         }
 
-        // 👤 Person-Filter
+        //Person-Filter
         if (personId is not null)
         {
             query = query.Where(t =>
                 t.TransactionDetails.Any(st => st.PersonId == personId));
         }
 
-        // 🔽 Sortierung
+        // Sortierung
         query = state.SortLabel switch
         {
             "Date" => state.SortDirection == SortDirection.Descending

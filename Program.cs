@@ -65,14 +65,12 @@ builder.Services.AddDbContext<CashDataContext>(options =>
 
     if (string.IsNullOrWhiteSpace(dbPassword))
         throw new Exception("Db password not found in environment or secrets");
-
-    // Passwort einsetzen
+    
     connectionString = connectionString.Replace("{DbPassword}", dbPassword);
-
-    // Pomelo 8.0.2 + EF Core 8 → AutoDetect wieder stabil
+    
     options.UseMySql(
         connectionString,
-        ServerVersion.AutoDetect(connectionString)
+        new MySqlServerVersion(new Version(11, 0, 0))
     );
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -89,7 +87,7 @@ builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IExportService, ExportService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddScoped<ImportCostCenterService, ImportCostCenterService>();
+builder.Services.AddScoped<IImportCostCenterService, ImportCostCenterService>();
 builder.Services.AddScoped<IImportBookingJournalService, ImportBookingJournalService>();
 builder.Services.AddScoped<IPersonService, PersonService>();
 builder.Services.AddScoped<ITransactionDetailsService, TransactionDetailsService>();
