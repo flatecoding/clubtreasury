@@ -55,7 +55,7 @@
     </HeaderContent>
 
     <RowTemplate>
-        <MudTd>@context.Date</MudTd>
+        <MudTd>@context?.Date?.ToString("dd.MM.yyyy")</MudTd>
         <MudTd>@context.Documentnumber</MudTd>
         <MudTd>@context.Description</MudTd>
         <MudTd>@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
@@ -96,7 +96,7 @@
     private const bool Striped = true;
     private const bool Bordered = false;
     private string _searchString1 = string.Empty;
-    private TransactionModel _selectedItem = new();
+    private TransactionModel? _selectedItem;
     private DateRange _dateRange = new(null, null);
 
     private readonly DialogOptions _transactionDetailsOverviewOptions = new()

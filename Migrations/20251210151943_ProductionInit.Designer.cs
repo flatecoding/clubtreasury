@@ -12,8 +12,8 @@ using TTCCashRegister.Data;
 namespace TTCCashRegister.Migrations
 {
     [DbContext(typeof(CashDataContext))]
-    [Migration("20250924115910_CheckDbStatus")]
-    partial class CheckDbStatus
+    [Migration("20251210151943_ProductionInit")]
+    partial class ProductionInit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

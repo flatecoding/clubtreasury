@@ -44,7 +44,7 @@
 </MudPaper>
 
 @code {
-    private IEnumerable<TransactionModel>? _transactions;
+    private IEnumerable<TransactionModel> _transactions = [];
     private const bool Dense = true;
     private const bool Hover = true;
     private const bool Striped = true;
@@ -53,7 +53,8 @@
     protected override async Task OnInitializedAsync()
     {
          await base.OnInitializedAsync();
-         _transactions = await TransactionService.GetAllTransactions();
+         var result = await TransactionService.GetAllTransactions();
+         _transactions = result ?? [];
     }
 
     private async Task ShowExportBudgetDialog()
