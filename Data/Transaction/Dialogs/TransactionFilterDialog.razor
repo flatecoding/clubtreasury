@@ -36,7 +36,7 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
-    [Inject] PersonService PersonService { get; set; } = null!;   // 👈 direkt injizieren
+    [Inject] IPersonService PersonService { get; set; } = null!;
 
     [Parameter] public DateRange DateRange { get; set; } = new(null, null);
     [Parameter] public string SearchText { get; set; } = string.Empty;
