@@ -1,0 +1,42 @@
+﻿version: "3.8"
+
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: clubcash-db
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: rootPasswort123
+      MARIADB_ROOT_HOST: "%"
+      MARIADB_DATABASE: ClubCash
+      MARIADB_USER: user
+      MARIADB_PASSWORD: #secret pw
+    volumes:
+      - /volume1/docker/ttccashregister/mariadb:/var/lib/mysql
+    ports:
+      - "3307:3306" 
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/127.0.0.1/3306"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  webapp:
+    container_name: clubcash-web
+    image: clubcashregister:latest
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+    environment:
+      USERMAP_UID: #Recommended to use docker user
+      USERMAP_GID: #docker user id
+      Logging__LogLevel__Default: "Debug"
+      Logging__LogLevel__Microsoft.EntityFrameworkCore: "Information"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      DbPassword: #Db passwort from mariadb
+    volumes:
+      - /volume1/docker/ttccashregister/exports:/app/exports
+      - /volume1/docker/ttccashregister/logs:/app/logs
+    ports:
+      - "8080:8080"
