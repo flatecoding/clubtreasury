@@ -1,10 +1,14 @@
 @page "/import-cost-center-dialog"
+@using Microsoft.Extensions.Localization
 @using MudExtensions
+@using Serilog
 @inject IImportCostCenterService ImportCostCenterService
+@inject IStringLocalizer<Translation> Localizer
+@inject ILogger<ImportCostCenters> Logger
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.subtitle1">Select a *.txt file to import cost centers and categories</MudText>
+        <MudText Typo="Typo.subtitle1">@Localizer["ImportQuestion"]</MudText>
         <MudForm>
             <MudFileUpload T="IBrowserFile" 
                            FilesChanged="UploadFiles"
@@ -14,24 +18,24 @@
                                Variant="Variant.Filled"
                                Color="Color.Primary"
                                >
-                        Select file
+                        @Localizer["SelectFile"]
                     </MudButton>
                 </ActivatorContent>
             </MudFileUpload>
-            <MudTextField Disabled="true" @bind-Value="_fileName" Label="Filename" Placeholder="Filename" Required="true"/>
+            <MudTextField Disabled="true" @bind-Value="_fileName" Label=@Localizer["FileName"] Placeholder="@Localizer["FileName"]" Required="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudLoadingButton 
-            @bind-Loading="_isImporting" 
-            Size="Size.Small" 
-            LoadingAdornment="Adornment" 
-            OnClick="@(() => ImportData())" 
-            Variant="Variant.Filled" 
-            Color="Color.Primary"
-        >Import
+        <MudLoadingButton
+            @bind-Loading="_isImporting"
+            Size="Size.Small"
+            LoadingAdornment="Adornment"
+            OnClick="@(() => ImportData())"
+            Variant="Variant.Filled"
+            Color="Color.Primary">
+            @Localizer["Import"]
         </MudLoadingButton>
-        <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -61,7 +65,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occured during import of file: '{_fileName}': {ex.Message}");
+                Logger.LogCritical(ex, "An error occured during import of file: '{_fileName}':", _fileName);
                 MudDialog.Close(DialogResult.Ok(false));
             }
             finally

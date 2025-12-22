@@ -1,6 +1,9 @@
 //using Devart.Data.MySql;
+
+using System.Globalization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
@@ -8,12 +11,14 @@ using MudExtensions.Services;
 using OfficeOpenXml;
 using QuestPDF.Infrastructure;
 using Serilog;
+using TTCCashRegister;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
 using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
+using TTCCashRegister.Data.Culture;
 using TTCCashRegister.Data.Export;
 using TTCCashRegister.Data.Export.Budget;
 using TTCCashRegister.Data.Export.Transaction;
@@ -76,6 +81,7 @@ builder.Services.AddDbContext<CashDataContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
 //    .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
@@ -96,6 +102,7 @@ builder.Services.AddScoped<IBudgetMapper, BudgetMapper>();
 builder.Services.AddScoped<ICsvBudgetWriter, CsvBudgetWriter>();
 builder.Services.AddScoped<IExcelBudgetWriter, ExcelBudgetWriter>();
 builder.Services.AddScoped<IPdfTransactionRenderer, PdfTransactionRenderer>();
+builder.Services.AddScoped<ICultureService, CultureService>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
@@ -158,11 +165,23 @@ else
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
-
 app.UseRouting();
 
+var localizationOptions = new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture(SupportedAppCultures.English),
+    SupportedCultures = SupportedAppCultures.AllCultureInfos,
+    SupportedUICultures = SupportedAppCultures.AllCultureInfos
+};
+
+// Cookie zuerst auswerten (wichtig!)
+localizationOptions.RequestCultureProviders.Insert(
+    0,
+    new CookieRequestCultureProvider()
+);
+
+app.UseRequestLocalization(localizationOptions);
 app.UseAuthentication();
 app.UseAuthorization();
 

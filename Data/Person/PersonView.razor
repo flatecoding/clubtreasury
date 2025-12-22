@@ -1,11 +1,13 @@
 @page "/persons"
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Dialog
 @using TTCCashRegister.Data.Source
 @inject IPersonService PersonService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
+@inject IStringLocalizer<Translation> Localizer
 
-<h2>Persons</h2>
+<h2>@Localizer["PersonPlural"]</h2>
 
 <MudPaper Class="mt-4" Style="width:40%;">
     <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
@@ -17,7 +19,7 @@
                        StartIcon="@Icons.Material.Filled.Add"
                        Color="Color.Primary"
                        @onclick="ShowAddPersonDialog">
-                Add Person
+                @Localizer["AddEntry"]
             </MudButton>
             <MudSpacer />
             <MudTextField @bind-Value="_searchString1"
@@ -34,14 +36,14 @@
             <col style="width: 150px;"/>
         </ColGroup>
         <HeaderContent>
-            <MudTh>Id<MudTableSortLabel SortBy="new Func<PersonModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>Name<MudTableSortLabel SortBy="new Func<PersonModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
-            <MudTh>Actions</MudTh>
+            <MudTh>@Localizer["Id"]<MudTableSortLabel SortBy="new Func<PersonModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
+            <MudTh>@Localizer["Name"]<MudTableSortLabel SortBy="new Func<PersonModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
+            <MudTh>@Localizer["Actions"]</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Id">@context.Id</MudTd>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Actions">
+            <MudTd DataLabel="@Localizer["Id"].Value">@context.Id</MudTd>
+            <MudTd DataLabel="@Localizer["Name"].Value">@context.Name</MudTd>
+            <MudTd DataLabel="@Localizer["Actions"].Value">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditPersonDialog(context.Id)"></MudIconButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeletePersonDialog(context.Id)"></MudIconButton>
             </MudTd>

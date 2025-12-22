@@ -1,14 +1,22 @@
 ﻿@page "/deleteCategory"
+@using Microsoft.Extensions.Localization
 @inject ICategoryService CategoryService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.h6">Are you sure you want to delete this category?</MudText>
+        <MudText Typo="Typo.h6">@Localizer["DeleteQuestion"]</MudText>
         <MudText Typo="Typo.subtitle1">@_categoryName</MudText>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@(() => DeleteCategory())">Delete</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error"
+                   OnClick="@(() => DeleteCategory())">
+            @Localizer["Delete"]
+        </MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default"
+                   OnClick="@(() => Cancel())">
+            @Localizer["Cancel"]
+        </MudButton>
     </DialogActions>
 </MudDialog>
 

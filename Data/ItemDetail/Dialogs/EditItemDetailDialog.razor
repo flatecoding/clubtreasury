@@ -1,21 +1,25 @@
 ﻿@page "/edititemdetail"
 @using System.Diagnostics
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Allocation
 @using TTCCashRegister.Data.Category
 @inject IItemDetailService ItemDetailService
-@inject ICategoryService CategoryService
-@inject IAllocationService AllocationService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" Model="_editItemDetailModel" Validation="_itemDetailValidator.ValidateValue" ValidationDelay="0">
-            <MudTextField @bind-Value="_editItemDetailModel.CostDetails" Label="Cost Details"
+            <MudTextField @bind-Value="_editItemDetailModel.CostDetails" Label="@Localizer["ItemDetail"]"
                           For="@(() => _editItemDetailModel.CostDetails)"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveItemDetail())">Save</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveItemDetail())">
+            @Localizer["Save"]
+        </MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">
+            @Localizer["Cancel"]
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -23,7 +27,6 @@
     [Parameter] public int ItemDetailId { get; set; }
     private MudForm _form = new();
     private ItemDetailModel _editItemDetailModel = new();
-    private IEnumerable<CategoryModel> _selectedCategories = new List<CategoryModel>();
     private readonly ItemDetailValidator _itemDetailValidator = new();
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
