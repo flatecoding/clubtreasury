@@ -1,16 +1,18 @@
 ﻿@page "/editcostcenter"
+@using Microsoft.Extensions.Localization
 @inject ICostCenterService CostCenterService
+@inject IStringLocalizer<Translation> L
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" Model="_editCostCenterModelCopy" Validation="_costCenterValidator.ValidateValue" ValidationDelay="0">
-            <MudTextField @bind-Value="_editCostCenterModelCopy.CostUnitName" Label="Unit Name"
+            <MudTextField @bind-Value="_editCostCenterModelCopy.CostUnitName" Label="@L["CostCenter"]"
                           For="@(() => _editCostCenterModelCopy.CostUnitName)" Immediate="true" />
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveCostUnit())">Save</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveCostUnit())">@L["Save"]</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">@L["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 

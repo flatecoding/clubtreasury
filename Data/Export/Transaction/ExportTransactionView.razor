@@ -1,44 +1,46 @@
 @page "/exportcashaudit"
 @using System.Globalization
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Export.Dialogs
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction
 @inject ITransactionService TransactionService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
+@inject IStringLocalizer<Translation> Localizer
 
-<h2>Export data for cash audit</h2>
-<MudPaper Class="mt-4" Style="width:60%;">
+<h2>@Localizer["ExportCashAuditData"]</h2>
+<MudPaper Class="mt-4" Style="width:80%;">
     <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true">
         <ToolBarContent>
             <MudButton Class = "ml-2"
                        Variant="Variant.Filled"
                        StartIcon="@Icons.Material.Filled.Download"
                        Color="Color.Secondary"
-                       OnClick="ShowExportTransactionDialog">
-                Export data
+                       OnClick="@(async() => await ShowExportTransactionDialogAsync())">
+               @Localizer["ExportData"] 
             </MudButton>
         </ToolBarContent>
         <ColGroup>
             <col style="width: 30px;" />    @*Date*@
-            <col style="width: 80px;" />    @*Doc. Nr*@
+            <col style="width: 100px;" />    @*Doc. Nr*@
             <col />   @*Desciption*@
             <col style="min-width: 100px;" />    @*Sum*@
             <col style="min-width: 100px;" />    @*Acc. mvm.*@
         </ColGroup>
         <HeaderContent>
-            <MudTh>Date</MudTh>
-            <MudTh>Doc. Nr.</MudTh>
-            <MudTh>Description</MudTh>
-            <MudTh>Sum</MudTh>
-            <MudTh>Acc. mvm.</MudTh>
+            <MudTh>@Localizer["Date"]</MudTh>
+            <MudTh>@Localizer["DocumentNumberShort"]</MudTh>
+            <MudTh>@Localizer["Description"]</MudTh>
+            <MudTh>@Localizer["Sum"]</MudTh>
+            <MudTh>@Localizer["Account"]</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Date">@context.Date</MudTd>
-            <MudTd DataLabel="Doc. Nr.">@context.Documentnumber</MudTd>
-            <MudTd DataLabel="Description">@context.Description</MudTd>
-            <MudTd DataLabel="Sum">@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
-            <MudTd DataLabel="Acc. mvm.">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+            <MudTd DataLabel="@Localizer["Date"]">@context.Date</MudTd>
+            <MudTd DataLabel="@Localizer["DocumentNumberShort"]">@context.Documentnumber</MudTd>
+            <MudTd DataLabel="@Localizer["Description"]">@context.Description</MudTd>
+            <MudTd DataLabel="@Localizer["Sum"]">@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+            <MudTd DataLabel="@Localizer["Account"]">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
         </RowTemplate>
         <PagerContent>
             <MudTablePager />
@@ -60,9 +62,9 @@
         _allEntries = result ?? [];
     }
 
-    private async Task ShowExportTransactionDialog()
+    private async Task ShowExportTransactionDialogAsync()
     {
-        var dialog = await DialogService.ShowAsync<ExportTransactionDialog>("Export Transactions", new DialogParameters());
+        var dialog = await DialogService.ShowAsync<ExportTransactionDialog>(Localizer["Export"], new DialogParameters());
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
     }
 }

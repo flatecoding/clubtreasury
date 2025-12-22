@@ -1,51 +1,60 @@
-﻿@using TTCCashRegister.Data.Import.Dialogs
+﻿@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data.Dialog
+@using TTCCashRegister.Data.Import.Dialogs
 @using TTCCashRegister.Data.Source
+@using TTCCashRegister.Resources
+@using Translation = TTCCashRegister.Translation
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-    <MudNavLink Href="/transactions" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Money">Transaction</MudNavLink>
-    <MudNavGroup Title="Settings" Expanded="false" Icon="@Icons.Material.Filled.Settings">
-        <MudNavGroup Title="Cost unit setting" Expanded="false" Icon="@Icons.Material.Filled.Settings">
-            <MudNavLink Href="/costCenters" Match="NavLinkMatch.Prefix">Cost centers</MudNavLink>
-            <MudNavLink Href="/categories" Match="NavLinkMatch.Prefix">Categories</MudNavLink>
-            <MudNavLink Href="/itemdetails" Match="NavLinkMatch.Prefix">Item details</MudNavLink>
-            <MudNavLink Href="/allocations" Match="NavLinkMatch.Prefix">Allocations</MudNavLink>
-            
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">@Localizer["Dashboard"]</MudNavLink>
+    <MudNavLink Href="/transactions" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Money">@Localizer["TransactionPlural"]</MudNavLink>
+    <MudNavGroup Title="@Localizer["Settings"]" Expanded="false" Icon="@Icons.Material.Filled.Settings">
+    <MudNavLink
+        OnClick="@(() => OpenLanguageDialog())"
+        Icon="@Icons.Material.Filled.Language">
+        @Localizer["Language"]
+    </MudNavLink>
+    <MudNavGroup Title=@Localizer["CostConfiguration"] Expanded="false" Icon="@Icons.Material.Filled.Settings">
+            <MudNavLink Href="/costCenters" Match="NavLinkMatch.Prefix">@Localizer["CostCenter"]</MudNavLink>
+            <MudNavLink Href="/categories" Match="NavLinkMatch.Prefix">@Localizer["Category"]</MudNavLink>
+            <MudNavLink Href="/itemdetails" Match="NavLinkMatch.Prefix">@Localizer["ItemDetail"]</MudNavLink>
+            <MudNavLink Href="/allocations" Match="NavLinkMatch.Prefix">@Localizer["Allocation"]</MudNavLink>
         </MudNavGroup>
-        <MudNavGroup Title="Cash register" Expanded="false" Icon="@Icons.Material.Filled.AttachMoney">
-            <MudNavLink Href="/cashregisters" Match="NavLinkMatch.Prefix">Cash Register</MudNavLink>
-            <MudNavLink Href="/specialitems" Match="NavLinkMatch.Prefix">Special positions</MudNavLink>
+        <MudNavGroup Title=@Localizer["FinanceManagement"] Expanded="false" Icon="@Icons.Material.Filled.AttachMoney">
+            <MudNavLink Href="/cashregisters" Match="NavLinkMatch.Prefix">@Localizer["CashRegister"]</MudNavLink>
+            <MudNavLink Href="/specialitems" Match="NavLinkMatch.Prefix">@Localizer["SpecialPositions"]</MudNavLink>
         </MudNavGroup>
-        <MudNavLink Href="/persons" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People">Persons</MudNavLink>
+        <MudNavLink Href="/persons" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.People">@Localizer["Person"]</MudNavLink>
     </MudNavGroup>
-    <MudNavGroup Title="Import / Export data" Expanded="false" Icon="@Icons.Material.Filled.Save">
-        <MudNavGroup Title="Import data">
+    <MudNavGroup Title=@Localizer["ImportExport"] Expanded="false" Icon="@Icons.Material.Filled.Save">
+        <MudNavGroup Title=@Localizer["ImportData"]>
             <MudNavLink
-                OnClick="@(() => OpenImportCostUnitDialog())"
-                Icon="@Icons.Material.Filled.FileUpload">Cost centers
+                OnClick="@(() => OpenImportCostCenterDialog())"
+                Icon="@Icons.Material.Filled.FileUpload">@Localizer["CostCenter"]
             </MudNavLink>
             <MudNavLink
                 OnClick="@(() => OpenImportTransactionDialog())"
-                Icon="@Icons.Material.Filled.FileUpload">Booking journals
+                Icon="@Icons.Material.Filled.FileUpload">@Localizer["BookingJournal"]
             </MudNavLink>
         </MudNavGroup>
-        <MudNavGroup Title="Export data">
-            <MudNavLink Href="/exportcashaudit" Match="NavLinkMatch.Prefix">Cash audit</MudNavLink>
-            <MudNavLink Href="/exportbudget" Match="NavLinkMatch.Prefix">Budget plan</MudNavLink>
+        <MudNavGroup Title=@Localizer["ExportData"]>
+            <MudNavLink Href="/exportcashaudit" Match="NavLinkMatch.Prefix">@Localizer["CashAudit"]</MudNavLink>
+            <MudNavLink Href="/exportbudget" Match="NavLinkMatch.Prefix">@Localizer["BudgetPlan"]</MudNavLink>
         </MudNavGroup>
     </MudNavGroup>
-    <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
+    <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">@Localizer["About"]</MudNavLink>
 </MudNavMenu>
 
 @code {
     
-    private async Task OpenImportCostUnitDialog()
+    private async Task OpenImportCostCenterDialog()
     {
         var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<ImportCostCenters>("Import cost centers", parameters, options);
+        var dialog = await DialogService.ShowAsync<ImportCostCenters>(@Localizer["ImportCostCenterDialogTitle"], parameters, options);
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
     }
     
@@ -60,8 +69,28 @@
         BackdropClick = false,
         BackgroundClass= "custom-dialog-background"
     };
-        var dialog = await DialogService.ShowAsync<ImportTransactionDialog>("Import booking journal", parameters, 
+        var dialog = await DialogService.ShowAsync<ImportTransactionDialog>(@Localizer["ImportTransactionDialogTitle"], parameters, 
             importDialogOptions);
+        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+    }
+    
+    private async Task OpenLanguageDialog()
+    {
+        var parameters = new DialogParameters();
+
+        DialogOptions options = new()
+        {
+            MaxWidth = MaxWidth.ExtraSmall,
+            FullWidth = true,
+            CloseButton = true,
+            BackdropClick = true
+        };
+
+        var dialog = await DialogService.ShowAsync<LanguageSelectionDialog>(
+            Localizer["LanguageDialogTitle"],
+            parameters,
+            options);
+
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
     }
     

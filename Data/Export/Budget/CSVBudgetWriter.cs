@@ -1,16 +1,23 @@
 using System.Text;
+using Microsoft.Extensions.Localization;
 using TTCCashRegister.Data.Mapper.DTOs;
 
 namespace TTCCashRegister.Data.Export.Budget;
 
-public class CsvBudgetWriter : ICsvBudgetWriter
+public class CsvBudgetWriter(IStringLocalizer<Translation> localizer) : ICsvBudgetWriter
 {
-    private const string CsvBudgetHeader = "Kostenstelle;Details/Person;Details;Summe";
-
     public async Task WriteAsync(string filePath, IEnumerable<BudgetGroupedDto> grouped)
     {
         var sb = new StringBuilder();
-        sb.AppendLine(CsvBudgetHeader);
+
+        var csvHeader = string.Join(";",new[]
+        {
+            localizer["CostCenter"].Value,
+            localizer["Category"].Value,
+            localizer["DetailOrPerson"].Value,
+            localizer["Sum"].Value,
+        });
+        sb.AppendLine(csvHeader);
 
         foreach (var line in BudgetLineBuilder.EnumerateBudgetLines(grouped))
         {

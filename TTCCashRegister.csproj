@@ -17,6 +17,46 @@
     <None Include="wwwroot\images\Logo TTC Hagen.eps" />
     <None Include="wwwroot\images\Logo TTC Hagen.png" />
     <None Include="wwwroot\images\Logo TTC Hagen.svg" />
+    <EmbeddedResource Update="Resources\Helper\Navmenu.resx">
+      <LastGenOutput>Navmenu.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Helper\Finances.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Finances.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Translation.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Resources\Translation.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Translation.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\Translation.de-de.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.de-de.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Resources\Translation.de-de.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Translation.de-de.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\Translation.en-us.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.en-us.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Resources\Translation.en-us.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Translation.en-us.resx</DependentUpon>
+    </Compile>
+
+    <!-- Language Ressourcen mit expliziten LogicalNames -->
+
+    <!-- General Ressourcen mit expliziten LogicalNames -->
+
+    <!-- Exports Ressourcen mit expliziten LogicalNames -->
   </ItemGroup>
 
   <ItemGroup>

@@ -1,13 +1,14 @@
 @page "/exportbudget"
 @using System.Globalization
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Export.Dialogs
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction
 @inject ITransactionService TransactionService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
+@inject IStringLocalizer<Translation> Localizer
 
-<h2>Export data for budget plan</h2>
 <MudPaper Class="mt-4" Style="width:50%;">
     <MudTable Class="mt-2" Items="@_transactions" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true">
         <ToolBarContent>
@@ -16,7 +17,7 @@
                        StartIcon="@Icons.Material.Filled.Download"
                        Color="Color.Secondary"
                        OnClick="ShowExportBudgetDialog">
-                Export data
+                @Localizer["Export"]
             </MudButton>
         </ToolBarContent>
         <ColGroup>
@@ -26,16 +27,16 @@
             <col style="min-width:80px;" />    @*Acc. mvm.*@
         </ColGroup>
         <HeaderContent>
-            <MudTh>Cost center</MudTh>
-            <MudTh>Category</MudTh>
-            <MudTh>Position detail</MudTh>
-            <MudTh>Acc. mvm.</MudTh>
+            <MudTh>@Localizer["CostCenter"]</MudTh>
+            <MudTh>@Localizer["Category"]</MudTh>
+            <MudTh>@Localizer["ItemDetail"]</MudTh>
+            <MudTh>@Localizer["Account"]</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Cost center">@context.Allocation.CostCenter.CostUnitName</MudTd>
-            <MudTd DataLabel="Category">@context.Allocation.Category?.Name</MudTd>
-            <MudTd DataLabel="Position detail">@context.Allocation.ItemDetail?.CostDetails</MudTd>
-            <MudTd DataLabel="Acc. mvm.">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+            <MudTd DataLabel="@Localizer["CostCenter"].Value">@context.Allocation.CostCenter.CostUnitName</MudTd>
+            <MudTd DataLabel="@Localizer["Category"].Value">@context.Allocation.Category?.Name</MudTd>
+            <MudTd DataLabel="@Localizer["ItemDetail"].Value">@context.Allocation.ItemDetail?.CostDetails</MudTd>
+            <MudTd DataLabel="@Localizer["Account"].Value">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
         </RowTemplate>
         <PagerContent>
             <MudTablePager />
@@ -59,7 +60,7 @@
 
     private async Task ShowExportBudgetDialog()
     {
-        var dialog = await DialogService.ShowAsync<ExportBudgetDialog>("Export Budgets", new DialogParameters());
+        var dialog = await DialogService.ShowAsync<ExportBudgetDialog>(Localizer["ExportBudget"], new DialogParameters());
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
     }
 }

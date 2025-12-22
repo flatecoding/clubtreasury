@@ -1,10 +1,12 @@
 ﻿@page "/cashregisters"
 @using System.Globalization
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.CashRegister.Dialogs
 @using TTCCashRegister.Data.Source
 @inject ICashRegisterService CashRegisterService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
+@inject IStringLocalizer<Translation> Localizer
 
 <h2>Cash registers</h2>
 
@@ -18,7 +20,7 @@
                        StartIcon="@Icons.Material.Filled.Add"
                        Color="Color.Primary"
                        @onclick="ShowAddCashRegisterDialog">
-                Add Cash Register
+                @Localizer["AddEntry"]
             </MudButton>
             <MudSpacer />
             <MudTextField @bind-Value="_searchString1"
@@ -36,18 +38,26 @@
             <col style="width: 150px;"/>
         </ColGroup>
         <HeaderContent>
-            <MudTh>Id<MudTableSortLabel SortBy="new Func<CashRegisterModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>Name<MudTableSortLabel SortBy="new Func<CashRegisterModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
-            <MudTh>Current balance</MudTh>
-            <MudTh>Actions</MudTh>
+        <MudTh>@Localizer["Id"]<MudTableSortLabel SortBy="new Func<CashRegisterModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
+            <MudTh>@Localizer["Name"]<MudTableSortLabel SortBy="new Func<CashRegisterModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
+            <MudTh>@Localizer["CurrentBalance"]</MudTh>
+            <MudTh>@Localizer["Actions"]</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Id">@context.Id</MudTd>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Current balance">@context.CurrentBalance.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+            <MudTd DataLabel="@Localizer["Id"].Value">@context.Id</MudTd>
+            <MudTd DataLabel="@Localizer["Name"].Value">@context.Name</MudTd>
+            <MudTd DataLabel="@Localizer["CurrentBalance"].Value">
+                @context.CurrentBalance.ToString("C", CultureInfo.CurrentCulture)
+            </MudTd>
             <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditCashRegisterDialog(context.Id)"></MudIconButton>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteCashRegisterDialog(context.Id)">Delete</MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info"
+                               aria-label="@Localizer["Edit"].Value"
+                               @onclick="() => ShowEditCashRegisterDialog(context.Id)">
+                </MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                               aria-label="@Localizer["Delete"].Value" 
+                               @onclick="() => ShowDeleteCashRegisterDialog(context.Id)">Delete
+                </MudIconButton>
             </MudTd>
         </RowTemplate>
         <PagerContent>
@@ -89,14 +99,14 @@
 
     private async Task ShowAddCashRegisterDialog()
     {
-        var dialog = await DialogService.ShowAsync<AddCashRegisterDialog>("Add Cash Register", new DialogParameters());
+        var dialog = await DialogService.ShowAsync<AddCashRegisterDialog>($"{Localizer["AddEntry"]}", new DialogParameters());
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
     
     private async Task ShowEditCashRegisterDialog(int cashRegisterId)
     {
-        var dialog = await DialogService.ShowAsync<EditCashRegisterDialog>("Edit Cash Register", 
+        var dialog = await DialogService.ShowAsync<EditCashRegisterDialog>($"{Localizer["Edit"]}", 
             new DialogParameters { ["CashRegisterId"] = cashRegisterId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
@@ -104,7 +114,7 @@
 
     private async Task ShowDeleteCashRegisterDialog(int cashRegisterId)
     {
-        var dialog = await DialogService.ShowAsync<DeleteCashRegisterDialog>("Delete Cash Register", 
+        var dialog = await DialogService.ShowAsync<DeleteCashRegisterDialog>($"{Localizer["Delete"]}", 
             new DialogParameters { ["CashRegisterId"] = cashRegisterId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();

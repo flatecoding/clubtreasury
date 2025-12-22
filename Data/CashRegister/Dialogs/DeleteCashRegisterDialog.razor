@@ -1,14 +1,16 @@
 ﻿@page "/deletecashregister"
+@using Microsoft.Extensions.Localization
 @inject ICashRegisterService CashRegisterService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.h6">Are you sure you want to delete this cash register?</MudText>
+        <MudText Typo="Typo.h6">@Localizer["DeleteQuestion"]</MudText>
         <MudText Typo="Typo.subtitle1">@_cashRegisterName</MudText>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteEntry">Delete</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@(() => DeleteEntry())">@Localizer["Delete"]</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 

@@ -1,4 +1,5 @@
 @page "/confirmdelete"
+@using Microsoft.Extensions.Localization
 @using MudExtensions
 @inject ILogger<ConfirmDeleteDialog> Logger
 
@@ -8,19 +9,21 @@
         <MudTextM3 Typo="TypoM3.Body" Size="Size.Large">@_entityName</MudTextM3>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@(() => Confirm())">Delete</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@(() => Confirm())">@Localizer["Delete"]</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
+    [Inject]
+    private IStringLocalizer<Translation> Localizer { get; set; } = null!;
     // Parameter für universelle Nutzung
-    [Parameter] public string EntityName { get; set; } = string.Empty; // z.B. "Person", "Cash Register"
-    [Parameter] public string ItemName { get; set; } = string.Empty;   // z.B. "Max Mustermann"
-    [Parameter] public EventCallback OnConfirm { get; set; }           // Aktion, die beim Bestätigen ausgeführt wird
-    
+    [Parameter] public string EntityName { get; set; } = string.Empty; 
+    [Parameter] public string ItemName { get; set; } = string.Empty;   
+    [Parameter] public EventCallback OnConfirm { get; set; }           
+
     private string _entityName = string.Empty;
-    private string _deleteQuestion = "Are you sure you want to delete this ";
+    private string _deleteQuestion =  string.Empty;
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     
@@ -29,9 +32,9 @@
         try
         {
             Logger.LogInformation("Open delete dialog for: {EntityName}; {ItemName}", EntityName, ItemName);
-            _deleteQuestion = $"{_deleteQuestion}{EntityName.ToLower()} entry?";
+            _deleteQuestion = Localizer["DeleteQuestion"];
             _entityName = $"{ItemName}";
-            await MudDialog.SetTitleAsync($"Delete {EntityName.ToLower()}");
+            await MudDialog.SetTitleAsync($"{Localizer["Delete"]}: {EntityName}");
             StateHasChanged();
         }
         catch (Exception ex)

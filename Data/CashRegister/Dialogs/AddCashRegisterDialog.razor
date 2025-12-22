@@ -1,6 +1,8 @@
 ﻿@page "/addcashregister"
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.CashRegister
 @inject ICashRegisterService CashRegisterService
+@inject IStringLocalizer<Translation> L
 
 <MudDialog>
     <DialogContent>
@@ -10,8 +12,8 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await AddEntry())">Add</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await AddEntry())">@L["AddEntry"]</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">@L["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 
