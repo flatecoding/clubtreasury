@@ -1,11 +1,13 @@
 ﻿@page "/categories"
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Category.Dialogs
 @using TTCCashRegister.Data.Source
 @inject ICategoryService CategoryService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
+@inject IStringLocalizer<Translation> L
 
-<h2>Categories</h2>
+<h2>@L["CategoryPlural"]</h2>
 
 <MudPaper Class="mt-4" Style="width:55%;">
     <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
@@ -17,7 +19,7 @@
                        StartIcon="@Icons.Material.Filled.Add"
                        Color="Color.Primary"
                        OnClick="@(() => ShowAddCategoryDialog())">
-                Add category
+                @L["AddEntry"]
             </MudButton>
             <MudSpacer />
             <MudTextField @bind-Value="_searchString1"
@@ -35,15 +37,15 @@
             <col style="width: 110px;" />
         </ColGroup>
         <HeaderContent>
-            <MudTh>Id<MudTableSortLabel SortBy="new Func<CategoryModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>Position<MudTableSortLabel SortBy="new Func<CategoryModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
-            <MudTh>Pos. details</MudTh>
-            <MudTh>Actions</MudTh>
+            <MudTh>@L["Id"]<MudTableSortLabel SortBy="new Func<CategoryModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
+            <MudTh>@L["Category"]<MudTableSortLabel SortBy="new Func<CategoryModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
+            <MudTh>@L["ItemDetail"]</MudTh>
+            <MudTh>@L["Actions"]</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="ID">@context.Id</MudTd>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Details">
+            <MudTd DataLabel="@L["Id"]">@context.Id</MudTd>
+            <MudTd DataLabel="@L["Category"]">@context.Name</MudTd>
+            <MudTd DataLabel="@L["ItemDetail"]">
                 
                 @{
                     var accountsWithDetails = context.Allocations.Where(a => a.ItemDetail != null).ToList();
@@ -60,14 +62,14 @@
                 }
                 else
                 {
-                    <em>No item details assigned</em>
+                    <em>@L["NoData"]</em>
                 }
             </MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" 
                                OnClick="@(() => ShowEditCategoryDialog(context.Id))"></MudIconButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" 
-                               OnClick="@(() => ShowDeleteCategoryDialog(context.Id))">Delete</MudIconButton>
+                               OnClick="@(() => ShowDeleteCategoryDialog(context.Id))"></MudIconButton>
             </MudTd>
         </RowTemplate>
         <PagerContent>
@@ -110,14 +112,14 @@
 
     private async Task ShowAddCategoryDialog()
     {
-        var dialog = await DialogService.ShowAsync<AddCategoryDialog>("Add category", new DialogParameters());
+        var dialog = await DialogService.ShowAsync<AddCategoryDialog>($"{L["AddEntry"]}", new DialogParameters());
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
 
     private async Task ShowEditCategoryDialog(int basicUnitId)
     {
-        var dialog = await DialogService.ShowAsync<EditCategoryDialog>("Edit category", 
+        var dialog = await DialogService.ShowAsync<EditCategoryDialog>($"{L["Edit"]}", 
             new DialogParameters { ["CategoryId"] = basicUnitId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
@@ -125,7 +127,7 @@
 
     private async Task ShowDeleteCategoryDialog(int basicUnitId)
     {
-        var dialog = await DialogService.ShowAsync<DeleteCategoryDialog>("Delete category", 
+        var dialog = await DialogService.ShowAsync<DeleteCategoryDialog>($"{L["Delete"]}", 
             new DialogParameters { ["CategoryId"] = basicUnitId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();

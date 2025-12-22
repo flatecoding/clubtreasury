@@ -25,7 +25,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _editCashRegisterModel = await CashRegisterService.GetCashRegisterById(CashRegisterId) ?? new CashRegisterModel();
+        var cash = await CashRegisterService.GetCashRegisterById(CashRegisterId) ?? new CashRegisterModel();
+        _editCashRegisterModel = cash;
     }
 
     private async Task SaveCashRegister()

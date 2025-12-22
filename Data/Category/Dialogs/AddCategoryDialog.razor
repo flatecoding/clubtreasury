@@ -1,15 +1,19 @@
-﻿@inject ICategoryService CategoryService
+﻿@using Microsoft.Extensions.Localization
+@inject ICategoryService CategoryService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" Model="_newCategoryModel" Validation="_categoryValidator.ValidateValue" ValidationDelay="0">
-            <MudTextField @bind-Value="_newCategoryModel.Name" Label="Name"
+            <MudTextField @bind-Value="_newCategoryModel.Name" Label="@Localizer["CostCenter"]"
                           For="@(() => _newCategoryModel.Name)" Immediate="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await AddCategory())">Add</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                   OnClick="@(async () => await AddCategory())">@Localizer["AddEntry"]</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" 
+                   OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 

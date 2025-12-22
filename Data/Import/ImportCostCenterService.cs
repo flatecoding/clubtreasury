@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
 
 namespace TTCCashRegister.Data.Import
 {
-    public class ImportCostCenterService(CashDataContext context, ILogger<ImportCostCenterService> logger) : IImportCostCenterService
+    public class ImportCostCenterService(CashDataContext context, ILogger<ImportCostCenterService> logger,
+    IStringLocalizer<Translation> localizer) : IImportCostCenterService
     {
         public async Task<bool> ImportCostCentersAndPositions(Stream fileStream)
         {
@@ -43,7 +45,7 @@ namespace TTCCashRegister.Data.Import
                     {
                         case 1:
                             costCenterName = parts[0].Trim();
-                            categoryName = "Undefined";
+                            categoryName = $"{localizer["Undefined"]}";
                             break;
                         case >= 2:
                             costCenterName = parts[0].Trim();

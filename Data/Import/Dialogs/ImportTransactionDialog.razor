@@ -1,18 +1,21 @@
 @page "/import-transaction-dialog"
+@using Microsoft.Extensions.Localization
 @using MudExtensions
 @inject IImportBookingJournalService ImportBookingJournalService
+@inject IStringLocalizer<Translation> Localizer
+@inject ILogger<ImportTransactionDialog> Logger
 
 <MudDialog>
     <DialogContent>
-        <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Large">Select a file to import data from booking journal. </MudTextM3>
-        <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Medium"><strong>Required format</strong></MudTextM3> 
-        <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>Name of sheet:</strong> "Buchungen"</MudTextM3>
-        <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>Row definition:</strong></MudTextM3>
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Large">@Localizer["SelectBookingJournalFile"]</MudTextM3>
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Medium"><strong>@Localizer["RequiredFormat"]</strong></MudTextM3> 
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>@Localizer["NameOfSheet"]</strong> "@Localizer["Bookings"]"</MudTextM3>
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>@Localizer["RowDefinition"]</strong></MudTextM3>
         <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium">
-            Date; Document number; Description; Income; Outcome; Account movement; Costunit/Basicposition
+            @Localizer["Date"]; @Localizer["DocumentNumber"]; @Localizer["Description"]; @Localizer["Income"]; @Localizer["Expenses"]; @Localizer["Account"]; @Localizer["CostUnitCategory"]
         </MudTextM3>
-        <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>File format:</strong> *.xlsx</MudTextM3>
-       <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Medium"><strong>Example</strong></MudTextM3>
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>@Localizer["FileFormat"]:</strong> *.xlsx</MudTextM3>
+       <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Medium"><strong>@Localizer["Example"]:</strong></MudTextM3>
         <MudImage Class="mb-2"
             Src="images/ExampleBookingJournalImport.png"
                           Alt="Example">
@@ -26,24 +29,24 @@
                                Variant="Variant.Filled"
                                Color="Color.Primary"
                                >
-                        Select file
+                        @Localizer["SelectFile"]
                     </MudButton>
                 </ActivatorContent>
             </MudFileUpload>
-            <MudTextField Disabled="true" @bind-Value="_fileName" Label="Filename" Placeholder="Filename" Required="true"/>
+            <MudTextField Disabled="true" @bind-Value="_fileName" Label=@Localizer["FileName"] Placeholder=@Localizer["FileName"] Required="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudLoadingButton 
-            @bind-Loading="_isImporting" 
-            Size="Size.Small" 
-            LoadingAdornment="Adornment" 
-            OnClick="@(() => ImportData())" 
-            Variant="Variant.Filled" 
-            Color="Color.Primary"
-            >Import
+        <MudLoadingButton
+            @bind-Loading="_isImporting"
+            Size="Size.Small"
+            LoadingAdornment="Adornment"
+            OnClick="@(() => ImportData())"
+            Variant="Variant.Filled"
+            Color="Color.Primary">
+            @Localizer["Import"]
         </MudLoadingButton>
-        <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -74,7 +77,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occured during import of file: '{_fileName}': {ex.Message}");
+                Logger.LogCritical(ex, "An exception occurred while deleting entity: {_fileName}", _fileName);
                 MudDialog.Close(DialogResult.Ok(false));
             }
             finally

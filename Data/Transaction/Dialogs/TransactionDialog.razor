@@ -1,4 +1,5 @@
 @page "/transactiondialog"
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Allocation
 @using TTCCashRegister.Data.CashRegister
 @using TTCCashRegister.Data.Category
@@ -12,13 +13,14 @@
 @inject IItemDetailService ItemDetailService
 @inject ICashRegisterService CashRegisterService
 @inject ISpecialItemService SpecialItemService
+@inject IStringLocalizer<Translation> L
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" Model="_transactionModel" Validation="_transactionValidator.ValidateValue" ValidationDelay="0">
             
             <MudSelect T="CashRegisterModel"
-                       Label="Cash register"
+                       Label="@L["CashRegister"]"
                        Required="true"
                        ToStringFunc="@_cashRegisterConverter"
                        Immediate="true"
@@ -33,32 +35,32 @@
             <MudDatePicker 
                 @bind-Date="@TransactionDateTime"
                 Editable="true" 
-                Label="Date" 
+                Label="@L["Date"]" 
                 Required="true" 
                 RequiredError="Date is required." />
 
             <MudTextField @bind-Value="_transactionModel.Documentnumber" 
-                          Label="Document Number" 
+                          Label="@L["DocumentNumber"]" 
                           For="@(() => _transactionModel.Documentnumber)" 
                           Immediate="true" />
 
             <MudTextField @bind-Value="_transactionModel.Description" 
-                          Label="Description" 
+                          Label="@L["Description"]" 
                           For="@(() => _transactionModel.Description)" 
                           Immediate="true" />
 
             <MudTextField @bind-Value="_transactionModel.Sum"
-                          Label="Sum" 
+                          Label="@L["Sum"]" 
                           For="@(() => _transactionModel.Sum)" 
                           Immediate="true" />
 
             <MudTextField @bind-Value="_transactionModel.AccountMovement"
-                          Label="Account Movement" 
+                          Label="@L["Account"]" 
                           For="@(() => _transactionModel.AccountMovement)" 
                           Immediate="true" />
 
             <MudSelect T="CostCenterModel" 
-                       Label="Cost center" 
+                       Label="@L["CostCenter"]" 
                        Required="true" 
                        ToStringFunc="@_unitConverter"
                        Immediate="true"
@@ -71,7 +73,7 @@
             </MudSelect>
 
             <MudSelect T="CategoryModel" 
-                       Label="Category"  
+                       Label="@L["Category"]"  
                        Disabled="@(_selectedCostUnit == null)" 
                        Required="true" 
                        ToStringFunc="@_basicUnitConverter"
@@ -87,7 +89,7 @@
             </MudSelect>
 
             <MudSelect T="ItemDetailModel" 
-                       Label="Item detail"
+                       Label="@L["ItemDetail"]"
                        Disabled="@(_selectedBasicUnit == null)" 
                        ToStringFunc="@_detailsConverter"
                        @bind-Value="_selectedUnitDetail">
@@ -101,9 +103,9 @@
                 }
             </MudSelect>
             <MudSelect T="SpecialItemModel" 
-                       Label="SpecialItem"
+                       Label="@L["SpecialPositions"]"
                        ToStringFunc="@_specialItemConverter"
-                       Placeholder="Select special position if required"
+                       Placeholder="@L["SpecialPositionIfRequired"]"
                        @bind-Value="_selectedSpecialItem">
                 <MudSelectItem T="SpecialItemModel" Value="@null">None</MudSelectItem>
                 @foreach (var specialItem in _specialItemList)
@@ -115,7 +117,7 @@
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Save())">
-            @(_isEditMode ? "Save" : "Add")
+            @(_isEditMode ? $"{@L["Save"]}" : $"{@L["AddEntry"]}")
         </MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@Cancel">Cancel</MudButton>
     </DialogActions>
@@ -196,7 +198,7 @@
         _transactionModel = new TransactionModel();
     }
 
-    await MudDialog.SetTitleAsync(_isEditMode ? "Edit transaction" : "Add new transaction");
+    await MudDialog.SetTitleAsync(_isEditMode ? $"{L["Edit"]}" : $"{L["AddEntry"]}");
     StateHasChanged();
 }
 

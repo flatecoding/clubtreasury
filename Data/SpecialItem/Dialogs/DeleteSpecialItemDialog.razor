@@ -1,14 +1,20 @@
 ﻿@page "/deletespecialitem"
+@using Microsoft.Extensions.Localization
 @inject ISpecialItemService SpecialItemService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.h6">Are you sure you want to delete this special item?</MudText>
+        <MudText Typo="Typo.h6">@Localizer["DeleteQuestion"]</MudText>
         <MudText Typo="Typo.subtitle1">@_specialItemName</MudText>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteSpecialItem">Delete</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@(async () => await DeleteSpecialItemAsync())">
+            @Localizer["Delete"]
+        </MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">
+            @Localizer["Delete"]
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -27,17 +33,10 @@
         }
     }
 
-    private async Task DeleteSpecialItem()
+    private async Task DeleteSpecialItemAsync()
     {
         var success = await SpecialItemService.DeleteSpecialPosition(SpecialItemId);
-        if (success)
-        {
-            MudDialog.Close(DialogResult.Ok(true));
-        }
-        else
-        {
-            MudDialog.Close(DialogResult.Ok(false));
-        }
+        MudDialog.Close(success ? DialogResult.Ok(true) : DialogResult.Ok(false));
     }
 
     private void Cancel()

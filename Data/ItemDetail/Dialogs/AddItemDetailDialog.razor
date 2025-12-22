@@ -1,12 +1,14 @@
 ﻿@page "/additemdetail"
+@using Microsoft.Extensions.Localization
 @inject IItemDetailService ItemDetailService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" Model="_newItemDetailModel" Validation="_itemDetailValidator.ValidateValue" ValidationDelay="0">
             
             <MudTextField @bind-Value="_newItemDetailModel.CostDetails" 
-                          Label="Detailed position"
+                          Label=@Localizer["ItemDetail"]
                           For="@(() => _newItemDetailModel.CostDetails)"
                           Required="true" 
                           Immediate="true" />
@@ -14,10 +16,10 @@
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await AddItemDetailAsync())">
-            Add
+          @Localizer["AddEntry"]  
         </MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">
-            Cancel
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">
+            @Localizer["Cancel"]
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -33,8 +35,7 @@
         await _form.Validate();
         if (!_form.IsValid)
             return;
-
-        // 1. Item detail speichern
+        
         MudDialog.Close(DialogResult.Ok(await ItemDetailService.AddItemDetailAsync(_newItemDetailModel)));
     }
 

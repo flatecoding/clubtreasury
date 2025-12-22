@@ -1,11 +1,13 @@
 ﻿@page "/costCenters"
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.CostCenter.Dialogs
 @using TTCCashRegister.Data.Source
 @inject ICostCenterService CostCenterService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
+@inject IStringLocalizer<Translation> Localizer
 
-<h2>Cost centers</h2>
+<h2>@Localizer["CostCenterPlural"]</h2>
 
 <MudPaper Class="mt-4" Style="width:55%;">
     <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
@@ -17,7 +19,7 @@
                        StartIcon="@Icons.Material.Filled.Add"
                        Color="Color.Primary"
                        OnClick="@(() => ShowAddCostUnitDialog())">
-                Add cost center
+                @Localizer["AddEntry"]
             </MudButton>
             <MudSpacer />
             <MudTextField @bind-Value="_searchString1"
@@ -37,16 +39,16 @@
         </ColGroup>
 
         <HeaderContent>
-            <MudTh>Id<MudTableSortLabel SortBy="new Func<CostCenterModel, object>(x => x.Id)" /></MudTh>
-            <MudTh>Unit<MudTableSortLabel SortBy="new Func<CostCenterModel, object>(x => x.CostUnitName ?? string.Empty)" /></MudTh>
-            <MudTh>Categories</MudTh>
-            <MudTh>Actions</MudTh>
+            <MudTh>@Localizer["Id"]<MudTableSortLabel SortBy="new Func<CostCenterModel, object>(x => x.Id)" /></MudTh>
+            <MudTh>@Localizer["Name"]<MudTableSortLabel SortBy="new Func<CostCenterModel, object>(x => x.CostUnitName ?? string.Empty)" /></MudTh>
+            <MudTh>@Localizer["CategoryPlural"]</MudTh>
+            <MudTh>@Localizer["Actions"]</MudTh>
         </HeaderContent>
 
         <RowTemplate>
-            <MudTd DataLabel="ID">@context.Id</MudTd>
-            <MudTd DataLabel="Unit">@context.CostUnitName</MudTd>
-            <MudTd DataLabel="Categories">
+            <MudTd DataLabel="@Localizer["Id"].Value">@context.Id</MudTd>
+            <MudTd DataLabel="@Localizer["Name"].Value">@context.CostUnitName</MudTd>
+            <MudTd DataLabel="@Localizer["CategoryPlural"].Value">
                 @{
                     var linkedCategories = context.Allocations
                         .Where(a => a.Category != null)
@@ -66,14 +68,14 @@
                 }
                 else
                 {
-                    <em>No categories assigned</em>
+                    <em>@Localizer["NoData"]</em>
                 }
             </MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" 
                                OnClick="@(() => ShowEditCostUnitDialog(context.Id))" />
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" 
-                               OnClick="@(() => ShowDeleteCostUnitDialog(context.Id))">Delete</MudIconButton>
+                               OnClick="@(() => ShowDeleteCostUnitDialog(context.Id))"></MudIconButton>
             </MudTd>
         </RowTemplate>
 
@@ -113,14 +115,14 @@
 
     private async Task ShowAddCostUnitDialog()
     {
-        var dialog = await DialogService.ShowAsync<AddCostCenterDialog>("Add cost center", new DialogParameters());
+        var dialog = await DialogService.ShowAsync<AddCostCenterDialog>($"{Localizer["AddEntry"]}", new DialogParameters());
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
 
     private async Task ShowEditCostUnitDialog(int costUnitId)
     {
-        var dialog = await DialogService.ShowAsync<EditCostCenterDialog>("Edit Cost center", 
+        var dialog = await DialogService.ShowAsync<EditCostCenterDialog>($"{Localizer["Edit"]}", 
             new DialogParameters { ["CostCenterId"] = costUnitId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
@@ -128,7 +130,7 @@
 
     private async Task ShowDeleteCostUnitDialog(int costUnitId)
     {
-        var dialog = await DialogService.ShowAsync<DeleteCostCenterDialog>("Delete Cost center", 
+        var dialog = await DialogService.ShowAsync<DeleteCostCenterDialog>($"{Localizer["Delete"]}", 
             new DialogParameters { ["CostCenterId"] = costUnitId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();

@@ -1,10 +1,12 @@
 ﻿@page "/addCostCenter"
+@using Microsoft.Extensions.Localization
 @inject ICostCenterService CostCenterService
+@inject IStringLocalizer<Translation> L
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" Model="_newCostCenterModel" Validation="_costunitvalidator.ValidateValue" ValidationDelay="0">
-            <MudTextField @bind-Value="_newCostCenterModel.CostUnitName" Label="Unit Name"
+            <MudTextField @bind-Value="_newCostCenterModel.CostUnitName" Label="@L["CostCenter"]"
                           For="@(() => _newCostCenterModel.CostUnitName)" Immediate="true" />
         </MudForm>
     </DialogContent>
