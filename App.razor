@@ -1,4 +1,7 @@
-﻿<CascadingAuthenticationState>
+﻿@using System.Globalization
+@inject IJSRuntime JS
+
+<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
@@ -12,3 +15,28 @@
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var culture = await JS.InvokeAsync<string>("localStorage.getItem", "culture");
+                
+                if (!string.IsNullOrWhiteSpace(culture))
+                {
+                    var cultureInfo = new CultureInfo(culture);
+                    CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+                    CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+                }
+            }
+            catch
+            {
+                // Bei Fehler einfach die Standard-Culture verwenden
+            }
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}

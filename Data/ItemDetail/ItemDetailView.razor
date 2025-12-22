@@ -1,10 +1,12 @@
 ﻿@page "/itemdetails"
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.ItemDetail.Dialogs
 @inject IItemDetailService ItemDetailService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<Translation> Localizer
 
-<h2>Item details</h2>
+<h2>@Localizer["ItemDetail"]</h2>
 <MudPaper Class="mt-4" Style="width:55%;">
     <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
               @bind-SelectedItem="_selectedItem"
@@ -15,7 +17,7 @@
                        StartIcon="@Icons.Material.Filled.Add"
                        Color="Color.Primary"
                        @onclick="ShowAddUnitDetailsDialog">
-                Add item detail
+                @Localizer["AddEntry"]
             </MudButton>
             <MudSpacer />
             <MudTextField @bind-Value="_searchString1"
@@ -33,15 +35,15 @@
             <col style="width: 110px;" />
         </ColGroup>
         <HeaderContent>
-            <MudTh>Id<MudTableSortLabel SortBy="new Func<ItemDetailModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>Details<MudTableSortLabel SortBy="new Func<ItemDetailModel, object>(x => x.CostDetails)"></MudTableSortLabel></MudTh>
-            <MudTh>Category</MudTh>
-            <MudTh>Actions</MudTh>
+            <MudTh>@Localizer["Id"]<MudTableSortLabel SortBy="new Func<ItemDetailModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
+            <MudTh>@Localizer["ItemDetail"]<MudTableSortLabel SortBy="new Func<ItemDetailModel, object>(x => x.CostDetails)"></MudTableSortLabel></MudTh>
+            <MudTh>@Localizer["Category"]</MudTh>
+            <MudTh>@Localizer["Actions"]</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="ID">@context.Id</MudTd>
-            <MudTd DataLabel="Details">@context.CostDetails</MudTd>
-            <MudTd DataLabel="Category">
+            <MudTd DataLabel="@Localizer["Id"].Value">@context.Id</MudTd>
+            <MudTd DataLabel="@Localizer["ItemDetail"].Value">@context.CostDetails</MudTd>
+            <MudTd DataLabel="@Localizer["Category"].Value">
                 @if (context.Allocations.Any())
                 {
                     @foreach (var account in context.Allocations)
@@ -51,12 +53,12 @@
                 }
                 else
                 {
-                    <em>No details assigned</em>
+                    <em>@Localizer["NoData"].Value</em>
                 }
                 </MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditUnitDetailsDialog(context.Id)"></MudIconButton>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteUnitDetailsDialog(context.Id)">Delete</MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteUnitDetailsDialog(context.Id)"></MudIconButton>
             </MudTd>
         </RowTemplate>
         <PagerContent>
@@ -107,36 +109,36 @@
     {
         var parameters = new DialogParameters();
         
-        var dialog = await DialogService.ShowAsync<AddItemDetailDialog>("Add item detail", 
+        var dialog = await DialogService.ShowAsync<AddItemDetailDialog>($"{Localizer["AddEntry"]}", 
             parameters, _dialogOptions);
         if ((await dialog.Result)?.Canceled == false)
         {
             _allEntries = await ItemDetailService.GetAllItemDetailsAsync();
-            Snackbar.Add("New item detail were added successfully", Severity.Success);
+            Snackbar.Add($"{Localizer["AddSuccessful"]}", Severity.Success);
         }
     }
 
     private async Task ShowEditUnitDetailsDialog(int itemDetailId)
     {
         var parameters = new DialogParameters { ["ItemDetailId"] = itemDetailId };
-        var dialog = await DialogService.ShowAsync<EditItemDetailDialog>("Edit item detail", 
+        var dialog = await DialogService.ShowAsync<EditItemDetailDialog>($"{Localizer["Edit"]}", 
             parameters, _dialogOptions);
         if ((await dialog.Result)?.Canceled == false)
         {
             _allEntries = await ItemDetailService.GetAllItemDetailsAsync();
-            Snackbar.Add("Item detail were updated successfully", Severity.Success);
+            Snackbar.Add($"{Localizer["UpdateSuccessful"]}", Severity.Success);
         }
     }
 
     private async Task ShowDeleteUnitDetailsDialog(int itemDetailId)
     {
         var parameters = new DialogParameters { ["ItemDetailId"] = itemDetailId };
-        var dialog = await DialogService.ShowAsync<DeleteItemDetailDialog>("Delete item detail", 
+        var dialog = await DialogService.ShowAsync<DeleteItemDetailDialog>($"{Localizer["Delete"]}", 
             parameters, _dialogOptions);
         if ((await dialog.Result)?.Canceled == false)
         {
             _allEntries = await ItemDetailService.GetAllItemDetailsAsync();
-            Snackbar.Add("Item detail were deleted successfully", Severity.Success);
+            Snackbar.Add($"{Localizer["DeleteSuccessful"]}", Severity.Success);
         }
     }
 }

@@ -1,16 +1,18 @@
 @page "/persondialog"
+@using Microsoft.Extensions.Localization
 @inject IPersonService PersonService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" Model="_personModel" Validation="_personValidator.ValidateValue" ValidationDelay="0">
-            <MudTextField @bind-Value="_personModel.Name" Label="Name"
+            <MudTextField @bind-Value="_personModel.Name" Label=@Localizer["Name"] 
                           For="@(() => _personModel.Name)" Immediate="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Save())">
-            @(_isEditMode ? "Save" : "Add")
+            @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
     </DialogActions>
@@ -33,12 +35,12 @@
         {
             if (PersonId is not null) _personModel = 
                 await PersonService.GetPersonById(PersonId.Value) ?? new PersonModel();
-            dialogTitle = "Edit person";
+            dialogTitle = Localizer["Edit"];
         }
         else
         {
             _personModel = new PersonModel();
-            dialogTitle = "Add person";
+            dialogTitle = Localizer["AddEntry"];
         }
         await MudDialog.SetTitleAsync(dialogTitle);
         StateHasChanged();

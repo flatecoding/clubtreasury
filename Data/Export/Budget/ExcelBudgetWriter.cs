@@ -1,32 +1,33 @@
 using System.Drawing;
+using Microsoft.Extensions.Localization;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using TTCCashRegister.Data.Mapper.DTOs;
 
 namespace TTCCashRegister.Data.Export.Budget;
 
-public class ExcelBudgetWriter : IExcelBudgetWriter
+public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcelBudgetWriter
 {
     public async Task WriteAsync(string filePath, IEnumerable<BudgetGroupedDto> grouped, DateTime begin, DateTime end)
     {
         using var package = new ExcelPackage();
-        var ws = package.Workbook.Worksheets.Add("Budget");
+        var ws = package.Workbook.Worksheets.Add(localizer["Budget"]);
 
         // Titel
-        ws.Cells[1, 1].Value = "Budget-Auswertung";
+        ws.Cells[1, 1].Value = localizer["BalanceSheetTitle"];
         ws.Cells[1, 1].Style.Font.Bold = true;
         ws.Cells[1, 1].Style.Font.Size = 18;
 
-        ws.Cells[2, 1].Value = $"Zeitraum: {begin:dd.MM.yyyy} - {end:dd.MM.yyyy}";
+        ws.Cells[2, 1].Value = $"{localizer["DateRange"]}: {begin:dd.MM.yyyy} - {end:dd.MM.yyyy}";
         ws.Cells[2, 1].Style.Font.Italic = true;
         ws.Cells[2, 1].Style.Font.Size = 12;
 
         // Header
         int row = 4;
-        ws.Cells[row, 1].Value = "Kostenstelle";
-        ws.Cells[row, 2].Value = "Kategorie";
-        ws.Cells[row, 3].Value = "Details / Person";
-        ws.Cells[row, 4].Value = "Betrag";
+        ws.Cells[row, 1].Value = localizer["CostCenter"];
+        ws.Cells[row, 2].Value = localizer["Category"];
+        ws.Cells[row, 3].Value = localizer["DetailOrPerson"];
+        ws.Cells[row, 4].Value = localizer["Sum"];
 
         using (var range = ws.Cells[row, 1, row, 4])
         {
@@ -41,13 +42,9 @@ public class ExcelBudgetWriter : IExcelBudgetWriter
         row++;
 
         int detailRowCounter = 0;
-
-        // -----------------------------------------------
-        // Hierarchische Ausgabe mit verbesserter Formatierung
-        // -----------------------------------------------
+        
         foreach (var cc in grouped)
         {
-            // ---------------- Kostenstelle ----------------
             ws.Cells[row, 1].Value = cc.CostUnitName;
             ws.Cells[row, 1].Style.Font.Bold = true;
             ws.Cells[row, 1].Style.Font.Size = 12;
@@ -63,11 +60,10 @@ public class ExcelBudgetWriter : IExcelBudgetWriter
                 range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
             }
 
-            row += 2; // Abstand zur Kategorie
+            row += 2; 
 
             foreach (var cat in cc.Categories)
             {
-                // ---------------- Kategorie ----------------
                 ws.Cells[row, 2].Value = cat.CategoryName;
                 ws.Cells[row, 2].Style.Font.Bold = true;
                 ws.Cells[row, 2].Style.Font.Size = 11;
@@ -115,8 +111,7 @@ public class ExcelBudgetWriter : IExcelBudgetWriter
 
                         row++;
                     }
-
-                    // ---------------- Personen ----------------
+                    
                     foreach (var p in item.Persons)
                     {
                         ws.Cells[row, 3].Value = $"      {p.PersonName}";
@@ -130,13 +125,10 @@ public class ExcelBudgetWriter : IExcelBudgetWriter
                         row++;
                     }
                 }
-
-                row++; // Abstand nach Kategorie-Gruppe
+                row++; 
             }
         }
-
         ws.Cells.AutoFitColumns();
-
         await package.SaveAsAsync(new FileInfo(filePath));
     }
 }

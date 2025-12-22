@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.Extensions.Localization;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -6,7 +7,7 @@ using TTCCashRegister.Data.Transaction;
 
 namespace TTCCashRegister.Data.Export.Transaction;
 
-public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger) : IPdfTransactionRenderer
+public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStringLocalizer<Translation> localizer) : IPdfTransactionRenderer
 {
     private const string LogoFileName = "ttc_logo.png";
     private readonly string _logoRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
@@ -36,17 +37,17 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger) : IP
                         .AlignCenter()
                         .Text(x =>
                         {
-                            x.Span("Seite ");
+                            x.Span($"{localizer["Page"]}");
                             x.CurrentPageNumber();
                             x.Span(" / ");
                             x.TotalPages();
                         });
                 })).GeneratePdf(filePath);
-            logger.LogInformation("PDF erstellt → {File}", filePath);
+            logger.LogInformation("PDF created → {File}", filePath);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Fehler beim Rendern der PDF: {File}", filePath);
+            logger.LogError(ex, "Error occured while rendering pdf-file: {File}", filePath);
         }
     }
 
@@ -71,7 +72,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger) : IP
                 .Column(column =>
                 {
                     column.Item()
-                        .Text("Kassenbuch TTC Hagen e.V.")
+                        .Text(localizer["CashBook"] + " TTC Hagen e.V.")
                         .FontSize(20)
                         .Bold()
                         .AlignCenter();
@@ -99,60 +100,60 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger) : IP
         return imageData;
     }
     
-    private static void ComposeContent(IContainer container, List<TransactionModel> ordered)
+    private void ComposeContent(IContainer container, List<TransactionModel> ordered)
     {
         const string headerBackgroundColor = "#DDEBF7";
-    var headerStyle = TextStyle.Default.SemiBold();
-    var culture = new CultureInfo("de-DE");
+        var headerStyle = TextStyle.Default.SemiBold();
+        var culture = new CultureInfo("de-DE");
 
-    container.PaddingTop(5, Unit.Millimetre).Column(col =>
-    {
-        col.Item().Table(table =>
+        container.PaddingTop(5, Unit.Millimetre).Column(col =>
         {
-            table.ColumnsDefinition(columns =>
+            col.Item().Table(table =>
             {
-                columns.ConstantColumn(80);  
-                columns.ConstantColumn(60);  
-                columns.RelativeColumn();    
-                columns.ConstantColumn(70);  
-                columns.ConstantColumn(70);  
+                table.ColumnsDefinition(columns =>
+                {
+                    columns.ConstantColumn(80);  
+                    columns.ConstantColumn(60);  
+                    columns.RelativeColumn();    
+                    columns.ConstantColumn(70);  
+                    columns.ConstantColumn(70);  
+                });
+
+                table.Header(header =>
+                {
+                    header.Cell().Element(CellHeaderStyle).Text($"{localizer["Date"]}").Style(headerStyle).AlignCenter();
+                    header.Cell().Element(CellHeaderStyle).Text($"{localizer["DocumentNumberShort"]}").Style(headerStyle).AlignCenter();
+                    header.Cell().Element(CellHeaderStyle).Text($"{localizer["Description"]}").Style(headerStyle);
+                    header.Cell().Element(CellHeaderStyle).Text($"{localizer["Sum"]}").Style(headerStyle).AlignCenter();
+                    header.Cell().Element(CellHeaderStyle).Text($"{localizer["Account"]}").Style(headerStyle).AlignCenter();
+
+                    IContainer CellHeaderStyle(IContainer containerHeader)
+                        => DefaultCellStyle(containerHeader, headerBackgroundColor);
+                });
+
+                var index = 0;
+                foreach (var t in ordered)
+                {
+                    var background = GetRowBackgroundColor(index);
+
+                    table.Cell().Element(c => DefaultCellStyle(c, background)).Text(t.Date.ToString()).AlignCenter();
+                    table.Cell().Element(c => DefaultCellStyle(c, background)).Text($"B{t.Documentnumber}").AlignCenter();
+                    table.Cell().Element(c => DefaultCellStyle(c, background)).Text(t.Description);
+
+                    table.Cell().Element(c => DefaultCellStyle(c, background))
+                        .Text(t.Sum.ToString("C2", culture))
+                        .AlignRight();
+
+                    var textColor = t.AccountMovement >= 0 ? Colors.Green.Darken2 : Colors.Red.Darken2;
+
+                    table.Cell().Element(c => DefaultCellStyle(c, background))
+                        .Text(t.AccountMovement.ToString("C2", culture))
+                        .Style(TextStyle.Default.FontColor(textColor))
+                        .AlignRight();
+
+                    index++;
+                }
             });
-
-            table.Header(header =>
-            {
-                header.Cell().Element(CellHeaderStyle).Text("Datum").Style(headerStyle).AlignCenter();
-                header.Cell().Element(CellHeaderStyle).Text("Belegnr.").Style(headerStyle).AlignCenter();
-                header.Cell().Element(CellHeaderStyle).Text("Beschreibung").Style(headerStyle);
-                header.Cell().Element(CellHeaderStyle).Text("Summe").Style(headerStyle).AlignCenter();
-                header.Cell().Element(CellHeaderStyle).Text("Konto").Style(headerStyle).AlignCenter();
-
-                IContainer CellHeaderStyle(IContainer containerHeader)
-                    => DefaultCellStyle(containerHeader, headerBackgroundColor);
-            });
-
-            var index = 0;
-            foreach (var t in ordered)
-            {
-                var background = GetRowBackgroundColor(index);
-
-                table.Cell().Element(c => DefaultCellStyle(c, background)).Text(t.Date.ToString()).AlignCenter();
-                table.Cell().Element(c => DefaultCellStyle(c, background)).Text($"B{t.Documentnumber}").AlignCenter();
-                table.Cell().Element(c => DefaultCellStyle(c, background)).Text(t.Description);
-
-                table.Cell().Element(c => DefaultCellStyle(c, background))
-                    .Text(t.Sum.ToString("C2", culture))
-                    .AlignRight();
-
-                var textColor = t.AccountMovement >= 0 ? Colors.Green.Darken2 : Colors.Red.Darken2;
-
-                table.Cell().Element(c => DefaultCellStyle(c, background))
-                    .Text(t.AccountMovement.ToString("C2", culture))
-                    .Style(TextStyle.Default.FontColor(textColor))
-                    .AlignRight();
-
-                index++;
-            }
-        });
         
         var totalIncome = ordered.Where(x => x.AccountMovement > 0).Sum(x => x.AccountMovement);
         var totalExpense = ordered.Where(x => x.AccountMovement < 0).Sum(x => x.AccountMovement);
@@ -160,16 +161,16 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger) : IP
 
         col.Item().PaddingTop(10).Row(row =>
         {
-            row.RelativeItem().Text(""); // Platzhalter links
+            row.RelativeItem().Text("");
 
             row.ConstantItem(200).Column(sumCol =>
             {
-                sumCol.Item().Text($"Gesamteinnahmen:  {totalIncome.ToString("C2", culture)}")
+                sumCol.Item().Text($"{localizer["TotalIncome"]}:  {totalIncome.ToString("C2", culture)}")
                     .Style(TextStyle.Default.SemiBold())
                     .FontColor(Colors.Green.Darken2)
                     .AlignRight();
 
-                sumCol.Item().Text($"Gesamtausgaben:  {totalExpense.ToString("C2", culture)}")
+                sumCol.Item().Text($"{localizer["TotalExpenses"]}:  {totalExpense.ToString("C2", culture)}")
                     .Style(TextStyle.Default.SemiBold())
                     .FontColor(Colors.Red.Darken2)
                     .AlignRight();
@@ -181,16 +182,17 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger) : IP
                     .AlignRight();
             });
         });
+        
         col.Item().Row(row =>
         {
-            row.ConstantItem(100).AlignMiddle().Text("Kontostand 01.01:");
+            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} 01.01:");
             row.ConstantItem(100).AlignBottom().LineHorizontal(1)
                 .LineColor(Colors.Grey.Lighten1);
         });
             
         col.Item().PaddingTop(10).Row(row =>
         {
-            row.ConstantItem(100).AlignMiddle().Text("Kontostand 31.12:");
+            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} 31.12:");
             row.ConstantItem(100).AlignBottom().LineHorizontal(1)
                 .LineColor(Colors.Grey.Lighten1);
         });
