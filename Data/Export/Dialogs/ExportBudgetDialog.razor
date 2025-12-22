@@ -1,40 +1,42 @@
 @page "/export-budget-dialog"
+@using Microsoft.Extensions.Localization
 @using MudExtensions
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction
 @inject ITransactionService TransactionService
 @inject ISnackbar Snackbar;
+@inject IStringLocalizer<Translation> Localizer
+@inject ILogger<ExportBudgetDialog> Logger;
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.h6">Export Transactions</MudText>
         <MudForm>
-            <MudDateRangePicker Label="Date Range"
+            <MudDateRangePicker Label=@Localizer["DateRange"]
                                 @bind-DateRange="DateRange"
                                 Editable="true"
                                 DateFormat="dd.MM.yyyy"
                                 Class="mx-2" />            
-            <MudTextField @bind-Value="_fileName" Label="Filename" Placeholder="Select a filename" Required="true"/>
+            <MudTextField @bind-Value="_fileName" Label=@Localizer["FileName"] Placeholder=@Localizer["SelectFile"] Required="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudLoadingButton 
-            @bind-Loading="_isExporting" 
-            Size="Size.Small" 
-            LoadingAdornment="Adornment" 
-            OnClick="@(() => ExportCsv())" 
-            Variant="Variant.Filled" 
-            Color="Color.Primary"
-        >Export as CSV
+        <MudLoadingButton
+            @bind-Loading="_isExporting"
+            Size="Size.Small"
+            LoadingAdornment="Adornment"
+            OnClick="@(async () => await ExportCsv())"
+            Variant="Variant.Filled"
+            Color="Color.Primary">
+            @Localizer["ExportCSV"]
         </MudLoadingButton>
-        <MudLoadingButton 
-            @bind-Loading="_isExporting" 
-            Size="Size.Small" 
-            LoadingAdornment="Adornment" 
-            OnClick="@(() => ExportXlsx())" 
-            Variant="Variant.Filled" 
-            Color="Color.Primary"
-        >Export as Xml
+        <MudLoadingButton
+            @bind-Loading="_isExporting"
+            Size="Size.Small"
+            LoadingAdornment="Adornment"
+            OnClick="@(async () => await ExportXlsx())"
+            Variant="Variant.Filled"
+            Color="Color.Primary">
+            @Localizer["ExportXlsx"]
         </MudLoadingButton>
         @*<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ExportPdf">Export as PDF</MudButton> *@
         <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
@@ -43,7 +45,7 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-    private const string SelectedFolder = "Export";
+   // private const string SelectedFolder = "Export";
     private string _fileName = string.Empty;
     [Parameter] public DateRange? DateRange { get; set; }
     private const Adornment Adornment = MudBlazor.Adornment.Start;
@@ -66,8 +68,7 @@
                 var end = DateRange.End.Value.Date;
                 if (start > end)
                 {
-                    Snackbar.Add("Start can't be after end date!", Severity.Warning);
-                    Console.WriteLine("Start can't be after end date!");
+                    ShowAndLogExportError(null);
                     return;
                 }
                 
@@ -78,7 +79,7 @@
         }
         catch (Exception ex)
             {
-                Console.WriteLine($"Error occured during export to csv-file: {ex.Message}");
+                ShowAndLogExportError(ex);
                 MudDialog.Close(DialogResult.Ok(false));
             }
         finally
@@ -86,7 +87,21 @@
             _isExporting = false;
         }
     }
-    
+
+    private void ShowAndLogExportError(Exception? ex)
+    {
+        if (ex is null)
+        {
+            Snackbar.Add(Localizer["DateRangeError"], Severity.Warning);
+            Logger.LogWarning(Localizer["DateRangeError"]);
+        }
+        else
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+            Logger.LogCritical(ex, "Error occured during export!");  
+        }
+    }
+
     private async Task ExportXlsx()
     {
         _isExporting = true;
@@ -98,8 +113,7 @@
                 var end = DateRange.End.Value.Date;
                 if (start > end)
                 {
-                    Snackbar.Add("Start can't be after end date!", Severity.Warning);
-                    Console.WriteLine("Start can't be after end date!");
+                    ShowAndLogExportError(null);
                     return;
                 }
                 
@@ -110,7 +124,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error occured during export to xls-file: {ex.Message}");
+           ShowAndLogExportError(ex);
             MudDialog.Close(DialogResult.Ok(false));
         }
         finally
@@ -127,20 +141,17 @@
             var end = DateRange.End.Value.Date;
             if (start > end)
             {
-                Snackbar.Add("Start can't be after end date!", Severity.Warning);
-                Console.WriteLine("Start can't be after end date!");
+                ShowAndLogExportError(null);
             }
-
-            var folderPath = Path.Combine(Path.GetTempPath(), SelectedFolder);
-            var destination = Path.Combine(folderPath, $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf");
+            var fileName = $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
             try
             {
-                var result = await TransactionService.ExportTransactionsToPdf(start, end, destination);
+                var result = await TransactionService.ExportTransactionsToPdf(start, end, fileName);
                 MudDialog.Close(DialogResult.Ok(result));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error occured during export to pdf:: {ex.Message}");
+                ShowAndLogExportError(ex);
                 MudDialog.Close(DialogResult.Ok(false));
             }
         }

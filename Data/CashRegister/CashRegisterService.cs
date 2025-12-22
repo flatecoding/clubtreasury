@@ -16,10 +16,10 @@ namespace TTCCashRegister.Data.CashRegister
             var cashRegister = await context.CashRegisters.FindAsync(id);
             if (cashRegister is not null)
             {
-                logger.LogInformation("Cashregister found: {@CashRegister}", cashRegister);
+                logger.LogInformation("Cash register found: {@CashRegister}", cashRegister.Name);
                 return cashRegister;
             }
-            logger.LogError($"Cashregister not found: {cashRegister}");
+            logger.LogError($"Cash register not found with id '{id}'");
             return null;
         }
 
@@ -28,10 +28,10 @@ namespace TTCCashRegister.Data.CashRegister
             var cashRegister = await context.CashRegisters.FirstOrDefaultAsync();
             if (cashRegister is not null)
             {
-                logger.LogInformation("First cashregister found: {@CashRegister}", cashRegister);
+                logger.LogInformation("First cash register found: {@CashRegister}", cashRegister.Name);
                 return cashRegister;
             }
-            logger.LogError($"No cahsregister data found: {cashRegister}");
+            logger.LogError($"No cach register data available");
             return null;
         }
 
@@ -41,7 +41,7 @@ namespace TTCCashRegister.Data.CashRegister
             {
                 await context.CashRegisters.AddAsync(cashRegisterModel);
                 await context.SaveChangesAsync();
-                logger.LogInformation("Cashregister added: {@CashRegister}", cashRegisterModel);
+                logger.LogInformation("Cash register added: {@CashRegister}", cashRegisterModel.Name);
             }
             catch (Exception ex)
             {
@@ -55,7 +55,7 @@ namespace TTCCashRegister.Data.CashRegister
             {
                 context.CashRegisters.Update(cashRegisterModel);
                 await context.SaveChangesAsync();
-                logger.LogInformation("Cashregister updated: {@CashRegister}", cashRegisterModel);
+                logger.LogInformation("Cash register updated: {@CashRegister}", cashRegisterModel.Name);
             }
             catch (Exception ex)
             {
@@ -77,7 +77,7 @@ namespace TTCCashRegister.Data.CashRegister
 
                 context.CashRegisters.Remove(cashRegister);
                 await context.SaveChangesAsync();
-                logger.LogInformation("Cashregister deleted: {@CashRegister}", cashRegister);
+                logger.LogInformation("Cash register deleted: {@CashRegister}", cashRegister.Name);
                 return true;
             }
             catch (Exception ex)

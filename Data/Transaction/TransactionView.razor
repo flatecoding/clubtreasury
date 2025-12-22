@@ -1,5 +1,6 @@
 ﻿@page "/transactions"
 @using System.Globalization
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Dialog
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction.Dialogs
@@ -7,8 +8,9 @@
 @inject ITransactionService TransactionService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
+@inject IStringLocalizer<Translation> Localizer
 
-<h2>Transactions</h2>
+<h2>@Localizer["TransactionPlural"]</h2>
 <MudTable @ref="_table"
           ServerData="LoadServerData"
           RowsPerPage="25"
@@ -27,31 +29,47 @@
                    StartIcon="@Icons.Material.Filled.Add"
                    Color="Color.Primary"
                    OnClick="@(() => ShowAddTransactionDialog())">
-            Add Transaction
+            @Localizer["AddEntry"]
         </MudButton>
         <MudSpacer />
-
         <MudButton Variant="Variant.Outlined"
                    Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.FilterAlt"
                    OnClick="@(() => ShowFilterDialog())">
-            Filter
+            @Localizer["Filter"]
         </MudButton>
     </ToolBarContent>
 
     <HeaderContent>
-        <MudTh>Date<MudTableSortLabel SortBy="new Func<TransactionModel, object?>(x => x.Date)" 
-                                      SortLabel="Date"></MudTableSortLabel></MudTh>
-        <MudTh>Doc. Nr.<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Documentnumber)" 
-                                          SortLabel="DocumentNumber" /></MudTh>
-        <MudTh>Description</MudTh>
-        <MudTh>Sum<MudTableSortLabel SortBy="new Func<TransactionModel, object>(x => x.Sum)" 
-                                     SortLabel="Sum"></MudTableSortLabel></MudTh>
-        <MudTh>Acc. mvm.</MudTh>
-        <MudTh>Cost center</MudTh>
-        <MudTh>Category</MudTh>
-        <MudTh>Item detail</MudTh>
-        <MudTh>Actions</MudTh>
+        <MudTh>
+            @Localizer["Date"]
+            <MudTableSortLabel
+                SortBy="new Func<TransactionModel, object?>(x => x.Date)"
+                SortLabel="Date">
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            @Localizer["DocumentNumberShort"]
+            <MudTableSortLabel
+                SortBy="new Func<TransactionModel, object>(x => x.Documentnumber)"
+                SortLabel="DocumentNumber">
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            @Localizer["Description"]
+        </MudTh>
+        <MudTh>
+            @Localizer["Sum"]
+            <MudTableSortLabel
+                SortBy="new Func<TransactionModel, object>(x => x.Sum)"
+                SortLabel="Sum">
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTh>@Localizer["Account"]</MudTh>
+        <MudTh>@Localizer["CostCenter"]</MudTh>
+        <MudTh>@Localizer["Category"]</MudTh>
+        <MudTh>@Localizer["ItemDetail"]</MudTh>
+        <MudTh>@Localizer["Actions"] </MudTh>
     </HeaderContent>
 
     <RowTemplate>
@@ -179,7 +197,7 @@
             string.Empty,
             new DialogParameters
             {
-                ["EntityName"] = "Transaction",
+                ["EntityName"] = Localizer["Transaction"].Value,
                 ["ItemName"] = $"B{transaction.Documentnumber.ToString()}: {transaction.Description}",
                 ["OnConfirm"] = EventCallback.Factory.Create(this, async () =>
                 {

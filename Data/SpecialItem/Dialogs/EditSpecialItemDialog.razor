@@ -1,17 +1,22 @@
 ﻿@page "/editspecialitem"
+@using Microsoft.Extensions.Localization
 @inject ISpecialItemService SpecialItemService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" Model="_editSpecialItem" Validation="_specialItemValidator.ValidateValue" ValidationDelay="0">
-            <MudTextField @bind-Value="_editSpecialItem.Name" Label="Name"
-                          For="@(() => _editSpecialItem.Name)" Immediate="true"/>
+            <MudTextField @bind-Value="_editSpecialItem.Name" Label=@Localizer["Name"] For="@(() => _editSpecialItem.Name)" Immediate="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Filled" Color="Color.Primary"
-                   OnClick="@(async () => await SaveSpecialItem())">Save</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+                   OnClick="@(async () => await SaveSpecialItem())">
+            @Localizer["Save"]
+        </MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">
+            @Localizer["Cancel"]
+        </MudButton>
     </DialogActions>
 </MudDialog>
 

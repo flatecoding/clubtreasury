@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+            
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="Apply" xml:space="preserve">
+        <value>Apply</value>
+    </data>
+    <data name="Cancel" xml:space="preserve">
+        <value>Cancel</value>
+    </data>
+    <data name="Date" xml:space="preserve">
+        <value>Date</value>
+    </data>
+    <data name="Description" xml:space="preserve">
+        <value>Description</value>
+    </data>
+    <data name="DocumentNumber" xml:space="preserve">
+        <value>DocumentNo</value>
+    </data>
+    <data name="Language" xml:space="preserve">
+        <value>Language</value>
+    </data>
+    <data name="Actions" xml:space="preserve">
+        <value>Actions</value>
+    </data>
+    <data name="AddEntry" xml:space="preserve">
+        <value>Add</value>
+    </data>
+    <data name="Account" xml:space="preserve">
+        <value>Account</value>
+    </data>
+    <data name="Allocation" xml:space="preserve">
+        <value>Allocation</value>
+    </data>
+    <data name="Settings" xml:space="preserve">
+        <value>Settings</value>
+    </data>
+    <data name="Language_EN" xml:space="preserve">
+        <value>English</value>
+    </data>
+    <data name="Language_DE" xml:space="preserve">
+        <value>German</value>
+    </data>
+    <data name="LanguageDialogMessage" xml:space="preserve">
+        <value>Select language</value>
+    </data>
+    <data name="LanguageDialogTitle" xml:space="preserve">
+        <value>Application language</value>
+    </data>
+    <data name="CostCenter" xml:space="preserve">
+        <value>Cost center</value>
+    </data>
+    <data name="Category" xml:space="preserve">
+        <value>Category</value>
+    </data>
+    <data name="ItemDetail" xml:space="preserve">
+        <value>Item Detail</value>
+    </data>
+    <data name="Sum" xml:space="preserve">
+        <value>Sum</value>
+    </data>
+    <data name="Transaction" xml:space="preserve">
+        <value>Transaction</value>
+    </data>
+    <data name="DetailOrPerson" xml:space="preserve">
+        <value>Detail/Person</value>
+        <comment>DetailOrPerson</comment>
+    </data>
+    <data name="BalanceSheetTitle" xml:space="preserve">
+        <value>Balance sheet</value>
+        <comment>BalanceSheetTitle</comment>
+    </data>
+    <data name="DateRange" xml:space="preserve">
+        <value>Date range</value>
+        <comment>Daterange</comment>
+    </data>
+    <data name="Delete" xml:space="preserve">
+        <value>Delete</value>
+    </data>
+    <data name="Budget" xml:space="preserve">
+        <value>Budget</value>
+        <comment>Budget</comment>
+    </data>
+    <data name="ExportBudgetPlanData" xml:space="preserve">
+        <value>Export data for budget plan</value>
+    </data>
+    <data name="ImportExport" xml:space="preserve">
+        <value>Import / Export</value>
+        <comment>ImportExport</comment>
+    </data>
+    <data name="ImportData" xml:space="preserve">
+        <value>Import data</value>
+        <comment>ImportData</comment>
+    </data>
+    <data name="ExportData" xml:space="preserve">
+        <value>Export data</value>
+        <comment>ExporaData</comment>
+    </data>
+    <data name="CashAudit" xml:space="preserve">
+        <value>Cash audit</value>
+        <comment>CashAudit</comment>
+    </data>
+    <data name="BudgetPlan" xml:space="preserve">
+        <value>Budget plan</value>
+        <comment>BudgetPlan</comment>
+    </data>
+    <data name="CashRegister" xml:space="preserve">
+        <value>Cash register</value>
+        <comment>CashRegister</comment>
+    </data>
+    <data name="BookingJournal" xml:space="preserve">
+        <value>Booking journal</value>
+        <comment>BookingJournal</comment>
+    </data>
+    <data name="About" xml:space="preserve">
+        <value>About</value>
+        <comment>About</comment>
+    </data>
+    <data name="SpecialPositions" xml:space="preserve">
+        <value>Special position</value>
+        <comment>SpecialPositions</comment>
+    </data>
+    <data name="Dashboard" xml:space="preserve">
+        <value>Dashboard</value>
+        <comment>Dashboard</comment>
+    </data>
+    <data name="Person" xml:space="preserve">
+        <value>Person</value>
+        <comment>Person</comment>
+    </data>
+    <data name="DeleteQuestion" xml:space="preserve">
+        <value>Should the entry be deleted?</value>
+        <comment>DeleteQuestion</comment>
+    </data>
+    <data name="TransactionPlural" xml:space="preserve">
+        <value>Transactions</value>
+    </data>
+    <data name="Filter" xml:space="preserve">
+        <value>Filter</value>
+        <comment>Filter</comment>
+    </data>
+    <data name="Id" xml:space="preserve">
+        <value>Id</value>
+        <comment>Id</comment>
+    </data>
+    <data name="Name" xml:space="preserve">
+        <value>Name</value>
+        <comment>Name</comment>
+    </data>
+    <data name="CurrentBalance" xml:space="preserve">
+        <value>Current balance</value>
+        <comment>CurrentBalance</comment>
+    </data>
+    <data name="Edit" xml:space="preserve">
+        <value>Edit</value>
+        <comment>Edit</comment>
+    </data>
+    <data name="CostConfiguration" xml:space="preserve">
+        <value>Cost Setup</value>
+        <comment>CostCenterSetting</comment>
+    </data>
+    <data name="PersonPlural" xml:space="preserve">
+        <value>Persons</value>
+    </data>
+    <data name="FinanceManagement" xml:space="preserve">
+        <value>Finance Management</value>
+        <comment>FinanceManagement</comment>
+    </data>
+    <data name="CostCenterPlural" xml:space="preserve">
+        <value>Cost centers</value>
+        <comment>CostCenters</comment>
+    </data>
+    <data name="CategoryPlural" xml:space="preserve">
+        <value>Categories</value>
+        <comment>Categories</comment>
+    </data>
+    <data name="NoData" xml:space="preserve">
+        <value>No data available</value>
+    </data>
+    <data name="AllocationPlural" xml:space="preserve">
+        <value>Allocations</value>
+        <comment>AllocationPlural</comment>
+    </data>
+    <data name="EditAllocation" xml:space="preserve">
+        <value>Edit Allocation</value>
+        <comment>EditAllocation</comment>
+    </data>
+    <data name="AllocationDeleteSuccess" xml:space="preserve">
+        <value>Allocation deleted successfully</value>
+        <comment>AllocationDeleteSuccess</comment>
+    </data>
+    <data name="ExportCashAuditData" xml:space="preserve">
+        <value>Export data for cash audit</value>
+        <comment>ExportCashAuditData</comment>
+    </data>
+    <data name="Page" xml:space="preserve">
+        <value>Page</value>
+        <comment>Page</comment>
+    </data>
+    <data name="DocumentNumberShort" xml:space="preserve">
+        <value>Doc No.</value>
+        <comment>DocumentNumberShort</comment>
+    </data>
+    <data name="TotalIncome" xml:space="preserve">
+        <value>Total income</value>
+        <comment>TotalIncome</comment>
+    </data>
+    <data name="TotalExpenses" xml:space="preserve">
+        <value>Total expenses</value>
+        <comment>TotalExpenses</comment>
+    </data>
+    <data name="AccountBalance" xml:space="preserve">
+        <value>Account balance</value>
+        <comment>AccountBalance</comment>
+    </data>
+    <data name="SelectBookingJournalFile" xml:space="preserve">
+        <value> Select a file to import data from booking journal. </value>
+        <comment>SelectBookingJournalFile</comment>
+    </data>
+    <data name="RequiredFormat" xml:space="preserve">
+        <value>Required format</value>
+        <comment>RequiredFormat</comment>
+    </data>
+    <data name="NameOfSheet" xml:space="preserve">
+        <value>Name of sheet</value>
+        <comment>NameOfSheet</comment>
+    </data>
+    <data name="RowDefinition" xml:space="preserve">
+        <value>Row definition</value>
+        <comment>RowDefinition</comment>
+    </data>
+    <data name="Income" xml:space="preserve">
+        <value>Income</value>
+        <comment>Income</comment>
+    </data>
+    <data name="Expenses" xml:space="preserve">
+        <value>Expenses</value>
+        <comment>Expenses</comment>
+    </data>
+    <data name="CostUnitCategory" xml:space="preserve">
+        <value>CostUnit/Category</value>
+        <comment>CostUnitCategory</comment>
+    </data>
+    <data name="Undefined" xml:space="preserve">
+        <value>Undefined</value>
+        <comment>Undefined</comment>
+    </data>
+    <data name="SpecialPositionIfRequired" xml:space="preserve">
+        <value>Select special position if required</value>
+        <comment>SpecialPositionIfRequired</comment>
+    </data>
+    <data name="Save" xml:space="preserve">
+        <value>Save</value>
+        <comment>Save</comment>
+    </data>
+    <data name="UpdateSuccessful" xml:space="preserve">
+        <value>Entry updated successfully</value>
+        <comment>UpdateSuccessful</comment>
+    </data>
+    <data name="AddSuccessful" xml:space="preserve">
+        <value>New entry has been added successfully.</value>
+        <comment>AddSuccessful</comment>
+    </data>
+    <data name="DeleteSuccessful" xml:space="preserve">
+        <value>Entry has been deleted successfully.</value>
+        <comment>DeleteSuccessful</comment>
+    </data>
+    <data name="ImportQuestion" xml:space="preserve">
+        <value>Select a *.txt file to import cost centers and categories.</value>
+        <comment>ImportQuestion</comment>
+    </data>
+    <data name="SelectFile" xml:space="preserve">
+        <value>Seleft file</value>
+        <comment>SeleftFile</comment>
+    </data>
+    <data name="Bookings" xml:space="preserve">
+        <value>Bookings</value>
+        <comment>Bookings</comment>
+    </data>
+    <data name="FileFormat" xml:space="preserve">
+        <value>File format</value>
+        <comment>FileFormat</comment>
+    </data>
+    <data name="Example" xml:space="preserve">
+        <value>Example</value>
+        <comment>Example</comment>
+    </data>
+    <data name="FileName" xml:space="preserve">
+        <value>File name</value>
+        <comment>FileName</comment>
+    </data>
+    <data name="ImportCostCenterDialogTitle" xml:space="preserve">
+        <value>Import cost centers</value>
+        <comment>ImportCostCenterDialog</comment>
+    </data>
+    <data name="ImportTransactionDialogTitle" xml:space="preserve">
+        <value>Import booking journal</value>
+        <comment>ImportTransactionDialogTitle</comment>
+    </data>
+    <data name="Import" xml:space="preserve">
+        <value>Import</value>
+        <comment>Import</comment>
+    </data>
+    <data name="SpecialPosition" xml:space="preserve">
+        <value>Special position</value>
+        <comment>SpecialPosition</comment>
+    </data>
+    <data name="Export" xml:space="preserve">
+        <value>Export</value>
+        <comment>Export</comment>
+    </data>
+    <data name="ExportBudget" xml:space="preserve">
+        <value>Export budget</value>
+        <comment>ExportBudget</comment>
+    </data>
+    <data name="ExportCSV" xml:space="preserve">
+        <value>CSV-File</value>
+        <comment>ExcportCSV</comment>
+    </data>
+    <data name="ExportXml" xml:space="preserve">
+        <value>Xml-File</value>
+        <comment>ExportXml</comment>
+    </data>
+    <data name="ExportPdf" xml:space="preserve">
+        <value>Pdf-File</value>
+        <comment>ExportPdf</comment>
+    </data>
+    <data name="DateRangeError" xml:space="preserve">
+        <value>Export not possible! Start date can't be after end date!</value>
+        <comment>DateRangeError</comment>
+    </data>
+    <data name="ExportXlsx" xml:space="preserve">
+        <value>Xlsx-File</value>
+        <comment>ExportXlsx</comment>
+    </data>
+    <data name="EditTransactionDetails" xml:space="preserve">
+        <value>Edit transaction details</value>
+        <comment>EditTransactionDetails</comment>
+    </data>
+    <data name="AddTransactionDetails" xml:space="preserve">
+        <value>Add transaction details</value>
+        <comment>AddTransactionDetails</comment>
+    </data>
+    <data name="TransactionDetailsFor" xml:space="preserve">
+        <value>Transaction details for document</value>
+        <comment>TransactionDetailsFor</comment>
+    </data>
+    <data name="CashBook" xml:space="preserve">
+        <value>Cash book</value>
+        <comment>CashBook</comment>
+    </data>
+</root>

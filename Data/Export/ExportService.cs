@@ -194,13 +194,9 @@ namespace TTCCashRegister.Data.Export
             var filename = $"Budget_{begin:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
             var success = await ExportBudgetToExcelWithCharts(begin, end, filename);
 
-            if (success)
-            {
-                var filePath = Path.Combine(_exportPath, filename);
-                return await File.ReadAllBytesAsync(filePath);
-            }
-
-            return Array.Empty<byte>();
+            if (!success) return Array.Empty<byte>();
+            var filePath = Path.Combine(_exportPath, filename);
+            return await File.ReadAllBytesAsync(filePath);
         }
     }
 }

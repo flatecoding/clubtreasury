@@ -38,7 +38,7 @@ public class AllocationService(CashDataContext context, ILogger<AllocationServic
                                       "ItemDetail: {@ItemDetail}", allocation.CostCenter.CostUnitName, 
                     allocation.Category.Name,
                     allocation.ItemDetail?.CostDetails ?? "null");
-                return existing; // tracked
+                return existing;
             }
             
         
@@ -71,7 +71,6 @@ public class AllocationService(CashDataContext context, ILogger<AllocationServic
     {
         if (await AllocationExistsAsync(allocation))
         {
-            // Optional: Loggen oder Rückgabe null
             logger.LogWarning("Allocation wit CostCenter: {CostCenterId}, Category: {CategoryId} " +
                               " ItemDetail: {ItemDetailId} already exists.", allocation.CostCenterId,
                 allocation.CategoryId, allocation.ItemDetailId);
@@ -113,8 +112,7 @@ public class AllocationService(CashDataContext context, ILogger<AllocationServic
         await context.SaveChangesAsync();
         return true;
     }
-
-
+    
     public async Task<bool> DeleteAllocationAsync(int id)
     {
         var allocation = await context.Allocations.FindAsync(id);

@@ -1,12 +1,14 @@
 ﻿@page "/specialitems"
 @using System.Globalization
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.SpecialItem.Dialogs
 @inject ISpecialItemService SpecialItemService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
+@inject IStringLocalizer<Translation> Localizer
 
-<h2>Special items</h2>
+<h2>@Localizer["SpecialPosition"]</h2>
 
 <MudPaper Class="mt-4" Style="width:50%;">
     <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
@@ -18,7 +20,7 @@
                        StartIcon="@Icons.Material.Filled.Add"
                        Color="Color.Primary"
                        @onclick="ShowAddSpecialItemDialog">
-                Add Special Item
+                @Localizer["AddEntry"]
             </MudButton>
             <MudSpacer />
             <MudTextField @bind-Value="_searchString1"
@@ -36,16 +38,16 @@
             <col style="width: 110px;" />
         </ColGroup>
         <HeaderContent>
-            <MudTh>Id<MudTableSortLabel SortBy="new Func<SpecialItemModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>Name<MudTableSortLabel SortBy="new Func<SpecialItemModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
-            <MudTh>Amount</MudTh>
-            <MudTh>Actions</MudTh>
+            <MudTh>@Localizer["Id"]<MudTableSortLabel SortBy="new Func<SpecialItemModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
+            <MudTh>@Localizer["Name"]<MudTableSortLabel SortBy="new Func<SpecialItemModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
+            <MudTh>@Localizer["Sum"]</MudTh>
+            <MudTh>@Localizer["Actions"]</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Id">@context.Id</MudTd>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="@Localizer["Id"]">@context.Id</MudTd>
+            <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
             <MudTd DataLabel="">@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
-            <MudTd DataLabel="Actions">
+            <MudTd DataLabel="@Localizer["Actions"]">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditSpecialItemDialog(context.Id)"></MudIconButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteSpecialItemDialog(context.Id)">Delete</MudIconButton>
             </MudTd>
@@ -87,7 +89,7 @@
 
     private async Task ShowAddSpecialItemDialog()
     {
-        var dialog = await DialogService.ShowAsync<AddSpecialItemDialog>("Add Special Item", new DialogParameters());
+        var dialog = await DialogService.ShowAsync<AddSpecialItemDialog>(Localizer["AddEntry"].Value, new DialogParameters());
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
@@ -100,7 +102,7 @@
 
     private async Task ShowEditSpecialItemDialog(int specialItemId)
     {
-        var dialog = await DialogService.ShowAsync<EditSpecialItemDialog>("Edit Special Item", 
+        var dialog = await DialogService.ShowAsync<EditSpecialItemDialog>(Localizer["Edit"].Value, 
             new DialogParameters { ["SpecialItemId"] = specialItemId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
@@ -108,7 +110,7 @@
 
     private async Task ShowDeleteSpecialItemDialog(int specialItemId)
     {
-        var dialog = await DialogService.ShowAsync<DeleteSpecialItemDialog>("Delete Special Item", 
+        var dialog = await DialogService.ShowAsync<DeleteSpecialItemDialog>(Localizer["Delete"].Value, 
             new DialogParameters { ["SpecialItemId"] = specialItemId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();

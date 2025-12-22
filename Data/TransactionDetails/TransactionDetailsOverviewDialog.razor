@@ -1,10 +1,12 @@
 @using System.Globalization
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Dialog
 @using TTCCashRegister.Data.Source
 @inject ITransactionDetailsService TransactionDetailsService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject INotificationService NotificationService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudDialog>
     <DialogContent>
@@ -14,17 +16,17 @@
         }
         else if (!_transactionDetails.Any())
         {
-            <em>No transaction details found.</em>
+            <em>@Localizer["NoData"]</em>
         }
         else
         {
             <MudTable Items="_transactionDetails" Dense="true" Hover="true" Striped="true" Bordered="true">
                 <HeaderContent>
-                    <MudTh>Doc. Nr.</MudTh>
-                    <MudTh>Description</MudTh>
-                    <MudTh>Person</MudTh>
-                    <MudTh>Sum</MudTh>
-                    <MudTh>Actions</MudTh>
+                    <MudTh>@Localizer["DocumentNumberShort"]</MudTh>
+                    <MudTh>@Localizer["Description"]</MudTh>
+                    <MudTh>@Localizer["Person"]</MudTh>
+                    <MudTh>@Localizer["Sum"]</MudTh>
+                    <MudTh>@Localizer["Actions"]</MudTh>
                 </HeaderContent>
                 <RowTemplate Context="row">
                     <MudTd>@row.DocumentNumber</MudTd>
@@ -34,20 +36,21 @@
                     <MudTd>
                         <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                        Color="Color.Info"
-                                       OnClick="@(() => ShowEditTransactionDetailDialog(row.Id))"/>
+                                       OnClick="@(async() => await ShowEditTransactionDetailDialog(row.Id))"/>
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
-                                       OnClick="@(() => ShowDeleteTransactionDetailsDialog(row.Id))"/>
+                                       OnClick="@(async () => await ShowDeleteTransactionDetailsDialog(row.Id))"/>
                     </MudTd>
                 </RowTemplate>
             </MudTable>
         }
     </DialogContent>
     <DialogActions>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@(() => ShowAddTransactionDetailsDialog())">
-            Add transaction details
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" 
+                   OnClick="@(async () => await ShowAddTransactionDetailsDialog())">
+            @Localizer["AddEntry"]
         </MudButton>
-        <MudButton Color="Color.Default" OnClick="@(() => Close())">Close</MudButton>
+        <MudButton Color="Color.Default" OnClick="@(() => Close())">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -61,7 +64,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadTransactionDetails();
-        await MudDialog.SetTitleAsync($"Transaction details for document: {ParentDocumentNumber}");
+        await MudDialog.SetTitleAsync($"{Localizer["TransactionDetailsFor"]}: {ParentDocumentNumber}");
         StateHasChanged();
     }
 

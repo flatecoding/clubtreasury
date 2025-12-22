@@ -1,7 +1,9 @@
 @page "/transactiondetailsdialog"
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Person
 @inject ITransactionDetailsService TransactionDetailsService
 @inject IPersonService PersonService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudDialog>
     <DialogContent>
@@ -10,26 +12,25 @@
                  ValidationDelay="0">
             
             <MudTextField @bind-Value="_transactionDetailsModel.DocumentNumber"
-                          Label="Document Number"
+                          Label=@Localizer["DocumentNumber"]
                           For="@(() => _transactionDetailsModel.DocumentNumber)"
                           Immediate="true" />
             
             <MudTextField @bind-Value="_transactionDetailsModel.Description"
-                          Label="Description"
+                          Label=@Localizer["Description"]
                           For="@(() => _transactionDetailsModel.Description)"
                           Immediate="true"
                           Required="true"
                           RequiredError="Description is required" />
             
             <MudTextField @bind-Value="_transactionDetailsModel.Sum"
-                             Label="Sum"
+                             Label=@Localizer["Sum"]
                              For="@(() => _transactionDetailsModel.Sum)"
                              Immediate="true"
                              Required="true"
                              RequiredError="Amount is required" />
             
-            <MudSelect T="int?" Label="Person"
-                       @bind-Value="_transactionDetailsModel.PersonId"
+            <MudSelect T="int?" Label=@Localizer["Person"] @bind-Value="_transactionDetailsModel.PersonId"
                        Clearable="true">
                 <MudSelectItem T="int?" Value="@null">None</MudSelectItem>
                 @foreach (var p in _persons)
@@ -43,12 +44,12 @@
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
                    OnClick="@(async () => await Save())">
-            @(_isEditMode ? "Save" : "Add")
+            @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
         <MudButton Variant="Variant.Text"
                    Color="Color.Default"
                    OnClick="@Cancel">
-            Cancel
+            @Localizer["Cancel"]
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -78,7 +79,7 @@
                 _transactionDetailsModel = await TransactionDetailsService
                                                .GetTransactionDetailsByIdAsync(TransactionDetailsId.Value)
                                            ?? new TransactionDetailsModel { TransactionId = TransactionId };
-            dialogTitle = "Edit transaction details";
+            dialogTitle = Localizer["EditTransactionDetails"];
         }
         else
         {
@@ -87,7 +88,7 @@
                 TransactionId = TransactionId,
                 Sum = 0m
             };
-            dialogTitle = "Add new transaction details";
+            dialogTitle = Localizer["AddTransactionDetails"];
         }
 
         await MudDialog.SetTitleAsync(dialogTitle);
