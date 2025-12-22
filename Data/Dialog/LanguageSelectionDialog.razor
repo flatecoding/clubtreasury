@@ -1,0 +1,57 @@
+@inject INotificationService NotificationService
+@inject IStringLocalizer<Translation> Localizer
+@inject ICultureService CultureService
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data.Culture
+@using TTCCashRegister.Data.Source
+
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6">@Localizer["LanguageDialogMessage"]</MudText>
+        <MudSelect T="string" @bind-Value="_selectedCulture">
+            <MudSelectItem Value="@SupportedAppCultures.English">
+                <img src="images/us.svg" height="14" class="mr-1" alt="English flag"/>
+                @Localizer["Language_EN"]
+            </MudSelectItem>
+            <MudSelectItem Value="@SupportedAppCultures.German">
+                <img src="images/de.svg" height="14" class="mr-1" alt="German flag"/>
+                @Localizer["Language_DE"]
+            </MudSelectItem>
+        </MudSelect>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="@(() => Apply())" Color="Color.Primary" Variant="Variant.Filled">
+            @Localizer["Apply"]
+        </MudButton>
+        <MudButton OnClick="@(() => Cancel())" Variant="Variant.Text">
+            @Localizer["Cancel"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] 
+    IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    private string _selectedCulture = SupportedAppCultures.German;
+
+    protected override Task OnInitializedAsync()
+    {
+        _selectedCulture = CultureService.CurrentCulture.Name;
+        return Task.CompletedTask;
+    }
+
+    private async Task Apply()
+    {
+        await CultureService.SetCultureAsync(_selectedCulture);
+        MudDialog.Close(DialogResult.Ok(true));
+            
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

@@ -18,6 +18,28 @@
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:4300"
     },
+    "TTCCashRegister_EmptyDB": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ConnectionStrings__DefaultConnection": "Server=localhost;Port=3306;Database=ClubCash_Empty;User Id=dev;Password={DbPassword}",
+        "ConnectionStrings__ProcudtionConnection": "Server=localhost;Port=3306;Database=ClubCash_Empty;User Id=dev;Password={DbPassword}",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:4300"
+    },
+    "TTCCashRegister_DockerDb": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ConnectionStrings__DefaultConnection": "Server=192.168.10.51;Port=3307;Database=ClubCash;User Id=dev;Password=REDACTED",
+        "ConnectionStrings__ProcudtionConnection": "Server=192.168.10.51;Port=3307;Database=ClubCash;User Id=dev;Password=REDACTED",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:4300"
+    },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,

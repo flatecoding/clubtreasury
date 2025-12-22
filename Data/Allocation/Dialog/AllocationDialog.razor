@@ -1,4 +1,5 @@
 @page "/allocationdialog"
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Category
 @using TTCCashRegister.Data.CostCenter
 @using TTCCashRegister.Data.ItemDetail
@@ -6,25 +7,26 @@
 @inject ICostCenterService CostCenterService
 @inject ICategoryService CategoryService
 @inject IItemDetailService ItemDetailService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" Model="_allocationModel">
-            <MudSelect T="int" Label="Cost Center" @bind-Value="_allocationModel.CostCenterId" Required="true">
+            <MudSelect T="int" Label="@Localizer["CostCenter"]" @bind-Value="_allocationModel.CostCenterId" Required="true">
                 @foreach (var cc in _costCenters)
                 {
                     <MudSelectItem T="int" Value="@cc.Id">@cc.CostUnitName</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudSelect T="int" Label="Category" @bind-Value="_allocationModel.CategoryId" Required="true">
+            <MudSelect T="int" Label="@Localizer["Category"]" @bind-Value="_allocationModel.CategoryId" Required="true">
                 @foreach (var cat in _categories)
                 {
                     <MudSelectItem T="int" Value="@cat.Id">@cat.Name</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudSelect T="int?" Label="Item Detail" @bind-Value="_allocationModel.ItemDetailId">
+            <MudSelect T="int?" Label="@Localizer["ItemDetail"]" @bind-Value="_allocationModel.ItemDetailId">
                 <MudSelectItem T="int?" Value="null">None</MudSelectItem>
                 @foreach (var item in _itemDetails)
                 {
@@ -35,9 +37,9 @@
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Save())">
-            @(_isEditMode ? "Save" : "Add")
+            @(_isEditMode ? $"{Localizer["Save"]}" : $"{@Localizer["AddEntry"]}")
         </MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -71,12 +73,12 @@
         if (_isEditMode && AllocationId is not null)
         {
             _allocationModel = await AllocationService.GetAllocationsByIdAsync(AllocationId.Value) ?? new AllocationModel();
-            await MudDialog.SetTitleAsync("Edit Allocation");
+            await MudDialog.SetTitleAsync($"{Localizer["Edit"]}");
         }
         else
         {
             _allocationModel = new AllocationModel();
-            await MudDialog.SetTitleAsync("Add Allocation");
+            await MudDialog.SetTitleAsync($"{Localizer["AddEntry"]}");
         }
 
         StateHasChanged();
