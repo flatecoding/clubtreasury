@@ -2,6 +2,7 @@ using System.Data;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using ExcelDataReader;
+using Microsoft.Extensions.Localization;
 using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.Category;
@@ -9,24 +10,19 @@ using TTCCashRegister.Data.CostCenter;
 
 namespace TTCCashRegister.Data.Import
 {
-    public class ImportBookingJournalService : IImportBookingJournalService
+    public class ImportBookingJournalService(
+        CashDataContext context,
+        ITransactionService transactionService,
+        ILogger<ImportBookingJournalService> logger,
+        IStringLocalizer<Translation> localizer)
+        : IImportBookingJournalService
     {
-        private readonly CashDataContext context;
-        private readonly ITransactionService transactionService;
-        private readonly ILogger<ImportBookingJournalService> _logger;
-
-        public ImportBookingJournalService(CashDataContext context, ITransactionService transactionService, ILogger<ImportBookingJournalService> logger)
-        {
-            this.context = context;
-            this.transactionService = transactionService;
-            _logger = logger;
-        }
 
         public async Task<bool> ImportTransactions(Stream? fileStream)
         {
             if (fileStream == null)
             {
-                _logger.LogError("The data-stream during import of bookingjournal is null.");
+                logger.LogError("The data-stream during import of bookingjournal is null.");
                 return false;
             }
 
@@ -40,11 +36,11 @@ namespace TTCCashRegister.Data.Import
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                 using var reader = ExcelReaderFactory.CreateReader(memoryStream);
                 var result = reader.AsDataSet();
-                var dataTable = result.Tables["Buchungen"];
+                var dataTable = result.Tables[localizer["Bookings"].Value];
 
                 if (dataTable?.Rows == null)
                 {
-                    _logger.LogWarning("No rows found in sheet: 'Buchungen'!");
+                    logger.LogWarning("No rows found in sheet: '{@name}'!", localizer["Bookings"]);
                     return false;
                 }
 
@@ -59,7 +55,7 @@ namespace TTCCashRegister.Data.Import
 
                 if (cashRegister == null)
                 {
-                    _logger.LogError("Cash register not found: {@CashRegister}.", cashRegister);
+                    logger.LogError("Cash register not found: {@CashRegister}.", cashRegister);
                     return false;
                 }
 
@@ -68,25 +64,28 @@ namespace TTCCashRegister.Data.Import
                 {
                     try
                     {
-                        if (!DateTime.TryParse(row.ItemArray[0]?.ToString(), out var datum))
+                        if (!DateTime.TryParse(row.ItemArray.ElementAtOrDefault(0)?.ToString(), out var datum))
                         {
-                            _logger.LogWarning("Invalid date format in row {@RowData} at index {RowIndex}", 
-                                row.ItemArray, row.Table.Rows.IndexOf(row));
-                            continue;
+                            logger.LogError(
+                                "Import failed: Date column missing or invalid. RowIndex={RowIndex}, RowData={@RowData}",
+                                row.Table.Rows.IndexOf(row),
+                                row.ItemArray);
+
+                            return false;
                         }
                         var date = DateOnly.FromDateTime(datum);
 
                         var documentRaw = row.ItemArray[1]?.ToString()?.TrimStart('B');
                         if (!int.TryParse(documentRaw, out var documentNumber))
                         {
-                            _logger.LogWarning("Invalid document number in row {@RowData} at index {RowIndex}", 
+                            logger.LogWarning("Invalid document number in row {@RowData} at index {RowIndex}", 
                                 row.ItemArray, row.Table.Rows.IndexOf(row));
                             continue;
                         }
 
                         if (existingDocumentNumbers.Contains(documentNumber))
                         {
-                            _logger.LogInformation("Skipping duplicate document number: {DocumentNumber}", documentNumber);
+                            logger.LogInformation("Skipping duplicate document number: {DocumentNumber}", documentNumber);
                             continue;
                         }
 
@@ -98,7 +97,7 @@ namespace TTCCashRegister.Data.Import
 
                         if (!decimal.TryParse(sumStr, out var sumValue))
                         {
-                            _logger.LogWarning("Missing or invalid sum value in row {@RowData}", row.ItemArray);
+                            logger.LogWarning("Missing or invalid sum value in row {@RowData}", row.ItemArray);
                             continue;
                         }
 
@@ -112,7 +111,7 @@ namespace TTCCashRegister.Data.Import
                         var parts = costCenterCategory?.Split('/');
                         if (parts == null || parts.Length == 0)
                         {
-                            _logger.LogWarning("Missing cost center info in row: {@RowData}", row.ItemArray);
+                            logger.LogWarning("Missing cost center info in row: {@RowData}", row.ItemArray);
                             continue;
                         }
 
@@ -166,13 +165,13 @@ namespace TTCCashRegister.Data.Import
 
                         if (!await transactionService.AddTransactionAsync(transaction))
                         {
-                            _logger.LogError("Failed to add transaction for document number: {DocumentNumber}", documentNumber);
+                            logger.LogError("Failed to add transaction for document number: {DocumentNumber}", documentNumber);
                             return false;
                         }
                     }
                     catch (Exception rowEx)
                     {
-                        _logger.LogError(rowEx, "Error processing row: {@RowData}", row.ItemArray);
+                        logger.LogError(rowEx, "Error processing row: {@RowData}", row.ItemArray);
                         return false;
                     }
                 }
@@ -180,15 +179,15 @@ namespace TTCCashRegister.Data.Import
                 await dbTransaction.CommitAsync();
                 if (importCounter > 0)
                 {
-                    _logger.LogInformation("Booking journal was successfully imported.");
-                    _logger.LogInformation("Number of imported transactions: {ImportCounter}", importCounter);
+                    logger.LogInformation("Booking journal was successfully imported.");
+                    logger.LogInformation("Number of imported transactions: {ImportCounter}", importCounter);
                 }
                 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,"An error occurred during import");
+                logger.LogError(ex,"An error occurred during import");
                 return false;
             }
         }
