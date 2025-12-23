@@ -10,102 +10,133 @@
 @inject INotificationService NotificationService
 @inject IStringLocalizer<Translation> Localizer
 
-<h2>@Localizer["TransactionPlural"]</h2>
-<MudTable @ref="_table"
-          ServerData="LoadServerData"
-          RowsPerPage="25"
-          Class="mt-2"
-          Dense="@Dense"
-          Hover="@Hover"
-          Bordered="@Bordered"
-          Striped="@Striped"
-          FixedHeader="@_fixedHeader"
-          FixedFooter="@_fixedFooter"
-          Height="@(_fixedHeader || _fixedFooter ?"700px":"")"
-          @bind-SelectedItem="_selectedItem"
-          SortLabel="Sort By">
-    <ToolBarContent>
-        <MudButton Variant="Variant.Filled"
-                   StartIcon="@Icons.Material.Filled.Add"
-                   Color="Color.Primary"
-                   OnClick="@(() => ShowAddTransactionDialog())">
-            @Localizer["AddEntry"]
-        </MudButton>
-        <MudSpacer />
-        <MudButton Variant="Variant.Outlined"
-                   Color="Color.Primary"
-                   StartIcon="@Icons.Material.Filled.FilterAlt"
-                   OnClick="@(() => ShowFilterDialog())">
-            @Localizer["Filter"]
-        </MudButton>
-    </ToolBarContent>
-
-    <HeaderContent>
-        <MudTh>
-            @Localizer["Date"]
-            <MudTableSortLabel
-                SortBy="new Func<TransactionModel, object?>(x => x.Date)"
-                SortLabel="Date">
-            </MudTableSortLabel>
-        </MudTh>
-        <MudTh>
-            @Localizer["DocumentNumberShort"]
-            <MudTableSortLabel
-                SortBy="new Func<TransactionModel, object>(x => x.Documentnumber)"
-                SortLabel="DocumentNumber">
-            </MudTableSortLabel>
-        </MudTh>
-        <MudTh>
-            @Localizer["Description"]
-        </MudTh>
-        <MudTh>
-            @Localizer["Sum"]
-            <MudTableSortLabel
-                SortBy="new Func<TransactionModel, object>(x => x.Sum)"
-                SortLabel="Sum">
-            </MudTableSortLabel>
-        </MudTh>
-        <MudTh>@Localizer["Account"]</MudTh>
-        <MudTh>@Localizer["CostCenter"]</MudTh>
-        <MudTh>@Localizer["Category"]</MudTh>
-        <MudTh>@Localizer["ItemDetail"]</MudTh>
-        <MudTh>@Localizer["Actions"] </MudTh>
-    </HeaderContent>
-
-    <RowTemplate>
-        <MudTd>@context?.Date?.ToString("dd.MM.yyyy")</MudTd>
-        <MudTd>@context.Documentnumber</MudTd>
-        <MudTd>@context.Description</MudTd>
-        <MudTd>@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
-        <MudTd>@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
-        <MudTd>@context.Allocation.CostCenter.CostUnitName</MudTd>
-        <MudTd>@context.Allocation.Category?.Name</MudTd>
-        <MudTd>@context.Allocation.ItemDetail?.CostDetails</MudTd>
-        <MudTd>
-            <MudIconButton Icon="@Icons.Material.Filled.List"
-                           Color="Color.Secondary"
-                           aria-label="show-transactionDetails"
-                           OnClick="@(() => ShowTransactionDetailsOverviewDialog(
-                                        context.Id, 
-                                        context.Documentnumber))">
-            </MudIconButton>
-            <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                           Color="Color.Info"
-                           aria-label="edit"
-                           OnClick="@(() => ShowEditTransactionDialog(context.Id))">
-            </MudIconButton>
-            <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                           Color="Color.Error"
-                           aria-label="delete"
-                           OnClick="@(() => ShowDeleteTransactionDialog(context.Id))">
-            </MudIconButton>
-        </MudTd>
-    </RowTemplate>
-    <PagerContent>
-        <MudTablePager />
-    </PagerContent>
-</MudTable>
-
+<MudGrid Spacing="0">
+    <MudItem xs="12">
+        <MudText Typo="Typo.h6">
+            @Localizer["TransactionPlural"]
+        </MudText>
+    </MudItem>
+    <MudItem xs="12">
+        <MudPaper Elevation="0">
+            <MudTable @ref="_table"
+                      ServerData="LoadServerData"
+                      RowsPerPage="25"
+                      Dense="@Dense"
+                      Hover="@Hover"
+                      Bordered="@Bordered"
+                      Striped="@Striped"
+                      FixedHeader="@_fixedHeader"
+                      FixedFooter="@_fixedFooter"
+                      Height="@(_fixedHeader || _fixedFooter ? "700px" : null)"
+                      @bind-SelectedItem="_selectedItem"
+                      SortLabel="Sort By">
+                <ToolBarContent>
+                    <MudIconButton Variant="Variant.Filled"
+                               Icon="@Icons.Material.Filled.Add"
+                               Color="Color.Primary"
+                               OnClick="@ShowAddTransactionDialog">
+                    </MudIconButton>
+                    <MudSpacer />
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.FilterAlt"
+                               OnClick="@ShowFilterDialog">
+                        @Localizer["Filter"]
+                    </MudButton>
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortLabel="Date"
+                            SortBy="new Func<TransactionModel, object?>(x => x.Date)">
+                            @Localizer["Date"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortLabel="DocumentNumber"
+                            SortBy="new Func<TransactionModel, object>(x => x.Documentnumber)">
+                            @Localizer["DocumentNumberShort"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>@Localizer["Description"]</MudTh>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortLabel="Sum"
+                            SortBy="new Func<TransactionModel, object>(x => x.Sum)">
+                            @Localizer["Sum"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>@Localizer["Account"]</MudTh>
+                    <MudTh>
+                        <MudTableSortLabel SortLabel="CostCenter"
+                                           SortBy="new Func<TransactionModel, object>(x => x.Allocation.CostCenter.CostUnitName)">
+                            @Localizer["CostCenter"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>
+                        <MudTableSortLabel SortLabel="Category"
+                                           SortBy="new Func<TransactionModel, object?>(x => x.Allocation.Category != null ? x.Allocation.Category.Name : null)">
+                            @Localizer["Category"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>
+                        <MudTableSortLabel SortLabel="ItemDetail"
+                                           SortBy="new Func<TransactionModel, object?>(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null)">
+                            @Localizer["ItemDetail"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>@Localizer["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@Localizer["Date"].Value">
+                        @context?.Date?.ToString("dd.MM.yyyy")
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["DocumentNumberShort"].Value">
+                        @context.Documentnumber
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Description"].Value">
+                        @context.Description
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Sum"].Value">
+                        @context.Sum.ToString("C", CultureInfo.CurrentCulture)
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Account"].Value">
+                        @context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["CostCenter"].Value">
+                        @context.Allocation.CostCenter.CostUnitName
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Category"].Value">
+                        @context.Allocation.Category?.Name
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["ItemDetail"].Value">
+                        @context.Allocation.ItemDetail?.CostDetails
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Actions"].Value">
+                        <MudIconButton Icon="@Icons.Material.Filled.List"
+                                       Color="Color.Secondary"
+                                       aria-label="show-transactionDetails"
+                                       OnClick="@(() => ShowTransactionDetailsOverviewDialog(
+                                            context.Id,
+                                            context.Documentnumber))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Info"
+                                       aria-label="edit"
+                                       OnClick="@(() => ShowEditTransactionDialog(context.Id))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       aria-label="delete"
+                                       OnClick="@(() => ShowDeleteTransactionDialog(context.Id))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
 
 @code {
     private MudTable<TransactionModel>? _table;
@@ -145,7 +176,7 @@
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, BackdropClick = false };
 
-        var dialog = await DialogService.ShowAsync<TransactionFilterDialog>("Filter", parameters, options);
+        var dialog = await DialogService.ShowAsync<TransactionFilterDialog>(Localizer["Filter"].Value, parameters, options);
         var result = await dialog.Result;
 
         if (result is { Canceled: false })

@@ -1,20 +1,24 @@
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Person
+@inject IStringLocalizer<Translation> Localizer
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="2">
             <MudDateRangePicker @bind-DateRange="DateRange"
                                 Editable="true"
                                 DateFormat="dd.MM.yyyy"
-                                Label="Date Range" />
+                                Label=@Localizer["DateRange"] />
 
             <MudTextField @bind-Value="SearchText"
-                          Label="Search Text"
+                          Label=@Localizer["Search"]
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search" />
 
            
-            <MudSelect T="int?" Label="Person" @bind-Value="SelectedPersonId">
-                <MudSelectItem T="int?" Value="@( (int?)null )">-- All Persons --</MudSelectItem>
+            <MudSelect T="int?" Label=@Localizer["Person"] @bind-Value="SelectedPersonId">
+                <MudSelectItem T="int?" Value="@((int?)null)">
+                    @Localizer["AllPersons"]
+                </MudSelectItem>
 
                 @if (_persons is not null)
                 {
@@ -28,8 +32,8 @@
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="@(() => Apply())">Apply</MudButton>
-        <MudButton Color="Color.Secondary" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="@(() => Apply())">@Localizer["Apply"]</MudButton>
+        <MudButton Color="Color.Error" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 

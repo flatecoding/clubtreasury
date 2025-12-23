@@ -369,4 +369,8 @@
         <value>Search</value>
         <comment>Search</comment>
     </data>
+    <data name="AllPersons" xml:space="preserve">
+        <value>-- All Persons --</value>
+        <comment>AllPersons</comment>
+    </data>
 </root>

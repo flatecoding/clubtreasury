@@ -11,38 +11,52 @@
 <MudDialog>
     <DialogContent>
         <MudForm>
-            <MudDateRangePicker Label=@Localizer["DateRange"]
-                                @bind-DateRange="DateRange"
-                                Editable="true"
-                                DateFormat="dd.MM.yyyy"
-                                Class="mx-2" />  
-            <MudTextField @bind-Value ="_fileName" Label=@Localizer["FileName"] Placeholder=@Localizer["FileName"] Required="true"/>
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <MudDateRangePicker
+                        Label="@Localizer["DateRange"]"
+                        @bind-DateRange="DateRange"
+                        Editable="true"
+                        DateFormat="dd.MM.yyyy"
+                        FullWidth />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_fileName"
+                                  Label="@Localizer["FileName"]"
+                                  Placeholder="@Localizer["FileName"]"
+                                  Required="true"
+                                  FullWidth />
+                </MudItem>
+            </MudGrid>
         </MudForm>
     </DialogContent>
+
     <DialogActions>
-        <MudLoadingButton 
-            @bind-Loading="_isExporting" 
-            Size="Size.Small" 
-            LoadingAdornment="Adornment" 
-            OnClick="@(async () => await ExportPdf())" 
-            Variant="Variant.Outlined" 
-            Color="Color.Primary"
-        >@Localizer["ExportPdf"]
+        <MudLoadingButton @bind-Loading="_isExporting"
+                          Size="Size.Small"
+                          LoadingAdornment="Adornment"
+                          OnClick="@(async () => await ExportPdf())"
+                          Color="Color.Primary">
+            @Localizer["ExportPdf"]
         </MudLoadingButton>
-        <MudLoadingButton
-            @bind-Loading="_isExporting"
-            Size="Size.Small"
-            LoadingAdornment="Adornment"
-            OnClick="@(async () => await ExportCsv())"
-            Variant="Variant.Outlined"
-            Color="Color.Primary">
+
+        <MudLoadingButton @bind-Loading="_isExporting"
+                          Size="Size.Small"
+                          LoadingAdornment="Adornment"
+                          OnClick="@(async () => await ExportCsv())"
+                          Color="Color.Primary">
             @Localizer["ExportCSV"]
         </MudLoadingButton>
-        <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Error" OnClick="@(() => Cancel())">
+
+        <MudButton Size="Size.Small"
+                   Color="Color.Error"
+                   OnClick="@Cancel">
             @Localizer["Cancel"]
         </MudButton>
     </DialogActions>
 </MudDialog>
+
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;

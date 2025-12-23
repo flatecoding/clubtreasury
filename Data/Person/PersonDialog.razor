@@ -11,10 +11,10 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await Save())">
+        <MudButton Color="Color.Primary" OnClick="@(async () => await Save())">
             @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => Cancel())">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
