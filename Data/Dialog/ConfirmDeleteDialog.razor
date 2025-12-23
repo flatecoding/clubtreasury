@@ -9,8 +9,8 @@
         <MudTextM3 Typo="TypoM3.Body" Size="Size.Large">@_entityName</MudTextM3>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@(() => Confirm())">@Localizer["Delete"]</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="@(() => Confirm())">@Localizer["Delete"]</MudButton>
+        <MudButton Color="Color.Error" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 

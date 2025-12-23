@@ -25,12 +25,11 @@
                       Filter="new Func<CategoryModel,bool>(FilterFunc)"
                       SortLabel="Sort By">
                 <ToolBarContent>
-                    <MudButton Variant="Variant.Filled"
-                               StartIcon="@Icons.Material.Filled.Add"
+                    <MudIconButton Variant="Variant.Filled"
+                               Icon="@Icons.Material.Filled.Add"
                                Color="Color.Primary"
                                OnClick="@ShowAddCategoryDialog">
-                        @Localizer["AddEntry"]
-                    </MudButton>
+                    </MudIconButton>
                     <MudSpacer/>
                     <MudTextField @bind-Value="_searchString1"
                                   Placeholder="Search"

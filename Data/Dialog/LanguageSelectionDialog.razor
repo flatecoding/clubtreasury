@@ -22,10 +22,10 @@
     </DialogContent>
 
     <DialogActions>
-        <MudButton OnClick="@(() => Apply())" Color="Color.Primary" Variant="Variant.Filled">
+        <MudButton OnClick="@(() => Apply())" Color="Color.Primary">
             @Localizer["Apply"]
         </MudButton>
-        <MudButton OnClick="@(() => Cancel())" Variant="Variant.Text">
+        <MudButton OnClick="@(() => Cancel())" Color="Color.Error">
             @Localizer["Cancel"]
         </MudButton>
     </DialogActions>
