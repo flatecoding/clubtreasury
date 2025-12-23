@@ -7,83 +7,67 @@
 @inject INotificationService NotificationService
 @inject IStringLocalizer<Translation> Localizer
 
-<h2>@Localizer["CostCenterPlural"]</h2>
-
-<MudPaper Class="mt-4" Style="width:55%;">
-    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
-              @bind-SelectedItem="_selectedItem"
-              Filter="new Func<CostCenterModel,bool>(FilterFunc)"
-              SortLabel="Sort By">
-        <ToolBarContent>
-            <MudButton Variant="Variant.Filled"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       Color="Color.Primary"
-                       OnClick="@(() => ShowAddCostUnitDialog())">
-                @Localizer["AddEntry"]
-            </MudButton>
-            <MudSpacer />
-            <MudTextField @bind-Value="_searchString1"
-                          Placeholder="Search"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search"
-                          IconSize="Size.Medium"
-                          Class="mt-0">
-            </MudTextField>
-        </ToolBarContent>
-
-        <ColGroup>
-            <col style="width: 20px;" />
-            <col style="width: 110px;" />
-            <col style="width: 110px;" />
-            <col style="width: 250px;" />
-        </ColGroup>
-
-        <HeaderContent>
-            <MudTh>@Localizer["Id"]<MudTableSortLabel SortBy="new Func<CostCenterModel, object>(x => x.Id)" /></MudTh>
-            <MudTh>@Localizer["Name"]<MudTableSortLabel SortBy="new Func<CostCenterModel, object>(x => x.CostUnitName ?? string.Empty)" /></MudTh>
-            <MudTh>@Localizer["CategoryPlural"]</MudTh>
-            <MudTh>@Localizer["Actions"]</MudTh>
-        </HeaderContent>
-
-        <RowTemplate>
-            <MudTd DataLabel="@Localizer["Id"].Value">@context.Id</MudTd>
-            <MudTd DataLabel="@Localizer["Name"].Value">@context.CostUnitName</MudTd>
-            <MudTd DataLabel="@Localizer["CategoryPlural"].Value">
-                @{
-                    var linkedCategories = context.Allocations
-                        .Where(a => a.Category != null)
-                        .Select(a => a.Category)
-                        .Distinct()
-                        .ToList();
-                }
-
-                @if (linkedCategories.Any())
-                {
-                    <ul>
-                        @foreach (var category in linkedCategories)
-                        {
-                            <li>@category.Name</li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <em>@Localizer["NoData"]</em>
-                }
-            </MudTd>
-            <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" 
-                               OnClick="@(() => ShowEditCostUnitDialog(context.Id))" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" 
-                               OnClick="@(() => ShowDeleteCostUnitDialog(context.Id))"></MudIconButton>
-            </MudTd>
-        </RowTemplate>
-
-        <PagerContent>
-            <MudTablePager />
-        </PagerContent>
-    </MudTable>
-</MudPaper>
+<MudGrid Spacing="0">
+    <MudItem xs="12">
+        <MudText Typo="Typo.h6">
+            @Localizer["CostCenterPlural"]
+        </MudText>
+    </MudItem>
+    <MudItem xs="12" md="10" lg="4">
+        <MudPaper Elevation="0">
+            <MudTable Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
+                      @bind-SelectedItem="_selectedItem"
+                      Filter="new Func<CostCenterModel, bool>(FilterFunc)"
+                      SortLabel="Sort By">
+                <ToolBarContent>
+                    <MudButton Variant="Variant.Filled"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               Color="Color.Primary"
+                               OnClick="@(() => ShowAddCostUnitDialog())">
+                        @Localizer["AddEntry"]
+                    </MudButton>
+                    <MudSpacer/>
+                    <MudTextField
+                        @bind-Value="_searchString1"
+                        Placeholder="Search"
+                        Adornment="Adornment.Start"
+                        AdornmentIcon="@Icons.Material.Filled.Search"
+                        IconSize="Size.Medium"
+                        Class="mt-0">
+                    </MudTextField>
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortBy="new Func<CostCenterModel, object>(x => x.Id)">
+                            @Localizer["Id"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>
+                        <MudTableSortLabel 
+                            SortBy="new Func<CostCenterModel, object>(x => x.CostUnitName ?? string.Empty)">
+                            @Localizer["Name"]
+                            </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>@Localizer["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@Localizer["Id"].Value">@context.Id</MudTd>
+                    <MudTd DataLabel="@Localizer["Name"].Value">@context.CostUnitName</MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit"
+                                       OnClick="@(() => ShowEditCostUnitDialog(context.Id))"/>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete"
+                                       OnClick="@(() => ShowDeleteCostUnitDialog(context.Id))"></MudIconButton>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager/>
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
 
 @code {
     private IEnumerable<CostCenterModel>? _allEntries;

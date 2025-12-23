@@ -365,4 +365,8 @@
         <value>Cash book</value>
         <comment>CashBook</comment>
     </data>
+    <data name="Search" xml:space="preserve">
+        <value>Search</value>
+        <comment>Search</comment>
+    </data>
 </root>
