@@ -38,11 +38,12 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                         .Text(x =>
                         {
                             x.Span($"{localizer["Page"]}");
+                            x.Span(" ");
                             x.CurrentPageNumber();
                             x.Span(" / ");
                             x.TotalPages();
                         });
-                })).GeneratePdf(filePath);
+                })).GeneratePdfAndShow();
             logger.LogInformation("PDF created → {File}", filePath);
         }
         catch (Exception ex)

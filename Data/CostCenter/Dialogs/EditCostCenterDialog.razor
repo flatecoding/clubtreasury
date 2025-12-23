@@ -11,8 +11,8 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveCostUnit())">@L["Save"]</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="@(async () => await SaveCostUnit())">@L["Save"]</MudButton>
+        <MudButton Color="Color.Error" OnClick="@(() => Cancel())">@L["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 

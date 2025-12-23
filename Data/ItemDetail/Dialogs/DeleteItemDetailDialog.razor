@@ -9,8 +9,8 @@
         <MudText Typo="Typo.subtitle1">@_itemDetailName</MudText>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@(() => DeleteItemDetail())">@Localizer["Delete"]</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="@(async () => await DeleteItemDetail())">@Localizer["Delete"]</MudButton>
+        <MudButton Color="Color.Error" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 

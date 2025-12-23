@@ -9,11 +9,11 @@
         <MudText Typo="Typo.subtitle1">@_categoryName</MudText>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Error"
+        <MudButton Color="Color.Primary"
                    OnClick="@(() => DeleteCategory())">
             @Localizer["Delete"]
         </MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default"
+        <MudButton Color="Color.Error"
                    OnClick="@(() => Cancel())">
             @Localizer["Cancel"]
         </MudButton>
