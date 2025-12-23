@@ -8,63 +8,82 @@
 @inject INotificationService NotificationService
 @inject IStringLocalizer<Translation> Localizer
 
-<h2>Cash registers</h2>
+<MudGrid Spacing="0">
+    <MudItem xs="12">
+        <MudText Typo="Typo.h6">
+            Cash registers
+        </MudText>
+    </MudItem>
 
-<MudPaper Class="mt-4" Style="width:40%;">
-    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
-              @bind-SelectedItem="_selectedItem"
-              Filter="new Func<CashRegisterModel,bool>(FilterFunc)"
-              SortLabel="Sort By">
-        <ToolBarContent>
-            <MudButton Variant="Variant.Filled"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       Color="Color.Primary"
-                       @onclick="ShowAddCashRegisterDialog">
-                @Localizer["AddEntry"]
-            </MudButton>
-            <MudSpacer />
-            <MudTextField @bind-Value="_searchString1"
-                          Placeholder="Search"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search"
-                          IconSize="Size.Medium"
-                          Class="mt-0">
-            </MudTextField>
-        </ToolBarContent>
-        <ColGroup>
-            <col style="width: 50px;" />
-            <col  />
-            <col style="width: 200px;" />
-            <col style="width: 150px;"/>
-        </ColGroup>
-        <HeaderContent>
-        <MudTh>@Localizer["Id"]<MudTableSortLabel SortBy="new Func<CashRegisterModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>@Localizer["Name"]<MudTableSortLabel SortBy="new Func<CashRegisterModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
-            <MudTh>@Localizer["CurrentBalance"]</MudTh>
-            <MudTh>@Localizer["Actions"]</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="@Localizer["Id"].Value">@context.Id</MudTd>
-            <MudTd DataLabel="@Localizer["Name"].Value">@context.Name</MudTd>
-            <MudTd DataLabel="@Localizer["CurrentBalance"].Value">
-                @context.CurrentBalance.ToString("C", CultureInfo.CurrentCulture)
-            </MudTd>
-            <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info"
-                               aria-label="@Localizer["Edit"].Value"
-                               @onclick="() => ShowEditCashRegisterDialog(context.Id)">
-                </MudIconButton>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
-                               aria-label="@Localizer["Delete"].Value" 
-                               @onclick="() => ShowDeleteCashRegisterDialog(context.Id)">Delete
-                </MudIconButton>
-            </MudTd>
-        </RowTemplate>
-        <PagerContent>
-            <MudTablePager />
-        </PagerContent>
-    </MudTable>
-</MudPaper>
+    <MudItem xs="12" md="10" lg="4">
+        <MudPaper Elevation="0">
+            <MudTable Items="@_allEntries"
+                      Dense="@Dense"
+                      Hover="@Hover"
+                      Bordered="@Bordered"
+                      Striped="@Striped"
+                      FixedHeader="true"
+                      @bind-SelectedItem="_selectedItem"
+                      Filter="new Func<CashRegisterModel,bool>(FilterFunc)"
+                      SortLabel="Sort By">
+                <ToolBarContent>
+                    <MudIconButton Variant="Variant.Filled"
+                               Icon="@Icons.Material.Filled.Add"
+                               Color="Color.Primary"
+                               OnClick="@ShowAddCashRegisterDialog">
+                    </MudIconButton>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="_searchString1"
+                                  Placeholder="Search"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium"
+                                  Class="mt-0" />
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortBy="new Func<CashRegisterModel, object>(x => x.Id)">
+                            @Localizer["Id"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortBy="new Func<CashRegisterModel, object>(x => x.Name)">
+                            @Localizer["Name"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>@Localizer["CurrentBalance"]</MudTh>
+                    <MudTh>@Localizer["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@Localizer["Id"].Value">
+                        @context.Id
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Name"].Value">
+                        @context.Name
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["CurrentBalance"].Value">
+                        @context.CurrentBalance.ToString("C", CultureInfo.CurrentCulture)
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Info"
+                                       aria-label="@Localizer["Edit"].Value"
+                                       OnClick="@(() => ShowEditCashRegisterDialog(context.Id))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       aria-label="@Localizer["Delete"].Value"
+                                       OnClick="@(() => ShowDeleteCashRegisterDialog(context.Id))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
 
 @code {
     private IEnumerable<CashRegisterModel>? _allEntries;
