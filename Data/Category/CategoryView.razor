@@ -5,79 +5,80 @@
 @inject ICategoryService CategoryService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
-@inject IStringLocalizer<Translation> L
+@inject IStringLocalizer<Translation> Localizer
 
-<h2>@L["CategoryPlural"]</h2>
-
-<MudPaper Class="mt-4" Style="width:55%;">
-    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
-              @bind-SelectedItem="_selectedItem"
-              Filter="new Func<CategoryModel,bool>(FilterFunc)"
-              SortLabel="Sort By">
-        <ToolBarContent>
-            <MudButton Variant="Variant.Filled"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       Color="Color.Primary"
-                       OnClick="@(() => ShowAddCategoryDialog())">
-                @L["AddEntry"]
-            </MudButton>
-            <MudSpacer />
-            <MudTextField @bind-Value="_searchString1"
-                          Placeholder="Search"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search"
-                          IconSize="Size.Medium"
-                          Class="mt-0">
-            </MudTextField>
-        </ToolBarContent>
-        <ColGroup>
-            <col style="width: 20px;" />
-            <col style="width: 110px;" />
-            <col style="width: 110px;" />
-            <col style="width: 110px;" />
-        </ColGroup>
-        <HeaderContent>
-            <MudTh>@L["Id"]<MudTableSortLabel SortBy="new Func<CategoryModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>@L["Category"]<MudTableSortLabel SortBy="new Func<CategoryModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
-            <MudTh>@L["ItemDetail"]</MudTh>
-            <MudTh>@L["Actions"]</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="@L["Id"]">@context.Id</MudTd>
-            <MudTd DataLabel="@L["Category"]">@context.Name</MudTd>
-            <MudTd DataLabel="@L["ItemDetail"]">
-                
-                @{
-                    var accountsWithDetails = context.Allocations.Where(a => a.ItemDetail != null).ToList();
-                }
-
-                @if (accountsWithDetails.Any())
-                {
-                    <ul>
-                        @foreach (var account in accountsWithDetails)
-                        {
-                            <li>@account.ItemDetail?.CostDetails</li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <em>@L["NoData"]</em>
-                }
-            </MudTd>
-            <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" 
-                               OnClick="@(() => ShowEditCategoryDialog(context.Id))"></MudIconButton>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" 
-                               OnClick="@(() => ShowDeleteCategoryDialog(context.Id))"></MudIconButton>
-            </MudTd>
-        </RowTemplate>
-        <PagerContent>
-            <MudTablePager />
-        </PagerContent>
-    </MudTable>
-</MudPaper>
-
+<MudGrid Spacing="0">
+    <MudItem xs="12">
+        <MudText Typo="Typo.h6">
+            @Localizer["CategoryPlural"]
+        </MudText>
+    </MudItem>
+    <MudItem xs="12" md="10" lg="4">
+        <MudPaper Elevation="0">
+            <MudTable Items="@_allEntries"
+                      Dense="@Dense"
+                      Hover="@Hover"
+                      Bordered="@Bordered"
+                      Striped="@Striped"
+                      FixedHeader="true"
+                      @bind-SelectedItem="_selectedItem"
+                      Filter="new Func<CategoryModel,bool>(FilterFunc)"
+                      SortLabel="Sort By">
+                <ToolBarContent>
+                    <MudButton Variant="Variant.Filled"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               Color="Color.Primary"
+                               OnClick="@ShowAddCategoryDialog">
+                        @Localizer["AddEntry"]
+                    </MudButton>
+                    <MudSpacer/>
+                    <MudTextField @bind-Value="_searchString1"
+                                  Placeholder="Search"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium"
+                                  Class="mt-0" />
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortBy="new Func<CategoryModel, object>(x => x.Id)">
+                            @Localizer["Id"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortBy="new Func<CategoryModel, object>(x => x.Name)">
+                            @Localizer["Category"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>@Localizer["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@Localizer["Id"]">
+                        @context.Id
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Category"]">
+                        @context.Name
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Info"
+                                       aria-label="edit"
+                                       OnClick="@(() => ShowEditCategoryDialog(context.Id))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       aria-label="delete"
+                                       OnClick="@(() => ShowDeleteCategoryDialog(context.Id))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
 @code {
     private IEnumerable<CategoryModel>? _allEntries;
     private const bool Dense = true;
@@ -112,14 +113,14 @@
 
     private async Task ShowAddCategoryDialog()
     {
-        var dialog = await DialogService.ShowAsync<AddCategoryDialog>($"{L["AddEntry"]}", new DialogParameters());
+        var dialog = await DialogService.ShowAsync<AddCategoryDialog>($"{Localizer["AddEntry"]}", new DialogParameters());
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
     }
 
     private async Task ShowEditCategoryDialog(int basicUnitId)
     {
-        var dialog = await DialogService.ShowAsync<EditCategoryDialog>($"{L["Edit"]}", 
+        var dialog = await DialogService.ShowAsync<EditCategoryDialog>($"{Localizer["Edit"]}", 
             new DialogParameters { ["CategoryId"] = basicUnitId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
@@ -127,7 +128,7 @@
 
     private async Task ShowDeleteCategoryDialog(int basicUnitId)
     {
-        var dialog = await DialogService.ShowAsync<DeleteCategoryDialog>($"{L["Delete"]}", 
+        var dialog = await DialogService.ShowAsync<DeleteCategoryDialog>($"{Localizer["Delete"]}", 
             new DialogParameters { ["CategoryId"] = basicUnitId });
         await NotificationService.ShowDialogResultAsync(await dialog.Result);
         await UpdateView();
