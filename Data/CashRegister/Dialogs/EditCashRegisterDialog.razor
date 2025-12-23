@@ -1,17 +1,19 @@
 ﻿@page "/editcashregister"
+@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.CashRegister
 @inject ICashRegisterService CashRegisterService
+@inject IStringLocalizer<Translation> Localizer
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" Model="_editCashRegisterModel" Validation="_cashRegisterValidator.ValidateValue" ValidationDelay="0">
-            <MudTextField @bind-Value="_editCashRegisterModel.Name" Label="Name"
+            <MudTextField @bind-Value="_editCashRegisterModel.Name" Label="@Localizer["Name"]"
                           For="@(() => _editCashRegisterModel.Name)" Immediate="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveCashRegister())">Save</MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="@(async () => await SaveCashRegister())">@Localizer["Save"]</MudButton>
+        <MudButton Color="Color.Error" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 

@@ -243,12 +243,27 @@ public class TransactionService(
             "Date" => state.SortDirection == SortDirection.Descending
                 ? query.OrderByDescending(x => x.Date)
                 : query.OrderBy(x => x.Date),
+
             "DocumentNumber" => state.SortDirection == SortDirection.Descending
                 ? query.OrderByDescending(x => x.Documentnumber)
                 : query.OrderBy(x => x.Documentnumber),
+
             "Sum" => state.SortDirection == SortDirection.Descending
                 ? query.OrderByDescending(x => x.Sum)
                 : query.OrderBy(x => x.Sum),
+
+            "CostCenter" => state.SortDirection == SortDirection.Descending
+                ? query.OrderByDescending(x => x.Allocation.CostCenter.CostUnitName)
+                : query.OrderBy(x => x.Allocation.CostCenter.CostUnitName),
+
+            "Category" => state.SortDirection == SortDirection.Descending
+                ? query.OrderByDescending(x => x.Allocation.Category != null ? x.Allocation.Category.Name : null)
+                : query.OrderBy(x => x.Allocation.Category != null ? x.Allocation.Category.Name : null),
+
+            "ItemDetail" => state.SortDirection == SortDirection.Descending
+                ? query.OrderByDescending(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null)
+                : query.OrderBy(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null),
+
             _ => query.OrderByDescending(x => x.Id)
         };
 

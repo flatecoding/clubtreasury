@@ -371,7 +371,11 @@
         <comment>CashBook</comment>
     </data>
     <data name="Search" xml:space="preserve">
-        <value>Search</value>
+        <value />
         <comment>Search</comment>
+    </data>
+    <data name="AllPersons" xml:space="preserve">
+        <value />
+        <comment>AllPersons</comment>
     </data>
 </root>

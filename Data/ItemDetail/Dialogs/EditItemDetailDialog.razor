@@ -14,10 +14,10 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await SaveItemDetail())">
+        <MudButton Color="Color.Primary" OnClick="@(async () => await SaveItemDetail())">
             @Localizer["Save"]
         </MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@(() => Cancel())">
+        <MudButton Color="Color.Error" OnClick="@(() => Cancel())">
             @Localizer["Cancel"]
         </MudButton>
     </DialogActions>
