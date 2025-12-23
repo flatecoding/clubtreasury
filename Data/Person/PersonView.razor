@@ -7,52 +7,78 @@
 @inject INotificationService NotificationService
 @inject IStringLocalizer<Translation> Localizer
 
-<h2>@Localizer["PersonPlural"]</h2>
-
-<MudPaper Class="mt-4" Style="width:40%;">
-    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
-              @bind-SelectedItem="_selectedItem"
-              Filter="new Func<PersonModel,bool>(FilterFunc)"
-              SortLabel="Sort By">
-        <ToolBarContent>
-            <MudButton Variant="Variant.Filled"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       Color="Color.Primary"
-                       @onclick="ShowAddPersonDialog">
-                @Localizer["AddEntry"]
-            </MudButton>
-            <MudSpacer />
-            <MudTextField @bind-Value="_searchString1"
-                          Placeholder="Search"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search"
-                          IconSize="Size.Medium"
-                          Class="mt-0">
-            </MudTextField>
-        </ToolBarContent>
-        <ColGroup>
-            <col style="width: 50px;" />
-            <col />
-            <col style="width: 150px;"/>
-        </ColGroup>
-        <HeaderContent>
-            <MudTh>@Localizer["Id"]<MudTableSortLabel SortBy="new Func<PersonModel, object>(x => x.Id)"></MudTableSortLabel></MudTh>
-            <MudTh>@Localizer["Name"]<MudTableSortLabel SortBy="new Func<PersonModel, object>(x => x.Name)"></MudTableSortLabel></MudTh>
-            <MudTh>@Localizer["Actions"]</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="@Localizer["Id"].Value">@context.Id</MudTd>
-            <MudTd DataLabel="@Localizer["Name"].Value">@context.Name</MudTd>
-            <MudTd DataLabel="@Localizer["Actions"].Value">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditPersonDialog(context.Id)"></MudIconButton>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeletePersonDialog(context.Id)"></MudIconButton>
-            </MudTd>
-        </RowTemplate>
-        <PagerContent>
-            <MudTablePager />
-        </PagerContent>
-    </MudTable>
-</MudPaper>
+<MudGrid Spacing="0">
+    <MudItem xs="12">
+        <MudText Typo="Typo.h6">
+            @Localizer["PersonPlural"]
+        </MudText>
+    </MudItem>
+    <MudItem xs="12" md="10" lg="4">
+        <MudPaper Elevation="0">
+            <MudTable Items="@_allEntries"
+                      Dense="@Dense"
+                      Hover="@Hover"
+                      Bordered="@Bordered"
+                      Striped="@Striped"
+                      FixedHeader="true"
+                      @bind-SelectedItem="_selectedItem"
+                      Filter="new Func<PersonModel,bool>(FilterFunc)"
+                      SortLabel="Sort By">
+                <ToolBarContent>
+                    <MudButton Variant="Variant.Filled"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               Color="Color.Primary"
+                               OnClick="@ShowAddPersonDialog">
+                        @Localizer["AddEntry"]
+                    </MudButton>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="_searchString1"
+                                  Placeholder="Search"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium"
+                                  Class="mt-0" />
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortBy="new Func<PersonModel, object>(x => x.Id)">
+                            @Localizer["Id"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortBy="new Func<PersonModel, object>(x => x.Name)">
+                            @Localizer["Name"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>@Localizer["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@Localizer["Id"].Value">
+                        @context.Id
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Name"].Value">
+                        @context.Name
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Actions"].Value">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Info"
+                                       aria-label="edit"
+                                       OnClick="@(() => ShowEditPersonDialog(context.Id))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       aria-label="delete"
+                                       OnClick="@(() => ShowDeletePersonDialog(context.Id))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
 
 @code {
     private IEnumerable<PersonModel>? _allEntries;

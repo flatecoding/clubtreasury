@@ -9,44 +9,59 @@
 @inject INotificationService NotificationService
 @inject IStringLocalizer<Translation> Localizer
 
-<h2>@Localizer["ExportCashAuditData"]</h2>
-<MudPaper Class="mt-4" Style="width:80%;">
-    <MudTable Class="mt-2" Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true">
-        <ToolBarContent>
-            <MudButton Class = "ml-2"
-                       Variant="Variant.Filled"
-                       StartIcon="@Icons.Material.Filled.Download"
-                       Color="Color.Secondary"
-                       OnClick="@(async() => await ShowExportTransactionDialogAsync())">
-               @Localizer["ExportData"] 
-            </MudButton>
-        </ToolBarContent>
-        <ColGroup>
-            <col style="width: 30px;" />    @*Date*@
-            <col style="width: 100px;" />    @*Doc. Nr*@
-            <col />   @*Desciption*@
-            <col style="min-width: 100px;" />    @*Sum*@
-            <col style="min-width: 100px;" />    @*Acc. mvm.*@
-        </ColGroup>
-        <HeaderContent>
-            <MudTh>@Localizer["Date"]</MudTh>
-            <MudTh>@Localizer["DocumentNumberShort"]</MudTh>
-            <MudTh>@Localizer["Description"]</MudTh>
-            <MudTh>@Localizer["Sum"]</MudTh>
-            <MudTh>@Localizer["Account"]</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="@Localizer["Date"]">@context.Date</MudTd>
-            <MudTd DataLabel="@Localizer["DocumentNumberShort"]">@context.Documentnumber</MudTd>
-            <MudTd DataLabel="@Localizer["Description"]">@context.Description</MudTd>
-            <MudTd DataLabel="@Localizer["Sum"]">@context.Sum.ToString("C", CultureInfo.CurrentCulture)</MudTd>
-            <MudTd DataLabel="@Localizer["Account"]">@context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)</MudTd>
-        </RowTemplate>
-        <PagerContent>
-            <MudTablePager />
-        </PagerContent>
-    </MudTable>
-</MudPaper>
+<MudGrid Spacing="0">
+    <MudItem xs="12">
+        <MudText Typo="Typo.h6">
+            @Localizer["ExportCashAuditData"]
+        </MudText>
+    </MudItem>
+    <MudItem xs="12" md="12" lg="8">
+        <MudPaper Elevation="0">
+            <MudTable Items="@_allEntries"
+                      Dense="@Dense"
+                      Hover="@Hover"
+                      Bordered="@Bordered"
+                      Striped="@Striped"
+                      FixedHeader="true">
+                <ToolBarContent>
+                    <MudButton Variant="Variant.Filled"
+                               StartIcon="@Icons.Material.Filled.Download"
+                               Color="Color.Secondary"
+                               OnClick="@(async () => await ShowExportTransactionDialogAsync())">
+                        @Localizer["ExportData"]
+                    </MudButton>
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>@Localizer["Date"]</MudTh>
+                    <MudTh>@Localizer["DocumentNumberShort"]</MudTh>
+                    <MudTh>@Localizer["Description"]</MudTh>
+                    <MudTh>@Localizer["Sum"]</MudTh>
+                    <MudTh>@Localizer["Account"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="@Localizer["Date"]">
+                        @context.Date
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["DocumentNumberShort"]">
+                        @context.Documentnumber
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Description"]">
+                        @context.Description
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Sum"]">
+                        @context.Sum.ToString("C", CultureInfo.CurrentCulture)
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Account"]">
+                        @context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
 
 @code {
     private IEnumerable<TransactionModel> _allEntries = [];

@@ -9,50 +9,99 @@
 @inject INotificationService NotificationService
 @inject IStringLocalizer<Translation> Localizer
 
-<h2>@Localizer["AllocationPlural"]</h2>
+<MudGrid Spacing="0">
+    <MudItem xs="12">
+        <MudText Typo="Typo.h6">
+            @Localizer["AllocationPlural"]
+        </MudText>
+    </MudItem>
 
-<MudPaper Class="mt-4" Style="width:70%;">
-    <MudTable Items="@_allAllocations" Dense="true" Hover="true" Bordered="false" Striped="true"
-              @bind-SelectedItem="_selectedAllocation"
-              Filter="new Func<AllocationModel,bool>(FilterFunc)">
-        <ToolBarContent>
-            <MudButton Variant="Variant.Filled"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       Color="Color.Primary"
-                       @onclick="ShowAddAllocationDialog">
-                @Localizer["AddEntry"]
-            </MudButton>
-            <MudSpacer />
-            <MudTextField @bind-Value="_searchString"
-                          Placeholder="Search"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search"
-                          IconSize="Size.Medium"
-                          Class="mt-0">
-            </MudTextField>
-        </ToolBarContent>
-        <HeaderContent>
-            <MudTh>@Localizer["Id"]<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.Id)" /></MudTh>
-            <MudTh>@Localizer["CostCenter"]<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.CostCenter.CostUnitName)" /></MudTh>
-            <MudTh>@Localizer["Category"]<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.Category.Name)" /></MudTh>
-            <MudTh>@Localizer["ItemDetail"]<MudTableSortLabel SortBy="new Func<AllocationModel, object>(x => x.ItemDetail?.CostDetails)" /></MudTh>
-            <MudTh>@Localizer["Actions"]</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="@Localizer["Id"]">@context.Id</MudTd>
-            <MudTd DataLabel="@Localizer["CostCenter"]">@context.CostCenter?.CostUnitName</MudTd>
-            <MudTd DataLabel="@Localizer["Category"]">@context.Category?.Name</MudTd>
-            <MudTd DataLabel="@Localizer["ItemDetail"]">@context.ItemDetail?.CostDetails</MudTd>
-            <MudTd DataLabel="@Localizer["Actions"]">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit" @onclick="() => ShowEditAllocationDialog(context.Id)" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete" @onclick="() => ShowDeleteAllocationDialog(context)" />
-            </MudTd>
-        </RowTemplate>
-        <PagerContent>
-            <MudTablePager />
-        </PagerContent>
-    </MudTable>
-</MudPaper>
+    <MudItem xs="12" md="10" lg="6">
+        <MudPaper Elevation="0">
+            <MudTable Items="@_allAllocations"
+                      Dense="true"
+                      Hover="true"
+                      Bordered="false"
+                      Striped="true"
+                      @bind-SelectedItem="_selectedAllocation"
+                      Filter="new Func<AllocationModel,bool>(FilterFunc)"
+                      SortLabel="Sort By">
+                <ToolBarContent>
+                    <MudButton Variant="Variant.Filled"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               Color="Color.Primary"
+                               OnClick="@ShowAddAllocationDialog">
+                        @Localizer["AddEntry"]
+                    </MudButton>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="_searchString"
+                                  Placeholder="Search"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium"
+                                  Class="mt-0" />
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortBy="new Func<AllocationModel, object>(x => x.Id)">
+                            @Localizer["Id"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortBy="new Func<AllocationModel, object>(x => x.CostCenter.CostUnitName)">
+                            @Localizer["CostCenter"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortBy="new Func<AllocationModel, object>(x => x.Category.Name)">
+                            @Localizer["Category"]
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>
+                        <MudTableSortLabel
+                            SortBy="new Func<AllocationModel, object>(x => x.ItemDetail?.CostDetails)">
+                            @Localizer["ItemDetail"]
+                        </MudTableSortLabel>
+                    </MudTh>
+
+                    <MudTh>@Localizer["Actions"]</MudTh>
+                </HeaderContent>
+
+                <RowTemplate>
+                    <MudTd DataLabel="@Localizer["Id"]">
+                        @context.Id
+                    </MudTd>
+
+                    <MudTd DataLabel="@Localizer["CostCenter"]">
+                        @context.CostCenter?.CostUnitName
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Category"]">
+                        @context.Category?.Name
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["ItemDetail"]">
+                        @context.ItemDetail?.CostDetails
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Actions"]">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Info"
+                                       aria-label="edit"
+                                       OnClick="@(() => ShowEditAllocationDialog(context.Id))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       aria-label="delete"
+                                       OnClick="@(() => ShowDeleteAllocationDialog(context))" />
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
 
 @code {
     private IEnumerable<AllocationModel>? _allAllocations;
