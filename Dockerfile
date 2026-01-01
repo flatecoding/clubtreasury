@@ -23,8 +23,8 @@ ENV LC_ALL=de_DE.UTF-8
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-RUN mkdir -p /app/exports/Export /app/logs && \
-    chmod -R 777 /app/exports/Export /app/logs
+RUN mkdir -p /app/exports /app/logs && \
+    chmod -R 777 /app/exports /app/logs
 
 EXPOSE 8080
 EXPOSE 8081
