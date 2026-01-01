@@ -248,7 +248,7 @@
     
     private async Task<TableData<TransactionModel>> LoadServerData(TableState state, CancellationToken cancellationToken)
     {
-        return await TransactionService.GetTransactionsPaged(
+        return await TransactionService.GetTransactionsPagedOptimized(
             state,
             cancellationToken,
             _dateRange,
