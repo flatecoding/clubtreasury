@@ -20,10 +20,16 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
         try
         {
             logger.LogInformation("Rendering Transactions PDF → {File}", filePath);
+            if (!Directory.Exists(Path.GetDirectoryName(filePath)))
+            {
+                logger.LogError("Directory does not exist: {Directory}", Path.GetDirectoryName(filePath));
+                return;
+            }
             _imageData = await GetImageData();
 
             var ordered = transactions.OrderBy(t => t.Documentnumber).ToList();
 
+            await using var fs = new FileStream(filePath, FileMode.Create);
             Document.Create(container =>
                 container.Page(page =>
                 {
@@ -43,7 +49,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                             x.Span(" / ");
                             x.TotalPages();
                         });
-                })).GeneratePdfAndShow();
+                })).GeneratePdf(fs);
             logger.LogInformation("PDF created → {File}", filePath);
         }
         catch (Exception ex)

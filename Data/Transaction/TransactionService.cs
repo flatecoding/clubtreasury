@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Export;
 
 namespace TTCCashRegister.Data.Transaction;
@@ -195,6 +194,7 @@ public class TransactionService(
         string? searchText,
         int? personId)
     {
+        var stopwatch =  Stopwatch.StartNew();
         var query = context.Transactions
             .Include(t => t.Allocation)
                 .ThenInclude(a => a.CostCenter)
@@ -207,7 +207,7 @@ public class TransactionService(
             .AsNoTracking();
 
         //Datum
-        if (dateRange?.Start is not null && dateRange?.End is not null)
+        if (dateRange?.Start is not null && dateRange.End is not null)
         {
             var start = dateRange.Start.Value.Date;
             var end = dateRange.End.Value.Date;
@@ -257,8 +257,8 @@ public class TransactionService(
                 : query.OrderBy(x => x.Allocation.CostCenter.CostUnitName),
 
             "Category" => state.SortDirection == SortDirection.Descending
-                ? query.OrderByDescending(x => x.Allocation.Category != null ? x.Allocation.Category.Name : null)
-                : query.OrderBy(x => x.Allocation.Category != null ? x.Allocation.Category.Name : null),
+                ? query.OrderByDescending(x => x.Allocation.Category.Name)
+                : query.OrderBy(x => x.Allocation.Category.Name),
 
             "ItemDetail" => state.SortDirection == SortDirection.Descending
                 ? query.OrderByDescending(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null)
@@ -273,10 +273,110 @@ public class TransactionService(
             .Take(state.PageSize)
             .ToListAsync(cancellationToken);
 
-        return new TableData<TransactionModel>
+        var tableData = new TableData<TransactionModel>
         {
             TotalItems = totalItems,
             Items = items
         };
+        stopwatch.Stop();
+        logger.LogInformation("GetTransactionsPaged: {elapsed} ms", stopwatch.ElapsedMilliseconds);
+        return tableData;
     }
+
+    public async Task<TableData<TransactionModel>> GetTransactionsPagedOptimized(
+        TableState state,
+        CancellationToken cancellationToken,
+        DateRange? dateRange,
+        string? searchText,
+        int? personId)
+    {
+        IQueryable<TransactionModel> baseQuery = context.Transactions.AsNoTracking();
+        if (dateRange?.Start is not null && dateRange.End is not null)
+        {
+            var start = DateOnly.FromDateTime(dateRange.Start.Value);
+            var end = DateOnly.FromDateTime(dateRange.End.Value);
+            
+            baseQuery = baseQuery.Where(t => t.Date.HasValue &&
+                                             t.Date.Value >= start &&
+                                             t.Date.Value <= end);
+        }
+
+        if (!string.IsNullOrEmpty(searchText))
+        {
+            var term = searchText.ToLower();
+            baseQuery = baseQuery.Where(t =>
+                (t.Description != null && t.Description.ToLower().Contains(term)) ||
+                t.Documentnumber.ToString().Contains(term) ||
+                t.Allocation.CostCenter.CostUnitName.ToLower().Contains(term) ||
+                t.Allocation.Category.Name.ToLower().Contains(term) ||
+                (t.Allocation.ItemDetail != null &&
+                 t.Allocation.ItemDetail.CostDetails.ToLower().Contains(term) ||
+                 t.TransactionDetails.Any( st =>
+                     st.Person != null &&
+                     st.Person.Name.ToLower().Contains(term))));
+        }
+
+        if (personId is not null)
+        {
+            baseQuery = baseQuery.Where(t =>
+                t.TransactionDetails.Any(st => st.PersonId == personId)
+            );
+        }
+        
+        var totalItems = await baseQuery.CountAsync(cancellationToken);
+
+        IQueryable<TransactionModel> dataQuery = baseQuery.AsSplitQuery()
+            .Include(t => t.Allocation)
+                .ThenInclude(a => a.CostCenter)
+            .Include(t => t.Allocation)
+                .ThenInclude(a => a.Category)
+            .Include(t => t.Allocation)
+                .ThenInclude(a => a.ItemDetail)
+            .Include(t => t.TransactionDetails)
+                .ThenInclude(td => td.Person);
+
+        dataQuery = state.SortLabel switch
+        {
+            "Date" => state.SortDirection == SortDirection.Descending
+                ? dataQuery.OrderByDescending(x => x.Date)
+                : dataQuery.OrderBy(x => x.Date),
+
+            "DocumentNumber" => state.SortDirection == SortDirection.Descending
+                ? dataQuery.OrderByDescending(x => x.Documentnumber)
+                : dataQuery.OrderBy(x => x.Documentnumber),
+
+            "Sum" => state.SortDirection == SortDirection.Descending
+                ? dataQuery.OrderByDescending(x => x.Sum)
+                : dataQuery.OrderBy(x => x.Sum),
+
+            "CostCenter" => state.SortDirection == SortDirection.Descending
+                ? dataQuery.OrderByDescending(x => x.Allocation.CostCenter.CostUnitName)
+                : dataQuery.OrderBy(x => x.Allocation.CostCenter.CostUnitName),
+
+            "Category" => state.SortDirection == SortDirection.Descending
+                ? dataQuery.OrderByDescending(x => x.Allocation.Category.Name)
+                : dataQuery.OrderBy(x => x.Allocation.Category.Name),
+
+            "ItemDetail" => state.SortDirection == SortDirection.Descending
+                ? dataQuery.OrderByDescending(x =>
+                    x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null)
+                : dataQuery.OrderBy(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null),
+
+            _ => dataQuery.OrderByDescending(x => x.Id)
+        };
+
+        var items = await dataQuery
+            .Skip(state.Page * state.PageSize)
+            .Take(state.PageSize)
+            .ToListAsync(cancellationToken);
+
+        var tableData = new TableData<TransactionModel>()
+        {
+            TotalItems = totalItems,
+            Items = items
+        };
+        
+        return tableData;
+    }
+    
 }

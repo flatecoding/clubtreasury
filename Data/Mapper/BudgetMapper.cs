@@ -4,7 +4,7 @@ using TTCCashRegister.Data.TransactionDetails;
 
 namespace TTCCashRegister.Data.Mapper;
 
-public class BudgetMapper : IBudgetMapper
+public class BudgetMapper(ILogger<BudgetMapper> logger) : IBudgetMapper
 {
     public BudgetFlatEntryDto MapTransaction(TransactionModel t)
     {
@@ -33,24 +33,33 @@ public class BudgetMapper : IBudgetMapper
             ItemDetailId = td.Transaction.Allocation.ItemDetail?.Id,
             ItemDetailName = td.Transaction.Allocation.ItemDetail?.CostDetails,
             Amount = td.Sum,
-            PersonId = td.Person.Id,
-            PersonName = td.Person.Name
+            PersonId = td.Person?.Id,
+            PersonName = td.Person?.Name
         };
     }
     
     public IEnumerable<BudgetFlatEntryDto> BuildFlatEntries(IEnumerable<TransactionModel> transactions)
     {
-        var flat = new List<BudgetFlatEntryDto>();
-
-        foreach (var t in transactions)
+        try
         {
-            if (!t.TransactionDetails.Any())
-                flat.Add(MapTransaction(t));
+            logger.LogInformation("Start mapping flat entries");
+            var flat = new List<BudgetFlatEntryDto>();
 
-            flat.AddRange(t.TransactionDetails.Select(td => MapTransactionDetail(td)));
+            foreach (var t in transactions)
+            {
+                if (!t.TransactionDetails.Any())
+                    flat.Add(MapTransaction(t));
+
+                flat.AddRange(t.TransactionDetails.Select(MapTransactionDetail));
+            }
+            return flat;
+
         }
-
-        return flat;
+        catch (Exception e)
+        {
+            logger.LogCritical(e.Message);
+            throw;
+        }
     }
     
     public List<BudgetGroupedDto> BuildBudgetHierarchy(IEnumerable<BudgetFlatEntryDto> flatEntries)

@@ -26,7 +26,7 @@
                                   Label="@Localizer["FileName"]"
                                   Placeholder="@Localizer["FileName"]"
                                   Required="true"
-                                  FullWidth />
+                                  fullwidth />
                 </MudItem>
             </MudGrid>
         </MudForm>
@@ -127,7 +127,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error occured during export to csv-file: {ex.Message}");
+            Logger.LogCritical(ex, "Error occured during export transactions to pdf-file");
             MudDialog.Close(DialogResult.Ok(false));
         }
         finally
