@@ -17,7 +17,6 @@ namespace TTCCashRegister.Data.Export
         private readonly IExcelBudgetWriter _excelWriter;
         private readonly string _exportPath;
         private readonly IPdfTransactionRenderer _transactionPdfRenderer;
-        private const string SelectedFolder = "Export";
         private const string CsvHeader = "Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung";
 
         public ExportService(CashDataContext context, ILogger<ExportService> logger, 
@@ -41,10 +40,10 @@ namespace TTCCashRegister.Data.Export
                 var basePath = binDirectory ?? projectDirectory;
                 exportBasePath = Path.Combine(basePath, exportBasePath);
             }
-    
-            _exportPath = Path.Combine(exportBasePath, SelectedFolder);
+
+            _exportPath = exportBasePath;
             Directory.CreateDirectory(_exportPath);
-            _logger.LogInformation("Export path configured: {ExportPath}", _exportPath);
+            _logger.LogInformation("Configured export path: {ExportPath}", _exportPath);
         }
 
         private async Task<List<TransactionModel>> GetTransactionsInDateRange(DateTime begin, DateTime end)

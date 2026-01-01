@@ -2,19 +2,19 @@ namespace TTCCashRegister.Data.Mapper.DTOs;
 
 public class BudgetFlatEntryDto
 {
-    public int CostCenterId { get; set; }
-    public string CostCenterName { get; set; } = string.Empty;
+    public int CostCenterId { get; init; }
+    public string CostCenterName { get; init; } = string.Empty;
 
-    public int CategoryId { get; set; }
-    public string CategoryName { get; set; } = string.Empty;
+    public int CategoryId { get; init; }
+    public string CategoryName { get; init; } = string.Empty;
 
-    public int? ItemDetailId { get; set; }
-    public string ItemDetailName { get; set; } = string.Empty;
+    public int? ItemDetailId { get; init; }
+    public string? ItemDetailName { get; init; } = string.Empty;
 
-    public decimal Amount { get; set; }
+    public decimal Amount { get; init; }
 
-    public int? PersonId { get; set; }
-    public string? PersonName { get; set; }
+    public int? PersonId { get; init; }
+    public string? PersonName { get; init; }
 }
 
 

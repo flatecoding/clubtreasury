@@ -157,8 +157,7 @@
    protected override async Task OnInitializedAsync()
 {
     _isEditMode = TransactionId.HasValue;
-
-    // Stammdaten laden
+    
     _costCenters = await CostCenterService.GetAllCostCentersAsync();
     _specialItemList = await SpecialItemService.GetAllSpecialItems();
     _cashRegisters = await CashRegisterService.GetAllCashRegisters();
@@ -255,11 +254,9 @@
 
     private void MapFormToModel()
     {
-        // CashRegister
         (_transactionModel.CashRegister, _transactionModel.CashRegisterId) =
             SetRequired<CashRegisterModel, CashRegisterModel>(_selectedCashRegisterModel, c => c.Id);
-
-        // AccountsModel vorbereiten
+        
         _transactionModel.Allocation = new AllocationModel
         {
             CostCenterId = _selectedCostUnit?.Id ?? 0,
@@ -269,12 +266,10 @@
             ItemDetailId = _selectedUnitDetail?.Id,
             ItemDetail = _selectedUnitDetail
         };
-
-        // SpecialItem
+        
         (_transactionModel.SpecialItem, _transactionModel.SpecialItemId) =
             SetOrClear<SpecialItemModel, SpecialItemModel>(_selectedSpecialItem, s => s.Id);
-
-        // Datum
+        
         if (TransactionDateTime.HasValue)
             _transactionModel.Date = DateOnly.FromDateTime(TransactionDateTime.Value);
         else
