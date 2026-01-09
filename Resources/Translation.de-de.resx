@@ -372,4 +372,12 @@
         <value>-- Alle Personen --</value>
         <comment>AllPersons</comment>
     </data>
+    <data name="Close" xml:space="preserve">
+        <value>Close</value>
+        <comment>Close</comment>
+    </data>
+    <data name="Empty" xml:space="preserve">
+        <value>Empty</value>
+        <comment>Empty</comment>
+    </data>
 </root>

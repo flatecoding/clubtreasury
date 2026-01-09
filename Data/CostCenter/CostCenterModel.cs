@@ -23,5 +23,12 @@ namespace TTCCashRegister.Data.CostCenter
         [NotMapped]
         public IEnumerable<CategoryModel> LinkedCategories => Allocations
             .Select(a => a.Category).Distinct();
+        
+        public override bool Equals(object o) {
+            var other = o as CostCenterModel;
+            return other?.CostUnitName==CostUnitName;
+        }
+        
+        public override int GetHashCode() => CostUnitName.GetHashCode();
     }
 }
