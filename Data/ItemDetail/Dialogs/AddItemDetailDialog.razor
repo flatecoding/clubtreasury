@@ -18,8 +18,8 @@
         <MudButton Color="Color.Primary" OnClick="@(async () => await AddItemDetailAsync())">
           @Localizer["AddEntry"]  
         </MudButton>
-        <MudButton Color="Color.Error" OnClick="@(() => Cancel())">
-            @Localizer["Cancel"]
+        <MudButton Color="Color.Error" OnClick="@(() => Close())">
+            @Localizer["Close"]
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -39,7 +39,7 @@
         MudDialog.Close(DialogResult.Ok(await ItemDetailService.AddItemDetailAsync(_newItemDetailModel)));
     }
 
-    private void Cancel()
+    private void Close()
     {
         MudDialog.Close(DialogResult.Cancel());
     }

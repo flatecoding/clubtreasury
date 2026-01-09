@@ -31,8 +31,8 @@
                              RequiredError="Amount is required" />
             
             <MudSelect T="int?" Label=@Localizer["Person"] @bind-Value="_transactionDetailsModel.PersonId"
-                       Clearable="true">
-                <MudSelectItem T="int?" Value="@null">None</MudSelectItem>
+                       Clearable="true"
+                       ToStringFunc="@PersonIdToName">
                 @foreach (var p in _persons)
                 {
                     <MudSelectItem T="int?" Value="@p.Id">@p.Name</MudSelectItem>
@@ -110,4 +110,12 @@
     }
 
     private void Cancel() => MudDialog.Close(DialogResult.Cancel());
+    
+    private string PersonIdToName(int? id)
+    {
+        if (id is null)
+            return string.Empty;
+
+        return _persons.FirstOrDefault(p => p.Id == id.Value)?.Name ?? string.Empty;
+    }
 }
