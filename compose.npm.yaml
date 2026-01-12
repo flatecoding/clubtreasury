@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: ttc-db
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: #Set root password
+      MARIADB_ROOT_HOST: "%"
+      MARIADB_DATABASE: ClubCash
+      MARIADB_USER: dev
+      MARIADB_PASSWORD: #Set password
+    volumes:
+      # Change volume to store the data
+      - /volume1/docker/ttccashregister/mariadb:/var/lib/mysql
+    networks:
+      - clubcash-backend
+        
+    #Use this if you need direct acces to docker database container for debugging purposes
+    #ports:
+      # - "3307:3306"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  webapp:
+    container_name: ttc-web
+    image: clubcashregister:latest
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+    environment:
+      USERMAP_UID: 1029
+      USERMAP_GID: 100
+      UI_APPNAME: ClubCash
+      UI_HOMEDESCRIPTION: Administrationtool for club treasures
+      UI_APPNAMENAVBAR: ClubCash
+      Logging__LogLevel__Default: "Debug"
+      Logging__LogLevel__Microsoft.EntityFrameworkCore: "Information"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      DbPassword: #Secret MARIADB_PASSWORD:
+
+    volumes:
+
+      - /volume1/docker/ttccashregister/Exports:/app/exports
+      - /volume1/docker/ttccashregister/logs:/app/logs
+    networks:
+      - clubcash-backend
+      - proxy
+
+networks:
+  clubcash-backend:
+    driver: bridge
+  proxy:
+    external: true
