@@ -12,22 +12,27 @@
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" Model="_allocationModel">
-            <MudSelect T="int" Label="@Localizer["CostCenter"]" @bind-Value="_allocationModel.CostCenterId" Required="true">
+            <MudSelect T="int" Label="@Localizer["CostCenter"]" @bind-Value="_allocationModel.CostCenterId" 
+                       Required="true"
+                       ToStringFunc="@CostCenterIdToString">
                 @foreach (var cc in _costCenters)
                 {
                     <MudSelectItem T="int" Value="@cc.Id">@cc.CostUnitName</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudSelect T="int" Label="@Localizer["Category"]" @bind-Value="_allocationModel.CategoryId" Required="true">
+            <MudSelect T="int" Label="@Localizer["Category"]" @bind-Value="_allocationModel.CategoryId" 
+                       Required="true"
+                       ToStringFunc="@CategoryIdToString">
                 @foreach (var cat in _categories)
                 {
                     <MudSelectItem T="int" Value="@cat.Id">@cat.Name</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudSelect T="int?" Label="@Localizer["ItemDetail"]" @bind-Value="_allocationModel.ItemDetailId">
-                <MudSelectItem T="int?" Value="null">None</MudSelectItem>
+            <MudSelect T="int?" Label="@Localizer["ItemDetail"]" @bind-Value="_allocationModel.ItemDetailId"
+                       ToStringFunc="@ItemDetailIdToString"
+                       Clearable="true">
                 @foreach (var item in _itemDetails)
                 {
                     <MudSelectItem T="int?" Value="@item.Id">@item.CostDetails</MudSelectItem>
@@ -102,5 +107,23 @@
     private void Cancel()
     {
         MudDialog.Close(DialogResult.Cancel());
+    }
+    
+    private string CostCenterIdToString(int id)
+    {
+        return _costCenters.FirstOrDefault(p => p.Id == id)?.CostUnitName ?? string.Empty;
+    }
+    
+    private string CategoryIdToString(int id)
+    {
+        return _categories.FirstOrDefault(c => c.Id == id)?.Name ?? string.Empty;
+    }
+    
+    private string ItemDetailIdToString(int? id)
+    {
+        if (id is null)
+            return string.Empty;
+
+        return _itemDetails.FirstOrDefault(i => i.Id == id.Value)?.CostDetails ?? string.Empty;
     }
 }
