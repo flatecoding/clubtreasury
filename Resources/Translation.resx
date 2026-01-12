@@ -378,4 +378,12 @@
         <value />
         <comment>AllPersons</comment>
     </data>
+    <data name="Close" xml:space="preserve">
+        <value />
+        <comment>Close</comment>
+    </data>
+    <data name="Empty" xml:space="preserve">
+        <value />
+        <comment>Empty</comment>
+    </data>
 </root>
