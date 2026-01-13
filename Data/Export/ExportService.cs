@@ -8,7 +8,7 @@ using Path = System.IO.Path;
 
 namespace TTCCashRegister.Data.Export
 {
-    public class ExportService :IExportService
+    public class ExportService : IExportService
     {
         private readonly CashDataContext _context;
         private readonly ILogger<ExportService> _logger;
@@ -117,7 +117,8 @@ namespace TTCCashRegister.Data.Export
         }
         
         
-        public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename)
+        public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, 
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -125,9 +126,14 @@ namespace TTCCashRegister.Data.Export
 
                 var filePath = Path.Combine(_exportPath, filename);
 
-                await _transactionPdfRenderer.RenderTransactionPdfExportAsync(transactions, begin, end, filePath);
+                await _transactionPdfRenderer.RenderTransactionPdfExportAsync(transactions, begin, end, filePath, cancellationToken);
 
                 return true;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("PDF export canceled → {File}", filename);
+                return false;
             }
             catch (Exception ex)
             {
