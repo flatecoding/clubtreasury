@@ -162,7 +162,8 @@
             var fileName = $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
             try
             {
-                var result = await TransactionService.ExportTransactionsToPdf(start, end, fileName);
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                var result = await TransactionService.ExportTransactionsToPdf(start, end, fileName, cts.Token);
                 MudDialog.Close(DialogResult.Ok(result));
             }
             catch (Exception ex)

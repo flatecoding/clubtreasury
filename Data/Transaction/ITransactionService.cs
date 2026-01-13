@@ -16,7 +16,7 @@ public interface ITransactionService
     Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename);
     Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename);
     Task<bool> ExportBudgetToExcel(DateTime begin, DateTime end, string filename);
-    Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename);
+    Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, CancellationToken ct);
 
     // MudBlazor Pagination
     Task<TableData<TransactionModel>> GetTransactionsPaged(

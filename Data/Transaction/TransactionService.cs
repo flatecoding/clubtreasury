@@ -184,8 +184,8 @@ public class TransactionService(
     public async Task<bool> ExportBudgetToExcel(DateTime begin, DateTime end, string filename)
     => await exportService.ExportBudgetToExcelWithCharts(begin, end, filename);
     
-    public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename)
-        => await exportService.ExportTransactionsToPdf(begin, end, filename);
+    public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, CancellationToken token)
+        => await exportService.ExportTransactionsToPdf(begin, end, filename, token);
 
     public async Task<TableData<TransactionModel>> GetTransactionsPaged(
         TableState state,
