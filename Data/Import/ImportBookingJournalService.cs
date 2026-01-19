@@ -7,6 +7,7 @@ using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
+using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.Import
 {
@@ -163,7 +164,8 @@ namespace TTCCashRegister.Data.Import
                         };
                         importCounter++;
 
-                        if (!await transactionService.AddTransactionAsync(transaction))
+                        var addResult = await transactionService.AddTransactionAsync(transaction);
+                        if (addResult.Status is OperationResultStatus.Failed)
                         {
                             logger.LogError("Failed to add transaction for document number: {DocumentNumber}", documentNumber);
                             return false;

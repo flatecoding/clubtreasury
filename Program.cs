@@ -30,6 +30,8 @@ using TTCCashRegister.Data.SpecialItem;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.TransactionDetails;
 using TTCCashRegister.Data.Mapper;
+using TTCCashRegister.Data.Notification;
+using TTCCashRegister.Data.OperationResult;
 
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
@@ -103,6 +105,7 @@ builder.Services.AddScoped<ICsvBudgetWriter, CsvBudgetWriter>();
 builder.Services.AddScoped<IExcelBudgetWriter, ExcelBudgetWriter>();
 builder.Services.AddScoped<IPdfTransactionRenderer, PdfTransactionRenderer>();
 builder.Services.AddScoped<ICultureService, CultureService>();
+builder.Services.AddScoped<IOperationResultFactory, OperationResultFactory>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;

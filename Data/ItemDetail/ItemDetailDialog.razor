@@ -1,0 +1,100 @@
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
+
+@inject IItemDetailService ItemDetailService
+@inject IStringLocalizer<Translation> Localizer
+@inject INotificationService NotificationService
+@inject IOperationResultFactory OperationResultFactory
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form"
+                 Model="_itemDetailModel"
+                 Validation="_itemDetailValidator.ValidateValue"
+                 ValidationDelay="0">
+
+            <MudTextField @bind-Value="_itemDetailModel.CostDetails"
+                          Label="@Localizer["Name"]"
+                          For="@(() => _itemDetailModel.CostDetails)"
+                          Immediate="true"
+                          Required="true" />
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Primary"
+                   OnClick="@(async () => await Save())">
+            @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
+        </MudButton>
+
+        <MudButton Color="Color.Error"
+                   OnClick="@Cancel">
+            @Localizer["Cancel"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int? ItemDetailId { get; set; }
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private MudForm _form = new();
+    private ItemDetailModel _itemDetailModel = new();
+    private readonly ItemDetailValidator _itemDetailValidator = new();
+
+    private bool _isEditMode;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isEditMode = ItemDetailId.HasValue;
+
+        if (_isEditMode && ItemDetailId is not null)
+        {
+            _itemDetailModel =
+                await ItemDetailService.GetItemDetailByIdAsync(ItemDetailId.Value)
+                ?? new ItemDetailModel();
+
+            await MudDialog.SetTitleAsync(Localizer["Edit"]);
+        }
+        else
+        {
+            _itemDetailModel = new ItemDetailModel();
+            await MudDialog.SetTitleAsync(Localizer["AddEntry"]);
+        }
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (!_form.IsValid)
+            return;
+
+        IOperationResult result;
+
+        if (_isEditMode)
+        {
+            result = await ItemDetailService.UpdateItemDetailAsync(_itemDetailModel);
+        }
+        else
+        {
+            result = await ItemDetailService.AddItemDetailAsync(_itemDetailModel);
+        }
+
+        if (result.Status is OperationResultStatus.Success)
+        {
+            MudDialog.Close(DialogResult.Ok(result));
+        }
+        else
+        {
+            await NotificationService.ShowOperationResultAsync(result);
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    }
+}

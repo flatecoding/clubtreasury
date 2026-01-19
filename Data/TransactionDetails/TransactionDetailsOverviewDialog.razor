@@ -1,10 +1,10 @@
 @using System.Globalization
 @using Microsoft.Extensions.Localization
-@using TTCCashRegister.Data.Dialog
-@using TTCCashRegister.Data.Source
+@using TTCCashRegister.Data.DialogService
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @inject ITransactionDetailsService TransactionDetailsService
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
 @inject INotificationService NotificationService
 @inject IStringLocalizer<Translation> Localizer
 
@@ -39,7 +39,7 @@
                                        OnClick="@(async() => await ShowEditTransactionDetailDialog(row.Id))"/>
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
-                                       OnClick="@(async () => await ShowDeleteTransactionDetailsDialog(row.Id))"/>
+                                       OnClick="@(async () => await ShowDeleteTransactionDetailsDialog(row))"/>
                     </MudTd>
                 </RowTemplate>
             </MudTable>
@@ -71,6 +71,7 @@
     private async Task LoadTransactionDetails()
     {
         _transactionDetails = await TransactionDetailsService.GetTransactionDetailsByTransactionIdAsync(TransactionId);
+        await InvokeAsync(StateHasChanged);
     }
 
     
@@ -82,14 +83,11 @@
             ["TransactionDetailsId"] = null
         };
 
-        var dialog = await DialogService.ShowAsync<TransactionDetailsDialog>(null, parameters);
-        var result = await dialog.Result;
+        var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDetailsDialog>(NotificationService,
+            $"{Localizer["AddEntry"]}", parameters);
 
-        if (result is { Canceled: false })
-        {
-            Snackbar.Add("Transaction detail was added successfully", Severity.Success);
+        if(result?.Status is OperationResultStatus.Success)
             await LoadTransactionDetails();
-        }
     }
     
     private async Task ShowEditTransactionDetailDialog(int transactionDetailsId)
@@ -100,35 +98,22 @@
             ["TransactionDetailsId"] = transactionDetailsId
         };
 
-        var dialog = await DialogService.ShowAsync<TransactionDetailsDialog>(null, parameters);
-        var result = await dialog.Result;
+        var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDetailsDialog>(NotificationService,
+            $"{Localizer["Edit"]}", parameters);
 
-        if (result is { Canceled: false })
-        {
-            Snackbar.Add("Subtransaction was updated successfully", Severity.Success);
+        if (result?.Status is  OperationResultStatus.Success)
             await LoadTransactionDetails();
-        }
     }
 
-    private async Task ShowDeleteTransactionDetailsDialog(int transactionDetailsId)
+    private async Task ShowDeleteTransactionDetailsDialog(TransactionDetailsModel details)
     {
-        var transaction = await TransactionDetailsService.GetTransactionDetailsByIdAsync(transactionDetailsId);
-        if (transaction == null) return;
-
-        var dialog = await DialogService.ShowAsync<ConfirmDeleteDialog>(
-            string.Empty,
-            new DialogParameters
-            {
-                ["EntityName"] = "Transaction details",
-                ["ItemName"] = $"{transaction.DocumentNumber} {transaction.Description}",
-                ["OnConfirm"] = EventCallback.Factory.Create(this, async () =>
-                {
-                    await TransactionDetailsService.DeleteAsync(transactionDetailsId);
-                })
-            });
-
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        StateHasChanged();
+        await DialogService.ShowConfirmDeleteDialogAsync(
+            NotificationService,
+            entityName: Localizer["TransactionDetailsFor"].Value,
+            itemName: $"{details.Description}",
+            onConfirm: () => TransactionDetailsService.DeleteTransactionDetailsAsync(details.Id),
+            onSuccess: LoadTransactionDetails,
+            deleteTitle: Localizer["Delete"]);
     }
 
     private void Close() => MudDialog.Close();

@@ -1,8 +1,10 @@
 ﻿using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using TTCCashRegister.Data.Export.Budget;
 using TTCCashRegister.Data.Export.Transaction;
 using TTCCashRegister.Data.Mapper;
+using TTCCashRegister.Data.OperationResult;
 using TTCCashRegister.Data.Transaction;
 using Path = System.IO.Path;
 
@@ -115,7 +117,7 @@ namespace TTCCashRegister.Data.Export
                 return false;
             }
         }
-        
+
         
         public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, 
             CancellationToken cancellationToken)
@@ -167,15 +169,13 @@ namespace TTCCashRegister.Data.Export
                 return false;
             }
         }
+
         
         public async Task<bool> ExportBudgetToExcelWithCharts(DateTime begin, DateTime end, string filename)
         {
             try
             {
-                _logger.LogInformation("Export budget to Excel started");
-
-                if (!Directory.Exists(_exportPath))
-                    Directory.CreateDirectory(_exportPath);
+                Directory.CreateDirectory(_exportPath);
 
                 var transactions = await GetBudgetByDateRange(begin, end);
                 var flatEntries = _budgetMapper.BuildFlatEntries(transactions);

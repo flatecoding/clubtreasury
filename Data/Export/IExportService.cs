@@ -1,3 +1,5 @@
+using TTCCashRegister.Data.OperationResult;
+
 namespace TTCCashRegister.Data.Export;
 
 public interface IExportService

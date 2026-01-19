@@ -91,4 +91,15 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <AdditionalFiles Include="Data\DialogService\Dialog\ConfirmDeleteDialog.razor" />
+    <AdditionalFiles Include="Data\DialogService\Dialog\LanguageSelectionDialog.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Data\CostCenter\Dialogs\AddCostCenterDialog.razor" />
+    <_ContentIncludedByDefault Remove="Data\CostCenter\Dialogs\DeleteCostCenterDialog.razor" />
+    <_ContentIncludedByDefault Remove="Data\CostCenter\Dialogs\EditCostCenterDialog.razor" />
+  </ItemGroup>
+
 </Project>

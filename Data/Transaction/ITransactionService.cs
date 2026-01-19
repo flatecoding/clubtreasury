@@ -1,4 +1,5 @@
 using MudBlazor;
+using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.Transaction;
 
@@ -8,9 +9,9 @@ public interface ITransactionService
     Task<IEnumerable<TransactionModel>> GetTransactionsByDateRange(DateTime start, DateTime end);
     Task<TransactionModel?> GetTransactionByIdAsync(int id);
 
-    Task<bool> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default);
-    Task<bool> UpdateTransactionAsync(TransactionModel entry, CancellationToken ct = default);
-    Task<bool> DeleteTransactionAsync(int id);
+    Task<IOperationResult> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default);
+    Task<IOperationResult> UpdateTransactionAsync(TransactionModel entry, CancellationToken ct = default);
+    Task<IOperationResult> DeleteTransactionAsync(int id);
 
     // Export-Weiterleitungen
     Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename);

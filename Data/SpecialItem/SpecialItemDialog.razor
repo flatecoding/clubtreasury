@@ -1,51 +1,69 @@
-@page "/persondialog"
+@page "/specialitemdialog"
 @using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Notification
 @using TTCCashRegister.Data.OperationResult
-@inject IPersonService PersonService
+@using TTCCashRegister.Data.SpecialItem
+
+@inject ISpecialItemService SpecialItemService
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 @inject IOperationResultFactory OperationResultFactory
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" Model="_personModel" Validation="_personValidator.ValidateValue" ValidationDelay="0">
-            <MudTextField @bind-Value="_personModel.Name" Label=@Localizer["Name"] 
-                          For="@(() => _personModel.Name)" Immediate="true"/>
+        <MudForm @ref="_form"
+                 Model="_specialItemModel"
+                 Validation="_specialItemValidator.ValidateValue"
+                 ValidationDelay="0">
+
+            <MudTextField @bind-Value="_specialItemModel.Name"
+                          Label="@Localizer["Name"]"
+                          For="@(() => _specialItemModel.Name)"
+                          Immediate="true" />
         </MudForm>
     </DialogContent>
+
     <DialogActions>
         <MudButton Color="Color.Primary" OnClick="@(async () => await Save())">
             @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudButton Color="Color.Error" OnClick="@Cancel">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [Parameter] public int? PersonId { get; set; } // null = Add, Wert = Edit
+    [Parameter] public int? SpecialItemId { get; set; } // null = Add, Wert = Edit
+
     private MudForm _form = new();
-    private PersonModel _personModel = new();
-    private readonly PersonValidator _personValidator = new();
+    private SpecialItemModel _specialItemModel = new();
+    private readonly SpecialItemValidator _specialItemValidator = new();
     private bool _isEditMode;
 
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        _isEditMode = PersonId.HasValue;
+        _isEditMode = SpecialItemId.HasValue;
         string dialogTitle;
+
         if (_isEditMode)
         {
-            if (PersonId is not null) _personModel = 
-                await PersonService.GetPersonById(PersonId.Value) ?? new PersonModel();
+            if (SpecialItemId is not null)
+            {
+                _specialItemModel =
+                    await SpecialItemService.GetSpecialPositionById(SpecialItemId.Value)
+                    ?? new SpecialItemModel();
+            }
+
             dialogTitle = Localizer["Edit"];
         }
         else
         {
-            _personModel = new PersonModel();
+            _specialItemModel = new SpecialItemModel();
             dialogTitle = Localizer["AddEntry"];
         }
+
         await MudDialog.SetTitleAsync(dialogTitle);
         StateHasChanged();
     }
@@ -60,11 +78,11 @@
 
         if (_isEditMode)
         {
-            result = await PersonService.UpdatePersonAsync(_personModel);
+            result = await SpecialItemService.UpdateSpecialPositionAsync(_specialItemModel);
         }
         else
         {
-            result = await PersonService.AddPersonAsync(_personModel);
+            result = await SpecialItemService.AddSpecialPositionAsync(_specialItemModel);
         }
 
         if (result.Status is OperationResultStatus.Success)
@@ -75,7 +93,6 @@
         {
             await NotificationService.ShowOperationResultAsync(result);
         }
-        
     }
 
     private void Cancel()

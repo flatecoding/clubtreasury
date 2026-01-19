@@ -1,9 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
+using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.CostCenter
 {
-    public class CostCenterService(CashDataContext context, ILogger<CostCenterService> logger) : ICostCenterService
+    public class CostCenterService(CashDataContext context, ILogger<CostCenterService> logger, 
+        IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : ICostCenterService
     {
+        private string EntityName => localizer["CostCenter"];
         private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
         public async Task<List<CostCenterModel>> GetAllCostCentersAsync()
@@ -27,53 +31,57 @@ namespace TTCCashRegister.Data.CostCenter
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<bool> AddCostCenterAsync(CostCenterModel costCenter)
+        public async Task<IOperationResult> AddCostCenterAsync(CostCenterModel costCenter)
         {
             try
             {
                 await _context.CostCenters.AddAsync(costCenter);
                 await _context.SaveChangesAsync();
                 logger.LogInformation("Cost center added: {@costCenter}", costCenter.CostUnitName);
-                return true;
+                return operationResultFactory.SuccessAdded($"{EntityName}: {costCenter.CostUnitName}", costCenter.Id);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occured during add cost center: {@costCenter}", costCenter.CostUnitName);
-                return false;
+                logger.LogCritical(ex, "An error occured during add cost center: {@costCenter}", costCenter.CostUnitName);
+                return operationResultFactory.FailedToAdd(EntityName, ex.Message);
             }
         }
 
-        public async Task<bool> UpdateCostCenterAsync(CostCenterModel costCenter)
+        public async Task<IOperationResult> UpdateCostCenterAsync(CostCenterModel costCenter)
         {
             try
             {
                 _context.CostCenters.Update(costCenter);
                 await _context.SaveChangesAsync();
                 logger.LogInformation("Cost center updated: {@costCenter}", costCenter.CostUnitName);
-                return true;
+                return operationResultFactory.SuccessUpdated(EntityName, costCenter.Id);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occured during update of cost center: {@costCenter}", costCenter.CostUnitName);
-                return false;
+                logger.LogCritical(ex, "An error occured during update of cost center: {@costCenter}", costCenter.CostUnitName);
+                return operationResultFactory.FailedToUpdate(EntityName, ex.Message);
             }
         }
 
-        public async Task<bool> DeleteCostCenterAsync(int id)
+        public async Task<IOperationResult> DeleteCostCenterAsync(int id)
         {
             try
             {
                 var costUnit = await _context.CostCenters.FindAsync(id);
-                if (costUnit == null) return false;
+                if (costUnit == null)
+                {
+                    logger.LogError("Cost center Id '{ID}' not found", id);
+                    return operationResultFactory.NotFound(EntityName, $"Id: '{id}' not found");
+                }
                 _context.CostCenters.Remove(costUnit);
                 await _context.SaveChangesAsync();
                 logger.LogInformation("Cost center deleted: {@costUnit}", costUnit.CostUnitName);
-                return true;
+                return operationResultFactory.SuccessDeleted(EntityName, id);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "An error occured during delete of costunit with Id: {Id}", id );
-                return false;
+                return operationResultFactory.FailedToDelete(EntityName, ex.Message);
             }
         }
     }

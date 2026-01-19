@@ -382,8 +382,68 @@
         <value />
         <comment>Close</comment>
     </data>
-    <data name="Empty" xml:space="preserve">
+    <data name="OperationCancelled" xml:space="preserve">
         <value />
-        <comment>Empty</comment>
+        <comment>OperationCancelled</comment>
+    </data>
+    <data name="OperationFailed" xml:space="preserve">
+        <value />
+        <comment>OperationFailed</comment>
+    </data>
+    <data name="OperationWarning" xml:space="preserve">
+        <value />
+        <comment>OperationWarning</comment>
+    </data>
+    <data name="AddedSuccessfully" xml:space="preserve">
+        <value />
+        <comment>AddedSuccessfully</comment>
+    </data>
+    <data name="UpdatedSuccessfully" xml:space="preserve">
+        <value />
+        <comment>UpdatedSuccessfully</comment>
+    </data>
+    <data name="DeletedSuccessfully" xml:space="preserve">
+        <value />
+        <comment>DeletedSuccessfully</comment>
+    </data>
+    <data name="" xml:space="preserve">
+        <value>FailedToAdd</value>
+        <comment>FailedToAdd</comment>
+    </data>
+    <data name="FailedToUpdate" xml:space="preserve">
+        <value />
+        <comment>FailedToUpdate</comment>
+    </data>
+    <data name="Failed to delete" xml:space="preserve">
+        <value />
+        <comment>FailedToDelete</comment>
+    </data>
+    <data name="NotFound" xml:space="preserve">
+        <value />
+        <comment>NotFound</comment>
+    </data>
+    <data name="FailedToDelete" xml:space="preserve">
+        <value />
+        <comment>FailedToDelete</comment>
+    </data>
+    <data name="FailedToAdd" xml:space="preserve">
+        <value />
+        <comment>FailedToAdd</comment>
+    </data>
+    <data name="OperationSuccessful" xml:space="preserve">
+        <value />
+        <comment>OperationSuccessful</comment>
+    </data>
+    <data name="Exception" xml:space="preserve">
+        <value />
+        <comment>Exception</comment>
+    </data>
+    <data name="AlreadyExists" xml:space="preserve">
+        <value></value>
+        <comment>AlreadyExists</comment>
+    </data>
+    <data name="TransactionDetails" xml:space="preserve">
+        <value />
+        <comment>TransactionDetails</comment>
     </data>
 </root>

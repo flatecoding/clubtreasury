@@ -1,9 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
+using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.Person
 {
-    public class PersonService(CashDataContext context, ILogger<PersonService> logger) : IPersonService
+    public class PersonService(CashDataContext context, ILogger<PersonService> logger,
+        IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : IPersonService
     {
+        private string EntityName => localizer["Person"];
         public async Task<List<PersonModel>> GetAllPersonsAsync()
         {
             return await context.Persons
@@ -20,56 +24,57 @@ namespace TTCCashRegister.Data.Person
             return await context.Persons.FirstOrDefaultAsync();
         }
 
-        public async Task AddPerson(PersonModel personModel)
+        public async Task<IOperationResult> AddPersonAsync(PersonModel personModel)
         {
             try
             {
                 await context.Persons.AddAsync(personModel);
                 await context.SaveChangesAsync();
                 logger.LogInformation("Person added: {@PersonModel}", personModel);
+                return operationResultFactory.SuccessAdded($"{EntityName}: '{personModel.Name}'", personModel.Id);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex}");
-                logger.LogError($"Error: {ex}");
+                logger.LogCritical(EntityName, ex);
+                return operationResultFactory.FailedToAdd(EntityName, ex.Message);
             }
         }
 
-        public async Task UpdatePerson(PersonModel personModel)
+        public async Task<IOperationResult> UpdatePersonAsync(PersonModel personModel)
         {
             try
             {
                 context.Persons.Update(personModel);
                 await context.SaveChangesAsync();
                 logger.LogInformation("Person updated: {@PersonModel}", personModel);
+                return operationResultFactory.SuccessUpdated($"{EntityName}: '{personModel.Name}'", personModel);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex}");
                 logger.LogError($"Error: {ex}");
+                return operationResultFactory.FailedToUpdate(EntityName, ex.Message);
             }
         }
 
-        public async Task<bool> DeletePerson(int id)
+        public async Task<IOperationResult> DeletePersonAsync(int id)
         {
             try
             {
                 var person = await context.Persons.FindAsync(id);
-                if (person == null)
+                if (person is null)
                 {
-                    return false;
+                    logger.LogInformation("Person not found: Id: '{ID}'", id);
+                    return operationResultFactory.NotFound($"Person with Id '{id} not found", id);
                 }
-
                 context.Persons.Remove(person);
                 await context.SaveChangesAsync();
                 logger.LogInformation("Person deleted: {@PersonModel}", person);
-                return true;
+                return operationResultFactory.SuccessDeleted($"{EntityName}: '{person.Name}'", id);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex}");
-                logger.LogError($"Error: {ex}");
-                return false;
+                logger.LogCritical($"Error: {ex}");
+                return operationResultFactory.FailedToDelete(EntityName, ex.Message);
             }
         }
     }

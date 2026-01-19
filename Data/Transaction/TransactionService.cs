@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.Export;
+using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.Transaction;
 
@@ -10,8 +12,11 @@ public class TransactionService(
     CashDataContext context,
     IExportService exportService,
     IAllocationService allocationService,
-    ILogger<TransactionService> logger) : ITransactionService
+    ILogger<TransactionService> logger,
+    IStringLocalizer<Translation> localizer,
+    IOperationResultFactory operationResultFactory) : ITransactionService
 {
+    private string EntityName => localizer["Transaction"];
     public async Task<List<TransactionModel>?> GetAllTransactions()
     {
         return await context.Transactions
@@ -59,53 +64,70 @@ public class TransactionService(
     
 
 
-    public async Task<bool> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default)
+    public async Task<IOperationResult> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default)
     {
         try
         {
-            // 1) Guard: Kasse muss existieren
-            var cashRegisterExists = await context.CashRegisters
-                .AnyAsync(cr => cr.Id == entry.CashRegisterId, ct);
-
-            if (!cashRegisterExists)
-                throw new InvalidOperationException($"No cash register with '{entry.CashRegisterId}' found.");
-
-            // 2) Allocation sicherstellen (ohne Save)
-            var account = await allocationService.EnsureAllocationExistsAsync(entry.Allocation, ct);
+            if (!await context.CashRegisters
+                        .AnyAsync(cr => cr.Id == entry.CashRegisterId, ct))
+                {
+                    return operationResultFactory.NotFound(
+                        EntityName, entry.CashRegisterId);
+                }
             
-            var tx = new TransactionModel
-            {
-                Description     = entry.Description,
-                AccountMovement = entry.AccountMovement,
-                Date            = entry.Date,
-                Documentnumber  = entry.Documentnumber,
-                Sum             = entry.Sum,
-                SpecialItemId   = entry.SpecialItemId,
-                CashRegisterId  = entry.CashRegisterId,
-                Allocation      = account // Navigation setzen
-            };
+                if (await context.Transactions
+                        .AnyAsync(t => t.Documentnumber == entry.Documentnumber, ct))
+                {
+                    logger.LogWarning(
+                        "Transaction with DocumentNumber {DocumentNumber} already exists.",
+                        entry.Documentnumber);
 
-            context.Transactions.Add(tx);
-            
-            await context.SaveChangesAsync(ct);
-            logger.LogInformation("Transaction added: B{@DocumentNumber}; Desc.:{@Description}; Sum:{@Sum} " +
-                                  "AccMov.: {@AccMov}", tx.Documentnumber, tx.Description, tx.Sum, tx.AccountMovement);
-            return true;
+                    return operationResultFactory.AlreadyExists(
+                        EntityName,
+                        $"{localizer["DocumentNumber"]} '{entry.Documentnumber}'");
+                }
+
+                // 3. Allocation sicherstellen
+                var account = await allocationService
+                    .EnsureAllocationExistsAsync(entry.Allocation, ct);
+
+                var tx = new TransactionModel
+                {
+                    Description     = entry.Description,
+                    AccountMovement = entry.AccountMovement,
+                    Date            = entry.Date,
+                    Documentnumber  = entry.Documentnumber,
+                    Sum             = entry.Sum,
+                    SpecialItemId   = entry.SpecialItemId,
+                    CashRegisterId  = entry.CashRegisterId,
+                    Allocation      = account
+                };
+
+                context.Transactions.Add(tx);
+                await context.SaveChangesAsync(ct);
+
+                logger.LogInformation(
+                    "Transaction added: B{DocumentNumber}; Desc:{Description}; Sum:{Sum}; AccMov:{AccMov}",
+                    tx.Documentnumber, tx.Description, tx.Sum, tx.AccountMovement);
+
+                return operationResultFactory.SuccessAdded(
+                    $"{EntityName}: {tx.Documentnumber}",
+                    tx.Id);
         }
         catch (DbUpdateException dbEx)
         {
             logger.LogCritical(dbEx, "An exception occurred while adding transaction: B{@DocumentNumber} " +
                                      "{@Description}", entry.Documentnumber, entry.Description);
-            return false;
+            return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
         }
         catch (Exception ex)
         {
             logger.LogCritical(ex, "An exception occurred while adding transaction");
-            return false;
+            return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
         }
     }
     
-    public async Task<bool> UpdateTransactionAsync(TransactionModel entry, CancellationToken ct = default)
+    public async Task<IOperationResult> UpdateTransactionAsync(TransactionModel entry, CancellationToken ct = default)
     {
         try
         {
@@ -113,7 +135,11 @@ public class TransactionService(
                 .FirstOrDefaultAsync(t => t.Id == entry.Id, ct);
 
             if (tx == null)
-                throw new KeyNotFoundException("Transaction not found.");
+            {
+                return operationResultFactory.NotFound(
+                    $"{EntityName} not found",
+                    entry.Id);
+            }
             
             var account = await allocationService.EnsureAllocationExistsAsync(entry.Allocation, ct);
             
@@ -130,22 +156,24 @@ public class TransactionService(
             await context.SaveChangesAsync(ct);
             logger.LogInformation("Transaction updated: B{@DocumentNumber}; Desc.:{@Description}; Sum:{@Sum} " +
                                   "AccMov.: {@AccMov}", tx.Documentnumber, tx.Description, tx.Sum, tx.AccountMovement);
-            return true;
+            return operationResultFactory.SuccessUpdated(
+                $"{EntityName}: {tx.Documentnumber}",
+                tx.Id);
         }
         catch (DbUpdateException dbEx)
         {
             logger.LogCritical(dbEx, "An exception occurred while updating transaction: {@DocumentNumber} " +
                                      "{@Description}", entry.Documentnumber, entry.Description);
-            return false;
+            return operationResultFactory.FailedToUpdate(EntityName, dbEx.Message);
         }
         catch (Exception ex)
         {
             logger.LogCritical(ex, "An exception occurred while updating transaction");
-            return false;
+            return operationResultFactory.FailedToUpdate(EntityName, ex.Message);
         }
     }
     
-    public async Task<bool> DeleteTransactionAsync(int id)
+    public async Task<IOperationResult> DeleteTransactionAsync(int id)
     {
         try
         {
@@ -153,7 +181,9 @@ public class TransactionService(
             if (transaction is null)
             {
                 logger.LogError("Transaction with id '{Id}' could not be found", id);
-                return false;
+                return operationResultFactory.NotFound(
+                    $"{EntityName} not found",
+                    id);
             }
   
             context.Transactions.Remove(transaction);
@@ -161,17 +191,19 @@ public class TransactionService(
             logger.LogInformation("Transaction deleted: B{@DocumentNumber}; Desc.:{@Description}; Sum:{@Sum} " +
                                   "AccMov.: {@AccMov}", transaction.Documentnumber, transaction.Description, 
                 transaction.Sum, transaction.AccountMovement);
-            return true;
+            return operationResultFactory.SuccessDeleted(
+                $"{EntityName}: {transaction.Documentnumber}",
+                id);
         }
         catch (DbUpdateException dbEx)
         {
             logger.LogCritical(dbEx, "An exception occurred while deleting transaction with id: {Id}", id);
-            return false;
+            return operationResultFactory.FailedToDelete(EntityName, dbEx.Message);
         }
         catch (Exception ex)
         {
             logger.LogCritical(ex, "An exception occurred while deleting transaction with id: {Id}", id);
-            return false;
+            return operationResultFactory.FailedToDelete(EntityName, ex.Message);
         }
     }
 
