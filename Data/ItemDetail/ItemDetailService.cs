@@ -45,12 +45,12 @@ namespace TTCCashRegister.Data.ItemDetail
                 await _context.ItemDetails.AddAsync(itemDetail);
                 await _context.SaveChangesAsync();
                 logger.LogInformation("ItemDetail added: {@ItemDetail}", itemDetail.CostDetails);
-                return operationResultFactory.SuccessAdded($"{EntityName} - '{itemDetail.CostDetails}'", itemDetail.Id);
+                return operationResultFactory.SuccessAdded($"{EntityName}: '{itemDetail.CostDetails}'", itemDetail.Id);
             }
             catch (Exception ex)
             {
                 logger.LogCritical(ex, "ItemDetail could not be added");
-                return operationResultFactory.FailedToAdd(EntityName, ex.Message);
+                return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
         }
 
@@ -66,7 +66,7 @@ namespace TTCCashRegister.Data.ItemDetail
             catch (Exception ex)
             {
                 logger.LogError(ex, "ItemDetail {@ItemDetail} could not be updated", itemDetail.CostDetails);
-                return operationResultFactory.FailedToAdd(EntityName, ex.Message);
+                return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
         }
 
@@ -88,7 +88,7 @@ namespace TTCCashRegister.Data.ItemDetail
             catch (Exception ex)
             {
                 logger.LogCritical(ex, "ItemDetail with {ID} could not be deleted", id );
-                return operationResultFactory.FailedToDelete(EntityName, ex.Message);
+                return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }
     }

@@ -1,9 +1,9 @@
-@inject INotificationService NotificationService
 @inject IStringLocalizer<Translation> Localizer
 @inject ICultureService CultureService
+@inject IOperationResultFactory OperationResultFactory
 @using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Culture
-@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @using TTCCashRegister.Data.Source
 
 
@@ -48,11 +48,10 @@
     {
         await CultureService.SetCultureAsync(_selectedCulture);
         MudDialog.Close(DialogResult.Ok(true));
-            
     }
 
     private void Cancel()
     {
-        MudDialog.Cancel();
+        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
     }
 }

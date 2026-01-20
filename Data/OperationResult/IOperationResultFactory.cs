@@ -14,5 +14,7 @@ public interface IOperationResultFactory
     OperationResult AlreadyExists(string entityName, string? details = null);
     OperationResult ExportSuccessful(string fileName);
     OperationResult ExportFailed(string? details = null);
+    OperationResult ImportSuccessful(string fileName);
+    OperationResult ImportFailed(string? details = null);
     public OperationResult DateRangeInvalid(string? details = null);
 }

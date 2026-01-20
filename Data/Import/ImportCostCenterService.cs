@@ -3,18 +3,19 @@ using Microsoft.Extensions.Localization;
 using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
+using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.Import
 {
     public class ImportCostCenterService(CashDataContext context, ILogger<ImportCostCenterService> logger,
-    IStringLocalizer<Translation> localizer) : IImportCostCenterService
+    IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : IImportCostCenterService
     {
-        public async Task<bool> ImportCostCentersAndPositions(Stream fileStream)
+        public async Task<IOperationResult> ImportCostCentersAndPositions(Stream? fileStream, string fileName)
         {
             if (fileStream == null)
             {
                 logger.LogError("Import cost center file stream is null");
-                return false;
+                return operationResultFactory.ImportFailed(localizer["FileStreamError"]);
             }
 
             try
@@ -94,12 +95,12 @@ namespace TTCCashRegister.Data.Import
 
                 await context.SaveChangesAsync();
                 logger.LogInformation("Import of const centers completed successfully");
-                return true;
+                return operationResultFactory.ImportSuccessful(fileName);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Import of const centers failed");
-                return false;
+                return operationResultFactory.ImportFailed(localizer["Exception"]);
             }
         }
     }

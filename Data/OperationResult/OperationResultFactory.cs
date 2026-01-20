@@ -14,7 +14,7 @@ public class OperationResultFactory(IStringLocalizer<Translation> localizer) : I
     public OperationResult Success()
         => new()
         {
-            Status = OperationResultStatus.Canceled,
+            Status = OperationResultStatus.Success,
             Message = localizer["OperationSuccessful"]
         };
     
@@ -96,5 +96,19 @@ public class OperationResultFactory(IStringLocalizer<Translation> localizer) : I
         {
             Status = OperationResultStatus.Warning,
             Message = localizer["DateWarning"] + (details != null ? $": {details}" : "")
+        };
+    
+    public OperationResult ImportSuccessful(string fileName)
+        => new()
+        {
+            Status = OperationResultStatus.Success,
+            Message = $"{localizer["ImportSuccessful"]}: {fileName}"
+        };
+
+    public OperationResult ImportFailed(string? details = null)
+        => new()
+        {
+            Status = OperationResultStatus.Failed,
+            Message = localizer["ImportFailed"] + (details != null ? $": {details}" : "")
         };
 }

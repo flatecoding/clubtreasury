@@ -51,13 +51,13 @@ namespace TTCCashRegister.Data.Category
                 await _context.SaveChangesAsync();
                 logger.LogInformation("Category added: {@unit}", category.Name);
 
-                return operationResultFactory.SuccessAdded($"{EntityName}: {category.Name}", category.Id);
+                return operationResultFactory.SuccessAdded($"{EntityName}: '{category.Name}", category.Id);
 
             }
             catch (Exception e)
             {
                 logger.LogCritical(e, "Error adding category: {@category}", category);
-                return operationResultFactory.FailedToAdd(EntityName, e.Message);
+                return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
             
         }
@@ -70,7 +70,7 @@ namespace TTCCashRegister.Data.Category
                 await _context.SaveChangesAsync();
                 logger.LogInformation("Category updated: {@unit}", category.Name);
                 
-                return operationResultFactory.SuccessUpdated($"{EntityName}: {category.Name}", category.Id);
+                return operationResultFactory.SuccessUpdated($"{EntityName}: '{category.Name}'", category.Id);
 
             }
             catch (Exception e)
@@ -95,12 +95,12 @@ namespace TTCCashRegister.Data.Category
                 await _context.SaveChangesAsync();
                 logger.LogInformation("Category deleted: {@unit}", category.Name);
                 
-                return operationResultFactory.SuccessDeleted($"{EntityName}: {category.Name}", category.Id);
+                return operationResultFactory.SuccessDeleted($"{EntityName}: '{category.Name}'", category.Id);
             }
             catch (Exception e)
             {
                 logger.LogCritical("Error deleting category with id: {@id}", id);
-                return operationResultFactory.FailedToDelete(EntityName, e.Message);
+                return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data.DialogService
 @using TTCCashRegister.Data.DialogService.Dialog
 @using TTCCashRegister.Data.Import.Dialogs
 @using TTCCashRegister.Data.Notification
@@ -51,46 +52,30 @@
     
     private async Task OpenImportCostCenterDialog()
     {
-        var parameters = new DialogParameters();
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<ImportCostCenters>(@Localizer["ImportCostCenterDialogTitle"], parameters, options);
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await DialogService.ShowDialogWithNotificationAsync<ImportCostCenters>(NotificationService,
+            Localizer["ImportCostCenterDialogTitle"],
+            null,
+            new DialogOptions() { MaxWidth = MaxWidth.Small });
     }
     
     private async Task OpenImportTransactionDialog()
     {
-        var parameters = new DialogParameters();
-       
-        DialogOptions importDialogOptions = new()
-    {
-        MaxWidth = MaxWidth.Medium,
-        FullWidth = true,
-        BackdropClick = false,
-        BackgroundClass= "custom-dialog-background"
-    };
-        var dialog = await DialogService.ShowAsync<ImportTransactionDialog>(@Localizer["ImportTransactionDialogTitle"], parameters, 
-            importDialogOptions);
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await DialogService.ShowDialogWithNotificationAsync<ImportTransactionDialog>(NotificationService,
+            Localizer["ImportTransactionDialogTitle"],
+            null,
+            new DialogOptions()
+            {
+                MaxWidth = MaxWidth.Small,
+                BackgroundClass = "custom-dialog-background"
+            });
     }
     
     private async Task OpenLanguageDialog()
     {
-        var parameters = new DialogParameters();
-
-        DialogOptions options = new()
-        {
-            MaxWidth = MaxWidth.ExtraSmall,
-            FullWidth = true,
-            CloseButton = true,
-            BackdropClick = true
-        };
-
-        var dialog = await DialogService.ShowAsync<LanguageSelectionDialog>(
+        await DialogService.ShowDialogWithNotificationAsync<LanguageSelectionDialog>(NotificationService,
             Localizer["LanguageDialogTitle"],
-            parameters,
-            options);
-
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+            null,
+            new DialogOptions() { MaxWidth = MaxWidth.ExtraSmall });
     }
     
 }

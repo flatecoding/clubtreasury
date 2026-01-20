@@ -414,10 +414,6 @@
         <value />
         <comment>FailedToUpdate</comment>
     </data>
-    <data name="Failed to delete" xml:space="preserve">
-        <value />
-        <comment>FailedToDelete</comment>
-    </data>
     <data name="NotFound" xml:space="preserve">
         <value />
         <comment>NotFound</comment>
@@ -425,10 +421,6 @@
     <data name="FailedToDelete" xml:space="preserve">
         <value />
         <comment>FailedToDelete</comment>
-    </data>
-    <data name="FailedToAdd" xml:space="preserve">
-        <value />
-        <comment>FailedToAdd</comment>
     </data>
     <data name="OperationSuccessful" xml:space="preserve">
         <value />
@@ -439,7 +431,7 @@
         <comment>Exception</comment>
     </data>
     <data name="AlreadyExists" xml:space="preserve">
-        <value></value>
+        <value />
         <comment>AlreadyExists</comment>
     </data>
     <data name="TransactionDetails" xml:space="preserve">
@@ -469,5 +461,25 @@
     <data name="DateWarning" xml:space="preserve">
         <value />
         <comment>DateWarning</comment>
+    </data>
+    <data name="ImportSuccessful" xml:space="preserve">
+        <value />
+        <comment>ImportSuccessful</comment>
+    </data>
+    <data name="ImportFailed" xml:space="preserve">
+        <value />
+        <comment>ImportFailed</comment>
+    </data>
+    <data name="FileStreamError" xml:space="preserve">
+        <value />
+        <comment>FileStreamError</comment>
+    </data>
+    <data name="DateColumnError" xml:space="preserve">
+        <value />
+        <comment>DateColumnMissing</comment>
+    </data>
+    <data name="DocumentNumberError" xml:space="preserve">
+        <value />
+        <comment>DocumentNumberError</comment>
     </data>
 </root>

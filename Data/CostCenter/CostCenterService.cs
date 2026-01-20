@@ -38,12 +38,12 @@ namespace TTCCashRegister.Data.CostCenter
                 await _context.CostCenters.AddAsync(costCenter);
                 await _context.SaveChangesAsync();
                 logger.LogInformation("Cost center added: {@costCenter}", costCenter.CostUnitName);
-                return operationResultFactory.SuccessAdded($"{EntityName}: {costCenter.CostUnitName}", costCenter.Id);
+                return operationResultFactory.SuccessAdded($"{EntityName}: '{costCenter.CostUnitName}'", costCenter.Id);
             }
             catch (Exception ex)
             {
                 logger.LogCritical(ex, "An error occured during add cost center: {@costCenter}", costCenter.CostUnitName);
-                return operationResultFactory.FailedToAdd(EntityName, ex.Message);
+                return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
         }
 
@@ -59,7 +59,7 @@ namespace TTCCashRegister.Data.CostCenter
             catch (Exception ex)
             {
                 logger.LogCritical(ex, "An error occured during update of cost center: {@costCenter}", costCenter.CostUnitName);
-                return operationResultFactory.FailedToUpdate(EntityName, ex.Message);
+                return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
             }
         }
 
@@ -81,7 +81,7 @@ namespace TTCCashRegister.Data.CostCenter
             catch (Exception ex)
             {
                 logger.LogError(ex, "An error occured during delete of costunit with Id: {Id}", id );
-                return operationResultFactory.FailedToDelete(EntityName, ex.Message);
+                return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }
     }

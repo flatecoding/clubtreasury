@@ -458,4 +458,24 @@
         <value>Export nicht möglich</value>
         <comment>DateWarning</comment>
     </data>
+    <data name="ImportSuccessful" xml:space="preserve">
+        <value>Import erfolgreich</value>
+        <comment>ImportSuccessful</comment>
+    </data>
+    <data name="ImportFailed" xml:space="preserve">
+        <value>Import fehlgeschlagen</value>
+        <comment>ImportFailed</comment>
+    </data>
+    <data name="FileStreamError" xml:space="preserve">
+        <value>Datenstream ist leer</value>
+        <comment>FileStreamError</comment>
+    </data>
+    <data name="DateColumnError" xml:space="preserve">
+        <value>Datumsfeld fehlt oder ist ungültig</value>
+        <comment>DateColumnMissing</comment>
+    </data>
+    <data name="DocumentNumberError" xml:space="preserve">
+        <value>Transaktion für Dokumentnnummer konnte nicht hinzugefügt werden</value>
+        <comment>DocumentNumberError</comment>
+    </data>
 </root>

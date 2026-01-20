@@ -54,12 +54,12 @@ namespace TTCCashRegister.Data.CashRegister
                 await context.CashRegisters.AddAsync(cashRegisterModel);
                 await context.SaveChangesAsync();
                 logger.LogInformation("Cash register added: {@CashRegister}", cashRegisterModel.Name);
-                return operationResultFactory.SuccessAdded($"{EntityName} - '{cashRegisterModel.Name}'", cashRegisterModel.Id);
+                return operationResultFactory.SuccessAdded($"{EntityName}: '{cashRegisterModel.Name}'", cashRegisterModel.Id);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "An error occurred while adding cash register entry to database.");
-                return operationResultFactory.FailedToAdd(EntityName, ex.Message);
+                return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
         }
 
@@ -76,7 +76,7 @@ namespace TTCCashRegister.Data.CashRegister
             {
                 logger.LogError(ex, "An error occurred during update of cash register: {@CashRegister}",
                     cashRegisterModel);
-                return operationResultFactory.FailedToUpdate(EntityName, ex.Message);
+                return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
             }
         }
 
@@ -100,7 +100,7 @@ namespace TTCCashRegister.Data.CashRegister
             catch (Exception ex)
             {
                 logger.LogError(ex, "An error occurred during delete of cash register: {Id}", id);
-                return operationResultFactory.FailedToDelete(EntityName, ex.Message);
+                return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }
     }

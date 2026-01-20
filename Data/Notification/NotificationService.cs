@@ -5,24 +5,6 @@ namespace TTCCashRegister.Data.Notification;
 
 public class NotificationService(ISnackbar snackbar) : INotificationService
 {
-    [Obsolete("Use ShowOperationResultAsync instead. This method will be removed in a future version.")]
-    public Task ShowDialogResultAsync(DialogResult? result)
-    {
-        if (result?.Data is true)
-        {
-            snackbar.Add("The transaction was successful", Severity.Success);
-        }
-        else if (result?.Canceled == true)
-        {
-            snackbar.Add("The transaction has been cancelled", Severity.Warning);
-        }
-        else
-        {
-            snackbar.Add("An error has occurred during transaction", Severity.Error);
-        }
-        return Task.CompletedTask;
-    }
-
     public Task ShowOperationResultAsync(IOperationResult result)
     {
         var severity = result.Status switch

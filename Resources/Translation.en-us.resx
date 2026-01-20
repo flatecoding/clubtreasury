@@ -459,4 +459,24 @@
         <value>Export not possible</value>
         <comment>DateWarning</comment>
     </data>
+    <data name="ImportSuccessful" xml:space="preserve">
+        <value>Import successful</value>
+        <comment>ImportSuccessful</comment>
+    </data>
+    <data name="ImportFailed" xml:space="preserve">
+        <value>Import failed</value>
+        <comment>ImportFailed</comment>
+    </data>
+    <data name="FileStreamError" xml:space="preserve">
+        <value>File stream is empty</value>
+        <comment>FileStreamError</comment>
+    </data>
+    <data name="DateColumnError" xml:space="preserve">
+        <value>Date column missing or invalid</value>
+        <comment>DateColumnMissing</comment>
+    </data>
+    <data name="DocumentNumberError" xml:space="preserve">
+        <value>Couldn't add transaction for document number</value>
+        <comment>DocumentNumberError</comment>
+    </data>
 </root>

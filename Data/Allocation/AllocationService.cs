@@ -104,7 +104,7 @@ public class AllocationService(
                 "Failed to add allocation: CostCenter: {CostCenterId}, Category: {CategoryId}, ItemDetail: {ItemDetailId}",
                 allocation.CostCenterId, allocation.CategoryId, allocation.ItemDetailId);
 
-            return operationResultFactory.FailedToAdd(EntityName, ex.Message);
+            return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
         }
     }
 
@@ -151,7 +151,7 @@ public class AllocationService(
                 updatedAllocation.Category.Name,
                 updatedAllocation.ItemDetail?.CostDetails ?? "null");
 
-            return operationResultFactory.FailedToUpdate(EntityName, ex.Message);
+            return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
         }
     }
 
@@ -186,7 +186,7 @@ public class AllocationService(
                 allocation.CategoryId,
                 allocation.ItemDetailId);
 
-            return operationResultFactory.FailedToDelete(EntityName, ex.Message);
+            return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
     }
 }

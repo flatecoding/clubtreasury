@@ -37,7 +37,7 @@ namespace TTCCashRegister.Data.SpecialItem
             catch (Exception ex)
             {
                 logger.LogCritical(ex, "Failed to add SpecialItem");
-                return operationResultFactory.FailedToAdd(EntityName, ex.Message);
+                return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
         }
 
@@ -56,7 +56,7 @@ namespace TTCCashRegister.Data.SpecialItem
             catch (Exception ex)
             {
                 logger.LogError(ex, "Failed to update SpecialItem");
-                return operationResultFactory.FailedToUpdate(EntityName, ex.Message);
+                return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
             }
         }
 
@@ -84,7 +84,7 @@ namespace TTCCashRegister.Data.SpecialItem
             catch (Exception ex)
             {
                 logger.LogCritical(ex, "Failed to delete SpecialItem");
-                return operationResultFactory.FailedToDelete(EntityName, ex.Message);
+                return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }
     }

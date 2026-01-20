@@ -36,7 +36,7 @@ namespace TTCCashRegister.Data.Person
             catch (Exception ex)
             {
                 logger.LogCritical(EntityName, ex);
-                return operationResultFactory.FailedToAdd(EntityName, ex.Message);
+                return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
         }
 
@@ -52,7 +52,7 @@ namespace TTCCashRegister.Data.Person
             catch (Exception ex)
             {
                 logger.LogError($"Error: {ex}");
-                return operationResultFactory.FailedToUpdate(EntityName, ex.Message);
+                return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
             }
         }
 
@@ -74,7 +74,7 @@ namespace TTCCashRegister.Data.Person
             catch (Exception ex)
             {
                 logger.LogCritical($"Error: {ex}");
-                return operationResultFactory.FailedToDelete(EntityName, ex.Message);
+                return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }
     }

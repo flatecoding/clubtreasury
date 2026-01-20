@@ -56,7 +56,7 @@
             Logger.LogInformation("An entity was deleted: '{EntityName}', Item: '{ItemName}'", EntityName, ItemName);
 
             MudDialog.Close(DialogResult.Ok(
-                OperationResultFactory.SuccessDeleted($"{EntityName} - '{ItemName}'")));
+                OperationResultFactory.SuccessDeleted($"{EntityName}: '{ItemName}'")));
         }
         catch (Exception ex)
         {
@@ -68,7 +68,7 @@
 
             MudDialog.Close(
                 DialogResult.Ok(
-                    OperationResultFactory.FailedToDelete($"{EntityName} - {ItemName}")));
+                    OperationResultFactory.FailedToDelete($"{EntityName}: '{ItemName}'")));
         }
     }
 

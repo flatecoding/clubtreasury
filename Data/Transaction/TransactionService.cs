@@ -111,7 +111,7 @@ public class TransactionService(
                     tx.Documentnumber, tx.Description, tx.Sum, tx.AccountMovement);
 
                 return operationResultFactory.SuccessAdded(
-                    $"{EntityName}: {tx.Documentnumber}",
+                    $"{EntityName}: '{tx.Documentnumber}",
                     tx.Id);
         }
         catch (DbUpdateException dbEx)
@@ -157,19 +157,19 @@ public class TransactionService(
             logger.LogInformation("Transaction updated: B{@DocumentNumber}; Desc.:{@Description}; Sum:{@Sum} " +
                                   "AccMov.: {@AccMov}", tx.Documentnumber, tx.Description, tx.Sum, tx.AccountMovement);
             return operationResultFactory.SuccessUpdated(
-                $"{EntityName}: {tx.Documentnumber}",
+                $"{EntityName}: '{tx.Documentnumber}'",
                 tx.Id);
         }
         catch (DbUpdateException dbEx)
         {
             logger.LogCritical(dbEx, "An exception occurred while updating transaction: {@DocumentNumber} " +
                                      "{@Description}", entry.Documentnumber, entry.Description);
-            return operationResultFactory.FailedToUpdate(EntityName, dbEx.Message);
+            return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
         }
         catch (Exception ex)
         {
             logger.LogCritical(ex, "An exception occurred while updating transaction");
-            return operationResultFactory.FailedToUpdate(EntityName, ex.Message);
+            return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
         }
     }
     
@@ -192,18 +192,18 @@ public class TransactionService(
                                   "AccMov.: {@AccMov}", transaction.Documentnumber, transaction.Description, 
                 transaction.Sum, transaction.AccountMovement);
             return operationResultFactory.SuccessDeleted(
-                $"{EntityName}: {transaction.Documentnumber}",
+                $"{EntityName}: '{transaction.Documentnumber}'",
                 id);
         }
         catch (DbUpdateException dbEx)
         {
             logger.LogCritical(dbEx, "An exception occurred while deleting transaction with id: {Id}", id);
-            return operationResultFactory.FailedToDelete(EntityName, dbEx.Message);
+            return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
         catch (Exception ex)
         {
             logger.LogCritical(ex, "An exception occurred while deleting transaction with id: {Id}", id);
-            return operationResultFactory.FailedToDelete(EntityName, ex.Message);
+            return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
     }
 
