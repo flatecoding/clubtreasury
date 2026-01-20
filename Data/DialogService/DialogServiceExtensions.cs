@@ -48,16 +48,34 @@ public static class DialogServiceExtensions
             ["ItemName"] = itemName,
             ["OnConfirm"] = EventCallback.Factory.Create(dialogService, onConfirm)
         };
+        
+        var mergedOptions = MergeOptions(options);
 
         var result = await dialogService.ShowDialogWithNotificationAsync<ConfirmDeleteDialog>(
             notificationService,
             title: deleteTitle,
             parameters: parameters,
-            options: options ?? DefaultDialogOptions);
+            options: mergedOptions);
 
         if (result?.Status == OperationResultStatus.Success && onSuccess != null)
         {
             await onSuccess();
         }
+    }
+    
+    private static DialogOptions MergeOptions(DialogOptions? overrides)
+    {
+        if (overrides is null)
+            return DefaultDialogOptions;
+
+        return new DialogOptions
+        {
+            MaxWidth = overrides.MaxWidth ?? DefaultDialogOptions.MaxWidth,
+            FullWidth = overrides.FullWidth ?? DefaultDialogOptions.FullWidth,
+            BackdropClick = overrides.BackdropClick ?? DefaultDialogOptions.BackdropClick,
+            CloseButton = overrides.CloseButton ?? DefaultDialogOptions.CloseButton,
+            NoHeader = overrides.NoHeader ?? DefaultDialogOptions.NoHeader,
+            Position = overrides.Position ?? DefaultDialogOptions.Position,
+        };
     }
 }

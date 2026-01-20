@@ -4,9 +4,9 @@ namespace TTCCashRegister.Data.Export;
 
 public interface IExportService
 {
-    Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename);
-    Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, CancellationToken cancellationToken);
-    Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename);
-    Task<bool> ExportBudgetToExcelWithCharts(DateTime begin, DateTime end, string filename);
+    Task<IOperationResult> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename);
+    Task<IOperationResult> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, CancellationToken cancellationToken);
+    Task<IOperationResult> ExportBudgetToCsv(DateTime begin, DateTime end, string filename);
+    Task<IOperationResult> ExportBudgetToExcelWithCharts(DateTime begin, DateTime end, string filename);
     Task<byte[]> ExportBudgetToExcelBytes(DateTime begin, DateTime end);
 }

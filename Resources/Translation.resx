@@ -406,8 +406,8 @@
         <value />
         <comment>DeletedSuccessfully</comment>
     </data>
-    <data name="" xml:space="preserve">
-        <value>FailedToAdd</value>
+    <data name="FailedToAdd" xml:space="preserve">
+        <value />
         <comment>FailedToAdd</comment>
     </data>
     <data name="FailedToUpdate" xml:space="preserve">
@@ -445,5 +445,29 @@
     <data name="TransactionDetails" xml:space="preserve">
         <value />
         <comment>TransactionDetails</comment>
+    </data>
+    <data name="ExportSuccessful" xml:space="preserve">
+        <value />
+        <comment>ExportSuccessful</comment>
+    </data>
+    <data name="ExportFailed" xml:space="preserve">
+        <value />
+        <comment>ExportFailed</comment>
+    </data>
+    <data name="TimeOutError" xml:space="preserve">
+        <value />
+        <comment>TimeOutError</comment>
+    </data>
+    <data name="FileNameRequired" xml:space="preserve">
+        <value />
+        <comment>FileNameRequired</comment>
+    </data>
+    <data name="DateRangeRequired" xml:space="preserve">
+        <value />
+        <comment>DateRangeRequired</comment>
+    </data>
+    <data name="DateWarning" xml:space="preserve">
+        <value />
+        <comment>DateWarning</comment>
     </data>
 </root>

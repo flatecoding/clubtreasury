@@ -12,4 +12,7 @@ public interface IOperationResultFactory
     OperationResult FailedToDelete(string entityName, string? details = null);
     OperationResult NotFound(string entityName, object id);
     OperationResult AlreadyExists(string entityName, string? details = null);
+    OperationResult ExportSuccessful(string fileName);
+    OperationResult ExportFailed(string? details = null);
+    public OperationResult DateRangeInvalid(string? details = null);
 }

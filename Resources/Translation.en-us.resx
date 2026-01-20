@@ -342,7 +342,7 @@
         <comment>ExportPdf</comment>
     </data>
     <data name="DateRangeError" xml:space="preserve">
-        <value>Export not possible! Start date can't be after end date!</value>
+        <value>Start date can't be after end date!</value>
         <comment>DateRangeError</comment>
     </data>
     <data name="ExportXlsx" xml:space="preserve">
@@ -401,10 +401,6 @@
         <value>deleted successfully</value>
         <comment>DeletedSuccessfully</comment>
     </data>
-    <data name="" xml:space="preserve">
-        <value>Failed to add</value>
-        <comment>FailedToAdd</comment>
-    </data>
     <data name="FailedToUpdate" xml:space="preserve">
         <value>Failed to update</value>
         <comment>FailedToUpdate</comment>
@@ -438,5 +434,29 @@
     </data>
     <data name="TransactionDetails" xml:space="preserve">
         <value>Transaction details</value>
+    </data>
+    <data name="ExportSuccessful" xml:space="preserve">
+        <value>Export successful</value>
+        <comment>ExportSuccessful</comment>
+    </data>
+    <data name="ExportFailed" xml:space="preserve">
+        <value>Export failed</value>
+        <comment>ExportFailed</comment>
+    </data>
+    <data name="TimeOutError" xml:space="preserve">
+        <value>Timeout error</value>
+        <comment>TimeOutError</comment>
+    </data>
+    <data name="FileNameRequired" xml:space="preserve">
+        <value>Filename is required</value>
+        <comment>FileNameRequired</comment>
+    </data>
+    <data name="DateRangeRequired" xml:space="preserve">
+        <value>Date range is required</value>
+        <comment>DateRangeRequired</comment>
+    </data>
+    <data name="DateWarning" xml:space="preserve">
+        <value>Export not possible</value>
+        <comment>DateWarning</comment>
     </data>
 </root>

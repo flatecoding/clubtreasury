@@ -207,16 +207,16 @@ public class TransactionService(
         }
     }
 
-    public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
+    public async Task<IOperationResult> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
         => await exportService.ExportTransactionsToCsv(begin, end, filename);
 
-    public async Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
+    public async Task<IOperationResult> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
         => await exportService.ExportBudgetToCsv(begin, end, filename);
     
-    public async Task<bool> ExportBudgetToExcel(DateTime begin, DateTime end, string filename)
+    public async Task<IOperationResult> ExportBudgetToExcel(DateTime begin, DateTime end, string filename)
     => await exportService.ExportBudgetToExcelWithCharts(begin, end, filename);
     
-    public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, CancellationToken token)
+    public async Task<IOperationResult> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, CancellationToken token)
         => await exportService.ExportTransactionsToPdf(begin, end, filename, token);
 
     public async Task<TableData<TransactionModel>> GetTransactionsPaged(

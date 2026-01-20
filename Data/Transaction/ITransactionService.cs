@@ -14,10 +14,10 @@ public interface ITransactionService
     Task<IOperationResult> DeleteTransactionAsync(int id);
 
     // Export-Weiterleitungen
-    Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename);
-    Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename);
-    Task<bool> ExportBudgetToExcel(DateTime begin, DateTime end, string filename);
-    Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, CancellationToken ct);
+    Task<IOperationResult> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename);
+    Task<IOperationResult> ExportBudgetToCsv(DateTime begin, DateTime end, string filename);
+    Task<IOperationResult> ExportBudgetToExcel(DateTime begin, DateTime end, string filename);
+    Task<IOperationResult> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, CancellationToken ct);
 
     // MudBlazor Pagination
     Task<TableData<TransactionModel>> GetTransactionsPaged(

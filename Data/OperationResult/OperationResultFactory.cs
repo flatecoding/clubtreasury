@@ -76,4 +76,25 @@ public class OperationResultFactory(IStringLocalizer<Translation> localizer) : I
             Status = OperationResultStatus.Warning,
             Message = $"{entityName} {localizer["AlreadyExists"]}" + (details != null ? $": {details}" : "")
         };
+    
+    public OperationResult ExportSuccessful(string fileName)
+        => new()
+        {
+            Status = OperationResultStatus.Success,
+            Message = $"{localizer["ExportSuccessful"]}: {fileName}"
+        };
+
+    public OperationResult ExportFailed(string? details = null)
+        => new()
+        {
+            Status = OperationResultStatus.Failed,
+            Message = localizer["ExportFailed"] + (details != null ? $": {details}" : "")
+        };
+    
+    public OperationResult DateRangeInvalid(string? details = null)
+        => new()
+        {
+            Status = OperationResultStatus.Warning,
+            Message = localizer["DateWarning"] + (details != null ? $": {details}" : "")
+        };
 }
