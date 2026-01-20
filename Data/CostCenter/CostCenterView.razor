@@ -1,7 +1,8 @@
 ﻿@page "/costCenters"
 @using Microsoft.Extensions.Localization
-@using TTCCashRegister.Data.CostCenter.Dialogs
-@using TTCCashRegister.Data.Source
+@using TTCCashRegister.Data.DialogService
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @inject ICostCenterService CostCenterService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
@@ -58,7 +59,7 @@
                         <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit"
                                        OnClick="@(() => ShowEditCostUnitDialog(context.Id))"/>
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete"
-                                       OnClick="@(() => ShowDeleteCostUnitDialog(context.Id))"></MudIconButton>
+                                       OnClick="@(() => ShowDeleteCostUnitDialog(context))"></MudIconButton>
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -99,25 +100,33 @@
 
     private async Task ShowAddCostUnitDialog()
     {
-        var dialog = await DialogService.ShowAsync<AddCostCenterDialog>($"{Localizer["AddEntry"]}", new DialogParameters());
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        var result = await DialogService.ShowDialogWithNotificationAsync<CostCenterDialog>(NotificationService);
+        if (result?.Status is OperationResultStatus.Success)
+        {
+            await UpdateView();    
+        }
     }
 
     private async Task ShowEditCostUnitDialog(int costUnitId)
     {
-        var dialog = await DialogService.ShowAsync<EditCostCenterDialog>($"{Localizer["Edit"]}", 
+        var result = await DialogService.ShowDialogWithNotificationAsync<CostCenterDialog>(NotificationService,
+            $"{Localizer["Edit"]}", 
             new DialogParameters { ["CostCenterId"] = costUnitId });
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        if (result?.Status is OperationResultStatus.Success)
+        {
+            await UpdateView();
+        }
     }
 
-    private async Task ShowDeleteCostUnitDialog(int costUnitId)
+    private async Task ShowDeleteCostUnitDialog(CostCenterModel costCenter)
     {
-        var dialog = await DialogService.ShowAsync<DeleteCostCenterDialog>($"{Localizer["Delete"]}", 
-            new DialogParameters { ["CostCenterId"] = costUnitId });
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        await DialogService.ShowConfirmDeleteDialogAsync(
+            NotificationService,
+            entityName: Localizer["CostCenter"].Value,
+            itemName: $"{costCenter.CostUnitName}",
+            onConfirm: () => CostCenterService.DeleteCostCenterAsync(costCenter.Id),
+            onSuccess: UpdateView,
+            deleteTitle: Localizer["Delete"]);
     }
 
     private async Task UpdateView()

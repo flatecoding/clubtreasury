@@ -1,9 +1,18 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
+using TTCCashRegister.Data.Notification;
+using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.Allocation;
 
-public class AllocationService(CashDataContext context, ILogger<AllocationService> logger) :IAllocationService
+public class AllocationService(
+    CashDataContext context, 
+    ILogger<AllocationService> logger, 
+    IOperationResultFactory operationResultFactory,
+    IStringLocalizer<Translation> localizer) : IAllocationService
 {
+    private string EntityName => localizer["Allocation"];
+
     public async Task<AllocationModel?> GetAllocationsByIdAsync(int id)
     {
         return await context.Allocations
@@ -22,7 +31,6 @@ public class AllocationService(CashDataContext context, ILogger<AllocationServic
             .ToListAsync();
     }
 
-    
     public async Task<AllocationModel> EnsureAllocationExistsAsync(AllocationModel allocation, CancellationToken ct = default)
     {
         try
@@ -34,56 +42,71 @@ public class AllocationService(CashDataContext context, ILogger<AllocationServic
 
             if (existing != null)
             {
-                logger.LogInformation("Use existing allocation. CostCenter: {@CostCenter},  Category: {@Category}, " +
+                logger.LogInformation("Use existing allocation. CostCenter: {@CostCenter}, Category: {@Category}, " +
                                       "ItemDetail: {@ItemDetail}", allocation.CostCenter.CostUnitName, 
                     allocation.Category.Name,
                     allocation.ItemDetail?.CostDetails ?? "null");
                 return existing;
             }
-            
-        
+
             var created = new AllocationModel
             {
                 CostCenterId = allocation.CostCenterId,
                 CategoryId   = allocation.CategoryId,
                 ItemDetailId = allocation.ItemDetailId
             };
-        
-            context.Allocations.Add(created); // State = Added
-            logger.LogInformation("Add allocation. CostCenter: {@CostCenter},  Category: {@Category}, " +
+
+            context.Allocations.Add(created);
+            logger.LogInformation("Add allocation. CostCenter: {@CostCenter}, Category: {@Category}, " +
                                   "ItemDetail: {@ItemDetail}", created.CostCenter.CostUnitName,
                 created.Category.Name, created.ItemDetail?.CostDetails ?? "null");
             return created;
-
         }
         catch(Exception e)
         {
             logger.LogCritical(e, "An exception occurred while adding allocation: CostCenter: {@CostCenter} " +
                                      "Category: {@Category} ItemDetails: {@ItemDetails}", allocation.CostCenter.CostUnitName, 
                                       allocation.Category.Name, allocation.ItemDetail?.CostDetails ?? "N/A");
-            
         }
+        
         logger.LogCritical("Existing allocation not found and new allocation could not be created.");
         throw new DbUpdateException();
     }
 
-    public async Task<bool> AddAllocationAsync(AllocationModel allocation)
+    public async Task<IOperationResult> AddAllocationAsync(AllocationModel allocation)
     {
         if (await AllocationExistsAsync(allocation))
         {
-            logger.LogWarning("Allocation wit CostCenter: {CostCenterId}, Category: {CategoryId} " +
-                              " ItemDetail: {ItemDetailId} already exists.", allocation.CostCenterId,
-                allocation.CategoryId, allocation.ItemDetailId);
-            return false;
-        }
-        context.Allocations.Add(allocation);
-        await context.SaveChangesAsync();
-        logger.LogInformation("AddAllocationAsync: CostCenter: {@CostCenter},  Category: {@Category}, " +
-                              "ItemDetail: {@ItemDetail}", allocation.CostCenterId, 
-                               allocation.CategoryId, allocation.ItemDetailId);
-        return true;
-    }
+            logger.LogWarning(
+                "Allocation with CostCenter: {CostCenterId}, Category: {CategoryId}, ItemDetail: {ItemDetailId} already exists.",
+                allocation.CostCenterId, allocation.CategoryId, allocation.ItemDetailId);
 
+            return operationResultFactory.AlreadyExists(
+                EntityName,
+                $"{localizer["CostCenter"]} Id: {allocation.CostCenterId}, {localizer["Category"]} Id: {allocation.CategoryId}, " +
+                $"{(allocation.ItemDetailId.HasValue ? $"{localizer["ItemDetail"]} Id: {allocation.ItemDetailId}" : "")}");
+        }
+
+        try
+        {
+            context.Allocations.Add(allocation);
+            await context.SaveChangesAsync();
+
+            logger.LogInformation(
+                "AddAllocationAsync: CostCenter: {CostCenterId}, Category: {CategoryId}, ItemDetail: {ItemDetailId}",
+                allocation.CostCenterId, allocation.CategoryId, allocation.ItemDetailId);
+            
+            return operationResultFactory.SuccessAdded(EntityName, allocation.Id); 
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex,
+                "Failed to add allocation: CostCenter: {CostCenterId}, Category: {CategoryId}, ItemDetail: {ItemDetailId}",
+                allocation.CostCenterId, allocation.CategoryId, allocation.ItemDetailId);
+
+            return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
+        }
+    }
 
     private async Task<bool> AllocationExistsAsync(AllocationModel allocation)
     {
@@ -93,33 +116,77 @@ public class AllocationService(CashDataContext context, ILogger<AllocationServic
             a.ItemDetailId == allocation.ItemDetailId);
     }
 
-    
-    
-    public async Task<bool> UpdateAllocationAsync(AllocationModel updatedAllocation)
+    public async Task<IOperationResult> UpdateAllocationAsync(AllocationModel updatedAllocation)
     {
         var existing = await context.Allocations.FindAsync(updatedAllocation.Id);
         if (existing == null)
-            return false;
+        {
+            logger.LogWarning("Allocation with Id {AllocationId} not found.", updatedAllocation.Id);
+            return operationResultFactory.NotFound(EntityName, updatedAllocation.Id);
+        }
 
-        existing.CostCenterId = updatedAllocation.CostCenterId;
-        existing.CategoryId = updatedAllocation.CategoryId;
-        existing.ItemDetailId = updatedAllocation.ItemDetailId;
-        
-        logger.LogInformation("Update allocation. CostCenter: {@CostCenter},  Category: {@Category}, " +
-        "ItemDetail: {@ItemDetail}", updatedAllocation.CostCenter.CostUnitName, 
-            updatedAllocation.Category.Name, updatedAllocation.ItemDetail?.CostDetails ?? "null");
+        try
+        {
+            existing.CostCenterId = updatedAllocation.CostCenterId;
+            existing.CategoryId = updatedAllocation.CategoryId;
+            existing.ItemDetailId = updatedAllocation.ItemDetailId;
 
-        await context.SaveChangesAsync();
-        return true;
+            await context.SaveChangesAsync();
+
+            logger.LogInformation(
+                "Updated allocation Id {AllocationId}. CostCenter: {CostCenter}, Category: {Category}, ItemDetail: {ItemDetail}",
+                updatedAllocation.Id,
+                updatedAllocation.CostCenter.CostUnitName,
+                updatedAllocation.Category.Name,
+                updatedAllocation.ItemDetail?.CostDetails ?? "null");
+
+            return operationResultFactory.SuccessUpdated(EntityName, updatedAllocation.Id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex,
+                "Failed to update allocation Id {AllocationId}. CostCenter: {CostCenter}, Category: {Category}, ItemDetail: {ItemDetail}",
+                updatedAllocation.Id,
+                updatedAllocation.CostCenter.CostUnitName,
+                updatedAllocation.Category.Name,
+                updatedAllocation.ItemDetail?.CostDetails ?? "null");
+
+            return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
+        }
     }
-    
-    public async Task<bool> DeleteAllocationAsync(int id)
+
+    public async Task<IOperationResult> DeleteAllocationAsync(int id)
     {
         var allocation = await context.Allocations.FindAsync(id);
-        if (allocation == null) return false;
+        if (allocation == null)
+        {
+            logger.LogWarning("Allocation with Id {AllocationId} not found.", id);
+            return operationResultFactory.NotFound(EntityName, id);
+        }
+        try
+        {
+            context.Allocations.Remove(allocation);
+            await context.SaveChangesAsync();
 
-        context.Allocations.Remove(allocation);
-        await context.SaveChangesAsync();
-        return true;
+            logger.LogInformation(
+                "Deleted allocation Id {AllocationId}. CostCenter: {CostCenter}, Category: {Category}, ItemDetail: {ItemDetail}",
+                allocation.Id,
+                allocation.CostCenterId,
+                allocation.CategoryId,
+                allocation.ItemDetailId);
+
+            return operationResultFactory.SuccessDeleted(EntityName, id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex,
+                "Failed to delete allocation Id {AllocationId}. CostCenter: {CostCenter}, Category: {Category}, ItemDetail: {ItemDetail}",
+                allocation.Id,
+                allocation.CostCenterId,
+                allocation.CategoryId,
+                allocation.ItemDetailId);
+
+            return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
+        }
     }
 }

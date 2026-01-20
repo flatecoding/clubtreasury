@@ -25,7 +25,6 @@ public sealed class CultureService(IJSRuntime js, NavigationManager navigation) 
             $".AspNetCore.Culture=c={cultureName}|uic={cultureName}; path=/; max-age=31536000";
 
         await js.InvokeVoidAsync("setCultureCookie", cookieValue);
-
-        navigation.NavigateTo(navigation.Uri, forceLoad: true);
+        await js.InvokeVoidAsync("setCultureAndReload", cookieValue);
     }
 }

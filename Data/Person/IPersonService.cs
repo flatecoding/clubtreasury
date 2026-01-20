@@ -1,3 +1,5 @@
+using TTCCashRegister.Data.OperationResult;
+
 namespace TTCCashRegister.Data.Person;
 
 public interface IPersonService
@@ -5,7 +7,7 @@ public interface IPersonService
     Task<List<PersonModel>> GetAllPersonsAsync();
     Task<PersonModel?> GetPersonById(int id);
     Task<PersonModel?> GetFirstEntry();
-    Task AddPerson(PersonModel personModel);
-    Task UpdatePerson(PersonModel personModel);
-    Task<bool> DeletePerson(int id);
+    Task<IOperationResult> AddPersonAsync(PersonModel person);
+    Task<IOperationResult> UpdatePersonAsync(PersonModel person);
+    Task<IOperationResult> DeletePersonAsync(int id);
 }

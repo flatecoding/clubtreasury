@@ -1,12 +1,14 @@
 ﻿@page "/specialitems"
 @using System.Globalization
 @using Microsoft.Extensions.Localization
-@using TTCCashRegister.Data.Source
-@using TTCCashRegister.Data.SpecialItem.Dialogs
+@using TTCCashRegister.Data.DialogService
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @inject ISpecialItemService SpecialItemService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
 @inject IStringLocalizer<Translation> Localizer
+
 <MudGrid Spacing="0">
     <MudItem xs="12">
         <MudText Typo="Typo.h6">
@@ -73,7 +75,7 @@
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
                                        aria-label="delete"
-                                       OnClick="@(() => ShowDeleteSpecialItemDialog(context.Id))" />
+                                       OnClick="@(() => ShowDeleteSpecialItemDialog(context))" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -115,9 +117,9 @@
 
     private async Task ShowAddSpecialItemDialog()
     {
-        var dialog = await DialogService.ShowAsync<AddSpecialItemDialog>(Localizer["AddEntry"].Value, new DialogParameters());
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        var result = await DialogService.ShowDialogWithNotificationAsync<SpecialItemDialog>(NotificationService);
+        if(result?.Status is OperationResultStatus.Success)
+            await UpdateView();
     }
 
     private async Task UpdateView()
@@ -128,17 +130,22 @@
 
     private async Task ShowEditSpecialItemDialog(int specialItemId)
     {
-        var dialog = await DialogService.ShowAsync<EditSpecialItemDialog>(Localizer["Edit"].Value, 
-            new DialogParameters { ["SpecialItemId"] = specialItemId });
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        var result = await DialogService.ShowDialogWithNotificationAsync<SpecialItemDialog>(NotificationService,
+            $"{Localizer["Edit"]}",
+            new DialogParameters() { ["SpecialItemId"] = specialItemId });
+        
+        if(result?.Status is OperationResultStatus.Success)
+            await UpdateView();
     }
 
-    private async Task ShowDeleteSpecialItemDialog(int specialItemId)
+    private async Task ShowDeleteSpecialItemDialog(SpecialItemModel specialItem)
     {
-        var dialog = await DialogService.ShowAsync<DeleteSpecialItemDialog>(Localizer["Delete"].Value, 
-            new DialogParameters { ["SpecialItemId"] = specialItemId });
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        await DialogService.ShowConfirmDeleteDialogAsync(
+            NotificationService,
+            entityName: Localizer["SpecialPosition"].Value,
+            itemName: $"{specialItem.Name}",
+            onConfirm: () => SpecialItemService.DeleteSpecialPositionAsync(specialItem.Id),
+            onSuccess: UpdateView,
+            deleteTitle: Localizer["Delete"]);
     }
 }

@@ -1,0 +1,102 @@
+@page "/specialitemdialog"
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
+@using TTCCashRegister.Data.SpecialItem
+
+@inject ISpecialItemService SpecialItemService
+@inject IStringLocalizer<Translation> Localizer
+@inject INotificationService NotificationService
+@inject IOperationResultFactory OperationResultFactory
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form"
+                 Model="_specialItemModel"
+                 Validation="_specialItemValidator.ValidateValue"
+                 ValidationDelay="0">
+
+            <MudTextField @bind-Value="_specialItemModel.Name"
+                          Label="@Localizer["Name"]"
+                          For="@(() => _specialItemModel.Name)"
+                          Immediate="true" />
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="@(async () => await Save())">
+            @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
+        </MudButton>
+        <MudButton Color="Color.Error" OnClick="@Cancel">@Localizer["Cancel"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int? SpecialItemId { get; set; } // null = Add, Wert = Edit
+
+    private MudForm _form = new();
+    private SpecialItemModel _specialItemModel = new();
+    private readonly SpecialItemValidator _specialItemValidator = new();
+    private bool _isEditMode;
+
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isEditMode = SpecialItemId.HasValue;
+        string dialogTitle;
+
+        if (_isEditMode)
+        {
+            if (SpecialItemId is not null)
+            {
+                _specialItemModel =
+                    await SpecialItemService.GetSpecialPositionById(SpecialItemId.Value)
+                    ?? new SpecialItemModel();
+            }
+
+            dialogTitle = Localizer["Edit"];
+        }
+        else
+        {
+            _specialItemModel = new SpecialItemModel();
+            dialogTitle = Localizer["AddEntry"];
+        }
+
+        await MudDialog.SetTitleAsync(dialogTitle);
+        StateHasChanged();
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (!_form.IsValid)
+            return;
+
+        IOperationResult result;
+
+        if (_isEditMode)
+        {
+            result = await SpecialItemService.UpdateSpecialPositionAsync(_specialItemModel);
+        }
+        else
+        {
+            result = await SpecialItemService.AddSpecialPositionAsync(_specialItemModel);
+        }
+
+        if (result.Status is OperationResultStatus.Success)
+        {
+            MudDialog.Close(DialogResult.Ok(result));
+        }
+        else
+        {
+            await NotificationService.ShowOperationResultAsync(result);
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    }
+}

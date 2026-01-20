@@ -1,7 +1,8 @@
 @page "/persons"
 @using Microsoft.Extensions.Localization
-@using TTCCashRegister.Data.Dialog
-@using TTCCashRegister.Data.Source
+@using TTCCashRegister.Data.DialogService
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @inject IPersonService PersonService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
@@ -68,7 +69,7 @@
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
                                        aria-label="delete"
-                                       OnClick="@(() => ShowDeletePersonDialog(context.Id))" />
+                                       OnClick="@(() => ShowDeletePersonDialog(context))" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -105,38 +106,30 @@
 
     private async Task ShowAddPersonDialog()
     {
-        var dialog = await DialogService.ShowAsync<PersonDialog>(string.Empty);
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        var result = await DialogService.ShowDialogWithNotificationAsync<PersonDialog>(NotificationService);
+        
+        if(result?.Status is OperationResultStatus.Success)
+            await UpdateView();
     }
 
     private async Task ShowEditPersonDialog(int personId)
     {
-        var dialog = await DialogService.ShowAsync<PersonDialog>(string.Empty, 
-            new DialogParameters { ["PersonId"] = personId });
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        var result = await DialogService.ShowDialogWithNotificationAsync<PersonDialog>(NotificationService,
+            $"{Localizer["Edit"]}",
+            new DialogParameters() { ["PersonId"] = personId });
+        if(result?.Status is OperationResultStatus.Success)
+            await UpdateView();
     }
 
-    private async Task ShowDeletePersonDialog(int personId)
+    private async Task ShowDeletePersonDialog(PersonModel person)
     {
-        var person = await PersonService.GetPersonById(personId);
-        if (person == null) return;
-
-        var dialog = await DialogService.ShowAsync<ConfirmDeleteDialog>(
-            string.Empty,
-            new DialogParameters
-            {
-                ["EntityName"] = "Person",
-                ["ItemName"] = person.Name,
-                ["OnConfirm"] = EventCallback.Factory.Create(this, async () =>
-                {
-                    await PersonService.DeletePerson(personId);
-                })
-            });
-
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        await DialogService.ShowConfirmDeleteDialogAsync(
+            NotificationService,
+            entityName: Localizer["Person"].Value,
+            itemName: $"{person.Name}",
+            onConfirm: () => PersonService.DeletePersonAsync(person.Id),
+            onSuccess: UpdateView,
+            deleteTitle: Localizer["Delete"]);
     }
 
     
