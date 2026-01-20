@@ -1,39 +1,42 @@
 @page "/export-budget-dialog"
 @using Microsoft.Extensions.Localization
 @using MudExtensions
+@using TTCCashRegister.Data.Export
+@using TTCCashRegister.Data.OperationResult
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction
 @inject ITransactionService TransactionService
-@inject ISnackbar Snackbar;
+@inject IOperationResultFactory OperationResultFactory
 @inject IStringLocalizer<Translation> Localizer
-@inject ILogger<ExportBudgetDialog> Logger;
+@inject ILogger<ExportBudgetDialog> Logger
 
 <MudDialog>
     <DialogContent>
-        <MudForm>
+        <MudForm Model="@_model" @ref="_form">
             <MudGrid Spacing="2">
                 <MudItem xs="12">
                     <MudDateRangePicker
                         Label="@Localizer["DateRange"]"
-                        @bind-DateRange="DateRange"
+                        @bind-DateRange="_model.DateRange"
                         Editable="true"
                         DateFormat="dd.MM.yyyy"
-                        fullwidth />
+                        FullWidth />
                 </MudItem>
 
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_fileName"
+                    <MudTextField @bind-Value="_model.FileName"
+                                  For="@(() => _model.FileName)"
                                   Label="@Localizer["FileName"]"
                                   Placeholder="@Localizer["SelectFile"]"
                                   Required="true"
-                                  fullwidth />
+                                  FullWidth />
                 </MudItem>
             </MudGrid>
         </MudForm>
     </DialogContent>
 
     <DialogActions>
-        <MudLoadingButton @bind-Loading="_isExporting"
+        <MudLoadingButton @bind-Loading="_isExportingCsv"
                           Size="Size.Small"
                           LoadingAdornment="Adornment"
                           OnClick="@(async () => await ExportCsv())"
@@ -41,7 +44,7 @@
             @Localizer["ExportCSV"]
         </MudLoadingButton>
 
-        <MudLoadingButton @bind-Loading="_isExporting"
+        <MudLoadingButton @bind-Loading="_isExportingXlsx"
                           Size="Size.Small"
                           LoadingAdornment="Adornment"
                           OnClick="@(async () => await ExportXlsx())"
@@ -57,125 +60,80 @@
     </DialogActions>
 </MudDialog>
 
-
-
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-   // private const string SelectedFolder = "Export";
-    private string _fileName = string.Empty;
-    [Parameter] public DateRange? DateRange { get; set; }
+    
+    private MudForm _form = null!;
+    private readonly ExportModel _model = new();
+    private bool _isExportingCsv;
+    private bool _isExportingXlsx;
     private const Adornment Adornment = MudBlazor.Adornment.Start;
-    private bool _isExporting;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        DateRange = new DateRange(UTools.GetBeginDateTime(), DateTime.Now);
+        _model.DateRange = new DateRange(UTools.GetBeginDateTime(), DateTime.Now);
     }
 
     private async Task ExportCsv()
     {
-        _isExporting = true;
+        await _form.Validate();
+        if (!_form.IsValid)
+            return;
+
+        _isExportingCsv = true;
         try
         {
-            if (DateRange is { Start: not null, End: not null })
-            {
-                var start = DateRange.Start.Value.Date;
-                var end = DateRange.End.Value.Date;
-                if (start > end)
-                {
-                    ShowAndLogExportError(null);
-                    return;
-                }
-                
-                var fileName = $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
-                var result = await TransactionService.ExportBudgetToCsv(start, end, fileName);
-                MudDialog.Close(DialogResult.Ok(result));
-            }
+            var start = _model.DateRange!.Start!.Value.Date;
+            var end = _model.DateRange.End!.Value.Date;
+            var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
+        
+            var result = await TransactionService.ExportBudgetToCsv(start, end, filename);
+            MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
-            {
-                ShowAndLogExportError(ex);
-                MudDialog.Close(DialogResult.Ok(false));
-            }
+        {
+            Logger.LogCritical(ex, "Unexpected error during export");
+            MudDialog.Close(DialogResult.Ok(
+                OperationResultFactory.ExportFailed($"{Localizer["Exception"]}")));
+        }
         finally
         {
-            _isExporting = false;
-        }
-    }
-
-    private void ShowAndLogExportError(Exception? ex)
-    {
-        if (ex is null)
-        {
-            Snackbar.Add(Localizer["DateRangeError"], Severity.Warning);
-            Logger.LogWarning(Localizer["DateRangeError"]);
-        }
-        else
-        {
-            Snackbar.Add(ex.Message, Severity.Error);
-            Logger.LogCritical(ex, "Error occured during export!");  
+            _isExportingCsv = false;
         }
     }
 
     private async Task ExportXlsx()
     {
-        _isExporting = true;
+        await _form.Validate();
+        if (!_form.IsValid)
+            return;
+
+        _isExportingXlsx = true;
         try
         {
-            if (DateRange is { Start: not null, End: not null })
-            {
-                var start = DateRange.Start.Value.Date;
-                var end = DateRange.End.Value.Date;
-                if (start > end)
-                {
-                    ShowAndLogExportError(null);
-                    return;
-                }
-                
-                var fileName = $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-                var result = await TransactionService.ExportBudgetToExcel(start, end, fileName);
-                MudDialog.Close(DialogResult.Ok(result));
-            }
+            var start = _model.DateRange!.Start!.Value.Date;
+            var end = _model.DateRange.End!.Value.Date;
+            var fileName = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
+            
+            var result = await TransactionService.ExportBudgetToExcel(start, end, fileName);
+
+            MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
         {
-           ShowAndLogExportError(ex);
-            MudDialog.Close(DialogResult.Ok(false));
+            Logger.LogCritical(ex, "Error occurred during export!");
+            MudDialog.Close(DialogResult.Ok(
+                OperationResultFactory.ExportFailed($"{Localizer["Exception"]}")));
         }
         finally
         {
-            _isExporting = false;
-        }
-    }
-
-    private async Task ExportPdf()
-    {
-        if (DateRange is { Start: not null, End: not null })
-        {
-            var start = DateRange.Start.Value.Date;
-            var end = DateRange.End.Value.Date;
-            if (start > end)
-            {
-                ShowAndLogExportError(null);
-            }
-            var fileName = $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
-            try
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-                var result = await TransactionService.ExportTransactionsToPdf(start, end, fileName, cts.Token);
-                MudDialog.Close(DialogResult.Ok(result));
-            }
-            catch (Exception ex)
-            {
-                ShowAndLogExportError(ex);
-                MudDialog.Close(DialogResult.Ok(false));
-            }
+            _isExportingXlsx = false;
         }
     }
 
     private void Cancel()
     {
-        MudDialog.Cancel();
+        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
     }
 }

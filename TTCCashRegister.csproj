@@ -66,7 +66,8 @@
     <PackageReference Include="EPPlus" Version="8.2.1" />
     <PackageReference Include="ExcelDataReader" Version="3.7.0" />
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0" />
-    <PackageReference Include="FluentValidation" Version="11.11.0" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.10" />
@@ -89,6 +90,17 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="Data\DialogService\Dialog\ConfirmDeleteDialog.razor" />
+    <AdditionalFiles Include="Data\DialogService\Dialog\LanguageSelectionDialog.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Data\CostCenter\Dialogs\AddCostCenterDialog.razor" />
+    <_ContentIncludedByDefault Remove="Data\CostCenter\Dialogs\DeleteCostCenterDialog.razor" />
+    <_ContentIncludedByDefault Remove="Data\CostCenter\Dialogs\EditCostCenterDialog.razor" />
   </ItemGroup>
 
 </Project>

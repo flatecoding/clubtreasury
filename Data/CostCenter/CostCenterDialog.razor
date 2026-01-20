@@ -1,0 +1,100 @@
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
+
+@inject ICostCenterService CostCenterService
+@inject IStringLocalizer<Translation> Localizer
+@inject INotificationService NotificationService
+@inject IOperationResultFactory OperationResultFactory
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form"
+                 Model="_costCenterModel"
+                 Validation="_costCenterValidator.ValidateValue"
+                 ValidationDelay="0">
+
+            <MudTextField @bind-Value="_costCenterModel.CostUnitName"
+                          Label="@Localizer["CostCenter"]"
+                          For="@(() => _costCenterModel.CostUnitName)"
+                          Immediate="true"
+                          Required="true" />
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Primary"
+                   OnClick="@(async () => await Save())">
+            @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
+        </MudButton>
+
+        <MudButton Color="Color.Error"
+                   OnClick="@Cancel">
+            @Localizer["Cancel"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int? CostCenterId { get; set; }
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private MudForm _form = new();
+    private CostCenterModel _costCenterModel = new();
+    private readonly CostCenterValidator _costCenterValidator = new();
+
+    private bool _isEditMode;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isEditMode = CostCenterId.HasValue;
+
+        if (_isEditMode && CostCenterId is not null)
+        {
+            _costCenterModel =
+                await CostCenterService.GetCostCenterByIdAsync(CostCenterId.Value)
+                ?? new CostCenterModel();
+
+            await MudDialog.SetTitleAsync(Localizer["Edit"]);
+        }
+        else
+        {
+            _costCenterModel = new CostCenterModel();
+            await MudDialog.SetTitleAsync(Localizer["AddEntry"]);
+        }
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (!_form.IsValid)
+            return;
+
+        IOperationResult result;
+
+        if (_isEditMode)
+        {
+            result = await CostCenterService.UpdateCostCenterAsync(_costCenterModel);
+        }
+        else
+        {
+            result = await CostCenterService.AddCostCenterAsync(_costCenterModel);
+        }
+
+        if (result.Status is OperationResultStatus.Success)
+        {
+            MudDialog.Close(DialogResult.Ok(result));
+        }
+        else
+        {
+            await NotificationService.ShowOperationResultAsync(result);
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    }
+}

@@ -1,7 +1,11 @@
 @page "/persondialog"
 @using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @inject IPersonService PersonService
 @inject IStringLocalizer<Translation> Localizer
+@inject INotificationService NotificationService
+@inject IOperationResultFactory OperationResultFactory
 
 <MudDialog>
     <DialogContent>
@@ -49,19 +53,33 @@
     private async Task Save()
     {
         await _form.Validate();
-        if (_form.IsValid)
-        {
-            if (_isEditMode)
-                await PersonService.UpdatePerson(_personModel);
-            else
-                await PersonService.AddPerson(_personModel);
+        if (!_form.IsValid)
+            return;
 
-            MudDialog.Close(DialogResult.Ok(true));
+        IOperationResult result;
+
+        if (_isEditMode)
+        {
+            result = await PersonService.UpdatePersonAsync(_personModel);
         }
+        else
+        {
+            result = await PersonService.AddPersonAsync(_personModel);
+        }
+
+        if (result.Status is OperationResultStatus.Success)
+        {
+            MudDialog.Close(DialogResult.Ok(result));
+        }
+        else
+        {
+            await NotificationService.ShowOperationResultAsync(result);
+        }
+        
     }
 
     private void Cancel()
     {
-        MudDialog.Close(DialogResult.Cancel());
+        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
     }
 }

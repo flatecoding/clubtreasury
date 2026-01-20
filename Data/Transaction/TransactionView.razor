@@ -1,8 +1,9 @@
 ﻿@page "/transactions"
 @using System.Globalization
 @using Microsoft.Extensions.Localization
-@using TTCCashRegister.Data.Dialog
-@using TTCCashRegister.Data.Source
+@using TTCCashRegister.Data.DialogService
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @using TTCCashRegister.Data.Transaction.Dialogs
 @using TTCCashRegister.Data.TransactionDetails
 @inject ITransactionService TransactionService
@@ -127,7 +128,7 @@
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
                                        aria-label="delete"
-                                       OnClick="@(() => ShowDeleteTransactionDialog(context.Id))" />
+                                       OnClick="@(() => ShowDeleteTransactionDialog(context))" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -206,38 +207,30 @@
     
     private async Task ShowAddTransactionDialog()
     {
-        var dialog = await DialogService.ShowAsync<TransactionDialog>(string.Empty);
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDialog>(NotificationService);
+        if(result?.Status is OperationResultStatus.Success)
+            await UpdateView();
     }
 
     private async Task ShowEditTransactionDialog(int transactionId)
     {
-        var dialog = await DialogService.ShowAsync<TransactionDialog>("Edit Transaction",
+        var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDialog>(NotificationService,
+            $"{Localizer["Edit"]}",
             new DialogParameters { ["TransactionId"] = transactionId });
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        
+        if(result?.Status is OperationResultStatus.Success)
+            await UpdateView();
     }
     
-    private async Task ShowDeleteTransactionDialog(int transactionId)
+    private async Task ShowDeleteTransactionDialog(TransactionModel transaction)
     {
-        var transaction = await TransactionService.GetTransactionByIdAsync(transactionId);
-        if (transaction == null) return;
-
-        var dialog = await DialogService.ShowAsync<ConfirmDeleteDialog>(
-            string.Empty,
-            new DialogParameters
-            {
-                ["EntityName"] = Localizer["Transaction"].Value,
-                ["ItemName"] = $"B{transaction.Documentnumber.ToString()}: {transaction.Description}",
-                ["OnConfirm"] = EventCallback.Factory.Create(this, async () =>
-                {
-                    await TransactionService.DeleteTransactionAsync(transactionId);
-                })
-            });
-
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        await DialogService.ShowConfirmDeleteDialogAsync(
+            NotificationService,
+            entityName: Localizer["Transaction"].Value,
+            itemName: $"{transaction.Documentnumber}",
+            onConfirm: () => TransactionService.DeleteTransactionAsync(transaction.Id),
+            onSuccess: UpdateView,
+            deleteTitle: Localizer["Delete"]);
     }
 
     private async Task UpdateView()
