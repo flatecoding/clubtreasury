@@ -7,6 +7,7 @@ using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.Category;
 using TTCCashRegister.Data.CostCenter;
+using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.Import
 {
@@ -14,16 +15,17 @@ namespace TTCCashRegister.Data.Import
         CashDataContext context,
         ITransactionService transactionService,
         ILogger<ImportBookingJournalService> logger,
-        IStringLocalizer<Translation> localizer)
+        IStringLocalizer<Translation> localizer,
+        IOperationResultFactory operationResultFactory)
         : IImportBookingJournalService
     {
 
-        public async Task<bool> ImportTransactions(Stream? fileStream)
+        public async Task<IOperationResult> ImportTransactions(Stream? fileStream, string fileName)
         {
             if (fileStream == null)
             {
-                logger.LogError("The data-stream during import of bookingjournal is null.");
-                return false;
+                logger.LogError("The data-stream during import of booking journal is null.");
+                return operationResultFactory.ImportFailed(localizer["FileStreamError"]);
             }
 
             await using var dbTransaction = await context.Database.BeginTransactionAsync();
@@ -41,7 +43,7 @@ namespace TTCCashRegister.Data.Import
                 if (dataTable?.Rows == null)
                 {
                     logger.LogWarning("No rows found in sheet: '{@name}'!", localizer["Bookings"]);
-                    return false;
+                    return operationResultFactory.ImportFailed(localizer["NoData"]);
                 }
 
                 var existingDocumentNumbers = new HashSet<int>(
@@ -56,7 +58,7 @@ namespace TTCCashRegister.Data.Import
                 if (cashRegister == null)
                 {
                     logger.LogError("Cash register not found: {@CashRegister}.", cashRegister);
-                    return false;
+                    return operationResultFactory.NotFound($"{localizer["CashRegister"]}",0);
                 }
 
                 var importCounter = 0;
@@ -71,7 +73,7 @@ namespace TTCCashRegister.Data.Import
                                 row.Table.Rows.IndexOf(row),
                                 row.ItemArray);
 
-                            return false;
+                            return operationResultFactory.ImportFailed(localizer["DateColumnError"]);
                         }
                         var date = DateOnly.FromDateTime(datum);
 
@@ -163,16 +165,18 @@ namespace TTCCashRegister.Data.Import
                         };
                         importCounter++;
 
-                        if (!await transactionService.AddTransactionAsync(transaction))
+                        var addResult = await transactionService.AddTransactionAsync(transaction);
+                        if (addResult.Status is OperationResultStatus.Failed)
                         {
                             logger.LogError("Failed to add transaction for document number: {DocumentNumber}", documentNumber);
-                            return false;
+                            return operationResultFactory.ImportFailed($"{localizer["DocumentNumberError"]} :" +
+                                                                       $"'{documentNumber}'");
                         }
                     }
                     catch (Exception rowEx)
                     {
                         logger.LogError(rowEx, "Error processing row: {@RowData}", row.ItemArray);
-                        return false;
+                        return operationResultFactory.ImportFailed(localizer["Exception"]);
                     }
                 }
 
@@ -183,12 +187,12 @@ namespace TTCCashRegister.Data.Import
                     logger.LogInformation("Number of imported transactions: {ImportCounter}", importCounter);
                 }
                 
-                return true;
+                return operationResultFactory.ImportSuccessful(fileName);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex,"An error occurred during import");
-                return false;
+                return operationResultFactory.ImportFailed(localizer["Exception"]);
             }
         }
     }

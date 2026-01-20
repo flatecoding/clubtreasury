@@ -51,7 +51,10 @@ NuGet: https://www.nuget.org/packages/ExcelDataReader.DataSet
 ## Validation
 
 ### FluentValidation — Apache License 2.0
-NuGet: https://www.nuget.org/packages/FluentValidation
+Apache License 2.0: see `Apache-2.0.txt`
+
+### FluentValidation.DependencyInjectionExtensions — Apache License 2.0
+Apache License 2.0: see `Apache-2.0.txt`
 
 ### Blazored.FluentValidation — MIT License
 NuGet: https://www.nuget.org/packages/Blazored.FluentValidation
@@ -64,7 +67,7 @@ NuGet: https://www.nuget.org/packages/Accelist.FluentValidation.Blazor
 ## Logging
 
 ### Serilog.AspNetCore — Apache License 2.0
-NuGet: https://www.nuget.org/packages/Serilog.AspNetCore
+Apache License 2.0: see `Apache-2.0.txt`
 
 ---
 

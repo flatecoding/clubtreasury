@@ -1,7 +1,9 @@
 @page "/exportbudget"
 @using System.Globalization
 @using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data.DialogService
 @using TTCCashRegister.Data.Export.Dialogs
+@using TTCCashRegister.Data.Notification
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction
 @inject ITransactionService TransactionService
@@ -75,7 +77,9 @@
 
     private async Task ShowExportBudgetDialog()
     {
-        var dialog = await DialogService.ShowAsync<ExportBudgetDialog>(Localizer["ExportBudget"], new DialogParameters());
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
+        await DialogService.ShowDialogWithNotificationAsync<ExportBudgetDialog>(NotificationService,
+            Localizer["ExportBudget"],
+            null,
+            new DialogOptions() { MaxWidth = MaxWidth.Small });
     }
 }

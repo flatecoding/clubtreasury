@@ -1,8 +1,10 @@
 ﻿using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using TTCCashRegister.Data.Export.Budget;
 using TTCCashRegister.Data.Export.Transaction;
 using TTCCashRegister.Data.Mapper;
+using TTCCashRegister.Data.OperationResult;
 using TTCCashRegister.Data.Transaction;
 using Path = System.IO.Path;
 
@@ -17,11 +19,15 @@ namespace TTCCashRegister.Data.Export
         private readonly IExcelBudgetWriter _excelWriter;
         private readonly string _exportPath;
         private readonly IPdfTransactionRenderer _transactionPdfRenderer;
+        private readonly IOperationResultFactory _operationResultFactory;
+        private readonly IStringLocalizer<Translation> _localizer;
         private const string CsvHeader = "Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung";
 
         public ExportService(CashDataContext context, ILogger<ExportService> logger, 
             IBudgetMapper budgetMapper, ICsvBudgetWriter csvWriter, 
             IExcelBudgetWriter excelWriter, IPdfTransactionRenderer pdfTransactionRenderer,
+            IOperationResultFactory operationResultFactory,
+            IStringLocalizer<Translation> localizer,
             IConfiguration configuration)
         {
             _context = context;
@@ -30,6 +36,8 @@ namespace TTCCashRegister.Data.Export
             _csvWriter = csvWriter;
             _excelWriter = excelWriter;
             _transactionPdfRenderer = pdfTransactionRenderer;
+            _operationResultFactory = operationResultFactory;
+            _localizer = localizer;
     
             var exportBasePath = configuration["ExportSettings:ExportPath"] ?? "Exports";
             
@@ -76,7 +84,7 @@ namespace TTCCashRegister.Data.Export
         }
 
 
-        public async Task<bool> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
+        public async Task<IOperationResult> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
         {
             try
             {
@@ -88,10 +96,9 @@ namespace TTCCashRegister.Data.Export
                 }
 
                 var transactions = await GetTransactionsInDateRange(begin, end);
-                transactions = transactions.OrderBy(t => t.Documentnumber).ToList();
 
                 var csv = new StringBuilder();
-                foreach (var transaction in transactions)
+                foreach (var transaction in transactions.OrderBy(t => t.Documentnumber))
                 {
                     csv.AppendLine(
                         $"{transaction.Documentnumber};{transaction.Description};{transaction.Sum};{transaction.AccountMovement}");
@@ -100,50 +107,50 @@ namespace TTCCashRegister.Data.Export
                 if (string.IsNullOrWhiteSpace(csv.ToString()))
                 {
                     _logger.LogError("CSV file for transactions could not be created");
-                    return false;
+                    return _operationResultFactory.ExportFailed($"{_localizer["NoData"]}");
                 }
 
                 await using var sw = new StreamWriter(Path.Combine(_exportPath, filename));
                 await sw.WriteLineAsync(CsvHeader);
                 await sw.WriteAsync(csv);
                 _logger.LogInformation("Export transactions to csv completed");
-                return true;
+                
+                return _operationResultFactory.ExportSuccessful(filename);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while exporting transactions to csv");
-                return false;
+                return _operationResultFactory.ExportFailed($"{_localizer["Exception"]}");
             }
         }
+
         
-        
-        public async Task<bool> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, 
+        public async Task<IOperationResult> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, 
             CancellationToken cancellationToken)
         {
             try
             {
                 var transactions = await GetTransactionsInDateRange(begin, end);
-
                 var filePath = Path.Combine(_exportPath, filename);
 
                 await _transactionPdfRenderer.RenderTransactionPdfExportAsync(transactions, begin, end, filePath, cancellationToken);
 
-                return true;
+                return _operationResultFactory.ExportSuccessful(filename);
             }
             catch (OperationCanceledException)
             {
                 _logger.LogWarning("PDF export canceled → {File}", filename);
-                return false;
+                return _operationResultFactory.Canceled();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "PDF export failed");
-                return false;
+                return _operationResultFactory.ExportFailed($"{_localizer["Exception"]}");
             }
         }
         
         
-        public async Task<bool> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
+       public async Task<IOperationResult> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
         {
             try
             {
@@ -159,23 +166,21 @@ namespace TTCCashRegister.Data.Export
                 var filePath = Path.Combine(_exportPath, filename);
                 await _csvWriter.WriteAsync(filePath, grouped);
                 _logger.LogInformation("Export budget to csv completed");
-                return true;
+                
+                return _operationResultFactory.ExportSuccessful(filename);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating budget csv");
-                return false;
+                return _operationResultFactory.ExportFailed(ex.Message);
             }
         }
-        
-        public async Task<bool> ExportBudgetToExcelWithCharts(DateTime begin, DateTime end, string filename)
+
+        public async Task<IOperationResult> ExportBudgetToExcelWithCharts(DateTime begin, DateTime end, string filename)
         {
             try
             {
-                _logger.LogInformation("Export budget to Excel started");
-
-                if (!Directory.Exists(_exportPath))
-                    Directory.CreateDirectory(_exportPath);
+                Directory.CreateDirectory(_exportPath);
 
                 var transactions = await GetBudgetByDateRange(begin, end);
                 var flatEntries = _budgetMapper.BuildFlatEntries(transactions);
@@ -185,21 +190,23 @@ namespace TTCCashRegister.Data.Export
                 await _excelWriter.WriteAsync(filePath, grouped, begin, end);
 
                 _logger.LogInformation("Export budget to Excel completed");
-                return true;
+                return _operationResultFactory.ExportSuccessful(filename);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Export budget to Excel: Error creating Excel file");
-                return false;
+                return _operationResultFactory.ExportFailed(ex.Message);
             }
         }
         
         public async Task<byte[]> ExportBudgetToExcelBytes(DateTime begin, DateTime end)
         {
             var filename = $"Budget_{begin:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-            var success = await ExportBudgetToExcelWithCharts(begin, end, filename);
+            var result = await ExportBudgetToExcelWithCharts(begin, end, filename);
 
-            if (!success) return Array.Empty<byte>();
+            if (result.Status != OperationResultStatus.Success) 
+                return Array.Empty<byte>();
+            
             var filePath = Path.Combine(_exportPath, filename);
             return await File.ReadAllBytesAsync(filePath);
         }

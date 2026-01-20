@@ -1,6 +1,8 @@
+using TTCCashRegister.Data.OperationResult;
+
 namespace TTCCashRegister.Data.Import;
 
 public interface IImportCostCenterService
 {
-    Task<bool> ImportCostCentersAndPositions(Stream fileStream);
+    Task<IOperationResult> ImportCostCentersAndPositions(Stream? fileStream, string fileName);
 }

@@ -1,39 +1,46 @@
 ﻿@page "/export-transaction-dialog"
+@using FluentValidation
 @using Microsoft.Extensions.Localization
 @using MudExtensions
+@using TTCCashRegister.Data.Export
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction
 @inject ITransactionService TransactionService
-@inject ISnackbar Snackbar
+@inject IOperationResultFactory OperationResultFactory
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ExportTransactionDialog> Logger
+@inject ExportModelValidator ExportModelValidator
+@inject INotificationService NotificationService
 
 <MudDialog>
     <DialogContent>
-        <MudForm>
+        <MudForm Model="@_model" @ref="_form" Validation="@(ExportModelValidator.ValidateValue)" ValidationDelay="0">
             <MudGrid Spacing="2">
                 <MudItem xs="12">
                     <MudDateRangePicker
                         Label="@Localizer["DateRange"]"
-                        @bind-DateRange="DateRange"
+                        @bind-DateRange="_model.DateRange"
                         Editable="true"
                         DateFormat="dd.MM.yyyy"
                         FullWidth />
                 </MudItem>
 
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_fileName"
+                    <MudTextField @bind-Value="_model.FileName"
+                                  For="@(() => _model.FileName)"
                                   Label="@Localizer["FileName"]"
                                   Placeholder="@Localizer["FileName"]"
                                   Required="true"
-                                  fullwidth />
+                                  FullWidth />
                 </MudItem>
             </MudGrid>
         </MudForm>
     </DialogContent>
 
     <DialogActions>
-        <MudLoadingButton @bind-Loading="_isExporting"
+        <MudLoadingButton @bind-Loading="_isExportingPdf"
                           Size="Size.Small"
                           LoadingAdornment="Adornment"
                           OnClick="@(async () => await ExportPdf())"
@@ -41,7 +48,7 @@
             @Localizer["ExportPdf"]
         </MudLoadingButton>
 
-        <MudLoadingButton @bind-Loading="_isExporting"
+        <MudLoadingButton @bind-Loading="_isExportingCsv"
                           Size="Size.Small"
                           LoadingAdornment="Adornment"
                           OnClick="@(async () => await ExportCsv())"
@@ -57,91 +64,109 @@
     </DialogActions>
 </MudDialog>
 
-
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-    [Parameter] public DateRange? DateRange { get; set; }
-    private string _fileName = string.Empty;
-    private bool _isExporting;
+    
+    private MudForm _form = null!;
+    private readonly ExportModel _model = new();
+    private bool _isExportingCsv;
+    private bool _isExportingPdf;
     private const Adornment Adornment = MudBlazor.Adornment.Start;
-    const int CExportTimeOut = 30;
+    private const int CExportTimeOut = 30;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        DateRange = new DateRange(UTools.GetBeginDateTime(), DateTime.Now);
+        _model.DateRange = new DateRange(UTools.GetBeginDateTime(), DateTime.Now);
     }
 
     private async Task ExportCsv()
     {
-        _isExporting = true;
+        await _form.Validate();
+        var dateErrors = GetDateRangeErrors();
+        if (!_form.IsValid || dateErrors is not null)
+        {
+            if (dateErrors is not null)
+                await NotificationService.ShowOperationResultAsync(dateErrors);
+            return;
+        }
+
+        _isExportingCsv = true;
         try
         {
-            if (DateRange is { Start: not null, End: not null })
-            {
-                var start = DateRange.Start.Value.Date;
-                var end = DateRange.End.Value.Date;
-                if (start > end)
-                {
-                    Snackbar.Add( $"{Localizer["DateRangeError"]}", Severity.Warning);
-                    Logger.LogError("Export not possible! Start can't be after end date!");
-                    return;
-                }
+            var start = _model.DateRange!.Start!.Value.Date;
+            var end = _model.DateRange.End!.Value.Date;
+            var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
+            
+            var result = await TransactionService.ExportTransactionsToCsv(start, end, filename);
 
-                var filename = $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
-
-                var result = await TransactionService.ExportTransactionsToCsv(start, end, filename);
-                MudDialog.Close(DialogResult.Ok(result));
-            }
+            MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "Error occured during export transactions to csv-file");
-            MudDialog.Close(DialogResult.Ok(false));
+            Logger.LogCritical(ex, "Error occurred during export transactions to csv-file");
+            MudDialog.Close(DialogResult.Ok(
+                OperationResultFactory.ExportFailed($"{Localizer["Exception"]}")));
         }
         finally
         {
-            _isExporting = false;
+            _isExportingCsv = false;
         }
     }
     
     private async Task ExportPdf()
     {
-        _isExporting = true;
+        await _form.Validate();
+        var dateErrors = GetDateRangeErrors();
+        if (!_form.IsValid || dateErrors is not null)
+        {
+            if (dateErrors is not null)
+                await NotificationService.ShowOperationResultAsync(dateErrors);
+            return;
+        }
+
+        _isExportingPdf = true;
         try
         {
-            if (DateRange is { Start: not null, End: not null })
-            {
-                var start = DateRange.Start.Value.Date;
-                var end = DateRange.End.Value.Date;
-                if (start > end)
-                {
-                    return;
-                }
-                var filename = $"{_fileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(CExportTimeOut));
-                var result = await TransactionService.ExportTransactionsToPdf(start, end, filename, cts.Token);
-                MudDialog.Close(DialogResult.Ok(result));
-            }
+            var start = _model.DateRange!.Start!.Value.Date;
+            var end = _model.DateRange.End!.Value.Date;
+            var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
+            
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(CExportTimeOut));
+            var result = await TransactionService.ExportTransactionsToPdf(start, end, filename, cts.Token); 
+
+            MudDialog.Close(DialogResult.Ok(result));
         }
         catch (OperationCanceledException)
         {
-            Logger.LogWarning("PDF export was canceled (timeout {TimeOut}s) → {Filename}", CExportTimeOut, _fileName);
-            MudDialog.Close(DialogResult.Ok(false));
+            Logger.LogWarning("PDF export was canceled (timeout {TimeOut}s) → {Filename}", CExportTimeOut, _model.FileName);
+            MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "Error occured during export transactions to pdf-file");
-            MudDialog.Close(DialogResult.Ok(false));
+            Logger.LogCritical(ex, "Error occurred during export transactions to pdf-file");
+            MudDialog.Close(DialogResult.Ok(
+                OperationResultFactory.ExportFailed($"{Localizer["Exception"]}")));
         }
         finally
         {
-            _isExporting = false;
+            _isExportingPdf = false;
         }
     }
+    
+    private IOperationResult? GetDateRangeErrors()
+    {
+        var result = ExportModelValidator.Validate(
+            _model,
+            options => options.IncludeProperties(x => x.DateRange));
 
+        return result.IsValid
+            ? null
+            : OperationResultFactory.DateRangeInvalid(result.ToString());
+    }
+    
     private void Cancel()
     {
-        MudDialog.Cancel();
+        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
     }
 }

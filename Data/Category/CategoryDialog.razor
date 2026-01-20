@@ -1,0 +1,100 @@
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
+
+@inject ICategoryService CategoryService
+@inject IStringLocalizer<Translation> Localizer
+@inject INotificationService NotificationService
+@inject IOperationResultFactory OperationResultFactory
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form"
+                 Model="_categoryModel"
+                 Validation="_categoryValidator.ValidateValue"
+                 ValidationDelay="0">
+
+            <MudTextField @bind-Value="_categoryModel.Name"
+                          Label="@Localizer["Category"]"
+                          For="@(() => _categoryModel.Name)"
+                          Immediate="true"
+                          Required="true" />
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Primary"
+                   OnClick="@(async () => await Save())">
+            @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
+        </MudButton>
+
+        <MudButton Color="Color.Error"
+                   OnClick="@Cancel">
+            @Localizer["Cancel"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int? CategoryId { get; set; }
+
+    [CascadingParameter] 
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private MudForm _form = new();
+    private CategoryModel _categoryModel = new();
+    private readonly CategoryValidator _categoryValidator = new();
+
+    private bool _isEditMode;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isEditMode = CategoryId.HasValue;
+
+        if (_isEditMode && CategoryId is not null)
+        {
+            _categoryModel =
+                await CategoryService.GetCategoryByIdAsync(CategoryId.Value)
+                ?? new CategoryModel();
+
+            await MudDialog.SetTitleAsync(Localizer["Edit"]);
+        }
+        else
+        {
+            _categoryModel = new CategoryModel();
+            await MudDialog.SetTitleAsync(Localizer["AddEntry"]);
+        }
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (!_form.IsValid)
+            return;
+
+        IOperationResult result;
+
+        if (_isEditMode)
+        {
+            result = await CategoryService.UpdateCategoryAsync(_categoryModel);
+        }
+        else
+        {
+            result = await CategoryService.AddCategoryAsync(_categoryModel);
+        }
+
+        if (result.Status is OperationResultStatus.Success)
+        {
+            MudDialog.Close(DialogResult.Ok(result));
+        }
+        else
+        {
+            await NotificationService.ShowOperationResultAsync(result);
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    }
+}

@@ -1,9 +1,11 @@
 @page "/import-transaction-dialog"
 @using Microsoft.Extensions.Localization
 @using MudExtensions
+@using TTCCashRegister.Data.OperationResult
 @inject IImportBookingJournalService ImportBookingJournalService
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ImportTransactionDialog> Logger
+@inject IOperationResultFactory OperationResultFactory
 
 <MudDialog>
     <DialogContent>
@@ -72,13 +74,16 @@
             try
             {
                 await using var stream = _file.OpenReadStream();
-                var result = await ImportBookingJournalService.ImportTransactions(stream);
-                MudDialog.Close(DialogResult.Ok(result));
+                if (_fileName != null)
+                {
+                    var result = await ImportBookingJournalService.ImportTransactions(stream, _fileName);
+                    MudDialog.Close(DialogResult.Ok(result));
+                }
             }
             catch (Exception ex)
             {
-                Logger.LogCritical(ex, "An exception occurred while deleting entity: {_fileName}", _fileName);
-                MudDialog.Close(DialogResult.Ok(false));
+                Logger.LogCritical(ex, "An exception occurred while importing transactions: {_fileName}", _fileName);
+                MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["Exception"])));
             }
             finally
             {

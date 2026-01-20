@@ -1,7 +1,11 @@
 @page "/confirmdelete"
 @using Microsoft.Extensions.Localization
 @using MudExtensions
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @inject ILogger<ConfirmDeleteDialog> Logger
+@inject INotificationService NotificationService
+@inject IOperationResultFactory OperationResultFactory
 
 <MudDialog>
     <DialogContent>
@@ -45,15 +49,37 @@
 
     private async Task Confirm()
     {
-        if (OnConfirm.HasDelegate)
-            await OnConfirm.InvokeAsync();
-        Logger.LogInformation("An entity was deleted: EntityType: {EntityName}, Item: {ItemName}", EntityName, ItemName);
-        MudDialog.Close(DialogResult.Ok(true));
+        try
+        {
+            if (OnConfirm.HasDelegate)
+                await OnConfirm.InvokeAsync();
+            Logger.LogInformation("An entity was deleted: '{EntityName}', Item: '{ItemName}'", EntityName, ItemName);
+
+            MudDialog.Close(DialogResult.Ok(
+                OperationResultFactory.SuccessDeleted($"{EntityName}: '{ItemName}'")));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(
+                ex,
+                "Error deleting entity: EntityType: {EntityName}, Item: {ItemName}",
+                EntityName,
+                ItemName);
+
+            MudDialog.Close(
+                DialogResult.Ok(
+                    OperationResultFactory.FailedToDelete($"{EntityName}: '{ItemName}'")));
+        }
     }
 
     private void Cancel()
     {
-        Logger.LogInformation("Delete dialog for {EntityName} => {ItemName} was aborted", EntityName, ItemName);
-        MudDialog.Close(DialogResult.Cancel());
+        Logger.LogInformation(
+            "Delete dialog for {EntityName} => {ItemName} was aborted",
+            EntityName,
+            ItemName);
+
+        MudDialog.Close(
+            DialogResult.Ok(OperationResultFactory.Canceled()));
     }
 }

@@ -1,11 +1,10 @@
 @page "/allocations"
 @using Microsoft.Extensions.Localization
-@using TTCCashRegister.Data.Allocation.Dialog
-@using TTCCashRegister.Data.Dialog
-@using TTCCashRegister.Data.Source
+@using TTCCashRegister.Data.DialogService
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @inject IAllocationService AllocationService
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
 @inject INotificationService NotificationService
 @inject IStringLocalizer<Translation> Localizer
 
@@ -107,14 +106,6 @@
     private AllocationModel? _selectedAllocation;
     private string _searchString = string.Empty;
 
-    private readonly DialogOptions _dialogOptions = new()
-    {
-        MaxWidth = MaxWidth.Medium,
-        FullWidth = true,
-        BackdropClick = false,
-        CloseButton = true
-    };
-
     protected override async Task OnInitializedAsync()
     {
         await UpdateAllocations();
@@ -145,33 +136,38 @@
 
     private async Task ShowAddAllocationDialog()
     {
-        var dialog = await DialogService.ShowAsync<AllocationDialog>(string.Empty);
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateAllocations();
+        var result = await DialogService.ShowDialogWithNotificationAsync<AllocationDialog>(
+            NotificationService);
+    
+        if (result?.Status == OperationResultStatus.Success)
+        {
+            await UpdateAllocations();
+        }
     }
 
     private async Task ShowEditAllocationDialog(int allocationId)
     {
         var parameters = new DialogParameters { ["AllocationId"] = allocationId };
-        var dialog = await DialogService.ShowAsync<AllocationDialog>($"{Localizer["Edit"]} ", parameters, _dialogOptions);
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateAllocations();
+    
+        var result = await DialogService.ShowDialogWithNotificationAsync<AllocationDialog>(
+            NotificationService,
+            $"{Localizer["Edit"]} ",
+            parameters);
+    
+        if (result?.Status == OperationResultStatus.Success)
+        {
+            await UpdateAllocations();
+        }
     }
 
     private async Task ShowDeleteAllocationDialog(AllocationModel allocation)
     {
-        var parameters = new DialogParameters
-        {
-            ["EntityName"] = Localizer["Allocation"].Value,
-            ["ItemName"] = $"{allocation.CostCenter.CostUnitName} - {allocation.Category.Name}",
-            ["OnConfirm"] = EventCallback.Factory.Create(this, async () =>
-            {
-                await AllocationService.DeleteAllocationAsync(allocation.Id);
-                await UpdateAllocations();
-                Snackbar.Add($"{Localizer["DeleteSuccessful"]}", Severity.Success);
-            })
-        };
-
-        await DialogService.ShowAsync<ConfirmDeleteDialog>($"{Localizer["Delete"]}", parameters, _dialogOptions);
+        await DialogService.ShowConfirmDeleteDialogAsync(
+            NotificationService,
+            entityName: Localizer["Allocation"].Value,
+            itemName: $"{allocation.CostCenter.CostUnitName} - {allocation.Category.Name} - {allocation.ItemDetail?.CostDetails}",
+            onConfirm: () => AllocationService.DeleteAllocationAsync(allocation.Id),
+            onSuccess: UpdateAllocations,
+            deleteTitle: Localizer["Delete"]);
     }
 }

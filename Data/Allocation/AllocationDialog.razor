@@ -3,11 +3,15 @@
 @using TTCCashRegister.Data.Category
 @using TTCCashRegister.Data.CostCenter
 @using TTCCashRegister.Data.ItemDetail
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @inject IAllocationService AllocationService
 @inject ICostCenterService CostCenterService
 @inject ICategoryService CategoryService
 @inject IItemDetailService ItemDetailService
 @inject IStringLocalizer<Translation> Localizer
+@inject INotificationService NotificationService
+@inject IOperationResultFactory OperationResultFactory
 
 <MudDialog>
     <DialogContent>
@@ -85,7 +89,6 @@
             _allocationModel = new AllocationModel();
             await MudDialog.SetTitleAsync($"{Localizer["AddEntry"]}");
         }
-
         StateHasChanged();
     }
 
@@ -94,19 +97,26 @@
         await _form.Validate();
         if (_form.IsValid)
         {
-            bool result;
+            IOperationResult result;
             if (_isEditMode) 
                 result = await AllocationService.UpdateAllocationAsync(_allocationModel);
             else
                 result = await AllocationService.AddAllocationAsync(_allocationModel);
 
-            MudDialog.Close(DialogResult.Ok(result));
+            if (result.Status is OperationResultStatus.Success)
+            {
+                MudDialog.Close(DialogResult.Ok(result));
+            }
+            else
+            {
+                await NotificationService.ShowOperationResultAsync(result);
+            }
         }
     }
 
     private void Cancel()
     {
-        MudDialog.Close(DialogResult.Cancel());
+        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
     }
     
     private string CostCenterIdToString(int id)

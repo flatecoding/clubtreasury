@@ -1,9 +1,13 @@
 @page "/transactiondetailsdialog"
 @using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @using TTCCashRegister.Data.Person
 @inject ITransactionDetailsService TransactionDetailsService
 @inject IPersonService PersonService
 @inject IStringLocalizer<Translation> Localizer
+@inject INotificationService NotificationService
+@inject IOperationResultFactory OperationResultFactory
 
 <MudDialog>
     <DialogContent>
@@ -100,16 +104,22 @@
         await _form.Validate();
         if (_form.IsValid)
         {
+            IOperationResult result;
             if (_isEditMode)
-                await TransactionDetailsService.UpdateTransactionDetailsAsync(_transactionDetailsModel);
+                result = await TransactionDetailsService.UpdateTransactionDetailsAsync(_transactionDetailsModel);
             else
-                await TransactionDetailsService.AddTransactionDetailsAsync(_transactionDetailsModel);
-
-            MudDialog.Close(DialogResult.Ok(true));
+                result = await TransactionDetailsService.AddTransactionDetailsAsync(_transactionDetailsModel);
+            
+            if(result.Status is OperationResultStatus.Success)
+                MudDialog.Close(DialogResult.Ok(result));
+            else
+            {
+                await NotificationService.ShowOperationResultAsync(result);
+            }
         }
     }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Cancel());
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
     
     private string PersonIdToName(int? id)
     {

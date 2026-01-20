@@ -1,10 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
+using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.TransactionDetails;
 
-public class TransactionDetailsService(CashDataContext context, ILogger<TransactionDetailsService> logger) 
+public class TransactionDetailsService(CashDataContext context, ILogger<TransactionDetailsService> logger,
+    IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory)
     : ITransactionDetailsService
 {
+    private string EntityName => localizer["TransactionDetails"];
     public async Task<List<TransactionDetailsModel>> GetAllTransactionDetailsAsync()
     {
         return await context.TransactionDetails
@@ -30,54 +34,69 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
             .ToListAsync();
     }
     
-    public async Task AddTransactionDetailsAsync(TransactionDetailsModel detailsModel)
-    {
-        context.TransactionDetails.Add(detailsModel);
-        await context.SaveChangesAsync();
-        logger.LogInformation("Transaction details added: {@DetailsModelDescription}, Sum: {@Sum}" +
-                              " Name: {@Name}" , 
-            detailsModel.Description,  decimal.Round(detailsModel.Sum, 2), detailsModel.Person?.Name ?? "null");
-    }
-    
-    public async Task UpdateTransactionDetailsAsync(TransactionDetailsModel detailsModel)
-    {
-        var existing = await context.TransactionDetails.FindAsync(detailsModel.Id);
-        if (existing == null) return;
-
-        existing.TransactionId = detailsModel.TransactionId;
-        existing.Description = detailsModel.Description;
-        existing.Sum = detailsModel.Sum;
-        existing.PersonId = detailsModel.PersonId;
-
-        await context.SaveChangesAsync();
-        logger.LogInformation("Transaction details updated: {@DetailsModelDescription}, Sum: {@SUm}" +
-                              " Name: {@Name}" , 
-            detailsModel.Description, decimal.Round(detailsModel.Sum, 2),  detailsModel.Person?.Name ?? "null");
-    }
-    
-    public async Task DeleteAsync(int id)
+    public async Task<IOperationResult> AddTransactionDetailsAsync(TransactionDetailsModel detailsModel)
     {
         try
         {
-            var existing = await context.TransactionDetails.FindAsync(id);
-            if (existing == null)
+            context.TransactionDetails.Add(detailsModel);
+            await context.SaveChangesAsync();
+            logger.LogInformation("Transaction details added: {@DetailsModelDescription}, Sum: {@Sum}" +
+                                  " Name: {@Name}" , 
+                detailsModel.Description,  decimal.Round(detailsModel.Sum, 2), detailsModel.Person?.Name ?? "null");
+            return operationResultFactory.SuccessAdded($"{EntityName}: '{detailsModel.Description}'", detailsModel.Person?.Name ?? "null");
+
+        }
+        catch (Exception e)
+        {
+            logger.LogCritical(EntityName, e);
+            return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
+        }
+        
+    }
+    
+    public async Task<IOperationResult> UpdateTransactionDetailsAsync(TransactionDetailsModel detailsModel)
+    {
+        try
+        {
+            context.TransactionDetails.Update(detailsModel);
+            await context.SaveChangesAsync();
+            logger.LogInformation("Transaction details updated: {@DetailsModelDescription}, Sum: {@SUm}" +
+                                  " Name: {@Name}" , 
+                detailsModel.Description, decimal.Round(detailsModel.Sum, 2),  detailsModel.Person?.Name ?? "null");
+            return operationResultFactory.SuccessUpdated($"{EntityName}: '{detailsModel.Description}'", detailsModel);
+        }
+        catch (Exception e)
+        {
+            logger.LogCritical(EntityName, e);
+            return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
+        }
+    }
+    
+    public async Task<IOperationResult> DeleteTransactionDetailsAsync(int id)
+    {
+        try
+        {
+            var existing = await GetTransactionDetailsByIdAsync(id);
+            if (existing is null)
             {
                 logger.LogError("Transaction details not found with id: {Id}", id);
-                return;
+                return operationResultFactory.NotFound(EntityName, id);
             }
-
             context.TransactionDetails.Remove(existing);
             await context.SaveChangesAsync();
             logger.LogInformation("Transaction details deleted: {@DetailsModelDescription}, Sum: {@Sum} Name: {@Name}", 
                 existing.Description,  decimal.Round(existing.Sum, 2),  existing.Person?.Name ?? "null");
+            return operationResultFactory.SuccessDeleted($"{EntityName}: '{existing.Description}'");
         }
         catch (DbUpdateException dbUpdateException)
         {
             logger.LogCritical(dbUpdateException, "An exception occurred while deleting transaction with id: {Id}", id);
+            return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
         catch (Exception ex)
         {
             logger.LogCritical(ex, "An exception occurred while deleting transaction with id: {Id}", id);
+            return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
     }
 }

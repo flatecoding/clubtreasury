@@ -5,6 +5,8 @@
 @using TTCCashRegister.Data.Category
 @using TTCCashRegister.Data.CostCenter
 @using TTCCashRegister.Data.ItemDetail
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @using TTCCashRegister.Data.SpecialItem
 @using TTCCashRegister.Data.Transaction
 @inject ITransactionService TransactionService
@@ -14,6 +16,8 @@
 @inject ICashRegisterService CashRegisterService
 @inject ISpecialItemService SpecialItemService
 @inject IStringLocalizer<Translation> Localizer
+@inject INotificationService NotificationService
+@inject IOperationResultFactory OperationResultFactory
 
 <MudDialog>
     <DialogContent>
@@ -241,13 +245,17 @@
         {
             MapFormToModel();
 
-            bool success;
+            IOperationResult result;
             if (_isEditMode)
-                success = await TransactionService.UpdateTransactionAsync(_transactionModel);
+                result = await TransactionService.UpdateTransactionAsync(_transactionModel);
             else
-                success = await TransactionService.AddTransactionAsync(_transactionModel);
-
-            MudDialog.Close(DialogResult.Ok(success));
+                result = await TransactionService.AddTransactionAsync(_transactionModel);
+            if(result.Status is OperationResultStatus.Success)
+                MudDialog.Close(DialogResult.Ok(result));
+            else
+            {
+                await NotificationService.ShowOperationResultAsync(result);
+            }
         }
     }
 
@@ -293,5 +301,6 @@
            && _selectedCashRegisterModel?.Id >= 1
            && TransactionDateTime.HasValue;
 
-    private void Cancel() => MudDialog.Close(DialogResult.Cancel());
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled())); 
+    
 }

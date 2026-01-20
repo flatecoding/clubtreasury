@@ -1,6 +1,5 @@
 //using Devart.Data.MySql;
 
-using System.Globalization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
@@ -11,25 +10,10 @@ using MudExtensions.Services;
 using OfficeOpenXml;
 using QuestPDF.Infrastructure;
 using Serilog;
-using TTCCashRegister;
 using TTCCashRegister.Areas.Identity;
 using TTCCashRegister.Data;
-using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.CashRegister;
-using TTCCashRegister.Data.Category;
-using TTCCashRegister.Data.CostCenter;
-using TTCCashRegister.Data.Culture;
-using TTCCashRegister.Data.Export;
-using TTCCashRegister.Data.Export.Budget;
-using TTCCashRegister.Data.Export.Transaction;
-using TTCCashRegister.Data.Import;
-using TTCCashRegister.Data.ItemDetail;
-using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.Source;
-using TTCCashRegister.Data.SpecialItem;
-using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.TransactionDetails;
-using TTCCashRegister.Data.Mapper;
+using TTCCashRegister.Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
@@ -85,24 +69,8 @@ builder.Services.AddLocalization(options => options.ResourcesPath = "Resources")
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
-builder.Services.AddScoped<IItemDetailService, ItemDetailService>();
-builder.Services.AddScoped<ICostCenterService, CostCenterService>();
-builder.Services.AddScoped<ITransactionService, TransactionService>();
-builder.Services.AddScoped<ISpecialItemService, SpecialItemService>();
-builder.Services.AddScoped<ICashRegisterService, CashRegisterService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IExportService, ExportService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddScoped<IImportCostCenterService, ImportCostCenterService>();
-builder.Services.AddScoped<IImportBookingJournalService, ImportBookingJournalService>();
-builder.Services.AddScoped<IPersonService, PersonService>();
-builder.Services.AddScoped<ITransactionDetailsService, TransactionDetailsService>();
-builder.Services.AddScoped<IAllocationService, AllocationService>();
-builder.Services.AddScoped<IBudgetMapper, BudgetMapper>();
-builder.Services.AddScoped<ICsvBudgetWriter, CsvBudgetWriter>();
-builder.Services.AddScoped<IExcelBudgetWriter, ExcelBudgetWriter>();
-builder.Services.AddScoped<IPdfTransactionRenderer, PdfTransactionRenderer>();
-builder.Services.AddScoped<ICultureService, CultureService>();
+builder.Services.AddApplicationServices()
+                .AddValidation();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;

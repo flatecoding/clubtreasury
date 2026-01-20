@@ -1,10 +1,11 @@
 @page "/import-cost-center-dialog"
 @using Microsoft.Extensions.Localization
 @using MudExtensions
-@using Serilog
+@using TTCCashRegister.Data.OperationResult
 @inject IImportCostCenterService ImportCostCenterService
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ImportCostCenters> Logger
+@inject IOperationResultFactory OperationResultFactory
 
 <MudDialog>
     <DialogContent>
@@ -60,13 +61,17 @@
             try
             {
                 await using var stream = _file?.OpenReadStream();
-                var result = stream != null && await ImportCostCenterService.ImportCostCentersAndPositions(stream);
-                MudDialog.Close(DialogResult.Ok(result));
+                if (stream is not null && _file is not null)
+                {
+                    var result = await ImportCostCenterService.ImportCostCentersAndPositions(stream, _file.Name);
+                    MudDialog.Close(DialogResult.Ok(result));
+                }
+                
             }
             catch (Exception ex)
             {
                 Logger.LogCritical(ex, "An error occured during import of file: '{_fileName}':", _fileName);
-                MudDialog.Close(DialogResult.Ok(false));
+                MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["Exception"])));
             }
             finally
             {
@@ -77,6 +82,6 @@
 
     private void Cancel()
     {
-        MudDialog.Cancel();
+        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
     }
 }

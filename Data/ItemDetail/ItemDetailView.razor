@@ -1,10 +1,14 @@
 ﻿@page "/itemdetails"
 @using Microsoft.Extensions.Localization
-@using TTCCashRegister.Data.ItemDetail.Dialogs
+@using NuGet.Frameworks
+@using TTCCashRegister.Data.DialogService
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @inject IItemDetailService ItemDetailService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<Translation> Localizer
+@inject INotificationService NotificationService
 
 <MudGrid Spacing="0">
     <MudItem xs="12">
@@ -68,7 +72,7 @@
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
                                        aria-label="delete"
-                                       OnClick="@(() => ShowDeleteUnitDetailsDialog(context.Id))" />
+                                       OnClick="@(() => ShowDeleteUnitDetailsDialog(context))" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -88,13 +92,6 @@
     private const bool Bordered = false;
     private string _searchString1 = string.Empty;
     private ItemDetailModel _selectedItem = new();
-    private readonly DialogOptions _dialogOptions = new()
-    {
-        MaxWidth = MaxWidth.Medium,
-        FullWidth = true,
-        BackdropClick = false,
-        BackgroundClass= "custom-dialog-background"
-    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -120,38 +117,41 @@
 
     private async Task ShowAddUnitDetailsDialog()
     {
-        var parameters = new DialogParameters();
-        
-        var dialog = await DialogService.ShowAsync<AddItemDetailDialog>($"{Localizer["AddEntry"]}", 
-            parameters, _dialogOptions);
-        if ((await dialog.Result)?.Canceled == false)
+        var result = await DialogService.ShowDialogWithNotificationAsync<ItemDetailDialog>(NotificationService);
+
+        if (result?.Status is OperationResultStatus.Success)
         {
-            _allEntries = await ItemDetailService.GetAllItemDetailsAsync();
-            Snackbar.Add($"{Localizer["AddSuccessful"]}", Severity.Success);
+            await UpdateView();
         }
+    }
+
+    private async Task UpdateView()
+    {
+        _allEntries = await ItemDetailService.GetAllItemDetailsAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ShowEditUnitDetailsDialog(int itemDetailId)
     {
-        var parameters = new DialogParameters { ["ItemDetailId"] = itemDetailId };
-        var dialog = await DialogService.ShowAsync<EditItemDetailDialog>($"{Localizer["Edit"]}", 
-            parameters, _dialogOptions);
-        if ((await dialog.Result)?.Canceled == false)
+        var result = await DialogService.ShowDialogWithNotificationAsync<ItemDetailDialog>(NotificationService, 
+            $"{Localizer["Edit"]}",
+            new DialogParameters { ["ItemDetailId"] = itemDetailId }
+            );
+        
+        if (result?.Status is OperationResultStatus.Success)
         {
-            _allEntries = await ItemDetailService.GetAllItemDetailsAsync();
-            Snackbar.Add($"{Localizer["UpdateSuccessful"]}", Severity.Success);
+            await UpdateView();
         }
     }
 
-    private async Task ShowDeleteUnitDetailsDialog(int itemDetailId)
+    private async Task ShowDeleteUnitDetailsDialog(ItemDetailModel itemDetail)
     {
-        var parameters = new DialogParameters { ["ItemDetailId"] = itemDetailId };
-        var dialog = await DialogService.ShowAsync<DeleteItemDetailDialog>($"{Localizer["Delete"]}", 
-            parameters, _dialogOptions);
-        if ((await dialog.Result)?.Canceled == false)
-        {
-            _allEntries = await ItemDetailService.GetAllItemDetailsAsync();
-            Snackbar.Add($"{Localizer["DeleteSuccessful"]}", Severity.Success);
-        }
+        await DialogService.ShowConfirmDeleteDialogAsync(
+            NotificationService,
+            entityName: Localizer["ItemDetail"].Value,
+            itemName: $"{itemDetail.CostDetails}",
+            onConfirm: () => ItemDetailService.DeleteItemDetailAsync(itemDetail.Id),
+            onSuccess: UpdateView,
+            deleteTitle: Localizer["Delete"]);
     }
 }

@@ -1,0 +1,79 @@
+@page "/cashregisterdialog"
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data.CashRegister
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
+@inject ICashRegisterService CashRegisterService
+@inject IStringLocalizer<Translation> Localizer
+@inject INotificationService NotificationService
+@inject IOperationResultFactory OperationResultFactory
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_cashRegisterModel" Validation="_cashRegisterValidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_cashRegisterModel.Name" Label="@Localizer["Name"]"
+                          For="@(() => _cashRegisterModel.Name)" Immediate="true"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="@(async () => await Save())">
+            @(_isEditMode ? $"{Localizer["Save"]}" : $"{@Localizer["AddEntry"]}")
+        </MudButton>
+        <MudButton Color="Color.Error" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int? CashRegisterId { get; set; }
+    private MudForm _form = new();
+    private CashRegisterModel _cashRegisterModel = new();
+    private readonly CashRegisterValidator _cashRegisterValidator = new();
+    private bool _isEditMode;
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isEditMode = CashRegisterId.HasValue;
+
+        if (_isEditMode && CashRegisterId is not null)
+        {
+            _cashRegisterModel = await CashRegisterService.GetCashRegisterById(CashRegisterId.Value) ?? new CashRegisterModel();
+            await MudDialog.SetTitleAsync($"{Localizer["Edit"]}");
+        }
+        else
+        {
+            _cashRegisterModel = new CashRegisterModel();
+            await MudDialog.SetTitleAsync($"{Localizer["AddEntry"]}");
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            IOperationResult result;
+            if (_isEditMode)
+                result = await CashRegisterService.UpdateCashRegister(_cashRegisterModel);
+            else
+                result = await CashRegisterService.AddCashRegister(_cashRegisterModel);
+
+            if (result.Status is OperationResultStatus.Success)
+            {
+                MudDialog.Close(DialogResult.Ok(result));
+            }
+            else
+            {
+                await NotificationService.ShowOperationResultAsync(result);
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    }
+}

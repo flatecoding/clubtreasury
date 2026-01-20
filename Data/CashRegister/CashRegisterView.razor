@@ -1,8 +1,9 @@
 ﻿@page "/cashregisters"
 @using System.Globalization
 @using Microsoft.Extensions.Localization
-@using TTCCashRegister.Data.CashRegister.Dialogs
-@using TTCCashRegister.Data.Source
+@using TTCCashRegister.Data.DialogService
+@using TTCCashRegister.Data.Notification
+@using TTCCashRegister.Data.OperationResult
 @inject ICashRegisterService CashRegisterService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
@@ -74,7 +75,7 @@
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
                                        aria-label="@Localizer["Delete"].Value"
-                                       OnClick="@(() => ShowDeleteCashRegisterDialog(context.Id))" />
+                                       OnClick="@(() => ShowDeleteCashRegisterDialog(context))" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -93,6 +94,14 @@
     private const bool Bordered = false;
     private string _searchString1 = string.Empty;
     private CashRegisterModel _selectedItem = new();
+    
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true,
+        BackdropClick = false,
+        CloseButton = true
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -118,30 +127,44 @@
 
     private async Task ShowAddCashRegisterDialog()
     {
-        var dialog = await DialogService.ShowAsync<AddCashRegisterDialog>($"{Localizer["AddEntry"]}", new DialogParameters());
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+       var result = await DialogService.ShowDialogWithNotificationAsync<CashRegisterDialog>(
+            NotificationService);
+    
+        if (result?.Status == OperationResultStatus.Success)
+        {
+            await UpdateView();
+        }
     }
     
     private async Task ShowEditCashRegisterDialog(int cashRegisterId)
     {
-        var dialog = await DialogService.ShowAsync<EditCashRegisterDialog>($"{Localizer["Edit"]}", 
-            new DialogParameters { ["CashRegisterId"] = cashRegisterId });
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
-    }
-
-    private async Task ShowDeleteCashRegisterDialog(int cashRegisterId)
-    {
-        var dialog = await DialogService.ShowAsync<DeleteCashRegisterDialog>($"{Localizer["Delete"]}", 
-            new DialogParameters { ["CashRegisterId"] = cashRegisterId });
-        await NotificationService.ShowDialogResultAsync(await dialog.Result);
-        await UpdateView();
+        var parameters = new DialogParameters { ["CashRegisterId"] = cashRegisterId };
+    
+        var result = await DialogService.ShowDialogWithNotificationAsync<CashRegisterDialog>(
+            NotificationService,
+            $"{Localizer["Edit"]} ",
+            parameters);
+    
+        if (result?.Status == OperationResultStatus.Success)
+        {
+            await UpdateView();
+        }
     }
     
     private async Task UpdateView()
     {
         _allEntries = await CashRegisterService.GetAllCashRegisters();
         await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task ShowDeleteCashRegisterDialog(CashRegisterModel cashRegister)
+    {
+        await DialogService.ShowConfirmDeleteDialogAsync(
+            NotificationService,
+            entityName: Localizer["CashRegister"].Value,
+            itemName: $"{cashRegister.Name}",
+            onConfirm: () => CashRegisterService.DeleteCashRegisterAsync(cashRegister.Id),
+            onSuccess: UpdateView,
+            deleteTitle: Localizer["Delete"]);
     }
 }

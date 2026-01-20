@@ -278,7 +278,7 @@
         <comment>AddSuccessful</comment>
     </data>
     <data name="DeleteSuccessful" xml:space="preserve">
-        <value>Entry has been deleted successfully.</value>
+        <value>Entry deleted</value>
         <comment>DeleteSuccessful</comment>
     </data>
     <data name="ImportQuestion" xml:space="preserve">
@@ -342,7 +342,7 @@
         <comment>ExportPdf</comment>
     </data>
     <data name="DateRangeError" xml:space="preserve">
-        <value>Export not possible! Start date can't be after end date!</value>
+        <value>Start date can't be after end date!</value>
         <comment>DateRangeError</comment>
     </data>
     <data name="ExportXlsx" xml:space="preserve">
@@ -377,8 +377,106 @@
         <value>Close</value>
         <comment>Close</comment>
     </data>
-    <data name="Empty" xml:space="preserve">
-        <value>Empty</value>
-        <comment>Empty</comment>
+    <data name="OperationCancelled" xml:space="preserve">
+        <value>Operation cancelled</value>
+        <comment>OperationCancelled</comment>
+    </data>
+    <data name="OperationFailed" xml:space="preserve">
+        <value>Operation failed</value>
+        <comment>OperationFailed</comment>
+    </data>
+    <data name="OperationWarning" xml:space="preserve">
+        <value>Operation warning</value>
+        <comment>OperationWarning</comment>
+    </data>
+    <data name="AddedSuccessfully" xml:space="preserve">
+        <value>added successfully</value>
+        <comment>AddedSuccessfully</comment>
+    </data>
+    <data name="UpdatedSuccessfully" xml:space="preserve">
+        <value>updated successfully</value>
+        <comment>UpdatedSuccessfully</comment>
+    </data>
+    <data name="DeletedSuccessfully" xml:space="preserve">
+        <value>deleted successfully</value>
+        <comment>DeletedSuccessfully</comment>
+    </data>
+    <data name="FailedToUpdate" xml:space="preserve">
+        <value>Failed to update</value>
+        <comment>FailedToUpdate</comment>
+    </data>
+    <data name="Failed to delete" xml:space="preserve">
+        <value>FailedToDelete</value>
+        <comment>FailedToDelete</comment>
+    </data>
+    <data name="NotFound" xml:space="preserve">
+        <value>not found</value>
+        <comment>NotFound</comment>
+    </data>
+    <data name="FailedToDelete" xml:space="preserve">
+        <value>Failed to delete</value>
+        <comment>FailedToDelete</comment>
+    </data>
+    <data name="FailedToAdd" xml:space="preserve">
+        <value>Failed to add</value>
+        <comment>FailedToAdd</comment>
+    </data>
+    <data name="OperationSuccessful" xml:space="preserve">
+        <value>Operation successful</value>
+        <comment>OperationSuccessful</comment>
+    </data>
+    <data name="Exception" xml:space="preserve">
+        <value>An exception occured. Please check the logs.</value>
+        <comment>Exception</comment>
+    </data>
+    <data name="AlreadyExists" xml:space="preserve">
+        <value>already exists</value>
+    </data>
+    <data name="TransactionDetails" xml:space="preserve">
+        <value>Transaction details</value>
+    </data>
+    <data name="ExportSuccessful" xml:space="preserve">
+        <value>Export successful</value>
+        <comment>ExportSuccessful</comment>
+    </data>
+    <data name="ExportFailed" xml:space="preserve">
+        <value>Export failed</value>
+        <comment>ExportFailed</comment>
+    </data>
+    <data name="TimeOutError" xml:space="preserve">
+        <value>Timeout error</value>
+        <comment>TimeOutError</comment>
+    </data>
+    <data name="FileNameRequired" xml:space="preserve">
+        <value>Filename is required</value>
+        <comment>FileNameRequired</comment>
+    </data>
+    <data name="DateRangeRequired" xml:space="preserve">
+        <value>Date range is required</value>
+        <comment>DateRangeRequired</comment>
+    </data>
+    <data name="DateWarning" xml:space="preserve">
+        <value>Export not possible</value>
+        <comment>DateWarning</comment>
+    </data>
+    <data name="ImportSuccessful" xml:space="preserve">
+        <value>Import successful</value>
+        <comment>ImportSuccessful</comment>
+    </data>
+    <data name="ImportFailed" xml:space="preserve">
+        <value>Import failed</value>
+        <comment>ImportFailed</comment>
+    </data>
+    <data name="FileStreamError" xml:space="preserve">
+        <value>File stream is empty</value>
+        <comment>FileStreamError</comment>
+    </data>
+    <data name="DateColumnError" xml:space="preserve">
+        <value>Date column missing or invalid</value>
+        <comment>DateColumnMissing</comment>
+    </data>
+    <data name="DocumentNumberError" xml:space="preserve">
+        <value>Couldn't add transaction for document number</value>
+        <comment>DocumentNumberError</comment>
     </data>
 </root>

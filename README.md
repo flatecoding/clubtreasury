@@ -52,7 +52,10 @@ and manage all financial data in a structured and transparent way.
 
 - **EPPlus** uses the **Polyform NonCommercial** license  
   ✔ Allowed for non-commercial club use  
-  ✘ Not allowed in commercial software without purchasing a license
+  ✘ Requires a commercial license if the software is sold, used commercially,
+  or generates revenue in any form.<br>
+  (This project is currently used exclusively for internal administration
+of a non-profit organization and therefore qualifies as non-commercial use.)
 
 More information can be found in:  
 👉 **ThirdPartyLicenses.md**
