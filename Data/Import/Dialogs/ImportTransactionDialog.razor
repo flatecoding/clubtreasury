@@ -41,14 +41,12 @@
     <DialogActions>
         <MudLoadingButton
             @bind-Loading="_isImporting"
-            Size="Size.Small"
             LoadingAdornment="Adornment"
             OnClick="@(() => ImportData())"
-            Variant="Variant.Filled"
             Color="Color.Primary">
             @Localizer["Import"]
         </MudLoadingButton>
-        <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => Cancel())">@Localizer["Close"]</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="@(() => Cancel())">@Localizer["Close"]</MudButton>
     </DialogActions>
 </MudDialog>
 
