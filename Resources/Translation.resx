@@ -482,4 +482,8 @@
         <value />
         <comment>DocumentNumberError</comment>
     </data>
+    <data name="ClubCash" xml:space="preserve">
+        <value />
+        <comment>ClubCash</comment>
+    </data>
 </root>

@@ -82,9 +82,7 @@ public class AllocationService(
                 allocation.CostCenterId, allocation.CategoryId, allocation.ItemDetailId);
 
             return operationResultFactory.AlreadyExists(
-                EntityName,
-                $"{localizer["CostCenter"]} Id: {allocation.CostCenterId}, {localizer["Category"]} Id: {allocation.CategoryId}, " +
-                $"{(allocation.ItemDetailId.HasValue ? $"{localizer["ItemDetail"]} Id: {allocation.ItemDetailId}" : "")}");
+                EntityName);
         }
 
         try

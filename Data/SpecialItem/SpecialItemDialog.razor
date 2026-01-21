@@ -27,7 +27,7 @@
         <MudButton Color="Color.Primary" OnClick="@(async () => await Save())">
             @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
-        <MudButton Color="Color.Error" OnClick="@Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="@Cancel">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 

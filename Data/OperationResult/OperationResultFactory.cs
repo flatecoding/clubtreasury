@@ -74,7 +74,7 @@ public class OperationResultFactory(IStringLocalizer<Translation> localizer) : I
         => new()
         {
             Status = OperationResultStatus.Warning,
-            Message = $"{entityName} {localizer["AlreadyExists"]}" + (details != null ? $": {details}" : "")
+            Message = $"{entityName} {localizer["AlreadyExists"]}" + (details != null ? $": {details}" : "!")
         };
     
     public OperationResult ExportSuccessful(string fileName)

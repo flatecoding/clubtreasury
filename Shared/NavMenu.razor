@@ -52,7 +52,7 @@
     
     private async Task OpenImportCostCenterDialog()
     {
-        await DialogService.ShowDialogWithNotificationAsync<ImportCostCenters>(NotificationService,
+        await DialogService.ShowDialogWithNotificationAsync<ImportCostCenterDialog>(NotificationService,
             Localizer["ImportCostCenterDialogTitle"],
             null,
             new DialogOptions() { MaxWidth = MaxWidth.Small });

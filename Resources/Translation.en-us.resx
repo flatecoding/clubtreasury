@@ -479,4 +479,8 @@
         <value>Couldn't add transaction for document number</value>
         <comment>DocumentNumberError</comment>
     </data>
+    <data name="ClubCash" xml:space="preserve">
+        <value>Club cash</value>
+        <comment>ClubCash</comment>
+    </data>
 </root>
