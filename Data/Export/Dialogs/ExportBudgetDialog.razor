@@ -37,7 +37,6 @@
 
     <DialogActions>
         <MudLoadingButton @bind-Loading="_isExportingCsv"
-                          Size="Size.Small"
                           LoadingAdornment="Adornment"
                           OnClick="@(async () => await ExportCsv())"
                           Color="Color.Primary">
@@ -45,7 +44,6 @@
         </MudLoadingButton>
 
         <MudLoadingButton @bind-Loading="_isExportingXlsx"
-                          Size="Size.Small"
                           LoadingAdornment="Adornment"
                           OnClick="@(async () => await ExportXlsx())"
                           Color="Color.Primary">
@@ -53,7 +51,7 @@
         </MudLoadingButton>
 
         <MudButton Variant="Variant.Text"
-                   Color="Color.Error"
+                   Color="Color.Secondary"
                    OnClick="@Cancel">
             @Localizer["Close"]
         </MudButton>
