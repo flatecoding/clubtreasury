@@ -23,12 +23,6 @@ if (builder.Environment.IsDevelopment())
 
 builder.Services.AddMudServices();
 
-var loggerFactory = LoggerFactory.Create(loggingBuilder =>
-{
-    loggingBuilder.AddConsole();
-});
-var logger = loggerFactory.CreateLogger<Program>();
-
 QuestPDF.Settings.License = LicenseType.Community;
 ExcelPackage.License.SetNonCommercialOrganization("TTC Hagen e.V.");
 
@@ -101,18 +95,18 @@ using (var scope = app.Services.CreateScope())
 
         if (pending.Any())
         {
-            logger.LogInformation("Found {Count} pending migrations: {Migrations}", pending.Count, string.Join(", ", pending));
+            Log.Information("Found {Count} pending migrations: {Migrations}", pending.Count, string.Join(", ", pending));
             db.Database.Migrate();
-            logger.LogInformation("Database migrated successfully");
+            Log.Information("Database migrated successfully");
         }
         else
         {
-            logger.LogInformation("No pending migrations. Database is up-to-date.");
+            Log.Information("No pending migrations. Database is up-to-date.");
         }
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Database migration failed!");
+        Log.Error(ex, "Database migration failed!");
         throw;
     }
 }
@@ -143,7 +137,6 @@ var localizationOptions = new RequestLocalizationOptions
     SupportedUICultures = SupportedAppCultures.AllCultureInfos
 };
 
-// Cookie zuerst auswerten (wichtig!)
 localizationOptions.RequestCultureProviders.Insert(
     0,
     new CookieRequestCultureProvider()
