@@ -40,8 +40,7 @@ public sealed class UserPrefService : INotifyPropertyChanged
                 _isDarkMode = pref.IsDarkMode;
                 OnPropertyChanged(nameof(IsDarkMode));
             }
-        
-            // Nur speichern wenn noch kein Cookie vorhanden
+            
             if (string.IsNullOrEmpty(cookieValue))
             {
                 await SetPrefs();
