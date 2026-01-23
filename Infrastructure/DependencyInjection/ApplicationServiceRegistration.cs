@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Category;
@@ -14,6 +13,7 @@ using TTCCashRegister.Data.Notification;
 using TTCCashRegister.Data.OperationResult;
 using TTCCashRegister.Data.Person;
 using TTCCashRegister.Data.SpecialItem;
+using TTCCashRegister.Data.ThemeSetting;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.TransactionDetails;
 
@@ -42,7 +42,16 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IPdfTransactionRenderer, PdfTransactionRenderer>();
         services.AddScoped<ICultureService, CultureService>();
         services.AddScoped<IOperationResultFactory, OperationResultFactory>();
-
+        services.AddHttpContextAccessor();
+        services.AddScoped<UserPrefService>(sp =>
+        {
+            var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+            var logger = sp.GetRequiredService<ILogger<UserPrefService>>();
+            var context = httpContextAccessor.HttpContext;
+            var userPrefDataString = context?.Request.Cookies[UserPrefService.StorageKey] ?? string.Empty;
+            return new UserPrefService(userPrefDataString, logger);
+        });
+        
         return services;
     }
 }
