@@ -32,7 +32,20 @@ public sealed class UserPrefService : INotifyPropertyChanged
         try
         {
             _module = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/darkmode.js");
-            await SetPrefs();
+            
+            var cookieValue = await _module.InvokeAsync<string>("getCookie", StorageKey);
+            if (!string.IsNullOrEmpty(cookieValue) &&
+                JsonSerializer.Deserialize<UserPrefData>(cookieValue) is { } pref)
+            {
+                _isDarkMode = pref.IsDarkMode;
+                OnPropertyChanged(nameof(IsDarkMode));
+            }
+        
+            // Nur speichern wenn noch kein Cookie vorhanden
+            if (string.IsNullOrEmpty(cookieValue))
+            {
+                await SetPrefs();
+            }
         }
         catch (TaskCanceledException)
         {
