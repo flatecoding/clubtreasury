@@ -7,7 +7,6 @@ namespace TTCCashRegister.Data.ThemeSetting;
 public sealed class UserPrefService : INotifyPropertyChanged
 {
     private bool _isDarkMode;
-    private bool _isRtl;
     private IJSObjectReference? _module;
     private readonly ILogger<UserPrefService> _logger;
     public const string StorageKey = "ClubCash.UserPrefData";
@@ -25,7 +24,6 @@ public sealed class UserPrefService : INotifyPropertyChanged
             JsonSerializer.Deserialize<UserPrefData>(userPrefString) is { } pref)
         {
             _isDarkMode = pref.IsDarkMode;
-            _isRtl = pref.IsRtl;
         }
     }
 
@@ -59,19 +57,6 @@ public sealed class UserPrefService : INotifyPropertyChanged
         }
     }
 
-    public bool IsRtl
-    {
-        get => _isRtl;
-        set
-        {
-            if (_isRtl != value)
-            {
-                _isRtl = value;
-                OnPropertyChanged(nameof(IsRtl));
-            }
-        }
-    }
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged(string propertyName)
@@ -87,7 +72,7 @@ public sealed class UserPrefService : INotifyPropertyChanged
             try
             {
                 await _module.InvokeVoidAsync("setCookie", StorageKey, 
-                    JsonSerializer.Serialize(new UserPrefData(_isDarkMode, _isRtl)), 365);
+                    JsonSerializer.Serialize(new UserPrefData(_isDarkMode)), 365);
             }
             catch (TaskCanceledException)
             {
