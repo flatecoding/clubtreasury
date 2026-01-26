@@ -3,14 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
 using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.Export;
 using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.Transaction;
 
 public class TransactionService(
     CashDataContext context,
-    IExportService exportService,
     IAllocationService allocationService,
     ILogger<TransactionService> logger,
     IStringLocalizer<Translation> localizer,
@@ -30,21 +28,6 @@ public class TransactionService(
                 .ThenInclude(st => st.Person)
             .OrderByDescending(x => x.Id)
             .AsNoTracking()
-            .ToListAsync();
-    }
-
-    public async Task<IEnumerable<TransactionModel>> GetTransactionsByDateRange(DateTime start, DateTime end)
-    {
-        return await context.Transactions
-            .Include(t => t.Allocation)
-                .ThenInclude(a => a.CostCenter)
-            .Include(t => t.Allocation)
-                .ThenInclude(a => a.Category)
-            .Include(t => t.Allocation)
-                .ThenInclude(a => a.ItemDetail)
-            .Where(t => t.Date.HasValue &&
-                        t.Date.Value >= DateOnly.FromDateTime(start) &&
-                        t.Date.Value <= DateOnly.FromDateTime(end))
             .ToListAsync();
     }
 
@@ -206,18 +189,43 @@ public class TransactionService(
             return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
     }
-
-    public async Task<IOperationResult> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
-        => await exportService.ExportTransactionsToCsv(begin, end, filename);
-
-    public async Task<IOperationResult> ExportBudgetToCsv(DateTime begin, DateTime end, string filename)
-        => await exportService.ExportBudgetToCsv(begin, end, filename);
     
-    public async Task<IOperationResult> ExportBudgetToExcel(DateTime begin, DateTime end, string filename)
-    => await exportService.ExportBudgetToExcelWithCharts(begin, end, filename);
-    
-    public async Task<IOperationResult> ExportTransactionsToPdf(DateTime begin, DateTime end, string filename, CancellationToken token)
-        => await exportService.ExportTransactionsToPdf(begin, end, filename, token);
+    public async Task<IEnumerable<TransactionModel>> GetTransactionsForExport(DateTime begin, DateTime end)
+    {
+        return await context.Transactions
+            .Where(t => t.Date.HasValue &&
+                        t.Date.Value >= DateOnly.FromDateTime(begin) && 
+                        t.Date.Value <= DateOnly.FromDateTime(end))
+            .Select(t => new TransactionModel
+            {
+                Date = t.Date,
+                Documentnumber = t.Documentnumber,
+                Description = t.Description,
+                Sum = t.Sum,
+                AccountMovement = t.AccountMovement
+            })
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<TransactionModel>> GetTransactionsForBudgetExport(
+        DateTime begin, 
+        DateTime end)
+    {
+        var beginDateOnly = DateOnly.FromDateTime(begin);
+        var endDateOnly = DateOnly.FromDateTime(end);
+
+        return await context.Transactions
+            .AsSplitQuery()
+            .Include(t => t.Allocation).ThenInclude(a => a.CostCenter)
+            .Include(t => t.Allocation).ThenInclude(a => a.Category)
+            .Include(t => t.Allocation).ThenInclude(a => a.ItemDetail)
+            .Include(t => t.TransactionDetails).ThenInclude(st => st.Person)
+            .Where(t => t.Date.HasValue &&
+                        t.Date.Value >= beginDateOnly && 
+                        t.Date.Value <= endDateOnly)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 
     public async Task<TableData<TransactionModel>> GetTransactionsPaged(
         TableState state,
