@@ -7,7 +7,7 @@
 @using TTCCashRegister.Data.OperationResult
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction
-@inject ITransactionService TransactionService
+@inject IExportService ExportService
 @inject IOperationResultFactory OperationResultFactory
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ExportTransactionDialog> Logger
@@ -96,7 +96,7 @@
             var end = _model.DateRange.End!.Value.Date;
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
             
-            var result = await TransactionService.ExportTransactionsToCsv(start, end, filename);
+            var result = await ExportService.ExportTransactionsToCsv(start, end, filename);
 
             MudDialog.Close(DialogResult.Ok(result));
         }
@@ -131,7 +131,7 @@
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
             
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(CExportTimeOut));
-            var result = await TransactionService.ExportTransactionsToPdf(start, end, filename, cts.Token); 
+            var result = await ExportService.ExportTransactionsToPdf(start, end, filename, cts.Token); 
 
             MudDialog.Close(DialogResult.Ok(result));
         }
