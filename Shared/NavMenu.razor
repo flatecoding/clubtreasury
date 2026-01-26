@@ -1,6 +1,8 @@
 ﻿@using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.DialogService
 @using TTCCashRegister.Data.DialogService.Dialog
+@using TTCCashRegister.Data.Export.Budget
+@using TTCCashRegister.Data.Export.Transaction
 @using TTCCashRegister.Data.Import.Dialogs
 @using TTCCashRegister.Data.Notification
 @using Translation = TTCCashRegister.Translation
@@ -41,8 +43,8 @@
             </MudNavLink>
         </MudNavGroup>
         <MudNavGroup Title=@Localizer["ExportData"]>
-            <MudNavLink Href="/exportcashaudit" Match="NavLinkMatch.Prefix">@Localizer["CashAudit"]</MudNavLink>
-            <MudNavLink Href="/exportbudget" Match="NavLinkMatch.Prefix">@Localizer["BudgetPlan"]</MudNavLink>
+            <MudNavLink OnClick="@(() => OpenExportCashAuditDialog())">@Localizer["CashAudit"]</MudNavLink>
+            <MudNavLink OnClick="@(() => OpenExportBudgetDialog())">@Localizer["BudgetPlan"]</MudNavLink>
         </MudNavGroup>
     </MudNavGroup>
 </MudNavMenu>
@@ -76,7 +78,23 @@
             null,
             new DialogOptions() { MaxWidth = MaxWidth.ExtraSmall });
     }
+
+    private async Task OpenExportCashAuditDialog()
+    {
+        await DialogService.ShowDialogWithNotificationAsync<ExportTransactionDialog>(NotificationService, 
+            Localizer["ExportCashAuditData"],
+            null,
+            new DialogOptions(){MaxWidth = MaxWidth.Small});
+    }
     
+    private async Task OpenExportBudgetDialog()
+    {
+        await DialogService.ShowDialogWithNotificationAsync<ExportBudgetDialog>(NotificationService, 
+            Localizer["ExportBudgetPlanData"],
+            null,
+            new DialogOptions(){MaxWidth = MaxWidth.Small});
+    }
+
 }
 
 

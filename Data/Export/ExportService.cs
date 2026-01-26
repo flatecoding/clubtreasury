@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using TTCCashRegister.Data.Export.Budget;
 using TTCCashRegister.Data.Export.Transaction;
@@ -12,7 +11,7 @@ namespace TTCCashRegister.Data.Export
 {
     public class ExportService : IExportService
     {
-        private readonly CashDataContext _context;
+        private readonly ITransactionService _transactionService;
         private readonly ILogger<ExportService> _logger;
         private readonly IBudgetMapper _budgetMapper;
         private readonly ICsvBudgetWriter _csvWriter;
@@ -23,14 +22,14 @@ namespace TTCCashRegister.Data.Export
         private readonly IStringLocalizer<Translation> _localizer;
         private const string CsvHeader = "Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung";
 
-        public ExportService(CashDataContext context, ILogger<ExportService> logger, 
+        public ExportService(ITransactionService transactionService, ILogger<ExportService> logger, 
             IBudgetMapper budgetMapper, ICsvBudgetWriter csvWriter, 
             IExcelBudgetWriter excelWriter, IPdfTransactionRenderer pdfTransactionRenderer,
             IOperationResultFactory operationResultFactory,
             IStringLocalizer<Translation> localizer,
             IConfiguration configuration)
         {
-            _context = context;
+            _transactionService = transactionService;
             _logger = logger;
             _budgetMapper = budgetMapper;
             _csvWriter = csvWriter;
@@ -54,36 +53,6 @@ namespace TTCCashRegister.Data.Export
             _logger.LogInformation("Configured export path: {ExportPath}", _exportPath);
         }
 
-        private async Task<List<TransactionModel>> GetTransactionsInDateRange(DateTime begin, DateTime end)
-        {
-            return await _context.Transactions
-                .Where(t => t.Date >= DateOnly.FromDateTime(begin) && t.Date <= DateOnly.FromDateTime(end))
-                .Select(t => new TransactionModel
-                {
-                    Date = t.Date,
-                    Documentnumber = t.Documentnumber,
-                    Description = t.Description,
-                    Sum = t.Sum,
-                    AccountMovement = t.AccountMovement
-                }).ToListAsync();
-        }
-
-        private async Task<List<TransactionModel>> GetBudgetByDateRange(DateTime begin, DateTime end)
-        {
-            var beginDateOnly = DateOnly.FromDateTime(begin);
-            var endDateOnly   = DateOnly.FromDateTime(end);
-
-            return await _context.Transactions
-                .AsSplitQuery()
-                .Include(t => t.Allocation).ThenInclude(a => a.CostCenter)
-                .Include(t => t.Allocation).ThenInclude(a => a.Category)
-                .Include(t => t.Allocation).ThenInclude(a => a.ItemDetail)
-                .Include(t => t.TransactionDetails).ThenInclude(st => st.Person)
-                .Where(t => t.Date >= beginDateOnly && t.Date <= endDateOnly)
-                .ToListAsync();
-        }
-
-
         public async Task<IOperationResult> ExportTransactionsToCsv(DateTime begin, DateTime end, string filename)
         {
             try
@@ -95,7 +64,7 @@ namespace TTCCashRegister.Data.Export
                     _logger.LogInformation("Export directory created {path}", _exportPath);
                 }
 
-                var transactions = await GetTransactionsInDateRange(begin, end);
+                var transactions = await _transactionService.GetTransactionsForExport(begin, end);
 
                 var csv = new StringBuilder();
                 foreach (var transaction in transactions.OrderBy(t => t.Documentnumber))
@@ -130,7 +99,7 @@ namespace TTCCashRegister.Data.Export
         {
             try
             {
-                var transactions = await GetTransactionsInDateRange(begin, end);
+                var transactions = await _transactionService.GetTransactionsForBudgetExport(begin, end);
                 var filePath = Path.Combine(_exportPath, filename);
 
                 await _transactionPdfRenderer.RenderTransactionPdfExportAsync(transactions, begin, end, filePath, cancellationToken);
@@ -159,7 +128,7 @@ namespace TTCCashRegister.Data.Export
                 if (!Directory.Exists(_exportPath))
                     Directory.CreateDirectory(_exportPath);
 
-                var transactions = await GetBudgetByDateRange(begin, end);
+                var transactions = await _transactionService.GetTransactionsForBudgetExport(begin, end);
                 var flat = _budgetMapper.BuildFlatEntries(transactions);
                 var grouped = _budgetMapper.BuildBudgetHierarchy(flat);
 
@@ -176,13 +145,13 @@ namespace TTCCashRegister.Data.Export
             }
         }
 
-        public async Task<IOperationResult> ExportBudgetToExcelWithCharts(DateTime begin, DateTime end, string filename)
+        public async Task<IOperationResult> ExportBudgetToExcel(DateTime begin, DateTime end, string filename)
         {
             try
             {
                 Directory.CreateDirectory(_exportPath);
 
-                var transactions = await GetBudgetByDateRange(begin, end);
+                var transactions = await _transactionService.GetTransactionsForBudgetExport(begin, end);
                 var flatEntries = _budgetMapper.BuildFlatEntries(transactions);
                 var grouped = _budgetMapper.BuildBudgetHierarchy(flatEntries);
 
@@ -202,7 +171,7 @@ namespace TTCCashRegister.Data.Export
         public async Task<byte[]> ExportBudgetToExcelBytes(DateTime begin, DateTime end)
         {
             var filename = $"Budget_{begin:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-            var result = await ExportBudgetToExcelWithCharts(begin, end, filename);
+            var result = await ExportBudgetToExcel(begin, end, filename);
 
             if (result.Status != OperationResultStatus.Success) 
                 return Array.Empty<byte>();

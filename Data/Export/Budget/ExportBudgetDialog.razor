@@ -5,7 +5,7 @@
 @using TTCCashRegister.Data.OperationResult
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction
-@inject ITransactionService TransactionService
+@inject IExportService ExportService
 @inject IOperationResultFactory OperationResultFactory
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ExportBudgetDialog> Logger
@@ -27,7 +27,7 @@
                     <MudTextField @bind-Value="_model.FileName"
                                   For="@(() => _model.FileName)"
                                   Label="@Localizer["FileName"]"
-                                  Placeholder="@Localizer["SelectFile"]"
+                                  Placeholder="@Localizer["FileName"]"
                                   Required="true"
                                   FullWidth />
                 </MudItem>
@@ -86,7 +86,7 @@
             var end = _model.DateRange.End!.Value.Date;
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
         
-            var result = await TransactionService.ExportBudgetToCsv(start, end, filename);
+            var result = await ExportService.ExportBudgetToCsv(start, end, filename);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
@@ -114,7 +114,7 @@
             var end = _model.DateRange.End!.Value.Date;
             var fileName = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
             
-            var result = await TransactionService.ExportBudgetToExcel(start, end, fileName);
+            var result = await ExportService.ExportBudgetToExcel(start, end, fileName);
 
             MudDialog.Close(DialogResult.Ok(result));
         }
