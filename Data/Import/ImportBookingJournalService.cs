@@ -74,7 +74,7 @@ public class ImportBookingJournalService(
                         Description = row.Description,
                         Sum = row.Sum,
                         AccountMovement = row.AccountMovement,
-                        Allocation = allocation
+                        AllocationId = allocation.Id
                     };
 
                     var addResult = await transactionService.AddTransactionAsync(transaction);
@@ -86,13 +86,13 @@ public class ImportBookingJournalService(
                         return operationResultFactory.ImportFailed(
                             $"{localizer["DocumentNumberError"]}: '{row.DocumentNumber}'");
                     }
-
+                    existingDocNumbers.Add(row.DocumentNumber);
                     importCounter++;
                 }
                 catch (Exception rowEx)
                 {
                     logger.LogError(rowEx, "Error processing row: {@Row}", row);
-                    return operationResultFactory.ImportFailed(localizer["Exception"]);
+                    //skip row, continue with next line
                 }
             }
 

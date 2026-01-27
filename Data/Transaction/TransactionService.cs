@@ -79,10 +79,12 @@ public class TransactionService(
                         EntityName,
                         $"{localizer["DocumentNumber"]} '{entry.Documentnumber}'");
                 }
-
-                // 3. Allocation sicherstellen
-                var account = await allocationService
-                    .EnsureAllocationExistsAsync(entry.Allocation, ct);
+                
+                var allocation = await allocationService.GetRequiredAllocationAsync(
+                    entry.AllocationId > 0
+                        ? entry.AllocationId
+                        : throw new InvalidOperationException("AllocationId missing on transaction."),
+                    ct);
 
                 var tx = new TransactionModel
                 {
@@ -93,7 +95,7 @@ public class TransactionService(
                     Sum             = entry.Sum,
                     SpecialItemId   = entry.SpecialItemId,
                     CashRegisterId  = entry.CashRegisterId,
-                    Allocation      = account
+                    AllocationId      = allocation.Id
                 };
 
                 context.Transactions.Add(tx);
@@ -124,34 +126,41 @@ public class TransactionService(
     {
         try
         {
-            var tx = await context.Transactions
+            var existing = await context.Transactions
                 .FirstOrDefaultAsync(t => t.Id == entry.Id, ct);
 
-            if (tx == null)
+            if (existing == null)
             {
                 return operationResultFactory.NotFound(
                     $"{EntityName} not found",
                     entry.Id);
             }
+            if (await context.Transactions.AnyAsync(t =>
+                    t.Documentnumber == entry.Documentnumber &&
+                    t.Id != entry.Id, ct))
+            {
+                return operationResultFactory.AlreadyExists(
+                    EntityName,
+                    $"{localizer["DocumentNumber"]} '{entry.Documentnumber}'");
+            }
             
-            var account = await allocationService.EnsureAllocationExistsAsync(entry.Allocation, ct);
-            
-            tx.Description     = entry.Description;
-            tx.AccountMovement = entry.AccountMovement;
-            tx.Date            = entry.Date;
-            tx.Documentnumber  = entry.Documentnumber;
-            tx.Sum             = entry.Sum;
-            tx.SpecialItemId   = entry.SpecialItemId;
-            tx.CashRegisterId  = entry.CashRegisterId;
-            tx.Allocation   = account;    
-            tx.AllocationId = account.Id;
-            
+            _ = await allocationService.GetRequiredAllocationAsync(entry.AllocationId, ct);
+
+            existing.Description     = entry.Description;
+            existing.AccountMovement = entry.AccountMovement;
+            existing.Date            = entry.Date;
+            existing.Documentnumber  = entry.Documentnumber;
+            existing.Sum             = entry.Sum;
+            existing.SpecialItemId   = entry.SpecialItemId;
+            existing.CashRegisterId  = entry.CashRegisterId;
+            existing.AllocationId    = entry.AllocationId;
+
             await context.SaveChangesAsync(ct);
             logger.LogInformation("Transaction updated: B{@DocumentNumber}; Desc.:{@Description}; Sum:{@Sum} " +
-                                  "AccMov.: {@AccMov}", tx.Documentnumber, tx.Description, tx.Sum, tx.AccountMovement);
+                                  "AccMov.: {@AccMov}", existing.Documentnumber, existing.Description, existing.Sum, 
+                                   existing.AccountMovement);
             return operationResultFactory.SuccessUpdated(
-                $"{EntityName}: '{tx.Documentnumber}'",
-                tx.Id);
+                $"{EntityName}: '{existing.Documentnumber}'", existing.Id);
         }
         catch (DbUpdateException dbEx)
         {
