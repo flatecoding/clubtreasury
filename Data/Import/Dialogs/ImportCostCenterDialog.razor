@@ -28,7 +28,6 @@
     </DialogContent>
     <DialogActions>
         <MudLoadingButton
-            @bind-Loading="_isImporting"
             LoadingAdornment="Adornment"
             OnClick="@(() => ImportData())"
             Color="Color.Primary">
@@ -58,6 +57,7 @@
         {
             try
             {
+                _isImporting = true;
                 await using var stream = _file?.OpenReadStream();
                 if (stream is not null && _file is not null)
                 {

@@ -18,6 +18,7 @@
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 @inject IOperationResultFactory OperationResultFactory
+@inject IAllocationService AllocationService
 
 <MudDialog>
     <DialogContent>
@@ -243,7 +244,7 @@
         await _form.Validate();
         if (_form.IsValid && IsProcessable())
         {
-            MapFormToModel();
+           await MapFormToModelAsync();
 
             IOperationResult result;
             if (_isEditMode)
@@ -260,29 +261,33 @@
     }
 
 
-    private void MapFormToModel()
+    private async Task MapFormToModelAsync()
     {
         (_transactionModel.CashRegister, _transactionModel.CashRegisterId) =
             SetRequired<CashRegisterModel, CashRegisterModel>(_selectedCashRegisterModel, c => c.Id);
         
-        _transactionModel.Allocation = new AllocationModel
-        {
-            CostCenterId = _selectedCostUnit?.Id ?? 0,
-            CostCenter = _selectedCostUnit,
-            CategoryId = _selectedBasicUnit?.Id ?? 0,
-            Category = _selectedBasicUnit,
-            ItemDetailId = _selectedUnitDetail?.Id,
-            ItemDetail = _selectedUnitDetail
-        };
-        
+        if (_selectedCostUnit?.Id < 1 || _selectedBasicUnit?.Id < 1)
+            throw new InvalidOperationException("CostCenter and Category are required.");
+
+        var allocation = await AllocationService.GetOrCreateAllocationAsync(
+            _selectedCostUnit.CostUnitName,
+            _selectedBasicUnit.Name,
+            _selectedUnitDetail?.CostDetails);
+
+        _transactionModel.AllocationId = allocation.Id;
+
+        // Navigation explizit nicht setzen (verhindert Attach/Tracking-Probleme)
+        _transactionModel.Allocation = null!;
+
         (_transactionModel.SpecialItem, _transactionModel.SpecialItemId) =
             SetOrClear<SpecialItemModel, SpecialItemModel>(_selectedSpecialItem, s => s.Id);
-        
+
         if (TransactionDateTime.HasValue)
             _transactionModel.Date = DateOnly.FromDateTime(TransactionDateTime.Value);
         else
             throw new InvalidOperationException("Das Transaktionsdatum ist erforderlich.");
     }
+
 
     private static (TModel?, int?) SetOrClear<TModel, TSelected>(TSelected? selected, Func<TSelected, int> getId)
         where TModel : class

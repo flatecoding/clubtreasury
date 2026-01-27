@@ -483,4 +483,40 @@
         <value>Club cash</value>
         <comment>ClubCash</comment>
     </data>
+    <data name="DateMissing" xml:space="preserve">
+        <value>Date is missing</value>
+        <comment>DateMissing</comment>
+    </data>
+    <data name="DateInFuture" xml:space="preserve">
+        <value>Date in future</value>
+        <comment>DateInFuture</comment>
+    </data>
+    <data name="InvalidDocumentNumber" xml:space="preserve">
+        <value>Invalid document number</value>
+        <comment>InvalidDocumentNumber</comment>
+    </data>
+    <data name="InvalidSum" xml:space="preserve">
+        <value>Invalid sum</value>
+        <comment>InvalidSum</comment>
+    </data>
+    <data name="InvalidAccountMovement" xml:space="preserve">
+        <value>Invalid account movement</value>
+        <comment>InvalidAccountMovement</comment>
+    </data>
+    <data name="SumAccountMismatch" xml:space="preserve">
+        <value>Sum and account mismatch</value>
+        <comment>SumAccountMismatch</comment>
+    </data>
+    <data name="CostCenterMissing" xml:space="preserve">
+        <value>Cost center is missing</value>
+        <comment>CostCenterMissing</comment>
+    </data>
+    <data name="CategoryMissing" xml:space="preserve">
+        <value>Category is missing</value>
+        <comment>CategoryMissing</comment>
+    </data>
+    <data name="DuplicateRow" xml:space="preserve">
+        <value>Duplicate row</value>
+        <comment>DuplicateRow</comment>
+    </data>
 </root>

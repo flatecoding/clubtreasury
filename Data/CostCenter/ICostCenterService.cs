@@ -6,6 +6,7 @@ public interface ICostCenterService
 {
     Task<List<CostCenterModel>> GetAllCostCentersAsync();
     Task<CostCenterModel?> GetCostCenterByIdAsync(int id);
+    Task<CostCenterModel?> GetCostCenterByNameAsync(string name);
     Task<IOperationResult> AddCostCenterAsync(CostCenterModel costCenter);
     Task<IOperationResult> UpdateCostCenterAsync(CostCenterModel costCenter);
     Task<IOperationResult> DeleteCostCenterAsync(int id);
