@@ -31,6 +31,11 @@ namespace TTCCashRegister.Data.ItemDetail
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
+        public async Task<ItemDetailModel?> GetItemDetailByNameAsync(string name)
+        {
+            return await  _context.ItemDetails.FirstOrDefaultAsync(i => i.CostDetails == name);
+        }
+
         public async Task<List<ItemDetailModel>> GetItemDetailByCategoryIdAsync(int categoryId)
         {
             return await _context.ItemDetails

@@ -32,6 +32,11 @@ namespace TTCCashRegister.Data.Category
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
 
+        public async Task<CategoryModel?> GetCategoryByNameAsync(string name)
+        {
+            return await  _context.Categories.FirstOrDefaultAsync(b => b.Name == name);
+        }
+
         public async Task<IEnumerable<CategoryModel>> GetCategoriesByCostCenterIdAsync(int costUnitId)
         {
             var categories = await _context.Categories
