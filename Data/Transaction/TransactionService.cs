@@ -45,6 +45,16 @@ public class TransactionService(
             .FirstOrDefaultAsync(x => x.Id == id);
     }
     
+    public async Task<HashSet<int>> GetAllDocumentNumbersAsync()
+    {
+        return
+        [
+            ..await context.Transactions
+                .Select(t => t.Documentnumber)
+                .ToListAsync()
+        ];
+    }
+    
 
 
     public async Task<IOperationResult> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default)

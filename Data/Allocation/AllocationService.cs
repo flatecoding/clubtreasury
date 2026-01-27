@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.Notification;
+using TTCCashRegister.Data.Category;
+using TTCCashRegister.Data.CostCenter;
+using TTCCashRegister.Data.ItemDetail;
 using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.Allocation;
@@ -9,7 +11,10 @@ public class AllocationService(
     CashDataContext context, 
     ILogger<AllocationService> logger, 
     IOperationResultFactory operationResultFactory,
-    IStringLocalizer<Translation> localizer) : IAllocationService
+    IStringLocalizer<Translation> localizer,
+    ICostCenterService costCenterService,
+    ICategoryService categoryService,
+    IItemDetailService itemDetailService) : IAllocationService
 {
     private string EntityName => localizer["Allocation"];
 
@@ -187,4 +192,55 @@ public class AllocationService(
             return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
     }
+    
+    public async Task<AllocationModel> GetOrCreateAllocationAsync(
+    string costCenterName,
+    string categoryName,
+    string? itemDetailName = null)
+{
+    var costCenter = await costCenterService.GetCostCenterByNameAsync(costCenterName);
+    if (costCenter == null)
+    {
+        costCenter = new CostCenterModel { CostUnitName = costCenterName };
+        await costCenterService.AddCostCenterAsync(costCenter);
+    }
+    
+    var category = await categoryService.GetCategoryByNameAsync(categoryName); 
+    if (category == null)
+    {
+        category = new CategoryModel { Name = categoryName };
+        await categoryService.AddCategoryAsync(category);
+    }
+
+    ItemDetailModel? itemDetail = null;
+    if (!string.IsNullOrEmpty(itemDetailName))
+    {
+        itemDetail = await itemDetailService.GetItemDetailByNameAsync(itemDetailName); 
+        if (itemDetail == null)
+        {
+            itemDetail = new ItemDetailModel { CostDetails = itemDetailName };
+            await itemDetailService.AddItemDetailAsync(itemDetail);
+        }
+    }
+    
+    var allocation = await context.Allocations
+        .FirstOrDefaultAsync(a =>
+            a.CostCenterId == costCenter.Id &&
+            a.CategoryId == category.Id &&
+            a.ItemDetailId == (itemDetail != null ? itemDetail.Id : null));
+
+    if (allocation != null) return allocation;
+    allocation = new AllocationModel
+    {
+        CostCenter = costCenter,
+        Category = category,
+        ItemDetail = itemDetail
+    };
+    context.Allocations.Add(allocation);
+    await context.SaveChangesAsync();
+    logger.LogInformation("Created new allocation: {CostCenter}/{Category}", 
+        costCenterName, categoryName);
+
+    return allocation;
+}
 }
