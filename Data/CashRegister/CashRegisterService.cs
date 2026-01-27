@@ -34,7 +34,7 @@ namespace TTCCashRegister.Data.CashRegister
             return null;
         }
 
-        public async Task<CashRegisterModel?> GetFirstEntry()
+        public async Task<CashRegisterModel?> GetFirstCashRegisterAsync()
         {
             var cashRegister = await context.CashRegisters.FirstOrDefaultAsync();
             if (cashRegister is not null)

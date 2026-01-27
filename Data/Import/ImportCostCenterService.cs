@@ -1,107 +1,74 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.Category;
-using TTCCashRegister.Data.CostCenter;
 using TTCCashRegister.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Import
+namespace TTCCashRegister.Data.Import;
+
+public class ImportCostCenterService(
+    IAllocationService allocationService, 
+    ILogger<ImportCostCenterService> logger,
+    IStringLocalizer<Resources.Translation> localizer,
+    IOperationResultFactory operationResultFactory) 
+    : IImportCostCenterService
 {
-    public class ImportCostCenterService(CashDataContext context, ILogger<ImportCostCenterService> logger,
-    IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : IImportCostCenterService
+    public async Task<IOperationResult> ImportCostCentersAndPositions(
+        Stream? fileStream, 
+        string fileName)
     {
-        public async Task<IOperationResult> ImportCostCentersAndPositions(Stream? fileStream, string fileName)
+        if (fileStream == null)
         {
-            if (fileStream == null)
-            {
-                logger.LogError("Import cost center file stream is null");
-                return operationResultFactory.ImportFailed(localizer["FileStreamError"]);
-            }
-
-            try
-            {
-                logger.LogDebug("Start import of cost centers");
-                using var reader = new StreamReader(fileStream);
-                var lines = new List<string>();
-
-                while (await reader.ReadLineAsync() is { } currentLine)
-                {
-                    if (!string.IsNullOrWhiteSpace(currentLine))
-                    {
-                        lines.Add(currentLine);
-                    }
-                }
-
-                var costCenters = await context.CostCenters.ToListAsync();
-                var categories = await context.Categories.ToListAsync();
-                var allocations = await context.Allocations.ToListAsync();
-
-                foreach (var line in lines)
-                {
-                    var parts = line.Split('/');
-                    string costCenterName;
-                    string categoryName;
-
-                    switch (parts.Length)
-                    {
-                        case 1:
-                            costCenterName = parts[0].Trim();
-                            categoryName = $"{localizer["Undefined"]}";
-                            break;
-                        case >= 2:
-                            costCenterName = parts[0].Trim();
-                            categoryName = parts[1].Trim();
-                            break;
-                        default:
-                            continue;
-                    }
-
-                    var costCenter = costCenters.FirstOrDefault(c => c.CostUnitName == costCenterName);
-                    if (costCenter == null)
-                    {
-                        costCenter = new CostCenterModel { CostUnitName = costCenterName };
-                        costCenters.Add(costCenter);
-                        context.CostCenters.Add(costCenter);
-                        logger.LogInformation("Add cost center: '{@CostCenter}' during import ", costCenter);
-                    }
-
-                    var category = categories.FirstOrDefault(c => c.Name == categoryName);
-                    if (category == null)
-                    {
-                        category = new CategoryModel { Name = categoryName };
-                        categories.Add(category);
-                        context.Categories.Add(category);
-                        logger.LogInformation("Add category: '{@Category}' during import ", category);
-                    }
-
-                    var allocationExists = allocations.Any(a =>
-                        a.CostCenterId == costCenter.Id &&
-                        a.CategoryId == category.Id &&
-                        a.ItemDetailId == null);
-
-                    if (!allocationExists)
-                    {
-                        var allocation = new AllocationModel
-                        {
-                            CostCenter = costCenter,
-                            Category = category,
-                            ItemDetailId = null
-                        };
-                        context.Allocations.Add(allocation);
-                        allocations.Add(allocation);
-                        logger.LogInformation("Add allocation: '{@Allocation}' during import ", allocation);
-                    }
-                }
-
-                await context.SaveChangesAsync();
-                logger.LogInformation("Import of const centers completed successfully");
-                return operationResultFactory.ImportSuccessful(fileName);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Import of const centers failed");
-                return operationResultFactory.ImportFailed(localizer["Exception"]);
-            }
+            logger.LogError("Import cost center file stream is null");
+            return operationResultFactory.ImportFailed(localizer["FileStreamError"]);
         }
+
+        try
+        {
+            logger.LogDebug("Start import of cost centers");
+            
+            var lines = await ParseFile(fileStream);
+            
+            var importCount = 0;
+            foreach (var (costCenterName, categoryName) in lines)
+            {
+                await allocationService.GetOrCreateAllocationAsync(
+                    costCenterName, 
+                    categoryName);
+                importCount++;
+            }
+
+            logger.LogInformation(
+                "Import of cost centers completed. Count: {Count}", 
+                importCount);
+            
+            return operationResultFactory.ImportSuccessful(fileName);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Import of cost centers failed");
+            return operationResultFactory.ImportFailed(localizer["Exception"]);
+        }
+    }
+
+    private async Task<List<(string CostCenter, string Category)>> ParseFile(Stream fileStream)
+    {
+        var result = new List<(string, string)>();
+        
+        using var reader = new StreamReader(fileStream);
+        while (await reader.ReadLineAsync() is { } currentLine)
+        {
+            if (string.IsNullOrWhiteSpace(currentLine))
+                continue;
+
+            var parts = currentLine.Split('/');
+            
+            var costCenterName = parts[0].Trim();
+            var categoryName = parts.Length >= 2 
+                ? parts[1].Trim() 
+                : localizer["Undefined"].Value;
+
+            result.Add((costCenterName, categoryName));
+        }
+
+        return result;
     }
 }

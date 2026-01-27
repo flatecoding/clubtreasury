@@ -50,13 +50,11 @@ namespace TTCCashRegister.Data
                 .WithMany()
                 .HasForeignKey(st => st.PersonId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            // Optional: Unique Constraints für Documentnumber
+            
             modelBuilder.Entity<TransactionModel>()
                 .HasIndex(t => t.Documentnumber)
                 .IsUnique();
-
-            // Optional: Decimal Precision
+            
             modelBuilder.Entity<TransactionModel>()
                 .Property(t => t.Sum)
                 .HasColumnType("decimal(10,2)");

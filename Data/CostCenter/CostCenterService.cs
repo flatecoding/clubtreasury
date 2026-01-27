@@ -31,6 +31,11 @@ namespace TTCCashRegister.Data.CostCenter
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
+        public async Task<CostCenterModel?> GetCostCenterByNameAsync(string name)
+        {
+            return await  _context.CostCenters.FirstOrDefaultAsync(c => c.CostUnitName == name);
+        }
+
         public async Task<IOperationResult> AddCostCenterAsync(CostCenterModel costCenter)
         {
             try

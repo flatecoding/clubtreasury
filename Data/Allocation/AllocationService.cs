@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.Notification;
+using TTCCashRegister.Data.Category;
+using TTCCashRegister.Data.CostCenter;
+using TTCCashRegister.Data.ItemDetail;
 using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.Allocation;
@@ -9,7 +11,10 @@ public class AllocationService(
     CashDataContext context, 
     ILogger<AllocationService> logger, 
     IOperationResultFactory operationResultFactory,
-    IStringLocalizer<Translation> localizer) : IAllocationService
+    IStringLocalizer<Translation> localizer,
+    ICostCenterService costCenterService,
+    ICategoryService categoryService,
+    IItemDetailService itemDetailService) : IAllocationService
 {
     private string EntityName => localizer["Allocation"];
 
@@ -29,48 +34,6 @@ public class AllocationService(
             .Include(a => a.Category)
             .Include(a => a.ItemDetail)
             .ToListAsync();
-    }
-
-    public async Task<AllocationModel> EnsureAllocationExistsAsync(AllocationModel allocation, CancellationToken ct = default)
-    {
-        try
-        {
-            var existing = await context.Allocations.FirstOrDefaultAsync(a =>
-                a.CostCenterId == allocation.CostCenterId &&
-                a.CategoryId   == allocation.CategoryId &&
-                a.ItemDetailId == allocation.ItemDetailId, ct);
-
-            if (existing != null)
-            {
-                logger.LogInformation("Use existing allocation. CostCenter: {@CostCenter}, Category: {@Category}, " +
-                                      "ItemDetail: {@ItemDetail}", allocation.CostCenter.CostUnitName, 
-                    allocation.Category.Name,
-                    allocation.ItemDetail?.CostDetails ?? "null");
-                return existing;
-            }
-
-            var created = new AllocationModel
-            {
-                CostCenterId = allocation.CostCenterId,
-                CategoryId   = allocation.CategoryId,
-                ItemDetailId = allocation.ItemDetailId
-            };
-
-            context.Allocations.Add(created);
-            logger.LogInformation("Add allocation. CostCenter: {@CostCenter}, Category: {@Category}, " +
-                                  "ItemDetail: {@ItemDetail}", created.CostCenter.CostUnitName,
-                created.Category.Name, created.ItemDetail?.CostDetails ?? "null");
-            return created;
-        }
-        catch(Exception e)
-        {
-            logger.LogCritical(e, "An exception occurred while adding allocation: CostCenter: {@CostCenter} " +
-                                     "Category: {@Category} ItemDetails: {@ItemDetails}", allocation.CostCenter.CostUnitName, 
-                                      allocation.Category.Name, allocation.ItemDetail?.CostDetails ?? "N/A");
-        }
-        
-        logger.LogCritical("Existing allocation not found and new allocation could not be created.");
-        throw new DbUpdateException();
     }
 
     public async Task<IOperationResult> AddAllocationAsync(AllocationModel allocation)
@@ -186,5 +149,78 @@ public class AllocationService(
 
             return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
+    }
+    
+    public async Task<AllocationModel> GetOrCreateAllocationAsync(
+    string costCenterName,
+    string categoryName,
+    string? itemDetailName = null)
+    {
+        var costCenter = await costCenterService.GetCostCenterByNameAsync(costCenterName);
+        if (costCenter == null)
+        {
+            costCenter = new CostCenterModel { CostUnitName = costCenterName };
+            await costCenterService.AddCostCenterAsync(costCenter);
+        }
+        
+        var category = await categoryService.GetCategoryByNameAsync(categoryName); 
+        if (category == null)
+        {
+            category = new CategoryModel { Name = categoryName };
+            await categoryService.AddCategoryAsync(category);
+        }
+
+        ItemDetailModel? itemDetail = null;
+        if (!string.IsNullOrEmpty(itemDetailName))
+        {
+            itemDetail = await itemDetailService.GetItemDetailByNameAsync(itemDetailName); 
+            if (itemDetail == null)
+            {
+                itemDetail = new ItemDetailModel { CostDetails = itemDetailName };
+                await itemDetailService.AddItemDetailAsync(itemDetail);
+            }
+        }
+        
+        var allocation = await FindAllocationAsync(
+            costCenter.Id,
+            category.Id,
+            itemDetail?.Id);
+
+        if (allocation != null)
+            return allocation;
+
+        allocation = new AllocationModel
+        {
+            CostCenterId = costCenter.Id,
+            CategoryId   = category.Id,
+            ItemDetailId = itemDetail?.Id
+        };
+
+        context.Allocations.Add(allocation);
+        await context.SaveChangesAsync();
+        logger.LogInformation("Created new allocation: {CostCenter}/{Category}", 
+            costCenterName, categoryName);
+
+        return allocation;
+    }
+    
+    private Task<AllocationModel?> FindAllocationAsync(
+        int costCenterId,
+        int categoryId,
+        int? itemDetailId,
+        CancellationToken ct = default)
+    {
+        return context.Allocations.FirstOrDefaultAsync(a =>
+            a.CostCenterId == costCenterId &&
+            a.CategoryId   == categoryId &&
+            a.ItemDetailId == itemDetailId, ct);
+    }
+    
+    public async Task<AllocationModel> GetRequiredAllocationAsync(
+        int allocationId,
+        CancellationToken ct = default)
+    {
+        var allocation = await context.Allocations.FindAsync([ allocationId ], ct);
+        return allocation ?? throw new InvalidOperationException($"Allocation {allocationId} not found.");
     }
 }
