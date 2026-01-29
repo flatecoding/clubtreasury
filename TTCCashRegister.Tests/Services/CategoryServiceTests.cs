@@ -302,9 +302,17 @@ public class CategoryServiceTests
     }
 
     [Test]
-    public async Task UpdateCategoryAsync_WhenExceptionOccurs_ShouldThrowException()
+    public async Task UpdateCategoryAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
-        // Arrange - Note: UpdateCategoryAsync throws instead of catching exceptions
+        // Arrange
+        var expectedResult = new OperationResult
+        {
+            Status = OperationResultStatus.Failed,
+            Message = "Failed to update"
+        };
+        A.CallTo(() => _operationResultFactory.FailedToUpdate(A<string>._, A<string?>._))
+            .Returns(expectedResult);
+
         _context.Dispose();
         _contextDisposed = true;
 
@@ -319,10 +327,10 @@ public class CategoryServiceTests
         var category = new CategoryModel { Name = "Test" };
 
         // Act
-        var act = async () => await _sut.UpdateCategoryAsync(category);
+        var result = await _sut.UpdateCategoryAsync(category);
 
-        // Assert - The method throws the exception instead of returning a failure result
-        await act.Should().ThrowAsync<ObjectDisposedException>();
+        // Assert
+        result.Should().Be(expectedResult);
     }
 
     #endregion

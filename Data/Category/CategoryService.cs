@@ -74,16 +74,14 @@ namespace TTCCashRegister.Data.Category
                 _context.Categories.Update(category);
                 await _context.SaveChangesAsync();
                 logger.LogInformation("Category updated: {@unit}", category.Name);
-                
-                return operationResultFactory.SuccessUpdated($"{EntityName}: '{category.Name}'", category.Id);
 
+                return operationResultFactory.SuccessUpdated($"{EntityName}: '{category.Name}'", category.Id);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                logger.LogCritical(e, "Error updating category: {@category}", category);
+                return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
             }
-           
         }
 
         public async Task<IOperationResult> DeleteCategoryAsync(int id)
@@ -102,9 +100,9 @@ namespace TTCCashRegister.Data.Category
                 
                 return operationResultFactory.SuccessDeleted($"{EntityName}: '{category.Name}'", category.Id);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                logger.LogCritical("Error deleting category with id: {@id}", id);
+                logger.LogCritical(ex, "Error deleting category with id: {@id}", id);
                 return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }
