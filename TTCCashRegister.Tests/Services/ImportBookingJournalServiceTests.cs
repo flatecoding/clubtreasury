@@ -1,10 +1,8 @@
-using System.Data;
 using FakeItEasy;
 using FluentAssertions;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using OfficeOpenXml;
-using TTCCashRegister.Data;
 using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Import;
@@ -119,7 +117,7 @@ public class ImportBookingJournalServiceTests
     public async Task ImportTransactions_WhenValidExcelFile_ShouldImportTransactionsAndReturnSuccess()
     {
         // Arrange
-        var today = DateTime.Today;
+        var today = DateOnly.FromDateTime(DateTime.Today);
         using var stream = CreateExcelStream(ws =>
         {
             ws.Cells[1, 1].Value = today.ToString("yyyy-MM-dd");
@@ -155,12 +153,30 @@ public class ImportBookingJournalServiceTests
         };
         A.CallTo(() => _operationResultFactory.ImportSuccessful(fileName))
             .Returns(expectedResult);
+        
+        TransactionModel? importedTransaction = null;
+        A.CallTo(() => _transactionService.AddTransactionAsync(
+                A<TransactionModel>._, A<CancellationToken>._))
+            .Invokes((TransactionModel tx, CancellationToken _) =>
+            {
+                importedTransaction = tx;
+            })
+            .Returns(addResult);
 
         // Act
         var result = await _sut.ImportTransactions(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
+        importedTransaction.Should().NotBeNull();
+        importedTransaction!.Date.Should().Be(today);
+        importedTransaction.Documentnumber.Should().Be(100);
+        importedTransaction.Description.Should().Be("Test Description");
+        importedTransaction.Sum.Should().Be(50.00m);
+        importedTransaction.AccountMovement.Should().Be(50.00m);
+        importedTransaction.AllocationId.Should().Be(allocation.Id);
+        importedTransaction.CashRegisterId.Should().Be(cashRegister.Id);
+        
         A.CallTo(() => _transactionService.AddTransactionAsync(A<TransactionModel>._, A<CancellationToken>._))
             .MustHaveHappenedOnceExactly();
     }
