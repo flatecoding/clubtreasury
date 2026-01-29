@@ -1,6 +1,5 @@
 using FakeItEasy;
 using FluentAssertions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using TTCCashRegister.Data.Export;
@@ -23,10 +22,10 @@ public class ExportServiceTests
     private IExcelBudgetWriter _excelWriter = null!;
     private IPdfTransactionRenderer _pdfRenderer = null!;
     private IOperationResultFactory _operationResultFactory = null!;
-    private IStringLocalizer<Translation> _localizer = null!;
-    private IConfiguration _configuration = null!;
+    private IStringLocalizer<Resources.Translation> _localizer = null!;
     private ExportService _sut = null!;
     private string _testExportPath = null!;
+    private IExportPathProvider _exportPathProvider = null!;
 
     [SetUp]
     public void SetUp()
@@ -38,18 +37,13 @@ public class ExportServiceTests
         _excelWriter = A.Fake<IExcelBudgetWriter>();
         _pdfRenderer = A.Fake<IPdfTransactionRenderer>();
         _operationResultFactory = A.Fake<IOperationResultFactory>();
-        _localizer = A.Fake<IStringLocalizer<Translation>>();
+        _localizer = A.Fake<IStringLocalizer<Resources.Translation>>();
+        _exportPathProvider = A.Fake<IExportPathProvider>();
 
         _testExportPath = Path.Combine(Path.GetTempPath(), $"ExportTest_{Guid.NewGuid()}");
         Directory.CreateDirectory(_testExportPath);
-
-        var configValues = new Dictionary<string, string?>
-        {
-            { "ExportSettings:ExportPath", _testExportPath }
-        };
-        _configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configValues)
-            .Build();
+        A.CallTo(() => _exportPathProvider.ExportPath)
+            .Returns(_testExportPath);  
 
         A.CallTo(() => _localizer["NoData"])
             .Returns(new LocalizedString("NoData", "No data available"));
@@ -65,7 +59,7 @@ public class ExportServiceTests
             _pdfRenderer,
             _operationResultFactory,
             _localizer,
-            _configuration);
+            _exportPathProvider);
     }
 
     [TearDown]
@@ -101,6 +95,7 @@ public class ExportServiceTests
             Status = OperationResultStatus.Success,
             Message = "Export successful"
         };
+
         A.CallTo(() => _operationResultFactory.ExportSuccessful(filename))
             .Returns(expectedResult);
 
@@ -109,33 +104,38 @@ public class ExportServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
-        File.Exists(Path.Combine(_testExportPath, filename)).Should().BeTrue();
+
+        var filePath = Path.Combine(_testExportPath, filename);
+        File.Exists(filePath).Should().BeTrue();
+
+        var lines = await File.ReadAllLinesAsync(filePath);
+        lines.Should().HaveCount(3);
+        lines[0].Should().Be("Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung");
+        lines[1].Should().Be("1;Test 1;100;100");
+        lines[2].Should().Be("2;Test 2;200;200");
     }
 
     [Test]
     public async Task ExportTransactionsToCsv_WhenNoTransactions_ShouldReturnExportFailed()
     {
-        // Arrange
         var begin = new DateTime(2024, 1, 1);
         var end = new DateTime(2024, 1, 31);
-        var filename = "empty_export.csv";
 
         A.CallTo(() => _transactionService.GetTransactionsForExport(begin, end))
             .Returns(new List<TransactionModel>());
 
-        var expectedResult = new OperationResult
+        var failed = new OperationResult
         {
             Status = OperationResultStatus.Failed,
             Message = "No data available"
         };
+
         A.CallTo(() => _operationResultFactory.ExportFailed(A<string>._))
-            .Returns(expectedResult);
+            .Returns(failed);
 
-        // Act
-        var result = await _sut.ExportTransactionsToCsv(begin, end, filename);
+        var result = await _sut.ExportTransactionsToCsv(begin, end, "empty.csv");
 
-        // Assert
-        result.Should().Be(expectedResult);
+        result.Should().Be(failed);
     }
 
     [Test]
@@ -409,8 +409,6 @@ public class ExportServiceTests
         // Arrange
         var begin = new DateTime(2024, 1, 1);
         var end = new DateTime(2024, 1, 31);
-        var expectedFilename = $"Budget_{begin:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-        var expectedFilePath = Path.Combine(_testExportPath, expectedFilename);
 
         var transactions = new List<TransactionModel>();
         var flatEntries = new List<BudgetFlatEntryDto>();
@@ -418,47 +416,59 @@ public class ExportServiceTests
 
         A.CallTo(() => _transactionService.GetTransactionsForBudgetExport(begin, end))
             .Returns(transactions);
+
         A.CallTo(() => _budgetMapper.BuildFlatEntries(transactions))
             .Returns(flatEntries);
+
         A.CallTo(() => _budgetMapper.BuildBudgetHierarchy(flatEntries))
             .Returns(grouped);
 
-        var successResult = new OperationResult { Status = OperationResultStatus.Success };
-        A.CallTo(() => _operationResultFactory.ExportSuccessful(expectedFilename))
-            .Returns(successResult);
+        var success = new OperationResult
+        {
+            Status = OperationResultStatus.Success
+        };
 
-        // Create a test file
-        var testContent = new byte[] { 0x50, 0x4B, 0x03, 0x04 }; // Excel file signature
-        A.CallTo(() => _excelWriter.WriteAsync(A<string>._, grouped, begin, end))
-            .Invokes(() => File.WriteAllBytes(expectedFilePath, testContent));
+        A.CallTo(() => _operationResultFactory.ExportSuccessful(A<string>._))
+            .Returns(success);
+
+        var expectedBytes = new byte[] { 0x50, 0x4B, 0x03, 0x04 };
+
+        A.CallTo(() => _excelWriter.WriteAsync(
+                A<string>._, grouped, begin, end))
+            .Invokes((string path, IEnumerable<BudgetGroupedDto> _, DateTime _, DateTime _) =>
+            {
+                File.WriteAllBytes(path, expectedBytes);
+            });
 
         // Act
         var result = await _sut.ExportBudgetToExcelBytes(begin, end);
 
         // Assert
-        result.Should().BeEquivalentTo(testContent);
+        result.Should().BeEquivalentTo(expectedBytes);
     }
 
     [Test]
     public async Task ExportBudgetToExcelBytes_WhenExportFails_ShouldReturnEmptyArray()
     {
-        // Arrange
         var begin = new DateTime(2024, 1, 1);
         var end = new DateTime(2024, 1, 31);
 
         A.CallTo(() => _transactionService.GetTransactionsForBudgetExport(begin, end))
             .Throws(new Exception("Error"));
 
-        var failedResult = new OperationResult { Status = OperationResultStatus.Failed };
-        A.CallTo(() => _operationResultFactory.ExportFailed(A<string>._))
-            .Returns(failedResult);
+        var failed = new OperationResult
+        {
+            Status = OperationResultStatus.Failed
+        };
 
-        // Act
+        A.CallTo(() => _operationResultFactory.ExportFailed(A<string>._))
+            .Returns(failed);
+
         var result = await _sut.ExportBudgetToExcelBytes(begin, end);
 
-        // Assert
         result.Should().BeEmpty();
     }
+
 
     #endregion
 }

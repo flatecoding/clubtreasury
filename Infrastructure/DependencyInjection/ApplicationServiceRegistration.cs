@@ -42,6 +42,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IPdfTransactionRenderer, PdfTransactionRenderer>();
         services.AddScoped<ICultureService, CultureService>();
         services.AddScoped<IOperationResultFactory, OperationResultFactory>();
+        services.AddSingleton<IExportPathProvider, ExportPathProvider>();
         services.AddHttpContextAccessor();
         services.AddScoped<UserPrefService>(sp =>
         {
