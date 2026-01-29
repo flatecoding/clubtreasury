@@ -6,7 +6,6 @@
 @using TTCCashRegister.Data.Notification
 @using TTCCashRegister.Data.OperationResult
 @using TTCCashRegister.Data.Source
-@using TTCCashRegister.Data.Transaction
 @inject IExportService ExportService
 @inject IOperationResultFactory OperationResultFactory
 @inject IStringLocalizer<Translation> Localizer
@@ -24,7 +23,7 @@
                         @bind-DateRange="_model.DateRange"
                         Editable="true"
                         DateFormat="dd.MM.yyyy"
-                        FullWidth />
+                        Style="width: 100%" />
                 </MudItem>
 
                 <MudItem xs="12">
