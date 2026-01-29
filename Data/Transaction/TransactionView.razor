@@ -89,47 +89,50 @@
                     </MudTh>
                     <MudTh>@Localizer["Actions"]</MudTh>
                 </HeaderContent>
-                <RowTemplate>
-                    <MudTd DataLabel="@Localizer["Date"].Value">
-                        @context?.Date?.ToString("dd.MM.yyyy")
-                    </MudTd>
-                    <MudTd DataLabel="@Localizer["DocumentNumberShort"].Value">
-                        @context.Documentnumber
-                    </MudTd>
-                    <MudTd DataLabel="@Localizer["Description"].Value">
-                        @context.Description
-                    </MudTd>
-                    <MudTd DataLabel="@Localizer["Sum"].Value">
-                        @context.Sum.ToString("C", CultureInfo.CurrentCulture)
-                    </MudTd>
-                    <MudTd DataLabel="@Localizer["Account"].Value">
-                        @context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)
-                    </MudTd>
-                    <MudTd DataLabel="@Localizer["CostCenter"].Value">
-                        @context.Allocation.CostCenter.CostUnitName
-                    </MudTd>
-                    <MudTd DataLabel="@Localizer["Category"].Value">
-                        @context.Allocation.Category?.Name
-                    </MudTd>
-                    <MudTd DataLabel="@Localizer["ItemDetail"].Value">
-                        @context.Allocation.ItemDetail?.CostDetails
-                    </MudTd>
-                    <MudTd DataLabel="@Localizer["Actions"].Value">
-                        <MudIconButton Icon="@Icons.Material.Filled.List"
-                                       Color="Color.Secondary"
-                                       aria-label="show-transactionDetails"
-                                       OnClick="@(() => ShowTransactionDetailsOverviewDialog(
-                                            context.Id,
-                                            context.Documentnumber))" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                       Color="Color.Info"
-                                       aria-label="edit"
-                                       OnClick="@(() => ShowEditTransactionDialog(context.Id))" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                       Color="Color.Error"
-                                       aria-label="delete"
-                                       OnClick="@(() => ShowDeleteTransactionDialog(context))" />
-                    </MudTd>
+                <RowTemplate Context="context">
+                    @if (context is not null)
+                    {
+                        <MudTd DataLabel="@Localizer["Date"].Value">
+                            @context.Date?.ToString("dd.MM.yyyy")
+                        </MudTd>
+                        <MudTd DataLabel="@Localizer["DocumentNumberShort"].Value">
+                            @context.Documentnumber
+                        </MudTd>
+                        <MudTd DataLabel="@Localizer["Description"].Value">
+                            @context.Description
+                        </MudTd>
+                        <MudTd DataLabel="@Localizer["Sum"].Value">
+                            @context.Sum.ToString("C", CultureInfo.CurrentCulture)
+                        </MudTd>
+                        <MudTd DataLabel="@Localizer["Account"].Value">
+                            @context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)
+                        </MudTd>
+                        <MudTd DataLabel="@Localizer["CostCenter"].Value">
+                            @context.Allocation?.CostCenter?.CostUnitName
+                        </MudTd>
+                        <MudTd DataLabel="@Localizer["Category"].Value">
+                            @context.Allocation?.Category?.Name
+                        </MudTd>
+                        <MudTd DataLabel="@Localizer["ItemDetail"].Value">
+                            @context.Allocation?.ItemDetail?.CostDetails
+                        </MudTd>
+                        <MudTd DataLabel="@Localizer["Actions"].Value">
+                            <MudIconButton Icon="@Icons.Material.Filled.List"
+                                           Color="Color.Secondary"
+                                           aria-label="show-transactionDetails"
+                                           OnClick="@(() => ShowTransactionDetailsOverviewDialog(
+                                                context.Id,
+                                                context.Documentnumber))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                           Color="Color.Info"
+                                           aria-label="edit"
+                                           OnClick="@(() => ShowEditTransactionDialog(context.Id))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                           Color="Color.Error"
+                                           aria-label="delete"
+                                           OnClick="@(() => ShowDeleteTransactionDialog(context))" />
+                        </MudTd>
+                    }
                 </RowTemplate>
                 <PagerContent>
                     <MudTablePager />
@@ -239,13 +242,19 @@
             await _table.ReloadServerData();
     }
     
-    private async Task<TableData<TransactionModel>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    private async Task<TableData<TransactionModel?>> LoadServerData(TableState state, CancellationToken cancellationToken)
     {
-        return await TransactionService.GetTransactionsPagedOptimized(
+        var result = await TransactionService.GetTransactionsPagedOptimized(
             state,
             cancellationToken,
             _dateRange,
             _searchString1,
             _personId);
+
+        return new TableData<TransactionModel?>
+        {
+            Items = result.Items,
+            TotalItems = result.TotalItems
+        };
     }
 }

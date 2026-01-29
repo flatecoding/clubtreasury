@@ -266,7 +266,8 @@
         (_transactionModel.CashRegister, _transactionModel.CashRegisterId) =
             SetRequired<CashRegisterModel, CashRegisterModel>(_selectedCashRegisterModel, c => c.Id);
         
-        if (_selectedCostUnit?.Id < 1 || _selectedBasicUnit?.Id < 1)
+        if (_selectedCostUnit is null || _selectedCostUnit.Id < 1 ||
+            _selectedBasicUnit is null || _selectedBasicUnit.Id < 1)
             throw new InvalidOperationException("CostCenter and Category are required.");
 
         var allocation = await AllocationService.GetOrCreateAllocationAsync(

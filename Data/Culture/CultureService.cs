@@ -1,11 +1,10 @@
 using System.Globalization;
-using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using TTCCashRegister.Data.Source;
 
 namespace TTCCashRegister.Data.Culture;
 
-public sealed class CultureService(IJSRuntime js, NavigationManager navigation) : ICultureService
+public sealed class CultureService(IJSRuntime js) : ICultureService
 {
     public CultureInfo CurrentCulture
         => CultureInfo.CurrentUICulture;
