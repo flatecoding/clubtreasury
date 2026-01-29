@@ -522,4 +522,12 @@
         <value />
         <comment>DuplicateRow</comment>
     </data>
+    <data name="RowErrorFormat" xml:space="preserve">
+        <value />
+        <comment>RowErrorFormat</comment>
+    </data>
+    <data name="RequiredDataIsMissing" xml:space="preserve">
+        <value />
+        <comment>RequiredDataIsMissing</comment>
+    </data>
 </root>

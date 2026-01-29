@@ -38,26 +38,28 @@ public class AllocationService(
 
     public async Task<IOperationResult> AddAllocationAsync(AllocationModel allocation)
     {
-        if (await AllocationExistsAsync(allocation))
-        {
-            logger.LogWarning(
-                "Allocation with CostCenter: {CostCenterId}, Category: {CategoryId}, ItemDetail: {ItemDetailId} already exists.",
-                allocation.CostCenterId, allocation.CategoryId, allocation.ItemDetailId);
-
-            return operationResultFactory.AlreadyExists(
-                EntityName);
-        }
-
         try
         {
+            if (allocation.CategoryId == 0 || allocation.CostCenterId == 0)
+                return operationResultFactory.DialogIsEmpty(EntityName, $"{localizer["CostCenter"]} Id '{allocation.CostCenterId}' " +
+                                                                        $" - {localizer["Category"]} Id '{allocation.CategoryId}'");
+            if (await AllocationExistsAsync(allocation))
+            {
+                logger.LogWarning(
+                    "Allocation with CostCenter: {CostCenterId}, Category: {CategoryId}, ItemDetail: {ItemDetailId} already exists.",
+                    allocation.CostCenterId, allocation.CategoryId, allocation.ItemDetailId);
+
+                return operationResultFactory.AlreadyExists(EntityName);
+            }
+
             context.Allocations.Add(allocation);
             await context.SaveChangesAsync();
 
             logger.LogInformation(
                 "AddAllocationAsync: CostCenter: {CostCenterId}, Category: {CategoryId}, ItemDetail: {ItemDetailId}",
                 allocation.CostCenterId, allocation.CategoryId, allocation.ItemDetailId);
-            
-            return operationResultFactory.SuccessAdded(EntityName, allocation.Id); 
+
+            return operationResultFactory.SuccessAdded(EntityName, allocation.Id);
         }
         catch (Exception ex)
         {
@@ -79,15 +81,15 @@ public class AllocationService(
 
     public async Task<IOperationResult> UpdateAllocationAsync(AllocationModel updatedAllocation)
     {
-        var existing = await context.Allocations.FindAsync(updatedAllocation.Id);
-        if (existing == null)
-        {
-            logger.LogWarning("Allocation with Id {AllocationId} not found.", updatedAllocation.Id);
-            return operationResultFactory.NotFound(EntityName, updatedAllocation.Id);
-        }
-
         try
         {
+            var existing = await context.Allocations.FindAsync(updatedAllocation.Id);
+            if (existing == null)
+            {
+                logger.LogWarning("Allocation with Id {AllocationId} not found.", updatedAllocation.Id);
+                return operationResultFactory.NotFound(EntityName, updatedAllocation.Id);
+            }
+
             existing.CostCenterId = updatedAllocation.CostCenterId;
             existing.CategoryId = updatedAllocation.CategoryId;
             existing.ItemDetailId = updatedAllocation.ItemDetailId;
@@ -118,14 +120,15 @@ public class AllocationService(
 
     public async Task<IOperationResult> DeleteAllocationAsync(int id)
     {
-        var allocation = await context.Allocations.FindAsync(id);
-        if (allocation == null)
-        {
-            logger.LogWarning("Allocation with Id {AllocationId} not found.", id);
-            return operationResultFactory.NotFound(EntityName, id);
-        }
         try
         {
+            var allocation = await context.Allocations.FindAsync(id);
+            if (allocation == null)
+            {
+                logger.LogWarning("Allocation with Id {AllocationId} not found.", id);
+                return operationResultFactory.NotFound(EntityName, id);
+            }
+
             context.Allocations.Remove(allocation);
             await context.SaveChangesAsync();
 
@@ -141,11 +144,8 @@ public class AllocationService(
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Failed to delete allocation Id {AllocationId}. CostCenter: {CostCenter}, Category: {Category}, ItemDetail: {ItemDetail}",
-                allocation.Id,
-                allocation.CostCenterId,
-                allocation.CategoryId,
-                allocation.ItemDetailId);
+                "Failed to delete allocation Id {AllocationId}.",
+                id);
 
             return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }

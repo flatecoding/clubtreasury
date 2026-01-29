@@ -13,6 +13,10 @@
     <Content Remove="Pages\BusinessSectors\**" />
     <EmbeddedResource Remove="Pages\BusinessSectors\**" />
     <None Remove="Pages\BusinessSectors\**" />
+    <Compile Remove="TTCCashRegister.Tests\**" />
+    <Content Remove="TTCCashRegister.Tests\**" />
+    <EmbeddedResource Remove="TTCCashRegister.Tests\**" />
+    <None Remove="TTCCashRegister.Tests\**" />
     <None Include="wwwroot\images\Logo TTC Hagen.bmp" />
     <None Include="wwwroot\images\Logo TTC Hagen.eps" />
     <None Include="wwwroot\images\Logo TTC Hagen.png" />
