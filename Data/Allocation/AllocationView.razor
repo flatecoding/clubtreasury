@@ -22,7 +22,6 @@
                       Hover="true"
                       Bordered="false"
                       Striped="true"
-                      @bind-SelectedItem="_selectedAllocation"
                       Filter="new Func<AllocationModel,bool>(FilterFunc)"
                       SortLabel="Sort By">
                 <ToolBarContent>
@@ -103,7 +102,6 @@
 
 @code {
     private IEnumerable<AllocationModel>? _allAllocations;
-    private AllocationModel? _selectedAllocation;
     private string _searchString = string.Empty;
 
     protected override async Task OnInitializedAsync()
