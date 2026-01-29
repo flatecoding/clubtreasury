@@ -45,6 +45,10 @@ public class AllocationServiceTests
             .Returns(new LocalizedString("Allocation", "Allocation"));
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
+        A.CallTo(() => _localizer["CostCenter"])
+            .Returns(new LocalizedString("CostCenter", "Cost Center"));
+        A.CallTo(() => _localizer["Category"])
+            .Returns(new LocalizedString("Category", "Category"));
 
         _sut = new AllocationService(
             _context,
@@ -145,7 +149,7 @@ public class AllocationServiceTests
     }
 
     #endregion
-
+    
     #region AddAllocationAsync Tests
 
     [Test]
@@ -232,6 +236,58 @@ public class AllocationServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
+    }
+
+    [Test]
+    public async Task AddAllocationAsync_WhenCostCenterIdIsZero_ShouldReturnDialogIsEmpty()
+    {
+        // Arrange
+        var (_, category) = await CreateTestDataAsync();
+        var allocation = new AllocationModel { CostCenterId = 0, CategoryId = category.Id };
+
+        var expectedResult = new OperationResult
+        {
+            Status = OperationResultStatus.Failed,
+            Message = "Dialog is empty"
+        };
+        A.CallTo(() => _operationResultFactory.DialogIsEmpty(A<string>._, A<string>._))
+            .Returns(expectedResult);
+
+        // Act
+        var result = await _sut.AddAllocationAsync(allocation);
+
+        // Assert
+        result.Should().Be(expectedResult);
+        A.CallTo(() => _operationResultFactory.DialogIsEmpty(A<string>._, A<string>._))
+            .MustHaveHappenedOnceExactly();
+        var addedAllocation = await _context.Allocations.FirstOrDefaultAsync();
+        addedAllocation.Should().BeNull();
+    }
+
+    [Test]
+    public async Task AddAllocationAsync_WhenCategoryIdIsZero_ShouldReturnDialogIsEmpty()
+    {
+        // Arrange
+        var (costCenter, _) = await CreateTestDataAsync();
+        var allocation = new AllocationModel { CostCenterId = costCenter.Id, CategoryId = 0 };
+
+        var expectedResult = new OperationResult
+        {
+            Status = OperationResultStatus.Failed,
+            Message = "Dialog is empty"
+        };
+        A.CallTo(() => _operationResultFactory.DialogIsEmpty(A<string>._, A<string>._))
+            .Returns(expectedResult);
+
+        // Act
+        var result = await _sut.AddAllocationAsync(allocation);
+
+        // Assert
+        result.Should().Be(expectedResult);
+        A.CallTo(() => _operationResultFactory.DialogIsEmpty(A<string>._, A<string>._))
+            .MustHaveHappenedOnceExactly();
+        var addedAllocation = await _context.Allocations.FirstOrDefaultAsync();
+        addedAllocation.Should().BeNull();
     }
 
     #endregion

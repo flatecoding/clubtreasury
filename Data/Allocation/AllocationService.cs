@@ -40,6 +40,9 @@ public class AllocationService(
     {
         try
         {
+            if (allocation.CategoryId == 0 || allocation.CostCenterId == 0)
+                return operationResultFactory.DialogIsEmpty(EntityName, $"{localizer["CostCenter"]} Id '{allocation.CostCenterId}' " +
+                                                                        $" - {localizer["Category"]} Id '{allocation.CategoryId}'");
             if (await AllocationExistsAsync(allocation))
             {
                 logger.LogWarning(

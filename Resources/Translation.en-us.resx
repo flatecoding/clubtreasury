@@ -519,4 +519,12 @@
         <value>Duplicate row</value>
         <comment>DuplicateRow</comment>
     </data>
+    <data name="RowErrorFormat" xml:space="preserve">
+        <value>Row formar error</value>
+        <comment>RowErrorFormat</comment>
+    </data>
+    <data name="RequiredDataIsMissing" xml:space="preserve">
+        <value>Required data is missing in</value>
+        <comment>RequiredDataIsMissing</comment>
+    </data>
 </root>
