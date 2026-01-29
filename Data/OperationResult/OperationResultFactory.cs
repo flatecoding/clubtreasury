@@ -49,6 +49,13 @@ public class OperationResultFactory(IStringLocalizer<Translation> localizer) : I
             Message = $"{localizer["FailedToAdd"]} {entityName}" + (details != null ? $": {details}" : "")
         };
     
+    public OperationResult DialogIsEmpty(string entityName, string? details = null)
+        => new()
+        {
+            Status = OperationResultStatus.Warning,
+            Message = $"{localizer["RequiredDataIsMissing"]} {entityName}" + (details != null ? $": {details}" : "")
+        };
+    
     public OperationResult FailedToUpdate(string entityName, string? details = null)
         => new()
         {

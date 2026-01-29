@@ -1,4 +1,3 @@
-using TTCCashRegister.Data.Notification;
 using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.Allocation;

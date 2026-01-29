@@ -212,7 +212,7 @@ public class ImportBookingJournalService(
     private Task<ValidationResult> ValidateRows(
         List<BookingJournalRowDto> rows)
     {
-        if (rows == null || rows.Count == 0)
+        if (rows.Count == 0)
         {
             return Task.FromResult(new ValidationResult
             {

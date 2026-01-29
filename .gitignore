@@ -13,3 +13,7 @@
 /TTCCashRegister.sln.DotSettings.user
 /DBbackup/
 *.tar
+
+# Test project build artifacts
+/TTCCashRegister.Tests/bin/
+/TTCCashRegister.Tests/obj/
