@@ -60,7 +60,7 @@
                     </MudTh>
                     <MudTh>
                         <MudTableSortLabel
-                            SortBy="new Func<AllocationModel, object>(x => x.ItemDetail?.CostDetails)">
+                            SortBy="new Func<AllocationModel, object?>(x => x.ItemDetail?.CostDetails)">
                             @Localizer["ItemDetail"]
                         </MudTableSortLabel>
                     </MudTh>
@@ -74,10 +74,10 @@
                     </MudTd>
 
                     <MudTd DataLabel="@Localizer["CostCenter"]">
-                        @context.CostCenter?.CostUnitName
+                        @context.CostCenter.CostUnitName
                     </MudTd>
                     <MudTd DataLabel="@Localizer["Category"]">
-                        @context.Category?.Name
+                        @context.Category.Name
                     </MudTd>
                     <MudTd DataLabel="@Localizer["ItemDetail"]">
                         @context.ItemDetail?.CostDetails

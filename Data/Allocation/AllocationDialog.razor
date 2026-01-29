@@ -15,19 +15,21 @@
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" Model="_allocationModel">
-            <MudSelect T="int" Label="@Localizer["CostCenter"]" @bind-Value="_allocationModel.CostCenterId" 
-                       Required="true"
-                       ToStringFunc="@CostCenterIdToString">
+        <MudForm @ref="_form" Model="_allocationModel" Validation="_allocationValidator.ValidateValue">
+            <MudSelect T="int" Label="@Localizer["CostCenter"]" @bind-Value="_allocationModel.CostCenterId"
+                       ToStringFunc="@CostCenterIdToString"
+                       For="@(() => _allocationModel.CostCenterId)"
+                       Immediate="true">
                 @foreach (var cc in _costCenters)
                 {
                     <MudSelectItem T="int" Value="@cc.Id">@cc.CostUnitName</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudSelect T="int" Label="@Localizer["Category"]" @bind-Value="_allocationModel.CategoryId" 
-                       Required="true"
-                       ToStringFunc="@CategoryIdToString">
+            <MudSelect T="int" Label="@Localizer["Category"]" @bind-Value="_allocationModel.CategoryId"
+                       ToStringFunc="@CategoryIdToString"
+                       For="@(() => _allocationModel.CategoryId)"
+                       Immediate="true">
                 @foreach (var cat in _categories)
                 {
                     <MudSelectItem T="int" Value="@cat.Id">@cat.Name</MudSelectItem>
@@ -56,6 +58,7 @@
     [Parameter] public int? AllocationId { get; set; }
     private MudForm _form = new();
     private AllocationModel _allocationModel = new();
+    private readonly AllocationValidator _allocationValidator = new ();
     private bool _isEditMode;
 
     private List<CostCenterModel> _costCenters = new();
@@ -67,7 +70,6 @@
     protected override async Task OnInitializedAsync()
     {
         _isEditMode = AllocationId.HasValue;
-
         
         _costCenters = (await CostCenterService.GetAllCostCentersAsync())
             .OrderBy(c => c.CostUnitName)

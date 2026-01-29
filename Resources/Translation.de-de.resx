@@ -518,4 +518,12 @@
         <value>Reihe ist doppelt</value>
         <comment>DuplicateRow</comment>
     </data>
+    <data name="RowErrorFormat" xml:space="preserve">
+        <value>Zeilenformat fehler</value>
+        <comment>RowErrorFormat</comment>
+    </data>
+    <data name="RequiredDataIsMissing" xml:space="preserve">
+        <value>Fehlende Daten in</value>
+        <comment>RequiredDataIsMissing</comment>
+    </data>
 </root>
