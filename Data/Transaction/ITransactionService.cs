@@ -22,11 +22,4 @@ public interface ITransactionService
         DateRange? dateRange,
         string? searchText,
         int? personId);
-    
-    Task<TableData<TransactionModel>> GetTransactionsPagedOptimized(
-        TableState state,
-        CancellationToken cancellationToken,
-        DateRange? dateRange,
-        string? searchText,
-        int? personId);
 }

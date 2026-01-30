@@ -253,102 +253,6 @@ public class TransactionService(
         string? searchText,
         int? personId)
     {
-        var stopwatch =  Stopwatch.StartNew();
-        var query = context.Transactions
-            .Include(t => t.Allocation)
-                .ThenInclude(a => a.CostCenter)
-            .Include(t => t.Allocation)
-                .ThenInclude(a => a.Category)
-            .Include(t => t.Allocation)
-                .ThenInclude(a => a.ItemDetail)
-            .Include(t => t.TransactionDetails)
-                .ThenInclude(st => st.Person)
-            .AsNoTracking();
-
-        //Datum
-        if (dateRange?.Start is not null && dateRange.End is not null)
-        {
-            var start = dateRange.Start.Value.Date;
-            var end = dateRange.End.Value.Date;
-            query = query.Where(t => t.Date.HasValue &&
-                                     t.Date.Value >= DateOnly.FromDateTime(start) &&
-                                     t.Date.Value <= DateOnly.FromDateTime(end));
-        }
-
-        //Suchtext
-        if (!string.IsNullOrWhiteSpace(searchText))
-        {
-            var term = searchText.ToLower();
-            query = query.Where(x =>
-                (x.Description != null && x.Description.ToLower().Contains(term)) ||
-                x.Documentnumber.ToString().Contains(term) ||
-                (x.Allocation.CostCenter.CostUnitName.ToLower().Contains(term)) ||
-                (x.Allocation.Category.Name.ToLower().Contains(term)) ||
-                (x.Allocation.ItemDetail != null && x.Allocation.ItemDetail.CostDetails.ToLower().Contains(term)) ||
-                x.TransactionDetails.Any(st => st.Person != null && st.Person.Name.ToLower().Contains(term))
-            );
-        }
-
-        //Person-Filter
-        if (personId is not null)
-        {
-            query = query.Where(t =>
-                t.TransactionDetails.Any(st => st.PersonId == personId));
-        }
-
-        // Sortierung
-        query = state.SortLabel switch
-        {
-            "Date" => state.SortDirection == SortDirection.Descending
-                ? query.OrderByDescending(x => x.Date)
-                : query.OrderBy(x => x.Date),
-
-            "DocumentNumber" => state.SortDirection == SortDirection.Descending
-                ? query.OrderByDescending(x => x.Documentnumber)
-                : query.OrderBy(x => x.Documentnumber),
-
-            "Sum" => state.SortDirection == SortDirection.Descending
-                ? query.OrderByDescending(x => x.Sum)
-                : query.OrderBy(x => x.Sum),
-
-            "CostCenter" => state.SortDirection == SortDirection.Descending
-                ? query.OrderByDescending(x => x.Allocation.CostCenter.CostUnitName)
-                : query.OrderBy(x => x.Allocation.CostCenter.CostUnitName),
-
-            "Category" => state.SortDirection == SortDirection.Descending
-                ? query.OrderByDescending(x => x.Allocation.Category.Name)
-                : query.OrderBy(x => x.Allocation.Category.Name),
-
-            "ItemDetail" => state.SortDirection == SortDirection.Descending
-                ? query.OrderByDescending(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null)
-                : query.OrderBy(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null),
-
-            _ => query.OrderByDescending(x => x.Id)
-        };
-
-        var totalItems = await query.CountAsync(cancellationToken);
-        var items = await query
-            .Skip(state.Page * state.PageSize)
-            .Take(state.PageSize)
-            .ToListAsync(cancellationToken);
-
-        var tableData = new TableData<TransactionModel>
-        {
-            TotalItems = totalItems,
-            Items = items
-        };
-        stopwatch.Stop();
-        logger.LogInformation("GetTransactionsPaged: {elapsed} ms", stopwatch.ElapsedMilliseconds);
-        return tableData;
-    }
-
-    public async Task<TableData<TransactionModel>> GetTransactionsPagedOptimized(
-        TableState state,
-        CancellationToken cancellationToken,
-        DateRange? dateRange,
-        string? searchText,
-        int? personId)
-    {
         IQueryable<TransactionModel> baseQuery = context.Transactions.AsNoTracking();
         if (dateRange?.Start is not null && dateRange.End is not null)
         {
@@ -369,10 +273,10 @@ public class TransactionService(
                 t.Allocation.CostCenter.CostUnitName.ToLower().Contains(term) ||
                 t.Allocation.Category.Name.ToLower().Contains(term) ||
                 (t.Allocation.ItemDetail != null &&
-                 t.Allocation.ItemDetail.CostDetails.ToLower().Contains(term) ||
-                 t.TransactionDetails.Any( st =>
-                     st.Person != null &&
-                     st.Person.Name.ToLower().Contains(term))));
+                 t.Allocation.ItemDetail.CostDetails.ToLower().Contains(term)) ||
+                t.TransactionDetails.Any(st =>
+                    st.Person != null &&
+                    st.Person.Name.ToLower().Contains(term)));
         }
 
         if (personId is not null)
@@ -396,31 +300,13 @@ public class TransactionService(
 
         dataQuery = state.SortLabel switch
         {
-            "Date" => state.SortDirection == SortDirection.Descending
-                ? dataQuery.OrderByDescending(x => x.Date)
-                : dataQuery.OrderBy(x => x.Date),
-
-            "DocumentNumber" => state.SortDirection == SortDirection.Descending
-                ? dataQuery.OrderByDescending(x => x.Documentnumber)
-                : dataQuery.OrderBy(x => x.Documentnumber),
-
-            "Sum" => state.SortDirection == SortDirection.Descending
-                ? dataQuery.OrderByDescending(x => x.Sum)
-                : dataQuery.OrderBy(x => x.Sum),
-
-            "CostCenter" => state.SortDirection == SortDirection.Descending
-                ? dataQuery.OrderByDescending(x => x.Allocation.CostCenter.CostUnitName)
-                : dataQuery.OrderBy(x => x.Allocation.CostCenter.CostUnitName),
-
-            "Category" => state.SortDirection == SortDirection.Descending
-                ? dataQuery.OrderByDescending(x => x.Allocation.Category.Name)
-                : dataQuery.OrderBy(x => x.Allocation.Category.Name),
-
-            "ItemDetail" => state.SortDirection == SortDirection.Descending
-                ? dataQuery.OrderByDescending(x =>
-                    x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null)
-                : dataQuery.OrderBy(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null),
-
+            "Date" => dataQuery.OrderByDirection(state.SortDirection, x => x.Date),
+            "DocumentNumber" => dataQuery.OrderByDirection(state.SortDirection, x => x.Documentnumber),
+            "Sum" => dataQuery.OrderByDirection(state.SortDirection, x => x.Sum),
+            "CostCenter" => dataQuery.OrderByDirection(state.SortDirection, x => x.Allocation.CostCenter.CostUnitName),
+            "Category" => dataQuery.OrderByDirection(state.SortDirection, x => x.Allocation.Category.Name),
+            "ItemDetail" => dataQuery.OrderByDirection(state.SortDirection, x =>
+                x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null),
             _ => dataQuery.OrderByDescending(x => x.Id)
         };
 

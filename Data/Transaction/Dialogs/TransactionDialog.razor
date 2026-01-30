@@ -82,7 +82,7 @@
                        Disabled="@(_selectedCostUnit == null)" 
                        Required="true" 
                        ToStringFunc="@_basicUnitConverter"
-                       @bind-Value="_selectedBasicUnit"
+                       @bind-Value="_selectedCategory"
                        @bind-Value:after="OnBasicUnitChangedAsync">
                 @if (_categories is not null)
                 {
@@ -95,9 +95,9 @@
 
             <MudSelect T="ItemDetailModel" 
                        Label="@Localizer["ItemDetail"]"
-                       Disabled="@(_selectedBasicUnit == null)" 
+                       Disabled="@(_selectedCategory == null)" 
                        ToStringFunc="@_detailsConverter"
-                       @bind-Value="_selectedUnitDetail">
+                       @bind-Value="_selectedItemDetail">
                 <MudSelectItem T="ItemDetailModel" Value="@null">None</MudSelectItem>
                 @if (_unitDetails is not null)
                 {
@@ -146,8 +146,8 @@
     private IEnumerable<SpecialItemModel> _specialItemList = [];
 
     private CostCenterModel? _selectedCostUnit;
-    private CategoryModel? _selectedBasicUnit;
-    private ItemDetailModel? _selectedUnitDetail;
+    private CategoryModel? _selectedCategory;
+    private ItemDetailModel? _selectedItemDetail;
     private CashRegisterModel? _selectedCashRegisterModel;
     private SpecialItemModel? _selectedSpecialItem;
 
@@ -174,8 +174,8 @@
         // Vorbelegung aus gespeicherter Transaktion
         _selectedCashRegisterModel = _transactionModel.CashRegister;
         _selectedCostUnit = _transactionModel.Allocation?.CostCenter;
-        _selectedBasicUnit = _transactionModel.Allocation?.Category;
-        _selectedUnitDetail = _transactionModel.Allocation?.ItemDetail;
+        _selectedCategory = _transactionModel.Allocation?.Category;
+        _selectedItemDetail = _transactionModel.Allocation?.ItemDetail;
         _selectedSpecialItem = _transactionModel.SpecialItem;
         TransactionDateTime = _transactionModel.Date?.ToDateTime(TimeOnly.MinValue);
 
@@ -185,15 +185,15 @@
             _categories = await CategoryService.GetCategoriesByCostCenterIdAsync(_selectedCostUnit.Id);
 
             var categoryModels = _categories.ToList();
-            if (_selectedBasicUnit is not null && categoryModels.All(b => b.Id != _selectedBasicUnit.Id))
-                _selectedBasicUnit = categoryModels.FirstOrDefault();
+            if (_selectedCategory is not null && categoryModels.All(b => b.Id != _selectedCategory.Id))
+                _selectedCategory = categoryModels.FirstOrDefault();
 
-            if (_selectedBasicUnit is not null)
+            if (_selectedCategory is not null)
             {
-                _unitDetails = await ItemDetailService.GetItemDetailByCategoryIdAsync(_selectedBasicUnit.Id);
+                _unitDetails = await ItemDetailService.GetItemDetailByCategoryIdAsync(_selectedCategory.Id);
 
-                if (_selectedUnitDetail is not null && _unitDetails.All(u => u.Id != _selectedUnitDetail.Id))
-                    _selectedUnitDetail = _unitDetails.FirstOrDefault();
+                if (_selectedItemDetail is not null && _unitDetails.All(u => u.Id != _selectedItemDetail.Id))
+                    _selectedItemDetail = _unitDetails.FirstOrDefault();
             }
         }
     }
@@ -209,14 +209,14 @@
     private async Task OnCostUnitChangedAsync()
     {
         _categories = [];
-        _selectedBasicUnit = null;
+        _selectedCategory = null;
         _unitDetails = [];
-        _selectedUnitDetail = null;
+        _selectedItemDetail = null;
 
         if (_selectedCostUnit is not null)
         {
             _categories = await CategoryService.GetCategoriesByCostCenterIdAsync(_selectedCostUnit.Id);
-            if (_categories != null) _selectedBasicUnit = _categories.FirstOrDefault();
+            if (_categories != null) _selectedCategory = _categories.FirstOrDefault();
             await OnBasicUnitChangedAsync();
         }
 
@@ -226,12 +226,12 @@
     private async Task OnBasicUnitChangedAsync()
     {
         _unitDetails = [];
-        _selectedUnitDetail = null;
+        _selectedItemDetail = null;
 
-        if (_selectedBasicUnit is not null)
+        if (_selectedCategory is not null)
         {                                          
-            _unitDetails = await ItemDetailService.GetItemDetailByCategoryIdAsync(_selectedBasicUnit.Id);
-            if (_unitDetails != null) _selectedUnitDetail = _unitDetails.FirstOrDefault();
+            _unitDetails = await ItemDetailService.GetItemDetailByCategoryIdAsync(_selectedCategory.Id);
+            if (_unitDetails != null) _selectedItemDetail = _unitDetails.FirstOrDefault();
         }
 
         StateHasChanged();
@@ -267,13 +267,13 @@
             SetRequired<CashRegisterModel, CashRegisterModel>(_selectedCashRegisterModel, c => c.Id);
         
         if (_selectedCostUnit is null || _selectedCostUnit.Id < 1 ||
-            _selectedBasicUnit is null || _selectedBasicUnit.Id < 1)
+            _selectedCategory is null || _selectedCategory.Id < 1)
             throw new InvalidOperationException("CostCenter and Category are required.");
 
         var allocation = await AllocationService.GetOrCreateAllocationAsync(
             _selectedCostUnit.CostUnitName,
-            _selectedBasicUnit.Name,
-            _selectedUnitDetail?.CostDetails);
+            _selectedCategory.Name,
+            _selectedItemDetail?.CostDetails);
 
         _transactionModel.AllocationId = allocation.Id;
 
@@ -303,7 +303,7 @@
 
     private bool IsProcessable()
         => _selectedCostUnit?.Id >= 1
-           && _selectedBasicUnit?.Id >= 1
+           && _selectedCategory?.Id >= 1
            && _selectedCashRegisterModel?.Id >= 1
            && TransactionDateTime.HasValue;
 
