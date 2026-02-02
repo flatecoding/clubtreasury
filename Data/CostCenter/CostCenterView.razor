@@ -29,7 +29,7 @@
                     </MudIconButton>
                     <MudSpacer/>
                     <MudTextField
-                        @bind-Value="_searchString1"
+                        @bind-Value="_searchTerm"
                         Placeholder="Search"
                         Adornment="Adornment.Start"
                         AdornmentIcon="@Icons.Material.Filled.Search"
@@ -46,7 +46,7 @@
                     </MudTh>
                     <MudTh>
                         <MudTableSortLabel 
-                            SortBy="new Func<CostCenterModel, object>(x => x.CostUnitName ?? string.Empty)">
+                            SortBy="new Func<CostCenterModel, object>(x => x.CostUnitName)">
                             @Localizer["Name"]
                             </MudTableSortLabel>
                     </MudTh>
@@ -76,7 +76,7 @@
     private const bool Hover = true;
     private const bool Striped = true;
     private const bool Bordered = false;
-    private string _searchString1 = string.Empty;
+    private string _searchTerm = string.Empty;
     private CostCenterModel _selectedItem = new();
 
     protected override async Task OnInitializedAsync()
@@ -85,16 +85,16 @@
         _allEntries = await CostCenterService.GetAllCostCentersAsync();
     }
 
-    private bool FilterFunc(CostCenterModel element) => FilterFunc1(element, _searchString1);
+    private bool FilterFunc(CostCenterModel element) => MatchesFilter(element, _searchTerm);
 
-    private bool FilterFunc1(CostCenterModel? element, string searchString)
+    private static bool MatchesFilter(CostCenterModel? element, string searchTerm)
     {
-        if (string.IsNullOrWhiteSpace(searchString))
+        if (string.IsNullOrWhiteSpace(searchTerm))
             return true;
         if (element is null)
             return false;
 
-        var lowerString = searchString.ToLowerInvariant();
+        var lowerString = searchTerm.ToLowerInvariant();
         return element.CostUnitName.ToLower().Contains(lowerString);
     }
 
