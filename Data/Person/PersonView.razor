@@ -32,7 +32,7 @@
                                OnClick="@ShowAddPersonDialog">
                     </MudIconButton>
                     <MudSpacer />
-                    <MudTextField @bind-Value="_searchString1"
+                    <MudTextField @bind-Value="_searchTerm"
                                   Placeholder="Search"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Search"
@@ -86,7 +86,7 @@
     private const bool Hover = true;
     private const bool Striped = true;
     private const bool Bordered = false;
-    private string _searchString1 = string.Empty;
+    private string _searchTerm = string.Empty;
     private PersonModel _selectedItem = new();
 
     protected override async Task OnInitializedAsync()
@@ -95,13 +95,13 @@
         _allEntries = await PersonService.GetAllPersonsAsync();
     }
 
-    private bool FilterFunc(PersonModel? element) => FilterFunc1(element, _searchString1);
+    private bool FilterFunc(PersonModel? element) => MatchesFilter(element, _searchTerm);
 
-    private static bool FilterFunc1(PersonModel? element, string searchString)
+    private static bool MatchesFilter(PersonModel? element, string searchTerm)
     {
-        if (string.IsNullOrWhiteSpace(searchString))
+        if (string.IsNullOrWhiteSpace(searchTerm))
             return true;
-        return element is not null && element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+        return element is not null && element.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task ShowAddPersonDialog()

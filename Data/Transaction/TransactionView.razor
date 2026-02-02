@@ -26,9 +26,9 @@
                       Hover="@Hover"
                       Bordered="@Bordered"
                       Striped="@Striped"
-                      FixedHeader="@_fixedHeader"
-                      FixedFooter="@_fixedFooter"
-                      Height="@(_fixedHeader || _fixedFooter ? "700px" : null)"
+                      FixedHeader="@FixedHeader"
+                      FixedFooter="@FixedFooter"
+                      Height="700px"
                       @bind-SelectedItem="_selectedItem"
                       SortLabel="Sort By">
                 <ToolBarContent>
@@ -77,13 +77,13 @@
                     </MudTh>
                     <MudTh>
                         <MudTableSortLabel SortLabel="Category"
-                                           SortBy="new Func<TransactionModel, object?>(x => x.Allocation.Category != null ? x.Allocation.Category.Name : null)">
+                                           SortBy="new Func<TransactionModel, object?>(x => x.Allocation.Category.Name)">
                             @Localizer["Category"]
                         </MudTableSortLabel>
                     </MudTh>
                     <MudTh>
                         <MudTableSortLabel SortLabel="ItemDetail"
-                                           SortBy="new Func<TransactionModel, object?>(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null)">
+                                           SortBy="new Func<TransactionModel, object?>(x => x.Allocation.ItemDetail?.CostDetails)">
                             @Localizer["ItemDetail"]
                         </MudTableSortLabel>
                     </MudTh>
@@ -108,13 +108,13 @@
                             @context.AccountMovement.ToString("C", CultureInfo.CurrentCulture)
                         </MudTd>
                         <MudTd DataLabel="@Localizer["CostCenter"].Value">
-                            @context.Allocation?.CostCenter?.CostUnitName
+                            @context.Allocation.CostCenter.CostUnitName
                         </MudTd>
                         <MudTd DataLabel="@Localizer["Category"].Value">
-                            @context.Allocation?.Category?.Name
+                            @context.Allocation.Category.Name
                         </MudTd>
                         <MudTd DataLabel="@Localizer["ItemDetail"].Value">
-                            @context.Allocation?.ItemDetail?.CostDetails
+                            @context.Allocation.ItemDetail?.CostDetails
                         </MudTd>
                         <MudTd DataLabel="@Localizer["Actions"].Value">
                             <MudIconButton Icon="@Icons.Material.Filled.List"
@@ -148,7 +148,7 @@
     private const bool Hover = true;
     private const bool Striped = true;
     private const bool Bordered = false;
-    private string _searchString1 = string.Empty;
+    private string _searchTerm = string.Empty;
     private TransactionModel? _selectedItem;
     private DateRange _dateRange = new(null, null);
 
@@ -161,8 +161,8 @@
     };
 
     private int? _personId;
-    private readonly bool _fixedHeader = true;
-    private readonly bool _fixedFooter = true;
+    private const bool FixedHeader = true;
+    private const bool FixedFooter = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -174,7 +174,7 @@
         var parameters = new DialogParameters
         {
             ["DateRange"] = _dateRange,
-            ["SearchText"] = _searchString1,
+            ["SearchText"] = _searchTerm,
             ["SelectedPersonId"] = _personId,
         };
 
@@ -187,7 +187,7 @@
         {
             var values = (TransactionFilterValues)result.Data!;
             _dateRange = values.DateRange;
-            _searchString1 = values.SearchText;
+            _searchTerm = values.SearchText;
             _personId = values.PersonId;
 
             await UpdateView();
@@ -248,13 +248,8 @@
             state,
             cancellationToken,
             _dateRange,
-            _searchString1,
+            _searchTerm,
             _personId);
-
-        return new TableData<TransactionModel?>
-        {
-            Items = result.Items,
-            TotalItems = result.TotalItems
-        };
+        return new TableData<TransactionModel?> { Items = result.Items, TotalItems = result.TotalItems };  
     }
 }

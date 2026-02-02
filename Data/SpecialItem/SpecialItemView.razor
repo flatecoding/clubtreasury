@@ -33,7 +33,7 @@
                                OnClick="@ShowAddSpecialItemDialog">
                     </MudIconButton>
                     <MudSpacer />
-                    <MudTextField @bind-Value="_searchString1"
+                    <MudTextField @bind-Value="_searchTerm"
                                   Placeholder="Search"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Search"
@@ -92,7 +92,7 @@
     private const bool Hover = true;
     private const bool Striped = true;
     private const bool Bordered = false;
-    private string _searchString1 = string.Empty;
+    private string _searchTerm = string.Empty;
     private SpecialItemModel _selectedItemModel = new();
 
     protected override async Task OnInitializedAsync()
@@ -101,18 +101,14 @@
         _allEntries = await SpecialItemService.GetAllSpecialItems();
     }
 
-    private bool FilterFunc(SpecialItemModel? element) => FilterFunc1(element, _searchString1);
+    private bool FilterFunc(SpecialItemModel? element) => MatchesFilter(element, _searchTerm);
 
-    private bool FilterFunc1(SpecialItemModel? element, string searchstring)
+    private static bool MatchesFilter(SpecialItemModel? element, string searchTerm)
     {
-        if (string.IsNullOrWhiteSpace(searchstring))
+        if (string.IsNullOrWhiteSpace(searchTerm))
             return true;
-        if (element is not null && !string.IsNullOrWhiteSpace(searchstring))
-        {
-            if (element.Name.ToLower().Contains(searchstring.ToLowerInvariant()))
-                return true;
-        }
-        return false;
+        if (element is null || string.IsNullOrWhiteSpace(searchTerm)) return false;
+        return element.Name.ToLower().Contains(searchTerm.ToLowerInvariant());
     }
 
     private async Task ShowAddSpecialItemDialog()

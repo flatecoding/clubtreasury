@@ -1,12 +1,10 @@
 ﻿@page "/itemdetails"
 @using Microsoft.Extensions.Localization
-@using NuGet.Frameworks
 @using TTCCashRegister.Data.DialogService
 @using TTCCashRegister.Data.Notification
 @using TTCCashRegister.Data.OperationResult
 @inject IItemDetailService ItemDetailService
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 
@@ -35,7 +33,7 @@
                                OnClick="@ShowAddUnitDetailsDialog">
                     </MudIconButton>
                     <MudSpacer />
-                    <MudTextField @bind-Value="_searchString1"
+                    <MudTextField @bind-Value="_searchTerm"
                                   Placeholder="Search"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Search"
@@ -90,7 +88,7 @@
     private const bool Hover = true;
     private const bool Striped = true;
     private const bool Bordered = false;
-    private string _searchString1 = string.Empty;
+    private string _searchTerm = string.Empty;
     private ItemDetailModel _selectedItem = new();
 
     protected override async Task OnInitializedAsync()
@@ -99,20 +97,16 @@
         _allEntries = await ItemDetailService.GetAllItemDetailsAsync();
     }
 
-    private bool FilterFunc(ItemDetailModel? element) => FilterFunc1(element, _searchString1);
+    private bool FilterFunc(ItemDetailModel? element) => MatchesFilter(element, _searchTerm);
 
-    private bool FilterFunc1(ItemDetailModel? element, string searchstring)
+    private static bool MatchesFilter(ItemDetailModel? element, string searchTerm)
     {
-        if (string.IsNullOrWhiteSpace(searchstring))
+        if (string.IsNullOrWhiteSpace(searchTerm))
             return true;
-        if (element is not null && !string.IsNullOrWhiteSpace(searchstring))
-        {
-            if (element.CostDetails.ToLower().Contains(searchstring.ToLowerInvariant()))
-                return true;
-          //  if (element.BasicUnits is not null && element.BasicUnit.Name.ToLower().Contains(searchstring.ToLowerInvariant()))
-          //  return true;
-        }
-        return false;
+        if (element is null || string.IsNullOrWhiteSpace(searchTerm)) return false;
+        return element.CostDetails.ToLower().Contains(searchTerm.ToLowerInvariant());
+        //  if (element.BasicUnits is not null && element.BasicUnit.Name.ToLower().Contains(searchTerm.ToLowerInvariant()))
+        //  return true;
     }
 
     private async Task ShowAddUnitDetailsDialog()

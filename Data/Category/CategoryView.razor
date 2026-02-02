@@ -32,7 +32,7 @@
                                OnClick="@ShowAddCategoryDialog">
                     </MudIconButton>
                     <MudSpacer/>
-                    <MudTextField @bind-Value="_searchString1"
+                    <MudTextField @bind-Value="_searchTerm"
                                   Placeholder="Search"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Search"
@@ -85,7 +85,7 @@
     private const bool Hover = true;
     private const bool Striped = true;
     private const bool Bordered = false;
-    private string _searchString1 = string.Empty;
+    private string _searchTerm = string.Empty;
     private CategoryModel _selectedItem = new();
 
     protected override async Task OnInitializedAsync()
@@ -94,19 +94,19 @@
         _allEntries = await CategoryService.GetAllCategoriesAsync();
     }
 
-    private bool FilterFunc(CategoryModel? element) => FilterFunc1(element, _searchString1);
+    private bool FilterFunc(CategoryModel? element) => MatchesFilter(element, _searchTerm);
 
-    private bool FilterFunc1(CategoryModel? element, string searchstring)
+    private static bool MatchesFilter(CategoryModel? element, string searchTerm)
     {
-        if (string.IsNullOrWhiteSpace(searchstring))
+        if (string.IsNullOrWhiteSpace(searchTerm))
             return true;
         if (element == null) return false;
 
-        searchstring = searchstring.ToLowerInvariant();
+        searchTerm = searchTerm.ToLowerInvariant();
         
         return element.Allocations.Any(a =>
             a.ItemDetail != null &&
-            a.ItemDetail.CostDetails.ToLower().Contains(searchstring)) || element.Name.ToLower().Contains(searchstring);
+            a.ItemDetail.CostDetails.ToLower().Contains(searchTerm)) || element.Name.ToLower().Contains(searchTerm);
     }
 
 

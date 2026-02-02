@@ -31,7 +31,7 @@
                                OnClick="@ShowAddAllocationDialog">
                     </MudIconButton>
                     <MudSpacer />
-                    <MudTextField @bind-Value="_searchString"
+                    <MudTextField @bind-Value="_searchTerm"
                                   Placeholder="Search"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Search"
@@ -102,7 +102,7 @@
 
 @code {
     private IEnumerable<AllocationModel>? _allAllocations;
-    private string _searchString = string.Empty;
+    private string _searchTerm = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -115,15 +115,17 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private bool FilterFunc(AllocationModel? allocation)
+    private bool FilterFunc(AllocationModel? allocation) => MatchesFilter(allocation, _searchTerm);
+
+    private static bool MatchesFilter(AllocationModel? allocation, string searchTerm)
     {
         if (allocation == null)
             return false;
 
-        if (string.IsNullOrWhiteSpace(_searchString))
+        if (string.IsNullOrWhiteSpace(searchTerm))
             return true;
 
-        var term = _searchString.Trim().ToLowerInvariant();
+        var term = searchTerm.Trim().ToLowerInvariant();
 
         var matchesCostCenter = allocation.CostCenter.CostUnitName.ToLowerInvariant().Contains(term);
         var matchesCategory = allocation.Category.Name.ToLowerInvariant().Contains(term);
