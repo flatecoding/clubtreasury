@@ -8,6 +8,7 @@ public sealed class UserPrefService : INotifyPropertyChanged
 {
     private bool _isDarkMode;
     private IJSObjectReference? _module;
+    private IJSRuntime? _jsRuntime;
     private readonly ILogger<UserPrefService> _logger;
     public const string StorageKey = "ClubCash.UserPrefData";
 
@@ -29,6 +30,7 @@ public sealed class UserPrefService : INotifyPropertyChanged
 
     public async Task Init(IJSRuntime jsRuntime)
     {
+        _jsRuntime = jsRuntime;
         try
         {
             _module = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/darkmode.js");
@@ -75,6 +77,22 @@ public sealed class UserPrefService : INotifyPropertyChanged
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         SetPrefs().CatchAndLog(_logger);
+        UpdateThemeBackground().CatchAndLog(_logger);
+    }
+
+    private async ValueTask UpdateThemeBackground()
+    {
+        if (_jsRuntime != null)
+        {
+            try
+            {
+                await _jsRuntime.InvokeVoidAsync("setThemeBackground", _isDarkMode);
+            }
+            catch (TaskCanceledException)
+            {
+                // Can be ignored
+            }
+        }
     }
 
     private async ValueTask SetPrefs()

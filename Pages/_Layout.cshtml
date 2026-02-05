@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
+@using TTCCashRegister.Data.ThemeSetting
 @namespace TTCCashRegister.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -8,6 +9,45 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="~/" />
+    
+    @{
+        var lightBg = CustomTheme.ClubCashTheme.PaletteLight.Background.Value;
+        var darkBg = CustomTheme.ClubCashTheme.PaletteDark.Background.Value;
+    }
+    <script>
+        (function() {
+            var isDark = false;
+            try {
+                var match = document.cookie.match(/ClubCash\.UserPrefData=([^;]+)/);
+                if (match) {
+                    var data = JSON.parse(decodeURIComponent(match[1]));
+                    isDark = data && data.IsDarkMode === true;
+                }
+            } catch(e) {}
+
+            if (isDark) {
+                document.documentElement.style.backgroundColor = '@darkBg';
+                document.documentElement.classList.add('dark');
+            }
+        })();
+
+        // Global function for theme switching (called from Blazor)
+        window.setThemeBackground = function(isDark) {
+            var bg = isDark ? '@darkBg' : '@lightBg';
+            document.documentElement.style.backgroundColor = bg;
+            document.body.style.backgroundColor = bg;
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        };
+    </script>
+    <style>
+        /* Hide body until MudBlazor theme is applied, then fade in */
+        body { opacity: 0; transition: opacity 0.15s ease-in; }
+        body.theme-ready { opacity: 1; }
+    </style>
 
     @*  <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" /> 
     <link href="css/site.css" rel="stylesheet" />*@

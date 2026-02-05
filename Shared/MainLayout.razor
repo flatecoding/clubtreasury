@@ -62,13 +62,18 @@
     {
         if (firstRender)
         {
-            if (firstRender)
-            {
-                await UserPrefService.Init(JsRuntime);
-                StateHasChanged();
-            }
+            await UserPrefService.Init(JsRuntime);
+            StateHasChanged();
+        }
+        else if (!_themeReady)
+        {
+            _themeReady = true;
+            await Task.Delay(50);
+            await JsRuntime.InvokeVoidAsync("eval", "document.body.classList.add('theme-ready')");
         }
     }
+
+    private bool _themeReady;
     
     private void OnUserPrefChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
