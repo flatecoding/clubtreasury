@@ -6,8 +6,6 @@
         expires = "; expires=" + date.toUTCString();
     }
     document.cookie = `${name}=${encodeURIComponent(value || "")}${expires}; path=/`;
-    console.log("cookie set foo");
-    console.log(value);
 }
 
 // Read a cookie
@@ -25,4 +23,16 @@ export function getCookie(name) {
 // Delete a cookie
 export function eraseCookie(name) {
     document.cookie = `${name}=; Max-Age=-99999999; path=/`;
+}
+
+// Update HTML background for theme switch
+export function setThemeBackground(isDark) {
+    const bg = isDark ? '#1e1e1e' : '#fff';
+    document.documentElement.style.backgroundColor = bg;
+    document.body.style.backgroundColor = bg;
+    if (isDark) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
 }
