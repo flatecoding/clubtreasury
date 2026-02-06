@@ -126,6 +126,7 @@ public class TransactionService(
         try
         {
             var existing = await context.Transactions
+                .Include(t => t.Allocation)
                 .FirstOrDefaultAsync(t => t.Id == entry.Id, ct);
 
             if (existing == null)

@@ -507,6 +507,56 @@ public class TransactionServiceTests
         result.Should().Be(expectedResult);
     }
 
+    [Test]
+    public async Task UpdateTransactionAsync_WhenChangingAllocation_ShouldUpdateSuccessfully()
+    {
+        // Arrange
+        var (cashRegister, allocation1) = await CreateTestDataAsync();
+
+        // Create a second allocation
+        var allocation2 = new AllocationModel
+        {
+            CostCenterId = allocation1.CostCenterId,
+            CategoryId = allocation1.CategoryId
+        };
+        await _context.Allocations.AddAsync(allocation2);
+        await _context.SaveChangesAsync();
+
+        var transaction = new TransactionModel
+        {
+            Documentnumber = 100,
+            CashRegisterId = cashRegister.Id,
+            AllocationId = allocation1.Id
+        };
+        await _context.Transactions.AddAsync(transaction);
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear(); // Simulate fresh context like real app
+
+        // Load with Include (simulating GetTransactionByIdAsync)
+        var loaded = await _context.Transactions
+            .Include(t => t.Allocation)
+            .FirstAsync(t => t.Id == transaction.Id);
+
+        // Change allocation
+        loaded.AllocationId = allocation2.Id;
+
+        var expectedResult = new OperationResult
+        {
+            Status = OperationResultStatus.Success,
+            Message = "Successfully updated"
+        };
+        A.CallTo(() => _allocationService.GetRequiredAllocationAsync(allocation2.Id, A<CancellationToken>._))
+            .Returns(allocation2);
+        A.CallTo(() => _operationResultFactory.SuccessUpdated(A<string>._, A<object?>._))
+            .Returns(expectedResult);
+
+        // Act
+        var result = await _sut.UpdateTransactionAsync(loaded);
+
+        // Assert
+        result.Status.Should().Be(OperationResultStatus.Success);
+    }
+
     #endregion
 
     #region DeleteTransactionAsync Tests
