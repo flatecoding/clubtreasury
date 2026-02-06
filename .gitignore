@@ -17,3 +17,5 @@
 # Test project build artifacts
 /TTCCashRegister.Tests/bin/
 /TTCCashRegister.Tests/obj/
+/docker-compose.test.yml
+/dev-container.sh

@@ -144,7 +144,7 @@ public class TransactionService(
                     $"{localizer["DocumentNumber"]} '{entry.Documentnumber}'");
             }
             
-            _ = await allocationService.GetRequiredAllocationAsync(entry.AllocationId, ct);
+            var allocation = await allocationService.GetRequiredAllocationAsync(entry.AllocationId, ct);
 
             existing.Description     = entry.Description;
             existing.AccountMovement = entry.AccountMovement;
@@ -154,6 +154,7 @@ public class TransactionService(
             existing.SpecialItemId   = entry.SpecialItemId;
             existing.CashRegisterId  = entry.CashRegisterId;
             existing.AllocationId    = entry.AllocationId;
+            existing.Allocation =  allocation;
 
             await context.SaveChangesAsync(ct);
             logger.LogInformation("Transaction updated: B{@DocumentNumber}; Desc.:{@Description}; Sum:{@Sum} " +
