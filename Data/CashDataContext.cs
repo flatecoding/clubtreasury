@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.CashRegister;
@@ -11,7 +12,7 @@ using TTCCashRegister.Data.TransactionDetails;
 
 namespace TTCCashRegister.Data
 {
-    public class CashDataContext(DbContextOptions<CashDataContext> options) : DbContext(options)
+    public class CashDataContext(DbContextOptions<CashDataContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
         public DbSet<TransactionModel> Transactions { get; set; }
         public DbSet<CostCenterModel> CostCenters { get; set; }

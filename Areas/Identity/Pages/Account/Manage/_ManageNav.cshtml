@@ -1,0 +1,11 @@
+@using TTCCashRegister.Areas.Identity.Pages.Account.Manage
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<ul class="nav nav-pills flex-column">
+    <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" asp-area="Identity" asp-page="/Account/Manage/Index">Profile</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" asp-area="Identity" asp-page="/Account/Manage/Email">Email</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" asp-area="Identity" asp-page="/Account/Manage/ChangePassword">Password</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" asp-area="Identity" asp-page="/Account/Manage/TwoFactorAuthentication">Two-factor authentication</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.PasskeysNavClass(ViewContext)" asp-area="Identity" asp-page="/Account/Manage/Passkeys">Passkeys</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" asp-area="Identity" asp-page="/Account/Manage/PersonalData">Personal data</a></li>
+</ul>
