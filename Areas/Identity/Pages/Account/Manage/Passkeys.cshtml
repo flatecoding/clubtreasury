@@ -1,0 +1,63 @@
+@page
+@model TTCCashRegister.Areas.Identity.Pages.Account.Manage.PasskeysModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Manage your passkeys";
+    ViewData["ActivePage"] = TTCCashRegister.Areas.Identity.Pages.Account.Manage.ManageNavPages.Passkeys;
+}
+
+<h3>@ViewData["Title"]</h3>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="alert alert-success" role="alert">
+        @Model.StatusMessage
+    </div>
+}
+
+@if (Model.CurrentPasskeys is { Count: > 0 })
+{
+    <table class="table">
+        <tbody>
+        @foreach (var passkey in Model.CurrentPasskeys)
+        {
+            var credentialId = Convert.ToBase64String(passkey.CredentialId).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+            <tr>
+                <td>@(passkey.Name ?? "Unnamed passkey")</td>
+                <td>
+                    <form method="post">
+                        <input type="hidden" name="CredentialId" value="@credentialId" />
+                        <button type="submit" asp-page-handler="Rename" class="btn btn-primary" title="Rename this passkey">Rename</button>
+                        <button type="submit" asp-page-handler="Delete" class="btn btn-danger" title="Remove this passkey from your account">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No passkeys are registered.</p>
+}
+
+<form method="post" asp-page-handler="Add">
+    @if (Model.CurrentPasskeys is { Count: >= 100 })
+    {
+        <p class="text-danger">You have reached the maximum number of allowed passkeys. Please delete one before adding a new one.</p>
+    }
+    else
+    {
+        <passkey-submit
+            operation="Create"
+            name="Input"
+            request-token-name="@Model.AntiforgeryTokenName"
+            request-token-value="@Model.AntiforgeryTokenValue">
+            <button type="submit" name="__passkeySubmit" class="btn btn-primary">Add a new passkey</button>
+        </passkey-submit>
+    }
+</form>
+
+@section Scripts {
+    <script src="/js/passkey.js" type="module"></script>
+}

@@ -1,27 +1,25 @@
 version: "3.8"
 
 services:
-  mariadb:
-    image: mariadb:11
+  postgres:
+    image: postgres:17
     container_name: ttc-db
     restart: always
     environment:
-      MARIADB_ROOT_PASSWORD: #Set root password
-      MARIADB_ROOT_HOST: "%"
-      MARIADB_DATABASE: ClubCash
-      MARIADB_USER: dev
-      MARIADB_PASSWORD: #Set password
+      POSTGRES_PASSWORD: #Set root password
+      POSTGRES_DB: ClubCash
+      POSTGRES_USER: dev
     volumes:
       # Change volume to store the data
-      - /volume1/docker/ttccashregister/mariadb:/var/lib/mysql
+      - /volume1/docker/ttccashregister/postgres:/var/lib/postgresql/data
     networks:
       - clubcash-backend
-        
+
     #Use this if you need direct acces to docker database container for debugging purposes
     #ports:
-      # - "3307:3306"
+      # - "5433:5432"
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD-SHELL", "pg_isready -U dev -d ClubCash"]
       start_period: 10s
       interval: 10s
       timeout: 5s
@@ -31,7 +29,7 @@ services:
     container_name: ttc-web
     image: clubcashregister:latest
     depends_on:
-      mariadb:
+      postgres:
         condition: service_healthy
 
     environment:
@@ -43,7 +41,7 @@ services:
       Logging__LogLevel__Default: "Debug"
       Logging__LogLevel__Microsoft.EntityFrameworkCore: "Information"
       ASPNETCORE_ENVIRONMENT: "Production"
-      DbPassword: #Secret MARIADB_PASSWORD:
+      DbPassword: #Secret POSTGRES_PASSWORD:
 
     volumes:
 

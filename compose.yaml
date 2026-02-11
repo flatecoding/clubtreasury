@@ -1,22 +1,20 @@
-﻿version: "3.8"
+version: "3.8"
 
 services:
-  mariadb:
-    image: mariadb:11
+  postgres:
+    image: postgres:17
     container_name: clubcash-db
     restart: always
     environment:
-      MARIADB_ROOT_PASSWORD: rootPasswort123
-      MARIADB_ROOT_HOST: "%"
-      MARIADB_DATABASE: ClubCash
-      MARIADB_USER: user
-      MARIADB_PASSWORD: #secret pw
+      POSTGRES_PASSWORD: rootPasswort123
+      POSTGRES_DB: ClubCash
+      POSTGRES_USER: user
     volumes:
-      - /volume1/docker/ttccashregister/mariadb:/var/lib/mysql
+      - /volume1/docker/ttccashregister/postgres:/var/lib/postgresql/data
     ports:
-      - "3307:3306" 
+      - "5433:5432"
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD-SHELL", "pg_isready -U user -d ClubCash"]
       start_period: 10s
       interval: 10s
       timeout: 5s
@@ -26,7 +24,7 @@ services:
     container_name: clubcash-web
     image: clubcashregister:latest
     depends_on:
-      mariadb:
+      postgres:
         condition: service_healthy
 
     environment:
@@ -35,7 +33,7 @@ services:
       Logging__LogLevel__Default: "Debug"
       Logging__LogLevel__Microsoft.EntityFrameworkCore: "Information"
       ASPNETCORE_ENVIRONMENT: "Production"
-      DbPassword: #Db passwort from mariadb
+      DbPassword: #Db passwort from postgres
     volumes:
       - /volume1/docker/ttccashregister/exports:/app/exports
       - /volume1/docker/ttccashregister/logs:/app/logs
