@@ -19,3 +19,4 @@
 /TTCCashRegister.Tests/obj/
 /docker-compose.test.yml
 /dev-container.sh
+/migrate.load

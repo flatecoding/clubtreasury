@@ -4,6 +4,44 @@ const browserSupportsPasskeys =
     typeof window.PublicKeyCredential.parseCreationOptionsFromJSON === 'function' &&
     typeof window.PublicKeyCredential.parseRequestOptionsFromJSON === 'function';
 
+function bufferToBase64url(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let str = '';
+    for (const b of bytes) str += String.fromCharCode(b);
+    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function credentialToJson(credential) {
+    if (typeof credential.toJSON === 'function') {
+        return JSON.stringify(credential);
+    }
+    const json = {
+        id: credential.id,
+        rawId: bufferToBase64url(credential.rawId),
+        type: credential.type,
+        authenticatorAttachment: credential.authenticatorAttachment,
+        response: {}
+    };
+    if (credential.response.attestationObject) {
+        json.response.attestationObject = bufferToBase64url(credential.response.attestationObject);
+        json.response.clientDataJSON = bufferToBase64url(credential.response.clientDataJSON);
+        const transports = credential.response.getTransports?.();
+        if (transports) json.response.transports = transports;
+    }
+    if (credential.response.authenticatorData) {
+        json.response.authenticatorData = bufferToBase64url(credential.response.authenticatorData);
+        json.response.clientDataJSON = bufferToBase64url(credential.response.clientDataJSON);
+        json.response.signature = bufferToBase64url(credential.response.signature);
+        if (credential.response.userHandle) {
+            json.response.userHandle = bufferToBase64url(credential.response.userHandle);
+        }
+    }
+    if (credential.getClientExtensionResults) {
+        json.clientExtensionResults = credential.getClientExtensionResults();
+    }
+    return JSON.stringify(json);
+}
+
 async function fetchWithErrorHandling(url, options = {}) {
     const response = await fetch(url, {
         credentials: 'include',
@@ -93,7 +131,7 @@ customElements.define('passkey-submit', class extends HTMLElement {
         const formData = new FormData();
         try {
             const credential = await this.obtainCredential(useConditionalMediation, signal);
-            const credentialJson = JSON.stringify(credential);
+            const credentialJson = credentialToJson(credential);
             formData.append(`${this.attrs.name}.CredentialJson`, credentialJson);
         } catch (error) {
             if (error.name === 'AbortError') {
