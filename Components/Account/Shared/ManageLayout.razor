@@ -1,0 +1,19 @@
+@using Microsoft.Extensions.Localization
+@inherits LayoutComponentBase
+@layout TTCCashRegister.Components.Layout.MainLayout
+@inject IStringLocalizer<TTCCashRegister.Translation> Localizer
+
+<PageTitle>@Localizer["ManageAccount"]</PageTitle>
+
+<div class="identity-page">
+    <div class="id-manage-layout">
+        <div class="id-manage-sidebar">
+            <ManageNavMenu />
+        </div>
+        <div class="id-manage-content">
+            <div class="id-paper">
+                @Body
+            </div>
+        </div>
+    </div>
+</div>

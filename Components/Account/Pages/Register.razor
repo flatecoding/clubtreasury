@@ -1,0 +1,110 @@
+@page "/Account/Register"
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IUserStore<ApplicationUser> UserStore
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Register> Logger
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<TTCCashRegister.Translation> Localizer
+
+<PageTitle>@Localizer["Register"]</PageTitle>
+
+<div class="identity-page">
+    <div class="id-paper">
+        <h1>@Localizer["Register"]</h1>
+        <hr class="id-divider" />
+
+        <StatusMessage Message="@Message" />
+
+        <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
+            <DataAnnotationsValidator />
+            <div class="id-validation-summary" role="alert">
+                <ValidationSummary />
+            </div>
+
+            <div class="id-input-group">
+                <InputText @bind-Value="Input.Email" id="Input.Email" class="id-input" autocomplete="username" aria-required="true" placeholder=" " />
+                <label for="Input.Email">@Localizer["Email"]</label>
+                <ValidationMessage For="() => Input.Email" class="id-validation" />
+            </div>
+
+            <div class="id-input-group">
+                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="id-input" autocomplete="new-password" aria-required="true" placeholder=" " />
+                <label for="Input.Password">@Localizer["Password"]</label>
+                <ValidationMessage For="() => Input.Password" class="id-validation" />
+            </div>
+
+            <div class="id-input-group">
+                <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="id-input" autocomplete="new-password" aria-required="true" placeholder=" " />
+                <label for="Input.ConfirmPassword">@Localizer["ConfirmPassword"]</label>
+                <ValidationMessage For="() => Input.ConfirmPassword" class="id-validation" />
+            </div>
+
+            <button type="submit" class="id-btn id-btn-primary id-btn-full">@Localizer["Register"]</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private IEnumerable<IdentityError>? identityErrors;
+
+    [SupplyParameterFromForm] private InputModel Input { get; set; } = default!;
+
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+
+    private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
+
+    protected override void OnInitialized()
+    {
+        Input ??= new();
+    }
+
+    public async Task RegisterUser(EditContext editContext)
+    {
+        var user = Activator.CreateInstance<ApplicationUser>();
+
+        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+        var emailStore = (IUserEmailStore<ApplicationUser>)UserStore;
+        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+        var result = await UserManager.CreateAsync(user, Input.Password);
+
+        if (!result.Succeeded)
+        {
+            identityErrors = result.Errors;
+            return;
+        }
+
+        Logger.LogInformation("User created a new account with password.");
+
+        await SignInManager.SignInAsync(user, isPersistent: false);
+        RedirectManager.RedirectTo(ReturnUrl);
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Email")]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; } = "";
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } = "";
+    }
+}

@@ -9,11 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Pages\BusinessSectors\**" />
-    <Content Remove="Pages\BusinessSectors\**" />
-    <EmbeddedResource Remove="Pages\BusinessSectors\**" />
-    <None Remove="Pages\BusinessSectors\**" />
-    <Compile Remove="TTCCashRegister.Tests\**" />
+<Compile Remove="TTCCashRegister.Tests\**" />
     <Content Remove="TTCCashRegister.Tests\**" />
     <EmbeddedResource Remove="TTCCashRegister.Tests\**" />
     <None Remove="TTCCashRegister.Tests\**" />
@@ -74,7 +70,6 @@
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -83,7 +78,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
     <PackageReference Include="MudBlazor" Version="8.11.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageReference Include="QuestPDF" Version="2025.7.4" />

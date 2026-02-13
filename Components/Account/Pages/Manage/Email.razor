@@ -1,0 +1,115 @@
+@page "/Account/Manage/Email"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<TTCCashRegister.Translation> Localizer
+
+<PageTitle>@Localizer["ManageEmail"]</PageTitle>
+
+<h3>@Localizer["ManageEmail"]</h3>
+
+<StatusMessage Message="@message" />
+
+<form @onsubmit="OnSendEmailVerificationAsync" @formname="send-verification" id="send-verification-form" method="post">
+    <AntiforgeryToken />
+</form>
+<EditForm Model="Input" FormName="change-email" OnValidSubmit="OnValidSubmitAsync" method="post">
+    <DataAnnotationsValidator />
+    <div class="id-validation-summary" role="alert">
+        <ValidationSummary />
+    </div>
+    @if (isEmailConfirmed)
+    {
+        <div class="id-input-group">
+            <input type="text" value="@email" id="email" class="id-input" placeholder=" " disabled />
+            <label for="email">@Localizer["Email"]</label>
+        </div>
+    }
+    else
+    {
+        <div class="id-input-group">
+            <input type="text" value="@email" id="email" class="id-input" placeholder=" " disabled />
+            <label for="email">@Localizer["Email"]</label>
+            <button type="submit" class="id-btn id-btn-text" form="send-verification-form">Send verification email</button>
+        </div>
+    }
+    <div class="id-input-group">
+        <InputText @bind-Value="Input.NewEmail" id="Input.NewEmail" class="id-input" autocomplete="email" aria-required="true" placeholder=" " />
+        <label for="Input.NewEmail">@Localizer["NewEmail"]</label>
+        <ValidationMessage For="() => Input.NewEmail" class="id-validation" />
+    </div>
+    <button type="submit" class="id-btn id-btn-primary id-btn-full">@Localizer["ChangeEmail"]</button>
+</EditForm>
+
+@code {
+    private string? message;
+    private ApplicationUser? user;
+    private string? email;
+    private bool isEmailConfirmed;
+
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm(FormName = "change-email")]
+    private InputModel Input { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+
+        user = await UserManager.GetUserAsync(HttpContext.User);
+        if (user is null)
+        {
+            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            return;
+        }
+
+        email = await UserManager.GetEmailAsync(user);
+        isEmailConfirmed = await UserManager.IsEmailConfirmedAsync(user);
+
+        Input.NewEmail ??= email;
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        if (Input.NewEmail is null || Input.NewEmail == email)
+        {
+            message = "Your email is unchanged.";
+            return;
+        }
+
+        if (user is null)
+        {
+            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            return;
+        }
+
+        var setEmailResult = await UserManager.SetEmailAsync(user, Input.NewEmail);
+        if (!setEmailResult.Succeeded)
+        {
+            message = $"Error: {string.Join(", ", setEmailResult.Errors.Select(e => e.Description))}";
+            return;
+        }
+
+        RedirectManager.RedirectToCurrentPageWithStatus("Your email has been updated.", HttpContext);
+    }
+
+    private Task OnSendEmailVerificationAsync()
+    {
+        message = "Verification email sent. Please check your email.";
+        return Task.CompletedTask;
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        [Display(Name = "New email")]
+        public string? NewEmail { get; set; }
+    }
+}
