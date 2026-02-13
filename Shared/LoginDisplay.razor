@@ -1,12 +1,16 @@
-﻿<AuthorizeView>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Translation> Localizer
+@inject NavigationManager Navigation
+
+<AuthorizeView>
     <Authorized>
-        <a href="Identity/Account/Manage">Hello, @context.User.Identity?.Name!</a>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="@(() => Navigation.NavigateTo("Identity/Account/Manage", forceLoad: true))">@Localizer["Hello"] @context.User.Identity?.Name!</MudButton>
         <form method="post" action="Identity/Account/LogOut">
-            <button type="submit" class="nav-link btn btn-link">Log out</button>
+            <MudButton Variant="Variant.Text" Color="Color.Inherit" ButtonType="ButtonType.Submit">@Localizer["Logout"]</MudButton>
         </form>
     </Authorized>
     <NotAuthorized>
-        <a href="Identity/Account/Register">Register</a>
-        <a href="Identity/Account/Login">Log in</a>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="@(() => Navigation.NavigateTo("Identity/Account/Register", forceLoad: true))">@Localizer["Register"]</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="@(() => Navigation.NavigateTo("Identity/Account/Login", forceLoad: true))">@Localizer["Login"]</MudButton>
     </NotAuthorized>
 </AuthorizeView>

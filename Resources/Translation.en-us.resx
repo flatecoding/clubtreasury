@@ -527,4 +527,113 @@
         <value>Required data is missing in</value>
         <comment>RequiredDataIsMissing</comment>
     </data>
+    <data name=" Personal data" xml:space="preserve">
+        <value> Personal data</value>
+        <comment> Personal data</comment>
+    </data>
+    <data name="Passkeys" xml:space="preserve">
+        <value>Passkeys</value>
+        <comment>Passkeys</comment>
+    </data>
+    <data name="TwoFactorAuthentication" xml:space="preserve">
+        <value>Two-Factor authentication</value>
+        <comment>TwoFactorAuthentication</comment>
+    </data>
+    <data name="Password" xml:space="preserve">
+        <value>Password</value>
+        <comment>Password</comment>
+    </data>
+    <data name="Email" xml:space="preserve">
+        <value>Email</value>
+        <comment>Email</comment>
+    </data>
+    <data name="Profile" xml:space="preserve">
+        <value>Profile</value>
+        <comment>Profile</comment>
+    </data>
+    <data name="Login" xml:space="preserve">
+        <value>Log In</value>
+        <comment>Login</comment>
+    </data>
+    <data name="UseLocalAccount" xml:space="preserve">
+        <value>Use a local account to log in.</value>
+        <comment>UseLocalAccount</comment>
+    </data>
+    <data name="Or" xml:space="preserve">
+        <value>Or</value>
+        <comment>Or</comment>
+    </data>
+    <data name="LogInWithPasskey" xml:space="preserve">
+        <value>Log in with passkey</value>
+        <comment>LogInWithPasskey</comment>
+    </data>
+    <data name="ForgotPassword" xml:space="preserve">
+        <value> Forgot your password?</value>
+        <comment>ForgotPassword</comment>
+    </data>
+    <data name="RegissterUser" xml:space="preserve">
+        <value> Register as a new user</value>
+        <comment>RegissterUser</comment>
+    </data>
+    <data name="RegisterUser" xml:space="preserve">
+        <value> Register as a new user</value>
+    </data>
+    <data name="RememberMe" xml:space="preserve">
+        <value>Remember me</value>
+    </data>
+    <data name="Logout" xml:space="preserve">
+        <value>Logout</value>
+    </data>
+    <data name="Register" xml:space="preserve">
+        <value>Register</value>
+    </data>
+    <data name="Hello" xml:space="preserve">
+        <value>Hello</value>
+    </data>
+    <data name="Manage" xml:space="preserve">
+        <value>Manage</value>
+    </data>
+    <data name="ManagePasskeys" xml:space="preserve">
+        <value>Manage your passkeys</value>
+    </data>
+    <data name="RenamePasskey" xml:space="preserve">
+        <value>Rename passkey</value>
+    </data>
+    <data name="Rename" xml:space="preserve">
+        <value>Rename</value>
+    </data>
+    <data name="AddNewPasskey" xml:space="preserve">
+        <value>Add a new passkey</value>
+    </data>
+    <data name="NoPasskeysRegistered" xml:space="preserve">
+        <value>No passkeys are registered.</value>
+    </data>
+    <data name="UnnamedPasskey" xml:space="preserve">
+        <value>Unnamed passkey</value>
+    </data>
+    <data name="PasskeyName" xml:space="preserve">
+        <value>Passkey name</value>
+    </data>
+    <data name="Continue" xml:space="preserve">
+        <value>Continue</value>
+    </data>
+    <data name="EnterNewPasskeyName" xml:space="preserve">
+        <value>Enter a new name for your "{0}" passkey</value>
+    </data>
+    <data name="EnterPasskeyName" xml:space="preserve">
+        <value>Enter a name for your passkey</value>
+    </data>
+    <data name="MaxPasskeysReached" xml:space="preserve">
+        <value>You have reached the maximum number of allowed passkeys. Please delete one before adding a new one.</value>
+    </data>
+    <data name="InvalidLoginAttempt" xml:space="preserve">
+        <value>Invalid login attempt.</value>
+    </data>
+    <data name="BackToApp" xml:space="preserve">
+        <value>Back to app</value>
+    </data>
+    <data name=" PersonalData" xml:space="preserve">
+        <value> PersonalData</value>
+        <comment> PersonalData</comment>
+    </data>
 </root>

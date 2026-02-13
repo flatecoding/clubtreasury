@@ -1,0 +1,19 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "/Areas/Identity/Pages/_Layout.cshtml";
+}
+
+<div class="identity-page">
+    <div class="id-manage-layout">
+        <div class="id-manage-sidebar">
+            @await Html.PartialAsync("/Areas/Identity/Pages/Account/Manage/_ManageNav.cshtml")
+        </div>
+        <div class="id-manage-content">
+            <div class="id-paper">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+</div>
+
+@RenderSection("Scripts", required: false)

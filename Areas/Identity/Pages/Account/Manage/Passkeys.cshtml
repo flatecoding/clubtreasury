@@ -1,8 +1,11 @@
 @page
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister
 @model TTCCashRegister.Areas.Identity.Pages.Account.Manage.PasskeysModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@inject IStringLocalizer<Translation> Localizer
 @{
-    ViewData["Title"] = "Manage your passkeys";
+    ViewData["Title"] = Localizer["ManagePasskeys"];
     ViewData["ActivePage"] = TTCCashRegister.Areas.Identity.Pages.Account.Manage.ManageNavPages.Passkeys;
 }
 
@@ -10,25 +13,25 @@
 
 @if (!string.IsNullOrEmpty(Model.StatusMessage))
 {
-    <div class="alert alert-success" role="alert">
+    <div class="id-alert id-alert-success" role="alert">
         @Model.StatusMessage
     </div>
 }
 
 @if (Model.CurrentPasskeys is { Count: > 0 })
 {
-    <table class="table">
+    <table class="id-table">
         <tbody>
         @foreach (var passkey in Model.CurrentPasskeys)
         {
             var credentialId = Convert.ToBase64String(passkey.CredentialId).TrimEnd('=').Replace('+', '-').Replace('/', '_');
             <tr>
-                <td>@(passkey.Name ?? "Unnamed passkey")</td>
+                <td>@(passkey.Name ?? Localizer["UnnamedPasskey"].Value)</td>
                 <td>
                     <form method="post">
                         <input type="hidden" name="CredentialId" value="@credentialId" />
-                        <button type="submit" asp-page-handler="Rename" class="btn btn-primary" title="Rename this passkey">Rename</button>
-                        <button type="submit" asp-page-handler="Delete" class="btn btn-danger" title="Remove this passkey from your account">Delete</button>
+                        <button type="submit" asp-page-handler="Rename" class="id-btn id-btn-primary">@Localizer["Rename"]</button>
+                        <button type="submit" asp-page-handler="Delete" class="id-btn id-btn-danger">@Localizer["Delete"]</button>
                     </form>
                 </td>
             </tr>
@@ -38,13 +41,13 @@
 }
 else
 {
-    <p>No passkeys are registered.</p>
+    <p>@Localizer["NoPasskeysRegistered"]</p>
 }
 
 <form method="post" asp-page-handler="Add">
     @if (Model.CurrentPasskeys is { Count: >= 100 })
     {
-        <p class="text-danger">You have reached the maximum number of allowed passkeys. Please delete one before adding a new one.</p>
+        <p class="id-alert id-alert-error">@Localizer["MaxPasskeysReached"]</p>
     }
     else
     {
@@ -53,7 +56,7 @@ else
             name="Input"
             request-token-name="@Model.AntiforgeryTokenName"
             request-token-value="@Model.AntiforgeryTokenValue">
-            <button type="submit" name="__passkeySubmit" class="btn btn-primary">Add a new passkey</button>
+            <button type="submit" name="__passkeySubmit" class="id-btn id-btn-primary">@Localizer["AddNewPasskey"]</button>
         </passkey-submit>
     }
 </form>

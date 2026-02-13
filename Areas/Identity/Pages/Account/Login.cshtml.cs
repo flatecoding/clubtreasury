@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Localization;
 using TTCCashRegister.Data;
 
 namespace TTCCashRegister.Areas.Identity.Pages.Account;
@@ -13,15 +14,18 @@ public class LoginModel : PageModel
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ILogger<LoginModel> _logger;
     private readonly IAntiforgery _antiforgery;
+    private readonly IStringLocalizer<Translation> _localizer;
 
     public LoginModel(
         SignInManager<ApplicationUser> signInManager,
         ILogger<LoginModel> logger,
-        IAntiforgery antiforgery)
+        IAntiforgery antiforgery,
+        IStringLocalizer<Translation> localizer)
     {
         _signInManager = signInManager;
         _logger = logger;
         _antiforgery = antiforgery;
+        _localizer = localizer;
     }
 
     [BindProperty]
@@ -103,7 +107,7 @@ public class LoginModel : PageModel
             return RedirectToPage("./Lockout");
         }
 
-        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+        ModelState.AddModelError(string.Empty, _localizer["InvalidLoginAttempt"]);
         return Page();
     }
 
@@ -117,6 +121,7 @@ public class LoginModel : PageModel
         [DataType(DataType.Password)]
         public string Password { get; set; } = "";
 
+        //ToDo Localizer nutzen
         [Display(Name = "Remember me?")]
         public bool RememberMe { get; set; }
 

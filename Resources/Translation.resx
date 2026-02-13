@@ -530,4 +530,110 @@
         <value />
         <comment>RequiredDataIsMissing</comment>
     </data>
+    <data name=" Personal data" xml:space="preserve">
+        <value />
+        <comment> Personal data</comment>
+    </data>
+    <data name="Passkeys" xml:space="preserve">
+        <value />
+        <comment>Passkeys</comment>
+    </data>
+    <data name="TwoFactorAuthentication" xml:space="preserve">
+        <value />
+        <comment>TwoFactorAuthentication</comment>
+    </data>
+    <data name="Password" xml:space="preserve">
+        <value />
+        <comment>Password</comment>
+    </data>
+    <data name="Email" xml:space="preserve">
+        <value />
+        <comment>Email</comment>
+    </data>
+    <data name="Profile" xml:space="preserve">
+        <value />
+        <comment>Profile</comment>
+    </data>
+    <data name="Login" xml:space="preserve">
+        <value />
+        <comment>Login</comment>
+    </data>
+    <data name="UseLocalAccount" xml:space="preserve">
+        <value />
+        <comment>UseLocalAccount</comment>
+    </data>
+    <data name="Or" xml:space="preserve">
+        <value />
+        <comment>Or</comment>
+    </data>
+    <data name="LogInWithPasskey" xml:space="preserve">
+        <value />
+        <comment>LogInWithPasskey</comment>
+    </data>
+    <data name="ForgotPassword" xml:space="preserve">
+        <value />
+        <comment>ForgotPassword</comment>
+    </data>
+    <data name="RegisterUser" xml:space="preserve">
+        <value />
+        <comment>RegisterUser</comment>
+    </data>
+    <data name="RememberMe" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Logout" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Register" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Hello" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Manage" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ManagePasskeys" xml:space="preserve">
+        <value />
+    </data>
+    <data name="RenamePasskey" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Rename" xml:space="preserve">
+        <value />
+    </data>
+    <data name="AddNewPasskey" xml:space="preserve">
+        <value />
+    </data>
+    <data name="NoPasskeysRegistered" xml:space="preserve">
+        <value />
+    </data>
+    <data name="UnnamedPasskey" xml:space="preserve">
+        <value />
+    </data>
+    <data name="PasskeyName" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Continue" xml:space="preserve">
+        <value />
+    </data>
+    <data name="EnterNewPasskeyName" xml:space="preserve">
+        <value />
+    </data>
+    <data name="EnterPasskeyName" xml:space="preserve">
+        <value />
+    </data>
+    <data name="MaxPasskeysReached" xml:space="preserve">
+        <value />
+    </data>
+    <data name="InvalidLoginAttempt" xml:space="preserve">
+        <value />
+    </data>
+    <data name="BackToApp" xml:space="preserve">
+        <value />
+    </data>
+    <data name=" PersonalData" xml:space="preserve">
+        <value> PersonalData</value>
+        <comment> PersonalData</comment>
+    </data>
 </root>
