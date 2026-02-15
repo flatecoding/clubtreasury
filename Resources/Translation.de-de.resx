@@ -526,10 +526,6 @@
         <value>Fehlende Daten in</value>
         <comment>RequiredDataIsMissing</comment>
     </data>
-    <data name=" Personal data" xml:space="preserve">
-        <value>Persönliche Daten</value>
-        <comment> Personal data</comment>
-    </data>
     <data name="Passkeys" xml:space="preserve">
         <value>Passkeys</value>
         <comment>Passkeys</comment>
@@ -631,8 +627,40 @@
     <data name="BackToApp" xml:space="preserve">
         <value>Zurück zur App</value>
     </data>
-    <data name=" PersonalData" xml:space="preserve">
-        <value> PersonalData</value>
-        <comment> PersonalData</comment>
+    <data name="ResetPassword" xml:space="preserve">
+        <value>Passwort zurücksetzen</value>
+        <comment>ResetPassword</comment>
+    </data>
+    <data name="ConfirmPassword" xml:space="preserve">
+        <value>Passwort bestätigen</value>
+        <comment>ConfirmPassword</comment>
+    </data>
+    <data name="AccessDenied" xml:space="preserve">
+        <value>Zugriff verweigert</value>
+        <comment>AccessDenied</comment>
+    </data>
+    <data name="ForgotPasswordConfirmation" xml:space="preserve">
+        <value>Passwort vergessen bestätigen</value>
+        <comment>ForgotPasswordConfirmation</comment>
+    </data>
+    <data name="DeletePersonalData" xml:space="preserve">
+        <value>Persönliche Daten löschen</value>
+        <comment>DeletePersonalData</comment>
+    </data>
+    <data name="PersonalData" xml:space="preserve">
+        <value>Persönliche Daten</value>
+        <comment>PersonalData</comment>
+    </data>
+    <data name="Download" xml:space="preserve">
+        <value>Herunterladen</value>
+        <comment>Download</comment>
+    </data>
+    <data name="PersonalDataInfo" xml:space="preserve">
+        <value>Ihr Konto enthält personenbezogene Daten, die Sie uns zur Verfügung gestellt haben. Auf dieser Seite können Sie diese Daten herunterladen oder löschen.</value>
+        <comment>PersonalDataInfo</comment>
+    </data>
+    <data name="PersonalDataDeleteWarning" xml:space="preserve">
+        <value>Durch das Löschen dieser Daten wird Ihr Konto dauerhaft entfernt und kann nicht wiederhergestellt werden.</value>
+        <comment>PersonalDataDeleteWarning</comment>
     </data>
 </root>

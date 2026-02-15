@@ -527,10 +527,6 @@
         <value>Required data is missing in</value>
         <comment>RequiredDataIsMissing</comment>
     </data>
-    <data name=" Personal data" xml:space="preserve">
-        <value> Personal data</value>
-        <comment> Personal data</comment>
-    </data>
     <data name="Passkeys" xml:space="preserve">
         <value>Passkeys</value>
         <comment>Passkeys</comment>
@@ -632,8 +628,40 @@
     <data name="BackToApp" xml:space="preserve">
         <value>Back to app</value>
     </data>
-    <data name=" PersonalData" xml:space="preserve">
-        <value> PersonalData</value>
-        <comment> PersonalData</comment>
+    <data name="ResetPassword" xml:space="preserve">
+        <value>Reset password</value>
+        <comment>ResetPassword</comment>
+    </data>
+    <data name="ConfirmPassword" xml:space="preserve">
+        <value>Confirm password</value>
+        <comment>ConfirmPassword</comment>
+    </data>
+    <data name="AccessDenied" xml:space="preserve">
+        <value>Access denied</value>
+        <comment>AccessDenied</comment>
+    </data>
+    <data name="ForgotPasswordConfirmation" xml:space="preserve">
+        <value>Forgot password confirmation</value>
+        <comment>ForgotPasswordConfirmation</comment>
+    </data>
+    <data name="DeletePersonalData" xml:space="preserve">
+        <value>Delete persona data</value>
+        <comment>DeletePersonalData</comment>
+    </data>
+    <data name="Download" xml:space="preserve">
+        <value>Download</value>
+        <comment>Download</comment>
+    </data>
+    <data name="PersonalDataInfo" xml:space="preserve">
+        <value>Your account contains personal data that you have given us. This page allows you to download or delete that data.</value>
+        <comment>PersonalDataInfo</comment>
+    </data>
+    <data name="PersonalDataDeleteWarning" xml:space="preserve">
+        <value>Deleting this data will permanently remove your account, and this cannot be recovered.</value>
+        <comment>PersonalDataDeleteWarning</comment>
+    </data>
+    <data name="PersonalData" xml:space="preserve">
+        <value>Personal data</value>
+        <comment>PersonalData</comment>
     </data>
 </root>

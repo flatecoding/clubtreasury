@@ -187,20 +187,20 @@ html.dark .id-appbar {
     min-width: 64px;
 }
 
-.id-btn-primary {
+.id-btn.id-btn-primary {
     background-color: var(--id-primary);
     color: #fff;
 }
-.id-btn-primary:hover {
+.id-btn.id-btn-primary:hover {
     background-color: var(--id-primary-hover);
     box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
 }
 
-.id-btn-danger {
+.id-btn.id-btn-danger {
     background-color: var(--id-error);
     color: #fff;
 }
-.id-btn-danger:hover {
+.id-btn.id-btn-danger:hover {
     opacity: 0.9;
     box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
 }

@@ -530,10 +530,6 @@
         <value />
         <comment>RequiredDataIsMissing</comment>
     </data>
-    <data name=" Personal data" xml:space="preserve">
-        <value />
-        <comment> Personal data</comment>
-    </data>
     <data name="Passkeys" xml:space="preserve">
         <value />
         <comment>Passkeys</comment>
@@ -632,8 +628,40 @@
     <data name="BackToApp" xml:space="preserve">
         <value />
     </data>
-    <data name=" PersonalData" xml:space="preserve">
-        <value> PersonalData</value>
-        <comment> PersonalData</comment>
+    <data name="PersonalData" xml:space="preserve">
+        <value />
+        <comment>PersonalData</comment>
+    </data>
+    <data name="ResetPassword" xml:space="preserve">
+        <value />
+        <comment>ResetPassword</comment>
+    </data>
+    <data name="ConfirmPassword" xml:space="preserve">
+        <value />
+        <comment>ConfirmPassword</comment>
+    </data>
+    <data name="AccessDenied" xml:space="preserve">
+        <value />
+        <comment>AccessDenied</comment>
+    </data>
+    <data name="ForgotPasswordConfirmation" xml:space="preserve">
+        <value />
+        <comment>ForgotPasswordConfirmation</comment>
+    </data>
+    <data name="DeletePersonalData" xml:space="preserve">
+        <value />
+        <comment>DeletePersonalData</comment>
+    </data>
+    <data name="Download" xml:space="preserve">
+        <value />
+        <comment>Download</comment>
+    </data>
+    <data name="PersonalDataInfo" xml:space="preserve">
+        <value />
+        <comment>PersonalDataInfo</comment>
+    </data>
+    <data name="PersonalDataDeleteWarning" xml:space="preserve">
+        <value />
+        <comment>PersonalDataDeleteWarning</comment>
     </data>
 </root>

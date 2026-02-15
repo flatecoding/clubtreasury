@@ -6,24 +6,24 @@
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
-@inject IStringLocalizer<TTCCashRegister.Translation> Localizer
+@inject IStringLocalizer<Translation> Localizer
 
 <PageTitle>@Localizer["PersonalData"]</PageTitle>
 
 <StatusMessage />
 <h3>@Localizer["PersonalData"]</h3>
 
-<p>Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
+<p>@Localizer["PersonalDataInfo"]</p>
 <p>
-    <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
+    <strong>@Localizer["PersonalDataDeleteWarning"]</strong>
 </p>
-<form action="Account/Manage/DownloadPersonalData" method="post">
-    <AntiforgeryToken />
-    <button class="id-btn id-btn-primary" type="submit">Download</button>
-</form>
-<p>
-    <a href="Account/Manage/DeletePersonalData" class="id-btn id-btn-danger">Delete</a>
-</p>
+<div style="display: flex; gap: 12px;">
+    <form action="Account/Manage/DownloadPersonalData" method="post">
+        <AntiforgeryToken />
+        <button class="id-btn id-btn-primary" type="submit">@Localizer["Download"]</button>
+    </form>
+    <a href="Account/Manage/DeletePersonalData" class="id-btn id-btn-danger">@Localizer["Delete"]</a>
+</div>
 
 @code {
     [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;

@@ -6,12 +6,11 @@
 @using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data
 
-@inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
-@inject IStringLocalizer<TTCCashRegister.Translation> Localizer
+@inject IStringLocalizer<Translation> Localizer
 
 <PageTitle>@Localizer["Login"]</PageTitle>
 
@@ -21,9 +20,9 @@
         <h2>@Localizer["UseLocalAccount"]</h2>
         <hr class="id-divider" />
 
-        <StatusMessage Message="@errorMessage" />
+        <StatusMessage Message="@_errorMessage" />
 
-        <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login">
+        <EditForm EditContext="_editContext" method="post" OnSubmit="LoginUser" FormName="login">
             <DataAnnotationsValidator />
             <div class="id-validation-summary" role="alert">
                 <ValidationSummary />
@@ -63,19 +62,19 @@
 </div>
 
 @code {
-    private string? errorMessage;
-    private EditContext editContext = default!;
+    private string? _errorMessage;
+    private EditContext _editContext = null!;
 
-    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = null!;
 
-    [SupplyParameterFromForm] private InputModel Input { get; set; } = default!;
+    [SupplyParameterFromForm] private InputModel Input { get; set; } = null!;
 
     [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         Input ??= new();
-        editContext = new EditContext(Input);
+        _editContext = new EditContext(Input);
 
         if (HttpMethods.IsGet(HttpContext.Request.Method))
         {
@@ -88,7 +87,7 @@
     {
         if (!string.IsNullOrEmpty(Input.Passkey?.Error))
         {
-            errorMessage = $"Error: {Input.Passkey.Error}";
+            _errorMessage = $"Error: {Input.Passkey.Error}";
             return;
         }
 
@@ -99,7 +98,7 @@
         }
         else
         {
-            if (!editContext.Validate())
+            if (!_editContext.Validate())
             {
                 return;
             }
@@ -125,7 +124,7 @@
         }
         else
         {
-            errorMessage = $"Error: {Localizer["InvalidLoginAttempt"]}";
+            _errorMessage = $"Error: {Localizer["InvalidLoginAttempt"]}";
         }
     }
 

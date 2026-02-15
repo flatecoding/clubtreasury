@@ -9,11 +9,11 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<DeletePersonalData> Logger
-@inject IStringLocalizer<TTCCashRegister.Translation> Localizer
+@inject IStringLocalizer<Translation> Localizer
 
 <PageTitle>@Localizer["DeletePersonalData"]</PageTitle>
 
-<StatusMessage Message="@message" />
+<StatusMessage Message="@_message" />
 
 <h3>@Localizer["DeletePersonalData"]</h3>
 
@@ -28,7 +28,7 @@
     <div class="id-validation-summary" role="alert">
         <ValidationSummary />
     </div>
-    @if (requirePassword)
+    @if (_requirePassword)
     {
         <div class="id-input-group">
             <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="id-input" autocomplete="current-password" aria-required="true" placeholder=" " />
@@ -40,43 +40,43 @@
 </EditForm>
 
 @code {
-    private string? message;
-    private ApplicationUser? user;
-    private bool requirePassword;
+    private string? _message;
+    private ApplicationUser? _user;
+    private bool _requirePassword;
 
-    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = null!;
 
-    [SupplyParameterFromForm] private InputModel Input { get; set; } = default!;
+    [SupplyParameterFromForm] private InputModel Input { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
         Input ??= new();
 
-        user = await UserManager.GetUserAsync(HttpContext.User);
-        if (user is null)
+        _user = await UserManager.GetUserAsync(HttpContext.User);
+        if (_user is null)
         {
             RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
             return;
         }
 
-        requirePassword = await UserManager.HasPasswordAsync(user);
+        _requirePassword = await UserManager.HasPasswordAsync(_user);
     }
 
     private async Task OnValidSubmitAsync()
     {
-        if (user is null)
+        if (_user is null)
         {
             RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
             return;
         }
 
-        if (requirePassword && !await UserManager.CheckPasswordAsync(user, Input.Password))
+        if (_requirePassword && !await UserManager.CheckPasswordAsync(_user, Input.Password))
         {
-            message = "Error: Incorrect password.";
+            _message = "Error: Incorrect password.";
             return;
         }
 
-        var result = await UserManager.DeleteAsync(user);
+        var result = await UserManager.DeleteAsync(_user);
         if (!result.Succeeded)
         {
             throw new InvalidOperationException("Unexpected error occurred deleting user.");
@@ -84,7 +84,7 @@
 
         await SignInManager.SignOutAsync();
 
-        var userId = await UserManager.GetUserIdAsync(user);
+        var userId = await UserManager.GetUserIdAsync(_user);
         Logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
 
         RedirectManager.RedirectToCurrentPage();
