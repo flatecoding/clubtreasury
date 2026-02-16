@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
@@ -11,7 +9,8 @@ using MudExtensions.Services;
 using OfficeOpenXml;
 using QuestPDF.Infrastructure;
 using Serilog;
-using TTCCashRegister.Areas.Identity;
+using TTCCashRegister.Components;
+using TTCCashRegister.Components.Account;
 using TTCCashRegister.Data;
 using TTCCashRegister.Data.Source;
 using TTCCashRegister.Infrastructure.DependencyInjection;
@@ -49,9 +48,9 @@ builder.Services.AddDbContext<CashDataContext>(options =>
 
     if (string.IsNullOrWhiteSpace(dbPassword))
         throw new Exception("Db password not found in environment or secrets");
-    
+
     connectionString = connectionString.Replace("{DbPassword}", dbPassword);
-    
+
     options.UseNpgsql(connectionString);
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -59,15 +58,30 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(
         builder.Environment.IsDevelopment() ? "bin/keys" : "/app/keys"))
     .SetApplicationName("ClubCashApp");
-builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
+
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<IdentityRedirectManager>();
+builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+}).AddIdentityCookies();
+
+builder.Services.AddIdentityCore<ApplicationUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
     options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
-}).AddEntityFrameworkStores<CashDataContext>();
+})
+    .AddEntityFrameworkStores<CashDataContext>()
+    .AddSignInManager()
+    .AddDefaultTokenProviders();
+
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
-builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<ApplicationUser>>();
 builder.Services.AddApplicationServices()
                 .AddValidation();
 builder.Services.AddMudServices(config =>
@@ -93,7 +107,7 @@ builder.Host.UseSerilog((context, configuration) =>
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<CashDataContext>(); 
+    var db = scope.ServiceProvider.GetRequiredService<CashDataContext>();
     try
     {
         var pending = db.Database.GetPendingMigrations().ToList();
@@ -132,8 +146,6 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
 
 var localizationOptions = new RequestLocalizationOptions
 {
@@ -150,51 +162,13 @@ localizationOptions.RequestCultureProviders.Insert(
 app.UseRequestLocalization(localizationOptions);
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery();
 
-app.MapControllers();
-app.MapBlazorHub();
-app.MapFallbackToPage("/_Host");
+app.MapStaticAssets();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
-// Passkey API endpoints
-var accountGroup = app.MapGroup("/Account");
-
-accountGroup.MapPost("/PasskeyCreationOptions", async (
-    HttpContext context,
-    [FromServices] UserManager<ApplicationUser> userManager,
-    [FromServices] SignInManager<ApplicationUser> signInManager,
-    [FromServices] IAntiforgery antiforgery) =>
-{
-    await antiforgery.ValidateRequestAsync(context);
-
-    var user = await userManager.GetUserAsync(context.User);
-    if (user is null)
-    {
-        return Results.NotFound($"Unable to load user with ID '{userManager.GetUserId(context.User)}'.");
-    }
-
-    var userId = await userManager.GetUserIdAsync(user);
-    var userName = await userManager.GetUserNameAsync(user) ?? "User";
-    var optionsJson = await signInManager.MakePasskeyCreationOptionsAsync(new()
-    {
-        Id = userId,
-        Name = userName,
-        DisplayName = userName
-    });
-    return TypedResults.Content(optionsJson, contentType: "application/json");
-}).RequireAuthorization();
-
-accountGroup.MapPost("/PasskeyRequestOptions", async (
-    HttpContext context,
-    [FromServices] UserManager<ApplicationUser> userManager,
-    [FromServices] SignInManager<ApplicationUser> signInManager,
-    [FromServices] IAntiforgery antiforgery,
-    [FromQuery] string? username) =>
-{
-    await antiforgery.ValidateRequestAsync(context);
-
-    var user = string.IsNullOrEmpty(username) ? null : await userManager.FindByNameAsync(username);
-    var optionsJson = await signInManager.MakePasskeyRequestOptionsAsync(user);
-    return TypedResults.Content(optionsJson, contentType: "application/json");
-});
+// Additional Identity endpoints (logout, passkey options)
+app.MapAdditionalIdentityEndpoints();
 
 app.Run();

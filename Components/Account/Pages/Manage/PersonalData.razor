@@ -1,0 +1,39 @@
+@page "/Account/Manage/PersonalData"
+
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<Translation> Localizer
+
+<PageTitle>@Localizer["PersonalData"]</PageTitle>
+
+<StatusMessage />
+<h3>@Localizer["PersonalData"]</h3>
+
+<p>@Localizer["PersonalDataInfo"]</p>
+<p>
+    <strong>@Localizer["PersonalDataDeleteWarning"]</strong>
+</p>
+<div style="display: flex; gap: 12px;">
+    <form action="Account/Manage/DownloadPersonalData" method="post">
+        <AntiforgeryToken />
+        <button class="id-btn id-btn-primary" type="submit">@Localizer["Download"]</button>
+    </form>
+    <a href="Account/Manage/DeletePersonalData" class="id-btn id-btn-danger">@Localizer["Delete"]</a>
+</div>
+
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await UserManager.GetUserAsync(HttpContext.User);
+        if (user is null)
+        {
+            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+        }
+    }
+}

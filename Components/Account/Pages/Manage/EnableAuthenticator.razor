@@ -1,0 +1,144 @@
+@page "/Account/Manage/EnableAuthenticator"
+
+@using System.ComponentModel.DataAnnotations
+@using System.Globalization
+@using System.Text
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<Translation> Localizer
+@inject ILogger<EnableAuthenticator> Logger
+
+<PageTitle>@Localizer["EnableAuthenticator"]</PageTitle>
+
+<StatusMessage />
+<h3>@Localizer["EnableAuthenticator"]</h3>
+
+<p>@Localizer["EnableAuthenticatorInstructions"]</p>
+
+<p>@Localizer["ScanQRCode"]</p>
+
+<div id="qrCode"></div>
+<div id="qrCodeData" data-url="@_authenticatorUri"></div>
+
+<p><strong>@Localizer["SharedKey"]:</strong> <code>@_sharedKey</code></p>
+
+<EditForm EditContext="_editContext" method="post" OnValidSubmit="OnValidSubmitAsync" FormName="enable-authenticator">
+    <DataAnnotationsValidator />
+    <div class="id-validation-summary" role="alert">
+        <ValidationSummary />
+    </div>
+
+    <div class="id-input-group">
+        <InputText @bind-Value="Input.Code" id="Input.Code" class="id-input" autocomplete="off" aria-required="true" placeholder=" " />
+        <label for="Input.Code">@Localizer["VerificationCode"]</label>
+        <ValidationMessage For="() => Input.Code" class="id-validation" />
+    </div>
+
+    <button type="submit" class="id-btn id-btn-primary">@Localizer["Verify"]</button>
+</EditForm>
+
+@code {
+    private string? _sharedKey;
+    private string? _authenticatorUri;
+    private EditContext _editContext = null!;
+
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = null!;
+
+    [SupplyParameterFromForm] private InputModel Input { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+        _editContext = new EditContext(Input);
+
+        var user = await UserManager.GetUserAsync(HttpContext.User);
+        if (user is null)
+        {
+            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            return;
+        }
+
+        await LoadSharedKeyAndQrCodeUriAsync(user);
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        var user = await UserManager.GetUserAsync(HttpContext.User);
+        if (user is null)
+        {
+            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            return;
+        }
+
+        var verificationCode = Input.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
+
+        var is2FaTokenValid = await UserManager.VerifyTwoFactorTokenAsync(
+            user, UserManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
+
+        if (!is2FaTokenValid)
+        {
+            RedirectManager.RedirectToCurrentPageWithStatus(Localizer["InvalidVerificationCode"], HttpContext);
+            return;
+        }
+
+        await UserManager.SetTwoFactorEnabledAsync(user, true);
+        var userId = await UserManager.GetUserIdAsync(user);
+        Logger.LogInformation("User with ID '{UserId}' has enabled 2FA with an authenticator app.", userId);
+
+        RedirectManager.RedirectToWithStatus(
+            "Account/Manage/GenerateRecoveryCodes",
+            Localizer["AuthenticatorVerified"],
+            HttpContext);
+    }
+
+    private async Task LoadSharedKeyAndQrCodeUriAsync(ApplicationUser user)
+    {
+        var unformattedKey = await UserManager.GetAuthenticatorKeyAsync(user);
+        if (string.IsNullOrEmpty(unformattedKey))
+        {
+            await UserManager.ResetAuthenticatorKeyAsync(user);
+            unformattedKey = await UserManager.GetAuthenticatorKeyAsync(user);
+        }
+
+        _sharedKey = FormatKey(unformattedKey!);
+
+        var email = await UserManager.GetEmailAsync(user);
+        _authenticatorUri = GenerateQrCodeUri(email!, unformattedKey!);
+    }
+
+    private static string FormatKey(string unformattedKey)
+    {
+        var result = new StringBuilder();
+        var currentPosition = 0;
+        while (currentPosition + 4 < unformattedKey.Length)
+        {
+            result.Append(unformattedKey.AsSpan(currentPosition, 4)).Append(' ');
+            currentPosition += 4;
+        }
+        if (currentPosition < unformattedKey.Length)
+        {
+            result.Append(unformattedKey.AsSpan(currentPosition));
+        }
+        return result.ToString().ToLowerInvariant();
+    }
+
+    private static string GenerateQrCodeUri(string email, string unformattedKey)
+    {
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6",
+            Uri.EscapeDataString("TTCCashRegister"),
+            Uri.EscapeDataString(email),
+            unformattedKey);
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        public string Code { get; set; } = "";
+    }
+}

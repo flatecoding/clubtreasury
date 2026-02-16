@@ -1,0 +1,60 @@
+@page "/Account/Manage/ResetAuthenticator"
+
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<Translation> Localizer
+@inject ILogger<ResetAuthenticator> Logger
+
+<PageTitle>@Localizer["ResetAuthenticator"]</PageTitle>
+
+<StatusMessage />
+<h3>@Localizer["ResetAuthenticator"]</h3>
+
+<div class="id-alert id-alert-warning">
+    <p>@Localizer["ResetAuthenticatorWarning"]</p>
+</div>
+
+<form @formname="reset-authenticator" @onsubmit="OnSubmitAsync" method="post">
+    <AntiforgeryToken />
+    <button type="submit" class="id-btn id-btn-primary">@Localizer["ResetAuthenticatorConfirm"]</button>
+</form>
+
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await UserManager.GetUserAsync(HttpContext.User);
+        if (user is null)
+        {
+            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+        }
+    }
+
+    private async Task OnSubmitAsync()
+    {
+        var user = await UserManager.GetUserAsync(HttpContext.User);
+        if (user is null)
+        {
+            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            return;
+        }
+
+        await UserManager.SetTwoFactorEnabledAsync(user, false);
+        await UserManager.ResetAuthenticatorKeyAsync(user);
+        var userId = await UserManager.GetUserIdAsync(user);
+        Logger.LogInformation("User with ID '{UserId}' has reset their authenticator key.", userId);
+
+        await SignInManager.RefreshSignInAsync(user);
+
+        RedirectManager.RedirectToWithStatus(
+            "Account/Manage/EnableAuthenticator",
+            Localizer["ResetAuthenticator"],
+            HttpContext);
+    }
+}

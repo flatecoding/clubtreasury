@@ -1,0 +1,107 @@
+@page "/Account/LoginWith2fa"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<Translation> Localizer
+@inject ILogger<LoginWith2fa> Logger
+
+<PageTitle>@Localizer["LoginWith2fa"]</PageTitle>
+
+<div class="identity-page">
+    <div class="id-paper">
+        <h1>@Localizer["LoginWith2fa"]</h1>
+        <hr class="id-divider" />
+
+        <StatusMessage Message="@_message" />
+
+        <EditForm EditContext="_editContext" method="post" OnValidSubmit="OnValidSubmitAsync" FormName="login-with-2fa">
+            <DataAnnotationsValidator />
+            <div class="id-validation-summary" role="alert">
+                <ValidationSummary />
+            </div>
+
+            <div class="id-input-group">
+                <InputText @bind-Value="Input.TwoFactorCode" id="Input.TwoFactorCode" class="id-input" autocomplete="off" aria-required="true" placeholder=" " />
+                <label for="Input.TwoFactorCode">@Localizer["AuthenticatorCode"]</label>
+                <ValidationMessage For="() => Input.TwoFactorCode" class="id-validation" />
+            </div>
+
+            <div class="id-checkbox-wrapper">
+                <InputCheckbox @bind-Value="Input.RememberMachine" id="Input.RememberMachine" />
+                <label for="Input.RememberMachine">@Localizer["RememberThisMachine"]</label>
+            </div>
+
+            <button type="submit" class="id-btn id-btn-primary id-btn-full">@Localizer["Login"]</button>
+        </EditForm>
+
+        <hr class="id-divider" />
+
+        <div class="id-links">
+            <a href="Account/LoginWithRecoveryCode?ReturnUrl=@(Uri.EscapeDataString(ReturnUrl ?? ""))">@Localizer["UseRecoveryCode"]</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? _message;
+    private EditContext _editContext = null!;
+    private ApplicationUser _user = null!;
+
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = null!;
+
+    [SupplyParameterFromForm] private InputModel Input { get; set; } = null!;
+
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery] private bool RememberMe { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+        _editContext = new EditContext(Input);
+
+        _user = (await SignInManager.GetTwoFactorAuthenticationUserAsync())!;
+        if (_user is null)
+        {
+            throw new InvalidOperationException("Unable to load two-factor authentication user.");
+        }
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        var authenticatorCode = Input.TwoFactorCode!.Replace(" ", string.Empty).Replace("-", string.Empty);
+
+        var result = await SignInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, RememberMe, Input.RememberMachine);
+        var userId = await UserManager.GetUserIdAsync(_user);
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", userId);
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("User with ID '{UserId}' account locked out.", userId);
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            Logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", userId);
+            _message = $"Error: {Localizer["InvalidAuthenticatorCode"]}";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        public string TwoFactorCode { get; set; } = "";
+
+        public bool RememberMachine { get; set; }
+    }
+}

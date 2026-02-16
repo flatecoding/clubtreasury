@@ -530,4 +530,428 @@
         <value />
         <comment>RequiredDataIsMissing</comment>
     </data>
+    <data name="Passkeys" xml:space="preserve">
+        <value />
+        <comment>Passkeys</comment>
+    </data>
+    <data name="TwoFactorAuthentication" xml:space="preserve">
+        <value />
+        <comment>TwoFactorAuthentication</comment>
+    </data>
+    <data name="Password" xml:space="preserve">
+        <value />
+        <comment>Password</comment>
+    </data>
+    <data name="Email" xml:space="preserve">
+        <value />
+        <comment>Email</comment>
+    </data>
+    <data name="Profile" xml:space="preserve">
+        <value />
+        <comment>Profile</comment>
+    </data>
+    <data name="Login" xml:space="preserve">
+        <value />
+        <comment>Login</comment>
+    </data>
+    <data name="UseLocalAccount" xml:space="preserve">
+        <value />
+        <comment>UseLocalAccount</comment>
+    </data>
+    <data name="Or" xml:space="preserve">
+        <value />
+        <comment>Or</comment>
+    </data>
+    <data name="LogInWithPasskey" xml:space="preserve">
+        <value />
+        <comment>LogInWithPasskey</comment>
+    </data>
+    <data name="ForgotPassword" xml:space="preserve">
+        <value />
+        <comment>ForgotPassword</comment>
+    </data>
+    <data name="RegisterUser" xml:space="preserve">
+        <value />
+        <comment>RegisterUser</comment>
+    </data>
+    <data name="RememberMe" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Logout" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Register" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Hello" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Manage" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ManagePasskeys" xml:space="preserve">
+        <value />
+    </data>
+    <data name="RenamePasskey" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Rename" xml:space="preserve">
+        <value />
+    </data>
+    <data name="AddNewPasskey" xml:space="preserve">
+        <value />
+    </data>
+    <data name="NoPasskeysRegistered" xml:space="preserve">
+        <value />
+    </data>
+    <data name="UnnamedPasskey" xml:space="preserve">
+        <value />
+    </data>
+    <data name="PasskeyName" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Continue" xml:space="preserve">
+        <value />
+    </data>
+    <data name="EnterNewPasskeyName" xml:space="preserve">
+        <value />
+    </data>
+    <data name="EnterPasskeyName" xml:space="preserve">
+        <value />
+    </data>
+    <data name="MaxPasskeysReached" xml:space="preserve">
+        <value />
+    </data>
+    <data name="InvalidLoginAttempt" xml:space="preserve">
+        <value />
+    </data>
+    <data name="BackToApp" xml:space="preserve">
+        <value />
+    </data>
+    <data name="PersonalData" xml:space="preserve">
+        <value />
+        <comment>PersonalData</comment>
+    </data>
+    <data name="ResetPassword" xml:space="preserve">
+        <value />
+        <comment>ResetPassword</comment>
+    </data>
+    <data name="ConfirmPassword" xml:space="preserve">
+        <value />
+        <comment>ConfirmPassword</comment>
+    </data>
+    <data name="AccessDenied" xml:space="preserve">
+        <value />
+        <comment>AccessDenied</comment>
+    </data>
+    <data name="ForgotPasswordConfirmation" xml:space="preserve">
+        <value />
+        <comment>ForgotPasswordConfirmation</comment>
+    </data>
+    <data name="DeletePersonalData" xml:space="preserve">
+        <value />
+        <comment>DeletePersonalData</comment>
+    </data>
+    <data name="Download" xml:space="preserve">
+        <value />
+        <comment>Download</comment>
+    </data>
+    <data name="PersonalDataInfo" xml:space="preserve">
+        <value />
+        <comment>PersonalDataInfo</comment>
+    </data>
+    <data name="PersonalDataDeleteWarning" xml:space="preserve">
+        <value />
+        <comment>PersonalDataDeleteWarning</comment>
+    </data>
+    <data name="ChangePassword" xml:space="preserve">
+        <value />
+        <comment>ChangePassword</comment>
+    </data>
+    <data name="CurrentPassword" xml:space="preserve">
+        <value />
+        <comment>CurrentPassword</comment>
+    </data>
+    <data name="NewPassword" xml:space="preserve">
+        <value />
+        <comment>NewPassword</comment>
+    </data>
+    <data name="UpdatePassword" xml:space="preserve">
+        <value />
+        <comment>UpdatePassword</comment>
+    </data>
+    <data name="ManageEmail" xml:space="preserve">
+        <value />
+        <comment>ManageEmail</comment>
+    </data>
+    <data name="NewEmail" xml:space="preserve">
+        <value />
+        <comment>NewEmail</comment>
+    </data>
+    <data name="ChangeEmail" xml:space="preserve">
+        <value />
+        <comment>ChangeEmail</comment>
+    </data>
+    <data name="Username" xml:space="preserve">
+        <value />
+        <comment>Username</comment>
+    </data>
+    <data name="PhoneNumber" xml:space="preserve">
+        <value />
+        <comment>PhoneNumber</comment>
+    </data>
+    <data name="NoRecoveryCodesLeft" xml:space="preserve">
+        <value />
+        <comment>NoRecoveryCodesLeft</comment>
+    </data>
+    <data name="GenerateNewRecoveryCodes" xml:space="preserve">
+        <value />
+        <comment>GenerateNewRecoveryCodes</comment>
+    </data>
+    <data name="MustGenerateRecoveryCodesMessage" xml:space="preserve">
+        <value />
+        <comment>MustGenerateRecoveryCodesMessage</comment>
+    </data>
+    <data name="OneRecoveryCodeLeft" xml:space="preserve">
+        <value />
+        <comment>OneRecoveryCodeLeft</comment>
+    </data>
+    <data name="CanGenerateRecoveryCodesMessage" xml:space="preserve">
+        <value />
+        <comment>CanGenerateRecoveryCodesMessage</comment>
+    </data>
+    <data name="RecoveryCodesLeft" xml:space="preserve">
+        <value />
+        <comment>RecoveryCodesLeft</comment>
+    </data>
+    <data name="ShouldGenerateRecoveryCodesMessage" xml:space="preserve">
+        <value />
+        <comment>ShouldGenerateRecoveryCodesMessage</comment>
+    </data>
+    <data name="ForgetThisBrowser" xml:space="preserve">
+        <value />
+        <comment>ForgetThisBrowser</comment>
+    </data>
+    <data name="Disable2FA" xml:space="preserve">
+        <value />
+        <comment>Disable2FA</comment>
+    </data>
+    <data name="ResetRecoveryCodes" xml:space="preserve">
+        <value />
+        <comment>ResetRecoveryCodes</comment>
+    </data>
+    <data name="AuthenticatorApp" xml:space="preserve">
+        <value />
+        <comment>AuthenticatorApp</comment>
+    </data>
+    <data name="AddAuthenticatorApp" xml:space="preserve">
+        <value />
+        <comment>AddAuthenticatorApp</comment>
+    </data>
+    <data name="SetUpAuthenticatorApp" xml:space="preserve">
+        <value />
+        <comment>SetUpAuthenticatorApp</comment>
+    </data>
+    <data name="ResetAuthenticatorApp" xml:space="preserve">
+        <value />
+        <comment>ResetAuthenticatorApp</comment>
+    </data>
+    <data name="PrivacyPolicyNotAccepted" xml:space="preserve">
+        <value />
+        <comment>PrivacyPolicyNotAccepted</comment>
+    </data>
+    <data name="MustAcceptPolicyFor2FA" xml:space="preserve">
+        <value />
+        <comment>MustAcceptPolicyFor2FA</comment>
+    </data>
+    <data name="BrowserForgotten" xml:space="preserve">
+        <value />
+        <comment>BrowserForgotten</comment>
+    </data>
+    <data name="ManageAccount" xml:space="preserve">
+        <value />
+        <comment>ManageAccount</comment>
+    </data>
+    <data name="PasswordChanged" xml:space="preserve">
+        <value />
+        <comment>PasswordChanged</comment>
+    </data>
+    <data name="FailedToSetPhoneNumber" xml:space="preserve">
+        <value />
+        <comment>FailedToSetPhoneNumber</comment>
+    </data>
+    <data name="ProfileUpdated" xml:space="preserve">
+        <value />
+        <comment>ProfileUpdated</comment>
+    </data>
+    <data name="ErrorBrowserNoPasskey" xml:space="preserve">
+        <value />
+        <comment>ErrorBrowserNoPasskey</comment>
+    </data>
+    <data name="ErrorPasskeyNotAdded" xml:space="preserve">
+        <value />
+        <comment>ErrorPasskeyNotAdded</comment>
+    </data>
+    <data name="ErrorUnknownAction" xml:space="preserve">
+        <value />
+        <comment>ErrorUnknownAction</comment>
+    </data>
+    <data name="ErrorInvalidPasskeyId" xml:space="preserve">
+        <value />
+        <comment>ErrorInvalidPasskeyId</comment>
+    </data>
+    <data name="ErrorPasskeyNotDeleted" xml:space="preserve">
+        <value />
+        <comment>ErrorPasskeyNotDeleted</comment>
+    </data>
+    <data name="PasskeyDeletedSuccessfully" xml:space="preserve">
+        <value />
+        <comment>PasskeyDeletedSuccessfully</comment>
+    </data>
+    <data name="ResetPasswordConfirmation" xml:space="preserve">
+        <value />
+        <comment>ResetPasswordConfirmation</comment>
+    </data>
+    <data name="PasswordHasBeenReset" xml:space="preserve">
+        <value />
+        <comment>PasswordHasBeenReset</comment>
+    </data>
+    <data name="ClickHereToLogIn" xml:space="preserve">
+        <value />
+        <comment>ClickHereToLogIn</comment>
+    </data>
+    <data name="AccessDeniedMessage" xml:space="preserve">
+        <value />
+        <comment>AccessDeniedMessage</comment>
+    </data>
+    <data name="ErrorLoadingUser" xml:space="preserve">
+        <value />
+        <comment>ErrorLoadingUser</comment>
+    </data>
+    <data name="ThankYouForConfirmingEmail" xml:space="preserve">
+        <value />
+        <comment>ThankYouForConfirmingEmail</comment>
+    </data>
+    <data name="ErrorConfirmingEmail" xml:space="preserve">
+        <value />
+        <comment>ErrorConfirmingEmail</comment>
+    </data>
+    <data name="ConfirmEmail" xml:space="preserve">
+        <value />
+        <comment>ConfirmEmail</comment>
+    </data>
+    <data name="CheckEmailToResetPassword" xml:space="preserve">
+        <value />
+        <comment>CheckEmailToResetPassword</comment>
+    </data>
+    <data name="InvalidPasswordReset" xml:space="preserve">
+        <value />
+        <comment>InvalidPasswordReset</comment>
+    </data>
+    <data name="InvalidPasswordResetLink" xml:space="preserve">
+        <value />
+        <comment>InvalidPasswordResetLink</comment>
+    </data>
+    <data name="RequestNewOne" xml:space="preserve">
+        <value />
+        <comment>RequestNewOne</comment>
+    </data>
+    <data name="InvalidUser" xml:space="preserve">
+        <value />
+        <comment>InvalidUser</comment>
+    </data>
+    <data name="FailedToSetUsername" xml:space="preserve">
+        <value />
+        <comment>FailedToSetUsername</comment>
+    </data>
+    <data name="EnableAuthenticator" xml:space="preserve">
+        <value />
+    </data>
+    <data name="EnableAuthenticatorInstructions" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ScanQRCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="SharedKey" xml:space="preserve">
+        <value />
+    </data>
+    <data name="VerificationCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Verify" xml:space="preserve">
+        <value />
+    </data>
+    <data name="InvalidVerificationCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="AuthenticatorVerified" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Disable2FATitle" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Disable2FAWarning" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Disable2FAConfirm" xml:space="preserve">
+        <value />
+    </data>
+    <data name="TwoFactorDisabled" xml:space="preserve">
+        <value />
+    </data>
+    <data name="TwoFactorNotEnabled" xml:space="preserve">
+        <value />
+    </data>
+    <data name="GenerateRecoveryCodes" xml:space="preserve">
+        <value />
+    </data>
+    <data name="GenerateRecoveryCodesWarning" xml:space="preserve">
+        <value />
+    </data>
+    <data name="GenerateRecoveryCodesConfirm" xml:space="preserve">
+        <value />
+    </data>
+    <data name="RecoveryCodesGenerated" xml:space="preserve">
+        <value />
+    </data>
+    <data name="StoreRecoveryCodesWarning" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ResetAuthenticator" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ResetAuthenticatorWarning" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ResetAuthenticatorConfirm" xml:space="preserve">
+        <value />
+    </data>
+    <data name="LoginWith2fa" xml:space="preserve">
+        <value />
+    </data>
+    <data name="AuthenticatorCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="RememberThisMachine" xml:space="preserve">
+        <value />
+    </data>
+    <data name="InvalidAuthenticatorCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="UseRecoveryCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="LoginWithRecoveryCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="RecoveryCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="RecoveryCodeLoginDescription" xml:space="preserve">
+        <value />
+    </data>
+    <data name="InvalidRecoveryCode" xml:space="preserve">
+        <value />
+    </data>
 </root>

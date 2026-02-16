@@ -1,0 +1,11 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Translation> Localizer
+
+<ul class="id-nav">
+    <li><NavLink class="id-nav-link" href="Account/Manage" Match="NavLinkMatch.All">@Localizer["Profile"]</NavLink></li>
+    <li><NavLink class="id-nav-link" href="Account/Manage/Email">@Localizer["Email"]</NavLink></li>
+    <li><NavLink class="id-nav-link" href="Account/Manage/ChangePassword">@Localizer["Password"]</NavLink></li>
+    <li><NavLink class="id-nav-link" href="Account/Manage/TwoFactorAuthentication">@Localizer["TwoFactorAuthentication"]</NavLink></li>
+    <li><NavLink class="id-nav-link" href="Account/Manage/Passkeys">@Localizer["Passkeys"]</NavLink></li>
+    <li><NavLink class="id-nav-link" href="Account/Manage/PersonalData">@Localizer["PersonalData"]</NavLink></li>
+</ul>

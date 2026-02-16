@@ -1,0 +1,96 @@
+@page "/Account/Manage/RenamePasskey/{Id}"
+
+@using TTCCashRegister.Data
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using System.Buffers.Text
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<Translation> Localizer
+
+<PageTitle>@Localizer["RenamePasskey"]</PageTitle>
+
+<EditForm Model="Input" OnValidSubmit="Rename" FormName="rename-passkey" method="post">
+    <DataAnnotationsValidator />
+    @if (_passkey?.Name is { } name)
+    {
+        <h4>@string.Format(Localizer["EnterNewPasskeyName"].Value, name)</h4>
+    }
+    else
+    {
+        <h4>@Localizer["EnterPasskeyName"]</h4>
+    }
+    <hr class="id-divider" />
+    <div class="id-validation-summary" role="alert">
+        <ValidationSummary />
+    </div>
+    <div class="id-input-group">
+        <InputText @bind-Value="Input.Name" id="Input.Name" class="id-input" aria-required="true" placeholder=" " />
+        <label for="Input.Name">@Localizer["PasskeyName"]</label>
+        <ValidationMessage For="() => Input.Name" class="id-validation" />
+    </div>
+    <button type="submit" class="id-btn id-btn-primary id-btn-full">@Localizer["Continue"]</button>
+</EditForm>
+
+@code {
+    private ApplicationUser? _user;
+    private UserPasskeyInfo? _passkey;
+
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = null!;
+
+    [Parameter] public string? Id { get; set; }
+
+    [SupplyParameterFromForm] private InputModel Input { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+
+        _user = await UserManager.GetUserAsync(HttpContext.User);
+        if (_user is null)
+        {
+            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            return;
+        }
+
+        byte[] credentialId;
+        try
+        {
+            credentialId = Base64Url.DecodeFromChars(Id);
+        }
+        catch (FormatException)
+        {
+            RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", $"Error: {Localizer["ErrorInvalidPasskeyId"]}", HttpContext);
+            return;
+        }
+
+        _passkey = await UserManager.GetPasskeyAsync(_user, credentialId);
+        if (_passkey is null)
+        {
+            RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", $"Error: {Localizer["ErrorPasskeyNotFound"]}", HttpContext);
+            return;
+        }
+    }
+
+    private async Task Rename()
+    {
+        _passkey!.Name = Input.Name;
+        var result = await UserManager.AddOrUpdatePasskeyAsync(_user!, _passkey);
+        if (!result.Succeeded)
+        {
+            RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", $"Error: {Localizer["ErrorPasskeyNotUpdated"]}", HttpContext);
+            return;
+        }
+
+        RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", Localizer["PasskeyUpdatedSuccessfully"], HttpContext);
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [StringLength(200, ErrorMessage = "Passkey names must be no longer than {1} characters.")]
+        public string Name { get; set; } = "";
+    }
+}
