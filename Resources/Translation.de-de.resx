@@ -903,4 +903,8 @@
         <value>ManageAccount</value>
         <comment>ManageAccount</comment>
     </data>
+    <data name="FailedToSetUsername" xml:space="preserve">
+        <value>Benutzername konnte nicht gesetzt werden.</value>
+        <comment>FailedToSetUsername</comment>
+    </data>
 </root>

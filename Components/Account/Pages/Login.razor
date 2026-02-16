@@ -6,6 +6,7 @@
 @using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data
 
+@inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
@@ -91,10 +92,24 @@
             return;
         }
 
-        SignInResult result;
         if (!string.IsNullOrEmpty(Input.Passkey?.CredentialJson))
         {
-            result = await SignInManager.PasskeySignInAsync(Input.Passkey.CredentialJson);
+            var result = await SignInManager.PasskeySignInAsync(Input.Passkey.CredentialJson);
+
+            if (result.Succeeded)
+            {
+                Logger.LogInformation("User logged in with passkey.");
+                RedirectManager.RedirectTo(ReturnUrl);
+            }
+            else if (result.IsLockedOut)
+            {
+                Logger.LogWarning("User account locked out.");
+                RedirectManager.RedirectTo("Account/Lockout");
+            }
+            else
+            {
+                _errorMessage = $"Error: {Localizer["InvalidLoginAttempt"]}";
+            }
         }
         else
         {
@@ -103,35 +118,30 @@
                 return;
             }
 
-            result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
-        }
+            var user = await UserManager.FindByEmailAsync(Input.Email);
+            if (user is null || !await UserManager.CheckPasswordAsync(user, Input.Password))
+            {
+                _errorMessage = $"Error: {Localizer["InvalidLoginAttempt"]}";
+                return;
+            }
 
-        if (result.Succeeded)
-        {
+            if (await UserManager.GetTwoFactorEnabledAsync(user))
+            {
+                RedirectManager.RedirectTo(
+                    "Account/LoginWith2fa",
+                    new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+                return;
+            }
+
+            await SignInManager.SignInAsync(user, Input.RememberMe);
             Logger.LogInformation("User logged in.");
             RedirectManager.RedirectTo(ReturnUrl);
-        }
-        else if (result.RequiresTwoFactor)
-        {
-            RedirectManager.RedirectTo(
-                "Account/LoginWith2fa",
-                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
-        }
-        else if (result.IsLockedOut)
-        {
-            Logger.LogWarning("User account locked out.");
-            RedirectManager.RedirectTo("Account/Lockout");
-        }
-        else
-        {
-            _errorMessage = $"Error: {Localizer["InvalidLoginAttempt"]}";
         }
     }
 
     private sealed class InputModel
     {
         [Required]
-        [EmailAddress]
         public string Email { get; set; } = "";
 
         [Required]

@@ -904,4 +904,8 @@
         <value>ManageAccount</value>
         <comment>ManageAccount</comment>
     </data>
+    <data name="FailedToSetUsername" xml:space="preserve">
+        <value>Failed to tet username.</value>
+        <comment>FailedToSetUsername</comment>
+    </data>
 </root>

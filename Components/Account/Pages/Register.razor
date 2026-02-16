@@ -28,6 +28,12 @@
             </div>
 
             <div class="id-input-group">
+                <InputText @bind-Value="Input.Username" id="Input.Username" class="id-input" aria-required="true" placeholder=" " />
+                <label for="Input.Username">@Localizer["Username"]</label>
+                <ValidationMessage For="() => Input.Username" class="id-validation" />
+            </div>
+
+            <div class="id-input-group">
                 <InputText @bind-Value="Input.Email" id="Input.Email" class="id-input" autocomplete="username" aria-required="true" placeholder=" " />
                 <label for="Input.Email">@Localizer["Email"]</label>
                 <ValidationMessage For="() => Input.Email" class="id-validation" />
@@ -68,7 +74,7 @@
     {
         var user = Activator.CreateInstance<ApplicationUser>();
 
-        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+        await UserStore.SetUserNameAsync(user, Input.Username, CancellationToken.None);
         var emailStore = (IUserEmailStore<ApplicationUser>)UserStore;
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
         var result = await UserManager.CreateAsync(user, Input.Password);
@@ -88,19 +94,17 @@
     private sealed class InputModel
     {
         [Required]
+        public string Username { get; set; } = "";
+
+        [Required]
         [EmailAddress]
-        [Display(Name = "Email")]
         public string Email { get; set; } = "";
 
         [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
         [DataType(DataType.Password)]
-        [Display(Name = "Password")]
         public string Password { get; set; } = "";
 
         [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
     }
 }

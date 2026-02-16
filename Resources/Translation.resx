@@ -860,4 +860,8 @@
         <value />
         <comment>InvalidUser</comment>
     </data>
+    <data name="FailedToSetUsername" xml:space="preserve">
+        <value />
+        <comment>FailedToSetUsername</comment>
+    </data>
 </root>
