@@ -269,6 +269,8 @@ html.dark .id-alert-success {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 24px;
+    table-layout: fixed;
+    word-break: break-word;
 }
 
 .id-table td {
@@ -284,7 +286,6 @@ html.dark .id-alert-success {
 
 .id-table td:last-child {
     text-align: right;
-    white-space: nowrap;
 }
 
 .id-table td:last-child form {
@@ -665,3 +666,4 @@ html.dark .id-paper .alert-danger {
         padding: 24px 16px;
     }
 }
+

@@ -1,0 +1,13 @@
+@inject IStringLocalizer<Translation> Localizer
+
+@page "/notfound"
+@using Microsoft.Extensions.Localization
+
+<PageTitle>@Localizer["NotFound"]</PageTitle>
+
+<LayoutView Layout="typeof(MainLayout)">
+<p role="alert">@Localizer["NorFoundMessage"]</p>
+</LayoutView>
+@code {
+    
+}
