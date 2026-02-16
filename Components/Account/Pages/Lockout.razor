@@ -1,0 +1,13 @@
+@page "/Account/Lockout"
+
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Translation> Localizer
+
+<PageTitle>@Localizer["LockedOut"]</PageTitle>
+
+<div class="identity-page">
+    <div class="id-paper">
+        <h1>@Localizer["LockedOut"]</h1>
+        <p role="alert">@Localizer["AccountLockedOut"]</p>
+    </div>
+</div>

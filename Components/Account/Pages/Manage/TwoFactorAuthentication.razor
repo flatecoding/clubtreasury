@@ -1,0 +1,114 @@
+@page "/Account/Manage/TwoFactorAuthentication"
+
+@using Microsoft.AspNetCore.Http.Features
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<Translation> Localizer
+
+<PageTitle>@Localizer["TwoFactorAuthentication"]</PageTitle>
+
+<StatusMessage />
+<h3>@Localizer["TwoFactorAuthentication"]</h3>
+
+@if (_canTrack)
+{
+    if (_is2FaEnabled)
+    {
+        var generateCodesLink = $"<a href='Account/Manage/GenerateRecoveryCodes'>{Localizer["GenerateNewRecoveryCodes"]}</a>";
+
+        if (_recoveryCodesLeft == 0)
+        {
+            <div class="id-alert id-alert-error">
+                <strong>@Localizer["NoRecoveryCodesLeft"]</strong>
+                <p>@((MarkupString)string.Format(Localizer["MustGenerateRecoveryCodesMessage"].Value, generateCodesLink))</p>
+            </div>
+        }
+        else if (_recoveryCodesLeft == 1)
+        {
+            <div class="id-alert id-alert-error">
+                <strong>@Localizer["OneRecoveryCodeLeft"]</strong>
+                <p>@((MarkupString)string.Format(Localizer["CanGenerateRecoveryCodesMessage"].Value, generateCodesLink))</p>
+            </div>
+        }
+        else if (_recoveryCodesLeft <= 3)
+        {
+            <div class="id-alert id-alert-warning">
+                <strong>@(string.Format(Localizer["RecoveryCodesLeft"].Value, _recoveryCodesLeft))</strong>
+                <p>@((MarkupString)string.Format(Localizer["ShouldGenerateRecoveryCodesMessage"].Value, generateCodesLink))</p>
+            </div>
+        }
+
+        <div class="id-btn-group">
+            @if (_isMachineRemembered)
+            {
+                <form @formname="forget-browser" @onsubmit="OnSubmitForgetBrowserAsync" method="post">
+                    <AntiforgeryToken />
+                    <button type="submit" class="id-btn id-btn-primary">@Localizer["ForgetThisBrowser"]</button>
+                </form>
+            }
+
+            <a href="Account/Manage/Disable2fa" class="id-btn id-btn-primary">@Localizer["Disable2FA"]</a>
+            <a href="Account/Manage/GenerateRecoveryCodes" class="id-btn id-btn-primary">@Localizer["ResetRecoveryCodes"]</a>
+        </div>
+    }
+
+    <h4>@Localizer["AuthenticatorApp"]</h4>
+    <div class="id-btn-group">
+        @if (!_hasAuthenticator)
+        {
+            <a href="Account/Manage/EnableAuthenticator" class="id-btn id-btn-primary">@Localizer["AddAuthenticatorApp"]</a>
+        }
+        else
+        {
+            <a href="Account/Manage/EnableAuthenticator" class="id-btn id-btn-primary">@Localizer["SetUpAuthenticatorApp"]</a>
+            <a href="Account/Manage/ResetAuthenticator" class="id-btn id-btn-primary">@Localizer["ResetAuthenticatorApp"]</a>
+        }
+    </div>
+}
+else
+{
+    <div class="id-alert id-alert-error">
+        <strong>@Localizer["PrivacyPolicyNotAccepted"]</strong>
+        <p>@Localizer["MustAcceptPolicyFor2FA"]</p>
+    </div>
+}
+
+@code {
+    private bool _canTrack;
+    private bool _hasAuthenticator;
+    private int _recoveryCodesLeft;
+    private bool _is2FaEnabled;
+    private bool _isMachineRemembered;
+
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await UserManager.GetUserAsync(HttpContext.User);
+        if (user is null)
+        {
+            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+            return;
+        }
+
+        _canTrack = HttpContext.Features.Get<ITrackingConsentFeature>()?.CanTrack ?? true;
+        _hasAuthenticator = await UserManager.GetAuthenticatorKeyAsync(user) is not null;
+        _is2FaEnabled = await UserManager.GetTwoFactorEnabledAsync(user);
+        _isMachineRemembered = await SignInManager.IsTwoFactorClientRememberedAsync(user);
+        _recoveryCodesLeft = await UserManager.CountRecoveryCodesAsync(user);
+    }
+
+    private async Task OnSubmitForgetBrowserAsync()
+    {
+        await SignInManager.ForgetTwoFactorClientAsync();
+
+        RedirectManager.RedirectToCurrentPageWithStatus(
+            Localizer["BrowserForgotten"],
+            HttpContext);
+    }
+}
