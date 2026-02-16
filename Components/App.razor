@@ -17,9 +17,9 @@
     <base href="/" />
     <script>
         (function() {
-            var isDark = false;
+            let isDark = false;
             try {
-                var match = document.cookie.match(/ClubCash\.UserPrefData=([^;]+)/);
+                let match = document.cookie.match(/ClubCash\.UserPrefData=([^;]+)/);
                 if (match) {
                     var data = JSON.parse(decodeURIComponent(match[1]));
                     isDark = data && data.IsDarkMode === true;
@@ -34,7 +34,7 @@
 
         // Global function for theme switching (called from Blazor)
         window.setThemeBackground = function(isDark) {
-            var bg = isDark ? '@darkBg' : '@lightBg';
+            let bg = isDark ? '@darkBg' : '@lightBg';
             document.documentElement.style.backgroundColor = bg;
             document.body.style.backgroundColor = bg;
             if (isDark) {
