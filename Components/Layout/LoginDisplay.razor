@@ -1,0 +1,18 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Translation> Localizer
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="@(() => Navigation.NavigateTo("Account/Manage", forceLoad: true))">@Localizer["Hello"] @context.User.Identity?.Name!</MudButton>
+        <form method="post" action="Account/Logout">
+            <AntiforgeryToken />
+            <input type="hidden" name="returnUrl" value="" />
+            <MudButton Variant="Variant.Text" Color="Color.Inherit" ButtonType="ButtonType.Submit">@Localizer["Logout"]</MudButton>
+        </form>
+    </Authorized>
+    <NotAuthorized>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="@(() => Navigation.NavigateTo("Account/Register", forceLoad: true))">@Localizer["Register"]</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="@(() => Navigation.NavigateTo("Account/Login", forceLoad: true))">@Localizer["Login"]</MudButton>
+    </NotAuthorized>
+</AuthorizeView>

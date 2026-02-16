@@ -1,0 +1,110 @@
+@page "/Account/Register"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IUserStore<ApplicationUser> UserStore
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Register> Logger
+@inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<Translation> Localizer
+
+<PageTitle>@Localizer["Register"]</PageTitle>
+
+<div class="identity-page">
+    <div class="id-paper">
+        <h1>@Localizer["Register"]</h1>
+        <hr class="id-divider" />
+
+        <StatusMessage Message="@Message" />
+
+        <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
+            <DataAnnotationsValidator />
+            <div class="id-validation-summary" role="alert">
+                <ValidationSummary />
+            </div>
+
+            <div class="id-input-group">
+                <InputText @bind-Value="Input.Username" id="Input.Username" class="id-input" aria-required="true" placeholder=" " />
+                <label for="Input.Username">@Localizer["Username"]</label>
+                <ValidationMessage For="() => Input.Username" class="id-validation" />
+            </div>
+
+            <div class="id-input-group">
+                <InputText @bind-Value="Input.Email" id="Input.Email" class="id-input" autocomplete="username" aria-required="true" placeholder=" " />
+                <label for="Input.Email">@Localizer["Email"]</label>
+                <ValidationMessage For="() => Input.Email" class="id-validation" />
+            </div>
+
+            <div class="id-input-group">
+                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="id-input" autocomplete="new-password" aria-required="true" placeholder=" " />
+                <label for="Input.Password">@Localizer["Password"]</label>
+                <ValidationMessage For="() => Input.Password" class="id-validation" />
+            </div>
+
+            <div class="id-input-group">
+                <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="id-input" autocomplete="new-password" aria-required="true" placeholder=" " />
+                <label for="Input.ConfirmPassword">@Localizer["ConfirmPassword"]</label>
+                <ValidationMessage For="() => Input.ConfirmPassword" class="id-validation" />
+            </div>
+
+            <button type="submit" class="id-btn id-btn-primary id-btn-full">@Localizer["Register"]</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private IEnumerable<IdentityError>? _identityErrors;
+
+    [SupplyParameterFromForm] private InputModel Input { get; set; } = null!;
+
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+
+    private string? Message => _identityErrors is null ? null : $"Error: {string.Join(", ", _identityErrors.Select(error => error.Description))}";
+
+    protected override void OnInitialized()
+    {
+        Input ??= new();
+    }
+
+    public async Task RegisterUser(EditContext editContext)
+    {
+        var user = Activator.CreateInstance<ApplicationUser>();
+
+        await UserStore.SetUserNameAsync(user, Input.Username, CancellationToken.None);
+        var emailStore = (IUserEmailStore<ApplicationUser>)UserStore;
+        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+        var result = await UserManager.CreateAsync(user, Input.Password);
+
+        if (!result.Succeeded)
+        {
+            _identityErrors = result.Errors;
+            return;
+        }
+
+        Logger.LogInformation("User created a new account with password.");
+
+        await SignInManager.SignInAsync(user, isPersistent: false);
+        RedirectManager.RedirectTo(ReturnUrl);
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        public string Username { get; set; } = "";
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        [DataType(DataType.Password)]
+        public string ConfirmPassword { get; set; } = "";
+    }
+}
