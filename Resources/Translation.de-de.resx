@@ -997,4 +997,12 @@
     <data name="InvalidRecoveryCode" xml:space="preserve">
         <value>Ungültiger Wiederherstellungscode.</value>
     </data>
+    <data name="NotFoundMessage" xml:space="preserve">
+        <value>Leider gibt es unter dieser Adresse nichts.</value>
+        <comment>NorFoundMessage</comment>
+    </data>
+    <data name="ResetFilter" xml:space="preserve">
+        <value>Filzer zurücksetzen</value>
+        <comment>ResetFilter</comment>
+    </data>
 </root>
