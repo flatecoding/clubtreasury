@@ -998,4 +998,12 @@
     <data name="InvalidRecoveryCode" xml:space="preserve">
         <value>Invalid recovery code.</value>
     </data>
+    <data name="NotFoundMessage" xml:space="preserve">
+        <value>Sorry, there's nothing at this address.</value>
+        <comment>NorFoundMessage</comment>
+    </data>
+    <data name="ResetFilter" xml:space="preserve">
+        <value>Reset filter</value>
+        <comment>ResetFilter</comment>
+    </data>
 </root>

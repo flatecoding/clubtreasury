@@ -954,4 +954,12 @@
     <data name="InvalidRecoveryCode" xml:space="preserve">
         <value />
     </data>
+    <data name="NotFoundMessage" xml:space="preserve">
+        <value />
+        <comment>NotFoundMessage</comment>
+    </data>
+    <data name="ResetFilter" xml:space="preserve">
+        <value />
+        <comment>ResetFilter</comment>
+    </data>
 </root>

@@ -33,18 +33,42 @@
                       SortLabel="Sort By">
                 <ToolBarContent>
                     <MudIconButton Variant="Variant.Filled"
-                               Icon="@Icons.Material.Filled.Add"
-                               Color="Color.Primary"
-                               OnClick="@ShowAddTransactionDialog">
-                    </MudIconButton>
+                                   Icon="@Icons.Material.Filled.Add"
+                                   Color="Color.Primary"
+                                   OnClick="@ShowAddTransactionDialog" />
+
                     <MudSpacer />
-                    <MudButton Variant="Variant.Outlined"
-                               Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.FilterAlt"
-                               OnClick="@ShowFilterDialog">
-                        @Localizer["Filter"]
-                    </MudButton>
+                    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                        <MudBadge Content="@ActiveFilterCount"
+                                  Color="Color.Primary"
+                                  Overlap="true">
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.FilterAlt"
+                                       OnClick="@ShowFilterDialog">
+                                    @Localizer["Filter"]
+                            </MudButton>
+                        </MudBadge>
+                    </MudHidden>
+                    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                        <MudBadge Content="@ActiveFilterCount"
+                                  Color="Color.Default"
+                                  Overlap="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.FilterAlt"
+                                           Color="Color.Primary"
+                                           OnClick="@ShowFilterDialog" />
+                        </MudBadge>
+                    </MudHidden>
+                    @if (HasActiveFilters)
+                    {
+                        <MudTooltip Text="@Localizer["ResetFilter"]">
+                            <MudIconButton Icon="@Icons.Material.Filled.FilterAltOff"
+                                           Color="Color.Default"
+                                           OnClick="@ResetFilter" />
+                        </MudTooltip>
+                    }
                 </ToolBarContent>
+
                 <HeaderContent>
                     <MudTh>
                         <MudTableSortLabel
@@ -152,17 +176,13 @@
     private TransactionModel? _selectedItem;
     private DateRange _dateRange = new(null, null);
 
-    private readonly DialogOptions _transactionDetailsOverviewOptions = new()
-    {
-        MaxWidth = MaxWidth.Large,
-        FullWidth = true,
-        BackdropClick = false,
-        BackgroundClass= "custom-dialog-background"
-    };
-
     private int? _personId;
     private const bool FixedHeader = true;
     private const bool FixedFooter = true;
+    private bool HasActiveFilters =>
+        (_dateRange.Start.HasValue || _dateRange.End.HasValue) ||
+        !string.IsNullOrWhiteSpace(_searchTerm) ||
+        _personId.HasValue;
 
     protected override async Task OnInitializedAsync()
     {
@@ -196,30 +216,39 @@
 
     private async Task ShowTransactionDetailsOverviewDialog(int transactionId, int documentNumber)
     {
-        var dialog = await DialogService.ShowAsync<TransactionDetailsOverviewDialog>(null,
+        var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDetailsOverviewDialog>(
+            NotificationService,
+            Localizer["AddEntry"],
             new DialogParameters
             {
                 ["TransactionId"] = transactionId,
                 ["ParentDocumentNumber"] = documentNumber
             },
-            _transactionDetailsOverviewOptions);
-        await dialog.Result;
+            new DialogOptions(){MaxWidth = MaxWidth.Large});
         
-        await UpdateView();
+        if(result?.Status is OperationResultStatus.Success)
+            await UpdateView();
+        
     }
     
     private async Task ShowAddTransactionDialog()
     {
-        var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDialog>(NotificationService);
+        var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDialog>(NotificationService,
+            Localizer["AddEntry"],
+            null,
+            new DialogOptions(){MaxWidth = MaxWidth.Small});
+        
         if(result?.Status is OperationResultStatus.Success)
             await UpdateView();
     }
 
     private async Task ShowEditTransactionDialog(int transactionId)
     {
-        var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDialog>(NotificationService,
+        var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDialog>(
+            NotificationService,
             $"{Localizer["Edit"]}",
-            new DialogParameters { ["TransactionId"] = transactionId });
+            new DialogParameters { ["TransactionId"] = transactionId },
+            new DialogOptions(){MaxWidth = MaxWidth.Small});
         
         if(result?.Status is OperationResultStatus.Success)
             await UpdateView();
@@ -234,6 +263,26 @@
             onConfirm: () => TransactionService.DeleteTransactionAsync(transaction.Id),
             onSuccess: UpdateView,
             deleteTitle: Localizer["Delete"]);
+    }
+
+    private async Task ResetFilter()
+    {
+        _dateRange = new DateRange(null, null);
+        _searchTerm = "";
+        _personId = null;
+        await UpdateView();
+    }
+    
+    private int ActiveFilterCount
+    {
+        get
+        {
+            int count = 0;
+            if (_dateRange.Start.HasValue|| _dateRange.End.HasValue) count++;
+            if (!string.IsNullOrWhiteSpace(_searchTerm)) count++;
+            if (_personId.HasValue) count++;
+            return count;
+        }
     }
 
     private async Task UpdateView()

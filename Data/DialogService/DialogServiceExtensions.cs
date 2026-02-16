@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using TTCCashRegister.Data.DialogService.Dialog;
+using TTCCashRegister.Components.Dialog;
 using TTCCashRegister.Data.Notification;
 using TTCCashRegister.Data.OperationResult;
 
