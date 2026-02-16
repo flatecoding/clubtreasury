@@ -907,4 +907,94 @@
         <value>Benutzername konnte nicht gesetzt werden.</value>
         <comment>FailedToSetUsername</comment>
     </data>
+    <data name="EnableAuthenticator" xml:space="preserve">
+        <value>Authenticator aktivieren</value>
+    </data>
+    <data name="EnableAuthenticatorInstructions" xml:space="preserve">
+        <value>Um eine Authenticator-App zu verwenden, führen Sie die folgenden Schritte aus:</value>
+    </data>
+    <data name="ScanQRCode" xml:space="preserve">
+        <value>Scannen Sie den QR-Code oder geben Sie diesen Schlüssel in Ihre Authenticator-App ein:</value>
+    </data>
+    <data name="SharedKey" xml:space="preserve">
+        <value>Gemeinsamer Schlüssel</value>
+    </data>
+    <data name="VerificationCode" xml:space="preserve">
+        <value>Bestätigungscode</value>
+    </data>
+    <data name="Verify" xml:space="preserve">
+        <value>Überprüfen</value>
+    </data>
+    <data name="InvalidVerificationCode" xml:space="preserve">
+        <value>Der Bestätigungscode ist ungültig.</value>
+    </data>
+    <data name="AuthenticatorVerified" xml:space="preserve">
+        <value>Ihre Authenticator-App wurde verifiziert.</value>
+    </data>
+    <data name="Disable2FATitle" xml:space="preserve">
+        <value>Zwei-Faktor-Authentisierung (2FA) deaktivieren</value>
+    </data>
+    <data name="Disable2FAWarning" xml:space="preserve">
+        <value>Das Deaktivieren von 2FA ändert nicht die in Authenticator-Apps verwendeten Schlüssel. Wenn Sie den Schlüssel ändern möchten, sollten Sie Ihre Authenticator-Schlüssel zurücksetzen.</value>
+    </data>
+    <data name="Disable2FAConfirm" xml:space="preserve">
+        <value>2FA deaktivieren</value>
+    </data>
+    <data name="TwoFactorDisabled" xml:space="preserve">
+        <value>2FA wurde deaktiviert. Sie können es wieder aktivieren, wenn Sie eine Authenticator-App einrichten.</value>
+    </data>
+    <data name="TwoFactorNotEnabled" xml:space="preserve">
+        <value>2FA kann nicht deaktiviert werden, da es derzeit nicht aktiviert ist.</value>
+    </data>
+    <data name="GenerateRecoveryCodes" xml:space="preserve">
+        <value>Wiederherstellungscodes generieren</value>
+    </data>
+    <data name="GenerateRecoveryCodesWarning" xml:space="preserve">
+        <value>Das Generieren neuer Wiederherstellungscodes ändert nicht die in Authenticator-Apps verwendeten Schlüssel. Wenn Sie den Schlüssel ändern möchten, sollten Sie Ihre Authenticator-Schlüssel zurücksetzen.</value>
+    </data>
+    <data name="GenerateRecoveryCodesConfirm" xml:space="preserve">
+        <value>Wiederherstellungscodes generieren</value>
+    </data>
+    <data name="RecoveryCodesGenerated" xml:space="preserve">
+        <value>Sie haben neue Wiederherstellungscodes generiert.</value>
+    </data>
+    <data name="StoreRecoveryCodesWarning" xml:space="preserve">
+        <value>Bewahren Sie diese Codes an einem sicheren Ort auf. Wenn Sie Ihr Gerät verlieren und die Wiederherstellungscodes nicht haben, verlieren Sie den Zugang zu Ihrem Konto.</value>
+    </data>
+    <data name="ResetAuthenticator" xml:space="preserve">
+        <value>Authenticator-Schlüssel zurücksetzen</value>
+    </data>
+    <data name="ResetAuthenticatorWarning" xml:space="preserve">
+        <value>Wenn Sie Ihren Authenticator-Schlüssel zurücksetzen, funktioniert Ihre Authenticator-App nicht mehr, bis Sie sie neu konfigurieren. Dieser Vorgang deaktiviert 2FA, bis Sie Ihre Authenticator-App verifizieren. Wenn Sie die Konfiguration nicht abschließen, können Sie den Zugang zu Ihrem Konto verlieren.</value>
+    </data>
+    <data name="ResetAuthenticatorConfirm" xml:space="preserve">
+        <value>Authenticator-Schlüssel zurücksetzen</value>
+    </data>
+    <data name="LoginWith2fa" xml:space="preserve">
+        <value>Anmeldung mit Zwei-Faktor-Authentisierung</value>
+    </data>
+    <data name="AuthenticatorCode" xml:space="preserve">
+        <value>Authenticator-Code</value>
+    </data>
+    <data name="RememberThisMachine" xml:space="preserve">
+        <value>Dieses Gerät merken</value>
+    </data>
+    <data name="InvalidAuthenticatorCode" xml:space="preserve">
+        <value>Ungültiger Authenticator-Code.</value>
+    </data>
+    <data name="UseRecoveryCode" xml:space="preserve">
+        <value>Mit Wiederherstellungscode anmelden</value>
+    </data>
+    <data name="LoginWithRecoveryCode" xml:space="preserve">
+        <value>Wiederherstellungscode-Verifizierung</value>
+    </data>
+    <data name="RecoveryCode" xml:space="preserve">
+        <value>Wiederherstellungscode</value>
+    </data>
+    <data name="RecoveryCodeLoginDescription" xml:space="preserve">
+        <value>Sie haben die Anmeldung mit einem Wiederherstellungscode angefordert. Diese Anmeldung wird nicht gespeichert, bis Sie einen Authenticator-App-Code bei der Anmeldung eingeben oder 2FA deaktivieren und sich erneut anmelden.</value>
+    </data>
+    <data name="InvalidRecoveryCode" xml:space="preserve">
+        <value>Ungültiger Wiederherstellungscode.</value>
+    </data>
 </root>

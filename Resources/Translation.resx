@@ -864,4 +864,94 @@
         <value />
         <comment>FailedToSetUsername</comment>
     </data>
+    <data name="EnableAuthenticator" xml:space="preserve">
+        <value />
+    </data>
+    <data name="EnableAuthenticatorInstructions" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ScanQRCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="SharedKey" xml:space="preserve">
+        <value />
+    </data>
+    <data name="VerificationCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Verify" xml:space="preserve">
+        <value />
+    </data>
+    <data name="InvalidVerificationCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="AuthenticatorVerified" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Disable2FATitle" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Disable2FAWarning" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Disable2FAConfirm" xml:space="preserve">
+        <value />
+    </data>
+    <data name="TwoFactorDisabled" xml:space="preserve">
+        <value />
+    </data>
+    <data name="TwoFactorNotEnabled" xml:space="preserve">
+        <value />
+    </data>
+    <data name="GenerateRecoveryCodes" xml:space="preserve">
+        <value />
+    </data>
+    <data name="GenerateRecoveryCodesWarning" xml:space="preserve">
+        <value />
+    </data>
+    <data name="GenerateRecoveryCodesConfirm" xml:space="preserve">
+        <value />
+    </data>
+    <data name="RecoveryCodesGenerated" xml:space="preserve">
+        <value />
+    </data>
+    <data name="StoreRecoveryCodesWarning" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ResetAuthenticator" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ResetAuthenticatorWarning" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ResetAuthenticatorConfirm" xml:space="preserve">
+        <value />
+    </data>
+    <data name="LoginWith2fa" xml:space="preserve">
+        <value />
+    </data>
+    <data name="AuthenticatorCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="RememberThisMachine" xml:space="preserve">
+        <value />
+    </data>
+    <data name="InvalidAuthenticatorCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="UseRecoveryCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="LoginWithRecoveryCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="RecoveryCode" xml:space="preserve">
+        <value />
+    </data>
+    <data name="RecoveryCodeLoginDescription" xml:space="preserve">
+        <value />
+    </data>
+    <data name="InvalidRecoveryCode" xml:space="preserve">
+        <value />
+    </data>
 </root>

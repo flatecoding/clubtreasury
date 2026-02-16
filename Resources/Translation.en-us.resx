@@ -908,4 +908,94 @@
         <value>Failed to tet username.</value>
         <comment>FailedToSetUsername</comment>
     </data>
+    <data name="EnableAuthenticator" xml:space="preserve">
+        <value>Enable authenticator</value>
+    </data>
+    <data name="EnableAuthenticatorInstructions" xml:space="preserve">
+        <value>To use an authenticator app go through the following steps:</value>
+    </data>
+    <data name="ScanQRCode" xml:space="preserve">
+        <value>Scan the QR Code or enter this key into your authenticator app:</value>
+    </data>
+    <data name="SharedKey" xml:space="preserve">
+        <value>Shared key</value>
+    </data>
+    <data name="VerificationCode" xml:space="preserve">
+        <value>Verification code</value>
+    </data>
+    <data name="Verify" xml:space="preserve">
+        <value>Verify</value>
+    </data>
+    <data name="InvalidVerificationCode" xml:space="preserve">
+        <value>Verification code is invalid.</value>
+    </data>
+    <data name="AuthenticatorVerified" xml:space="preserve">
+        <value>Your authenticator app has been verified.</value>
+    </data>
+    <data name="Disable2FATitle" xml:space="preserve">
+        <value>Disable two-factor authentication (2FA)</value>
+    </data>
+    <data name="Disable2FAWarning" xml:space="preserve">
+        <value>Disabling 2FA does not change the keys used in authenticator apps. If you wish to change the key used in an authenticator app you should reset your authenticator keys.</value>
+    </data>
+    <data name="Disable2FAConfirm" xml:space="preserve">
+        <value>Disable 2FA</value>
+    </data>
+    <data name="TwoFactorDisabled" xml:space="preserve">
+        <value>2FA has been disabled. You can re-enable it when you set up an authenticator app.</value>
+    </data>
+    <data name="TwoFactorNotEnabled" xml:space="preserve">
+        <value>Cannot disable 2FA as it is not currently enabled.</value>
+    </data>
+    <data name="GenerateRecoveryCodes" xml:space="preserve">
+        <value>Generate recovery codes</value>
+    </data>
+    <data name="GenerateRecoveryCodesWarning" xml:space="preserve">
+        <value>Generating new recovery codes does not change the keys used in authenticator apps. If you wish to change the key used in an authenticator app you should reset your authenticator keys.</value>
+    </data>
+    <data name="GenerateRecoveryCodesConfirm" xml:space="preserve">
+        <value>Generate recovery codes</value>
+    </data>
+    <data name="RecoveryCodesGenerated" xml:space="preserve">
+        <value>You have generated new recovery codes.</value>
+    </data>
+    <data name="StoreRecoveryCodesWarning" xml:space="preserve">
+        <value>Put these codes in a safe place. If you lose your device and don't have the recovery codes you will lose access to your account.</value>
+    </data>
+    <data name="ResetAuthenticator" xml:space="preserve">
+        <value>Reset authenticator key</value>
+    </data>
+    <data name="ResetAuthenticatorWarning" xml:space="preserve">
+        <value>If you reset your authenticator key your authenticator app will not work until you reconfigure it. This process disables 2FA until you verify your authenticator app. If you do not complete your authenticator app configuration you may lose access to your account.</value>
+    </data>
+    <data name="ResetAuthenticatorConfirm" xml:space="preserve">
+        <value>Reset authenticator key</value>
+    </data>
+    <data name="LoginWith2fa" xml:space="preserve">
+        <value>Log in with two-factor authentication</value>
+    </data>
+    <data name="AuthenticatorCode" xml:space="preserve">
+        <value>Authenticator code</value>
+    </data>
+    <data name="RememberThisMachine" xml:space="preserve">
+        <value>Remember this machine</value>
+    </data>
+    <data name="InvalidAuthenticatorCode" xml:space="preserve">
+        <value>Invalid authenticator code.</value>
+    </data>
+    <data name="UseRecoveryCode" xml:space="preserve">
+        <value>Log in with a recovery code</value>
+    </data>
+    <data name="LoginWithRecoveryCode" xml:space="preserve">
+        <value>Recovery code verification</value>
+    </data>
+    <data name="RecoveryCode" xml:space="preserve">
+        <value>Recovery code</value>
+    </data>
+    <data name="RecoveryCodeLoginDescription" xml:space="preserve">
+        <value>You have requested to log in with a recovery code. This login will not be remembered until you provide an authenticator app code at log in or disable 2FA and log in again.</value>
+    </data>
+    <data name="InvalidRecoveryCode" xml:space="preserve">
+        <value>Invalid recovery code.</value>
+    </data>
 </root>

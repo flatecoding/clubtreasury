@@ -1,0 +1,95 @@
+@page "/Account/LoginWithRecoveryCode"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityRedirectManager RedirectManager
+@inject IStringLocalizer<Translation> Localizer
+@inject ILogger<LoginWithRecoveryCode> Logger
+
+<PageTitle>@Localizer["LoginWithRecoveryCode"]</PageTitle>
+
+<div class="identity-page">
+    <div class="id-paper">
+        <h1>@Localizer["LoginWithRecoveryCode"]</h1>
+        <hr class="id-divider" />
+
+        <StatusMessage Message="@_message" />
+
+        <p>@Localizer["RecoveryCodeLoginDescription"]</p>
+
+        <EditForm EditContext="_editContext" method="post" OnValidSubmit="OnValidSubmitAsync" FormName="login-with-recovery-code">
+            <DataAnnotationsValidator />
+            <div class="id-validation-summary" role="alert">
+                <ValidationSummary />
+            </div>
+
+            <div class="id-input-group">
+                <InputText @bind-Value="Input.RecoveryCode" id="Input.RecoveryCode" class="id-input" autocomplete="off" aria-required="true" placeholder=" " />
+                <label for="Input.RecoveryCode">@Localizer["RecoveryCode"]</label>
+                <ValidationMessage For="() => Input.RecoveryCode" class="id-validation" />
+            </div>
+
+            <button type="submit" class="id-btn id-btn-primary id-btn-full">@Localizer["Login"]</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private string? _message;
+    private EditContext _editContext = null!;
+    private ApplicationUser _user = null!;
+
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = null!;
+
+    [SupplyParameterFromForm] private InputModel Input { get; set; } = null!;
+
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+        _editContext = new EditContext(Input);
+
+        _user = (await SignInManager.GetTwoFactorAuthenticationUserAsync())!;
+        if (_user is null)
+        {
+            throw new InvalidOperationException("Unable to load two-factor authentication user.");
+        }
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        var recoveryCode = Input.RecoveryCode.Replace(" ", string.Empty);
+
+        var result = await SignInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
+
+        var userId = await UserManager.GetUserIdAsync(_user);
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User with ID '{UserId}' logged in with a recovery code.", userId);
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("User account locked out.");
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            Logger.LogWarning("Invalid recovery code entered for user with ID '{UserId}'.", userId);
+            _message = $"Error: {Localizer["InvalidRecoveryCode"]}";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        public string RecoveryCode { get; set; } = "";
+    }
+}
