@@ -1,5 +1,4 @@
 using FluentValidation;
-using Microsoft.Extensions.DependencyInjection;
 using TTCCashRegister.Data.Export;
 
 namespace TTCCashRegister.Infrastructure.DependencyInjection;

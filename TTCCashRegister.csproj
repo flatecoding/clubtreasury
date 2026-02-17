@@ -13,10 +13,6 @@
     <Content Remove="TTCCashRegister.Tests\**" />
     <EmbeddedResource Remove="TTCCashRegister.Tests\**" />
     <None Remove="TTCCashRegister.Tests\**" />
-    <None Include="wwwroot\images\Logo TTC Hagen.bmp" />
-    <None Include="wwwroot\images\Logo TTC Hagen.eps" />
-    <None Include="wwwroot\images\Logo TTC Hagen.png" />
-    <None Include="wwwroot\images\Logo TTC Hagen.svg" />
     <EmbeddedResource Update="Resources\Helper\Navmenu.resx">
       <LastGenOutput>Navmenu.Designer.cs</LastGenOutput>
     </EmbeddedResource>

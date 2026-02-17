@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Microsoft.Extensions.Localization;
+using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Export.Budget;
 using TTCCashRegister.Data.Export.Transaction;
 using TTCCashRegister.Data.Mapper;
@@ -17,7 +18,8 @@ public class ExportService(
     IPdfTransactionRenderer transactionPdfRenderer,
     IOperationResultFactory operationResultFactory,
     IStringLocalizer<Resources.Translation> localizer,
-    IExportPathProvider exportPathProvider
+    IExportPathProvider exportPathProvider,
+    ICashRegisterService cashRegisterService
 ) : IExportService
 {
     private const string CsvHeader = 
@@ -71,10 +73,11 @@ public class ExportService(
             var transactions =
                 await transactionService.GetTransactionsForExport(begin, end, cashRegisterId);
 
+            var logo = await cashRegisterService.GetLogoAsync(cashRegisterId);
             var filePath = Path.Combine(_exportPath, filename);
 
             await transactionPdfRenderer.RenderTransactionPdfExportAsync(
-                transactions, begin, end, filePath, cashRegisterName, cancellationToken);
+                transactions, begin, end, filePath, cashRegisterName, logo?.Data, logo?.ContentType, cancellationToken);
 
             return operationResultFactory.ExportSuccessful(filename);
         }
