@@ -7,8 +7,8 @@ public interface ITransactionService
 {
     Task<List<TransactionModel>?> GetAllTransactions();
     Task<TransactionModel?> GetTransactionByIdAsync(int id);
-    Task<IEnumerable<TransactionModel>> GetTransactionsForExport(DateTime begin, DateTime end);
-    Task<IEnumerable<TransactionModel>> GetTransactionsForBudgetExport(DateTime begin, DateTime end);
+    Task<IEnumerable<TransactionModel>> GetTransactionsForExport(DateTime begin, DateTime end, int cashRegisterId);
+    Task<IEnumerable<TransactionModel>> GetTransactionsForBudgetExport(DateTime begin, DateTime end, int cashRegisterId);
 
     Task<IOperationResult> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default);
     Task<IOperationResult> UpdateTransactionAsync(TransactionModel entry, CancellationToken ct = default);

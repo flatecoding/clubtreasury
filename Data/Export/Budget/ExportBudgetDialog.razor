@@ -3,9 +3,11 @@
 @using MudExtensions
 @using TTCCashRegister.Data.Export
 @using TTCCashRegister.Data.OperationResult
+@using TTCCashRegister.Data.CashRegister
 @using TTCCashRegister.Data.Source
 @using TTCCashRegister.Data.Transaction
 @inject IExportService ExportService
+@inject ICashRegisterService CashRegisterService
 @inject IOperationResultFactory OperationResultFactory
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ExportBudgetDialog> Logger
@@ -14,6 +16,19 @@
     <DialogContent>
         <MudForm Model="@_model" @ref="_form">
             <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <MudSelect T="CashRegisterModel"
+                               Label="@Localizer["CashRegister"]"
+                               Required="true"
+                               ToStringFunc="@_cashRegisterConverter"
+                               @bind-Value="_selectedCashRegister">
+                        @foreach (var cr in _cashRegisters)
+                        {
+                            <MudSelectItem T="CashRegisterModel" Value="@cr">@cr.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
                 <MudItem xs="12">
                     <MudDateRangePicker
                         Label="@Localizer["DateRange"]"
@@ -67,10 +82,16 @@
     private bool _isExportingXlsx;
     private const Adornment Adornment = MudBlazor.Adornment.Start;
 
-    protected override void OnInitialized()
+    private List<CashRegisterModel> _cashRegisters = [];
+    private CashRegisterModel? _selectedCashRegister;
+    private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
+
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await base.OnInitializedAsync();
         _model.DateRange = new DateRange(UTools.GetBeginDateTime(), DateTime.Now);
+        _cashRegisters = await CashRegisterService.GetAllCashRegisters();
+        _selectedCashRegister = _cashRegisters.FirstOrDefault();
     }
 
     private async Task ExportCsv()
@@ -86,7 +107,7 @@
             var end = _model.DateRange.End!.Value.Date;
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
         
-            var result = await ExportService.ExportBudgetToCsv(start, end, filename);
+            var result = await ExportService.ExportBudgetToCsv(start, end, filename, _selectedCashRegister!.Id);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
@@ -114,7 +135,7 @@
             var end = _model.DateRange.End!.Value.Date;
             var fileName = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
             
-            var result = await ExportService.ExportBudgetToExcel(start, end, fileName);
+            var result = await ExportService.ExportBudgetToExcel(start, end, fileName, _selectedCashRegister!.Id);
 
             MudDialog.Close(DialogResult.Ok(result));
         }
