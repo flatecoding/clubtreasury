@@ -210,11 +210,13 @@ public class TransactionService(
         }
     }
     
-    public async Task<IEnumerable<TransactionModel>> GetTransactionsForExport(DateTime begin, DateTime end)
+    public async Task<IEnumerable<TransactionModel>> GetTransactionsForExport(DateTime begin, DateTime end, int cashRegisterId)
     {
         return await context.Transactions
-            .Where(t => t.Date.HasValue &&
-                        t.Date.Value >= DateOnly.FromDateTime(begin) && 
+            .AsNoTracking()
+            .Where(t => t.CashRegisterId == cashRegisterId &&
+                        t.Date.HasValue &&
+                        t.Date.Value >= DateOnly.FromDateTime(begin) &&
                         t.Date.Value <= DateOnly.FromDateTime(end))
             .Select(t => new TransactionModel
             {
@@ -228,8 +230,9 @@ public class TransactionService(
     }
 
     public async Task<IEnumerable<TransactionModel>> GetTransactionsForBudgetExport(
-        DateTime begin, 
-        DateTime end)
+        DateTime begin,
+        DateTime end,
+        int cashRegisterId)
     {
         var beginDateOnly = DateOnly.FromDateTime(begin);
         var endDateOnly = DateOnly.FromDateTime(end);
@@ -240,8 +243,9 @@ public class TransactionService(
             .Include(t => t.Allocation).ThenInclude(a => a.Category)
             .Include(t => t.Allocation).ThenInclude(a => a.ItemDetail)
             .Include(t => t.TransactionDetails).ThenInclude(st => st.Person)
-            .Where(t => t.Date.HasValue &&
-                        t.Date.Value >= beginDateOnly && 
+            .Where(t => t.CashRegisterId == cashRegisterId &&
+                        t.Date.HasValue &&
+                        t.Date.Value >= beginDateOnly &&
                         t.Date.Value <= endDateOnly)
             .AsNoTracking()
             .ToListAsync();
