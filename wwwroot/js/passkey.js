@@ -1,14 +1,50 @@
 const browserSupportsPasskeys =
     typeof navigator.credentials !== 'undefined' &&
-    typeof window.PublicKeyCredential !== 'undefined' &&
-    typeof window.PublicKeyCredential.parseCreationOptionsFromJSON === 'function' &&
-    typeof window.PublicKeyCredential.parseRequestOptionsFromJSON === 'function';
+    typeof window.PublicKeyCredential !== 'undefined';
+
+function base64urlToBuffer(base64url) {
+    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
+    const binary = atob(padded);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes.buffer;
+}
 
 function bufferToBase64url(buffer) {
     const bytes = new Uint8Array(buffer);
     let str = '';
     for (const b of bytes) str += String.fromCharCode(b);
     return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function parseCreationOptions(json) {
+    if (typeof PublicKeyCredential.parseCreationOptionsFromJSON === 'function') {
+        return PublicKeyCredential.parseCreationOptionsFromJSON(json);
+    }
+    const options = { ...json };
+    options.challenge = base64urlToBuffer(json.challenge);
+    options.user = { ...json.user, id: base64urlToBuffer(json.user.id) };
+    if (json.excludeCredentials) {
+        options.excludeCredentials = json.excludeCredentials.map(c => ({
+            ...c, id: base64urlToBuffer(c.id)
+        }));
+    }
+    return options;
+}
+
+function parseRequestOptions(json) {
+    if (typeof PublicKeyCredential.parseRequestOptionsFromJSON === 'function') {
+        return PublicKeyCredential.parseRequestOptionsFromJSON(json);
+    }
+    const options = { ...json };
+    options.challenge = base64urlToBuffer(json.challenge);
+    if (json.allowCredentials) {
+        options.allowCredentials = json.allowCredentials.map(c => ({
+            ...c, id: base64urlToBuffer(c.id)
+        }));
+    }
+    return options;
 }
 
 function credentialToJson(credential) {
@@ -62,7 +98,7 @@ async function createCredential(headers, signal) {
         signal,
     });
     const optionsJson = await optionsResponse.json();
-    const options = PublicKeyCredential.parseCreationOptionsFromJSON(optionsJson);
+    const options = parseCreationOptions(optionsJson);
     return await navigator.credentials.create({ publicKey: options, signal });
 }
 
@@ -73,7 +109,7 @@ async function requestCredential(email, mediation, headers, signal) {
         signal,
     });
     const optionsJson = await optionsResponse.json();
-    const options = PublicKeyCredential.parseRequestOptionsFromJSON(optionsJson);
+    const options = parseRequestOptions(optionsJson);
     return await navigator.credentials.get({ publicKey: options, mediation, signal });
 }
 

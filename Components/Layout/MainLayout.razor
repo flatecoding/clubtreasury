@@ -5,6 +5,7 @@
 @inject IStringLocalizer<Translation> Localizer
 @inject UserPrefService UserPrefService
 @inject IJSRuntime JsRuntime
+@inject PersistentComponentState PersistingState
 @implements IDisposable
 
 <PageTitle>@Localizer["ClubCash"]</PageTitle>
@@ -53,9 +54,24 @@
     bool _drawerOpen = true;
     private MudThemeProvider? MudThemeControl;
     
+    private IDisposable? _persistSubscription;
+
     protected override void OnInitialized()
     {
         UserPrefService.PropertyChanged += OnUserPrefChanged;
+
+        // Restore dark-mode preference persisted from prerender so the circuit
+        // starts with the correct theme without waiting for JS interop.
+        if (PersistingState.TryTakeFromJson<bool>("IsDarkMode", out var isDark))
+        {
+            UserPrefService.IsDarkMode = isDark;
+        }
+
+        _persistSubscription = PersistingState.RegisterOnPersisting(() =>
+        {
+            PersistingState.PersistAsJson("IsDarkMode", UserPrefService.IsDarkMode);
+            return Task.CompletedTask;
+        });
     }
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -81,15 +97,7 @@
 
             StateHasChanged();
         }
-        else if (!_themeReady)
-        {
-            _themeReady = true;
-            await Task.Delay(50);
-            await JsRuntime.InvokeVoidAsync("eval", "document.body.classList.add('theme-ready')");
-        }
     }
-
-    private bool _themeReady;
     
     private void OnUserPrefChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
@@ -105,5 +113,6 @@
     public void Dispose()
     {
         UserPrefService.PropertyChanged -= OnUserPrefChanged;
+        _persistSubscription?.Dispose();
     }
 }
