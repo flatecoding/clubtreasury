@@ -15,7 +15,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
     
 
     public async Task RenderTransactionPdfExportAsync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end,
-        string filePath, CancellationToken cancellationToken)
+        string filePath, string cashRegisterName, CancellationToken cancellationToken)
     {
         try
         {
@@ -35,7 +35,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
             await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                RenderPdfSync(transactions, begin, end, filePath);
+                RenderPdfSync(transactions, begin, end, filePath, cashRegisterName);
             }, cancellationToken);
             
             if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
@@ -57,7 +57,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
         }
     }
 
-    private void RenderPdfSync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end, string filePath)
+    private void RenderPdfSync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end, string filePath, string cashRegisterName)
     {
         var ordered = transactions.OrderBy(t => t.Documentnumber).ToList();
         using var fs = new FileStream(filePath, FileMode.Create);
@@ -68,7 +68,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                 page.Size(PageSizes.A4);
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(10).FontColor(Colors.Black));
-                page.Header().Element(lContainer => ComposeHeader(lContainer, begin, end));
+                page.Header().Element(lContainer => ComposeHeader(lContainer, begin, end, cashRegisterName));
                 page.Content().Element(c => ComposeContent(c, ordered));
                 page.Footer()
                     .AlignCenter()
@@ -95,7 +95,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
             .PaddingHorizontal(2);
     }
 
-    private void ComposeHeader(IContainer container, DateTime begin, DateTime end)
+    private void ComposeHeader(IContainer container, DateTime begin, DateTime end, string cashRegisterName)
     {
         container.Row(row =>
         {
@@ -105,7 +105,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                 .Column(column =>
                 {
                     column.Item()
-                        .Text(localizer["CashBook"] + " TTC Hagen e.V.")
+                        .Text(localizer["CashBook"] + " " + cashRegisterName)
                         .FontSize(20)
                         .Bold()
                         .AlignCenter();
