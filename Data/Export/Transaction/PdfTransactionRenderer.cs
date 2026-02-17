@@ -110,7 +110,8 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                         .Bold()
                         .AlignCenter();
                     column.Item()
-                        .Text($"{begin:dd.MM.yyyy} - {end:dd.MM.yyyy}")
+                        .Text($"{begin.ToString("d", CultureInfo.CurrentUICulture)} - " +
+                              $"{end.ToString("d", CultureInfo.CurrentUICulture)}")
                         .AlignCenter();
                     column.Item().Height(5);
 
@@ -137,7 +138,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
     {
         const string headerBackgroundColor = "#DDEBF7";
         var headerStyle = TextStyle.Default.SemiBold();
-        var culture = new CultureInfo("de-DE");
+        var culture = CultureInfo.CurrentUICulture;
 
         container.PaddingTop(5, Unit.Millimetre).Column(col =>
         {
@@ -218,14 +219,14 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
         
         col.Item().Row(row =>
         {
-            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} {begin:dd.MM.yyyy}:");
+            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} {begin.ToString("d", culture)}:");
             row.ConstantItem(100).AlignBottom().LineHorizontal(1)
                 .LineColor(Colors.Grey.Lighten1);
         });
 
         col.Item().PaddingTop(10).Row(row =>
         {
-            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} {end:dd.MM.yyyy}:");
+            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} {end.ToString("d", culture)}:");
             row.ConstantItem(100).AlignBottom().LineHorizontal(1)
                 .LineColor(Colors.Grey.Lighten1);
         });
