@@ -69,7 +69,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(10).FontColor(Colors.Black));
                 page.Header().Element(lContainer => ComposeHeader(lContainer, begin, end, cashRegisterName));
-                page.Content().Element(c => ComposeContent(c, ordered));
+                page.Content().Element(c => ComposeContent(c, ordered, begin, end));
                 page.Footer()
                     .AlignCenter()
                     .Text(x =>
@@ -133,7 +133,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
         return imageData;
     }
     
-    private void ComposeContent(IContainer container, List<TransactionModel> ordered)
+    private void ComposeContent(IContainer container, List<TransactionModel> ordered, DateTime begin, DateTime end)
     {
         const string headerBackgroundColor = "#DDEBF7";
         var headerStyle = TextStyle.Default.SemiBold();
@@ -147,7 +147,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                 {
                     columns.ConstantColumn(80);  
                     columns.ConstantColumn(60);  
-                    columns.RelativeColumn();    
+                    columns.RelativeColumn();
                     columns.ConstantColumn(70);  
                     columns.ConstantColumn(70);  
                 });
@@ -218,14 +218,14 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
         
         col.Item().Row(row =>
         {
-            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} 01.01:");
+            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} {begin:dd.MM.yyyy}:");
             row.ConstantItem(100).AlignBottom().LineHorizontal(1)
                 .LineColor(Colors.Grey.Lighten1);
         });
-            
+
         col.Item().PaddingTop(10).Row(row =>
         {
-            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} 31.12:");
+            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} {end:dd.MM.yyyy}:");
             row.ConstantItem(100).AlignBottom().LineHorizontal(1)
                 .LineColor(Colors.Grey.Lighten1);
         });
