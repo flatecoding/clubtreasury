@@ -14,22 +14,6 @@ public class TransactionService(
     IOperationResultFactory operationResultFactory) : ITransactionService
 {
     private string EntityName => localizer["Transaction"];
-    public async Task<List<TransactionModel>?> GetAllTransactions()
-    {
-        return await context.Transactions
-            .Include(t => t.Allocation)
-                .ThenInclude(a => a.CostCenter)
-            .Include(t => t.Allocation)
-                .ThenInclude(a => a.Category)
-            .Include(t => t.Allocation)
-                .ThenInclude(a => a.ItemDetail)
-            .Include(t => t.TransactionDetails)
-                .ThenInclude(st => st.Person)
-            .OrderByDescending(x => x.Id)
-            .AsNoTracking()
-            .ToListAsync();
-    }
-
     public async Task<TransactionModel?> GetTransactionByIdAsync(int id)
     {
         return await context.Transactions
