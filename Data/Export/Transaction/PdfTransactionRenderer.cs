@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Localization;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -9,13 +10,8 @@ namespace TTCCashRegister.Data.Export.Transaction;
 
 public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStringLocalizer<Translation> localizer) : IPdfTransactionRenderer
 {
-    private const string LogoFileName = "ttc_logo.png";
-    private readonly string _logoRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-    private byte[]? _imageData;
-    
-
     public async Task RenderTransactionPdfExportAsync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end,
-        string filePath, string cashRegisterName, CancellationToken cancellationToken)
+        string filePath, string cashRegisterName, byte[]? logoData, string? logoContentType, CancellationToken cancellationToken)
     {
         try
         {
@@ -29,13 +25,10 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            _imageData = await GetImageData(cancellationToken);
-
-            cancellationToken.ThrowIfCancellationRequested();
             await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                RenderPdfSync(transactions, begin, end, filePath, cashRegisterName);
+                RenderPdfSync(transactions, begin, end, filePath, cashRegisterName, logoData, logoContentType);
             }, cancellationToken);
             
             if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
@@ -57,7 +50,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
         }
     }
 
-    private void RenderPdfSync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end, string filePath, string cashRegisterName)
+    private void RenderPdfSync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end, string filePath, string cashRegisterName, byte[]? logoData, string? logoContentType)
     {
         var ordered = transactions.OrderBy(t => t.Documentnumber).ToList();
         using var fs = new FileStream(filePath, FileMode.Create);
@@ -68,7 +61,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                 page.Size(PageSizes.A4);
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(10).FontColor(Colors.Black));
-                page.Header().Element(lContainer => ComposeHeader(lContainer, begin, end, cashRegisterName));
+                page.Header().Element(lContainer => ComposeHeader(lContainer, begin, end, cashRegisterName, logoData, logoContentType));
                 page.Content().Element(c => ComposeContent(c, ordered, begin, end));
                 page.Footer()
                     .AlignCenter()
@@ -95,11 +88,13 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
             .PaddingHorizontal(2);
     }
 
-    private void ComposeHeader(IContainer container, DateTime begin, DateTime end, string cashRegisterName)
+    private void ComposeHeader(IContainer container, DateTime begin, DateTime end, string cashRegisterName, byte[]? logoData, string? logoContentType)
     {
+        var isSvg = logoContentType?.Contains("svg", StringComparison.OrdinalIgnoreCase) == true;
+
         container.Row(row =>
         {
-            if (_imageData != null) row.ConstantItem(100).AlignRight().Height(70).Image(_imageData);
+            if (logoData != null) RenderLogo(row.ConstantItem(100).AlignRight().Height(70), logoData, isSvg);
             row.RelativeItem()
                 .AlignMiddle()
                 .Column(column =>
@@ -116,22 +111,45 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                     column.Item().Height(5);
 
                 });
-            if (_imageData != null) row.ConstantItem(100).AlignLeft().Height(70).Image(_imageData);
+            if (logoData != null) RenderLogo(row.ConstantItem(100).AlignLeft().Height(70), logoData, isSvg);
         });
     }
 
-    private async Task<byte[]?> GetImageData(CancellationToken token)
+    private static void RenderLogo(IContainer container, byte[] logoData, bool isSvg)
     {
-        var logoPath = Path.Combine(_logoRoot, LogoFileName);
-        byte[]? imageData = null;
-        if (File.Exists(logoPath))
+        if (isSvg)
+            container.Svg(InlineSvgStyles(System.Text.Encoding.UTF8.GetString(logoData)));
+        else
+            container.Image(logoData);
+    }
+
+    private static string InlineSvgStyles(string svg)
+    {
+        var styleMatch = Regex.Match(svg, @"<style[^>]*>\s*(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?\s*</style>", RegexOptions.Singleline);
+        if (!styleMatch.Success)
+            return svg;
+
+        var rules = new Dictionary<string, string>();
+        foreach (Match rule in Regex.Matches(styleMatch.Groups[1].Value, @"\.(\w+)\s*\{([^}]+)\}"))
         {
-            imageData = await File.ReadAllBytesAsync(logoPath, token);
-        }else
-        {
-            logger.LogInformation("Image noch found '{LogoPath}'", logoPath);
+            rules[rule.Groups[1].Value] = rule.Groups[2].Value.Trim();
         }
-        return imageData;
+
+        var result = Regex.Replace(svg, @"class=""([^""]+)""", match =>
+        {
+            var classNames = match.Groups[1].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var inlineStyles = classNames
+                .Where(c => rules.ContainsKey(c))
+                .Select(c => rules[c])
+                .ToList();
+
+            return inlineStyles.Count > 0
+                ? $"style=\"{string.Join(";", inlineStyles)}\""
+                : match.Value;
+        });
+
+        result = Regex.Replace(result, @"<style[^>]*>.*?</style>", "", RegexOptions.Singleline);
+        return result;
     }
     
     private void ComposeContent(IContainer container, List<TransactionModel> ordered, DateTime begin, DateTime end)

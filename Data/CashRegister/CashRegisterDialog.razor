@@ -1,6 +1,5 @@
 @page "/cashregisterdialog"
 @using Microsoft.Extensions.Localization
-@using TTCCashRegister.Data.CashRegister
 @using TTCCashRegister.Data.Notification
 @using TTCCashRegister.Data.OperationResult
 @inject ICashRegisterService CashRegisterService
@@ -14,6 +13,31 @@
             <MudTextField @bind-Value="_cashRegisterModel.Name" Label="@Localizer["Name"]"
                           For="@(() => _cashRegisterModel.Name)" Immediate="true"/>
         </MudForm>
+
+        <MudText Typo="Typo.subtitle1" Class="mt-4 mb-2">Logo</MudText>
+
+        @if (_existingLogoDataUri is not null && _pendingFile is null)
+        {
+            <MudImage Src="@_existingLogoDataUri" Alt="Logo" Width="120" Class="mb-2"/>
+            <MudButton Color="Color.Error" Variant="Variant.Text" OnClick="RemoveLogo" Class="mb-2">
+                @Localizer["Delete"]
+            </MudButton>
+        }
+
+        <MudFileUpload T="IBrowserFile"
+                       FilesChanged="OnFileSelected"
+                       Accept=".png,.jpg,.jpeg,.svg">
+            <ActivatorContent>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary">
+                    @Localizer["SelectFile"]
+                </MudButton>
+            </ActivatorContent>
+        </MudFileUpload>
+
+        @if (_pendingFile is not null)
+        {
+            <MudText Typo="Typo.body2" Class="mt-1">@_pendingFile.Name</MudText>
+        }
     </DialogContent>
     <DialogActions>
         <MudButton Color="Color.Primary" OnClick="@(async () => await Save())">
@@ -29,6 +53,9 @@
     private CashRegisterModel _cashRegisterModel = new();
     private readonly CashRegisterValidator _cashRegisterValidator = new();
     private bool _isEditMode;
+    private string? _existingLogoDataUri;
+    private IBrowserFile? _pendingFile;
+    private bool _logoRemoved;
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
@@ -40,6 +67,12 @@
         {
             _cashRegisterModel = await CashRegisterService.GetCashRegisterById(CashRegisterId.Value) ?? new CashRegisterModel();
             await MudDialog.SetTitleAsync($"{Localizer["Edit"]}");
+
+            var logo = await CashRegisterService.GetLogoAsync(CashRegisterId.Value);
+            if (logo is not null)
+            {
+                _existingLogoDataUri = $"data:{logo.Value.ContentType};base64,{Convert.ToBase64String(logo.Value.Data)}";
+            }
         }
         else
         {
@@ -48,6 +81,17 @@
         }
 
         StateHasChanged();
+    }
+
+    private void OnFileSelected(IBrowserFile? file)
+    {
+        _pendingFile = file;
+    }
+
+    private void RemoveLogo()
+    {
+        _existingLogoDataUri = null;
+        _logoRemoved = true;
     }
 
     private async Task Save()
@@ -63,6 +107,20 @@
 
             if (result.Status is OperationResultStatus.Success)
             {
+                var cashRegisterId = _isEditMode ? _cashRegisterModel.Id : (int)(result.Data ?? 0);
+
+                if (_pendingFile is not null)
+                {
+                    await using var stream = _pendingFile.OpenReadStream(maxAllowedSize: 512 * 1024);
+                    using var ms = new MemoryStream();
+                    await stream.CopyToAsync(ms);
+                    await CashRegisterService.UploadLogoAsync(cashRegisterId, ms.ToArray(), _pendingFile.ContentType);
+                }
+                else if (_logoRemoved)
+                {
+                    await CashRegisterService.DeleteLogoAsync(cashRegisterId);
+                }
+
                 MudDialog.Close(DialogResult.Ok(result));
             }
             else

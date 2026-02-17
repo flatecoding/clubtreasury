@@ -1,5 +1,4 @@
 using FluentValidation;
-using TTCCashRegister.Data.CashRegister;
 
 namespace TTCCashRegister.Data.Allocation;
 

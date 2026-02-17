@@ -2,6 +2,7 @@ using FakeItEasy;
 using FluentAssertions;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Export;
 using TTCCashRegister.Data.Export.Budget;
 using TTCCashRegister.Data.Export.Transaction;
@@ -26,6 +27,7 @@ public class ExportServiceTests
     private ExportService _sut = null!;
     private string _testExportPath = null!;
     private IExportPathProvider _exportPathProvider = null!;
+    private ICashRegisterService _cashRegisterService = null!;
 
     [SetUp]
     public void SetUp()
@@ -39,6 +41,7 @@ public class ExportServiceTests
         _operationResultFactory = A.Fake<IOperationResultFactory>();
         _localizer = A.Fake<IStringLocalizer<Resources.Translation>>();
         _exportPathProvider = A.Fake<IExportPathProvider>();
+        _cashRegisterService = A.Fake<ICashRegisterService>();
 
         _testExportPath = Path.Combine(Path.GetTempPath(), $"ExportTest_{Guid.NewGuid()}");
         Directory.CreateDirectory(_testExportPath);
@@ -59,7 +62,8 @@ public class ExportServiceTests
             _pdfRenderer,
             _operationResultFactory,
             _localizer,
-            _exportPathProvider);
+            _exportPathProvider,
+            _cashRegisterService);
     }
 
     [TearDown]
@@ -199,7 +203,7 @@ public class ExportServiceTests
         // Assert
         result.Should().Be(expectedResult);
         A.CallTo(() => _pdfRenderer.RenderTransactionPdfExportAsync(
-            transactions, begin, end, A<string>._, "Test Register", cancellationToken))
+            transactions, begin, end, A<string>._, "Test Register", A<byte[]?>._, A<string?>._, cancellationToken))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -216,7 +220,7 @@ public class ExportServiceTests
             .Returns(new List<TransactionModel>());
 
         A.CallTo(() => _pdfRenderer.RenderTransactionPdfExportAsync(
-                A<IEnumerable<TransactionModel>>._, begin, end, A<string>._, A<string>._, cancellationToken))
+                A<IEnumerable<TransactionModel>>._, begin, end, A<string>._, A<string>._, A<byte[]?>._, A<string?>._, cancellationToken))
             .Throws(new OperationCanceledException());
 
         var expectedResult = new OperationResult

@@ -23,6 +23,7 @@ namespace TTCCashRegister.Data
         public DbSet<PersonModel> Persons { get; set; }
         public DbSet<TransactionDetailsModel> TransactionDetails { get; set; }
         public DbSet<AllocationModel> Allocations { get; set; }
+        public DbSet<CashRegisterLogoModel> CashRegisterLogos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -74,6 +75,12 @@ namespace TTCCashRegister.Data
             modelBuilder.Entity<AllocationModel>()
                 .HasIndex(a => new { a.CostCenterId, a.CategoryId, a.ItemDetailId })
                 .IsUnique();
+
+            modelBuilder.Entity<CashRegisterModel>()
+                .HasOne(cr => cr.Logo)
+                .WithOne(l => l.CashRegister)
+                .HasForeignKey<CashRegisterLogoModel>(l => l.CashRegisterId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
     }

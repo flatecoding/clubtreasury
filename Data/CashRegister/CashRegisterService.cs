@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.Notification;
 using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.CashRegister
@@ -100,6 +99,70 @@ namespace TTCCashRegister.Data.CashRegister
             catch (Exception ex)
             {
                 logger.LogError(ex, "An error occurred during delete of cash register: {Id}", id);
+                return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
+            }
+        }
+
+        public async Task<(byte[] Data, string ContentType)?> GetLogoAsync(int cashRegisterId)
+        {
+            var logo = await context.CashRegisterLogos
+                .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId);
+            return logo is not null ? (logo.Data, logo.ContentType) : null;
+        }
+
+        public async Task<IOperationResult> UploadLogoAsync(int cashRegisterId, byte[] data, string contentType)
+        {
+            try
+            {
+                var logo = await context.CashRegisterLogos
+                    .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId);
+
+                if (logo is not null)
+                {
+                    logo.Data = data;
+                    logo.ContentType = contentType;
+                }
+                else
+                {
+                    logo = new CashRegisterLogoModel
+                    {
+                        CashRegisterId = cashRegisterId,
+                        Data = data,
+                        ContentType = contentType
+                    };
+                    context.CashRegisterLogos.Add(logo);
+                }
+
+                await context.SaveChangesAsync();
+                logger.LogInformation("Logo uploaded for cash register {CashRegisterId}", cashRegisterId);
+                return operationResultFactory.SuccessUpdated(EntityName);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error uploading logo for cash register {CashRegisterId}", cashRegisterId);
+                return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
+            }
+        }
+
+        public async Task<IOperationResult> DeleteLogoAsync(int cashRegisterId)
+        {
+            try
+            {
+                var logo = await context.CashRegisterLogos
+                    .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId);
+
+                if (logo is not null)
+                {
+                    context.CashRegisterLogos.Remove(logo);
+                    await context.SaveChangesAsync();
+                    logger.LogInformation("Logo deleted for cash register {CashRegisterId}", cashRegisterId);
+                }
+
+                return operationResultFactory.SuccessDeleted(EntityName);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error deleting logo for cash register {CashRegisterId}", cashRegisterId);
                 return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }

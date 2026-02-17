@@ -13,5 +13,6 @@ namespace TTCCashRegister.Data.CashRegister
         [NotMapped] 
         public decimal CurrentBalance => Transactions?.Sum(t => t.AccountMovement) ?? 0m;
         public ICollection<TransactionModel> Transactions { get; init; } = new List<TransactionModel>();
+        public CashRegisterLogoModel? Logo { get; set; }
     }
 }

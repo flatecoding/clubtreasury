@@ -1,3 +1,6 @@
+using MudBlazor;
+using MudBlazor.Services;
+using MudExtensions.Services;
 using TTCCashRegister.Data.Allocation;
 using TTCCashRegister.Data.CashRegister;
 using TTCCashRegister.Data.Category;
@@ -53,7 +56,22 @@ public static class ApplicationServiceRegistration
             var userPrefDataString = raw != null ? Uri.UnescapeDataString(raw) : string.Empty;
             return new UserPrefService(userPrefDataString, logger);
         });
-        
+        services.AddLocalization(options => options.ResourcesPath = "Resources");
+        services.AddMudServices(config =>
+        {
+            config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+            config.SnackbarConfiguration.PreventDuplicates = false;
+            config.SnackbarConfiguration.NewestOnTop = false;
+            config.SnackbarConfiguration.ShowCloseIcon = true;
+            config.SnackbarConfiguration.VisibleStateDuration = 2000;
+            config.SnackbarConfiguration.HideTransitionDuration = 500;
+            config.SnackbarConfiguration.ShowTransitionDuration = 500;
+            config.SnackbarConfiguration.SnackbarVariant = Variant.Text;
+        });
+        services.AddMudBlazorDialog();
+        services.AddMudPopoverService();
+        services.AddMudExtensions();
+
         return services;
     }
 }
