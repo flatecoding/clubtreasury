@@ -49,7 +49,8 @@ public static class ApplicationServiceRegistration
             var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
             var logger = sp.GetRequiredService<ILogger<UserPrefService>>();
             var context = httpContextAccessor.HttpContext;
-            var userPrefDataString = context?.Request.Cookies[UserPrefService.StorageKey] ?? string.Empty;
+            var raw = context?.Request.Cookies[UserPrefService.StorageKey];
+            var userPrefDataString = raw != null ? Uri.UnescapeDataString(raw) : string.Empty;
             return new UserPrefService(userPrefDataString, logger);
         });
         
