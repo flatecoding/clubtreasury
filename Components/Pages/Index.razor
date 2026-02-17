@@ -1,5 +1,143 @@
 ﻿@page "/"
+@using System.Globalization
+@using Microsoft.Extensions.Localization
+@using TTCCashRegister.Data.CashRegister
+@using TTCCashRegister.Data.Transaction
+@inject ICashRegisterService CashRegisterService
+@inject ITransactionService TransactionService
+@inject IStringLocalizer<Translation> Localizer
 
 <PageTitle>Index</PageTitle>
+<MudText class="mb-3" Typo="Typo.h4">@Localizer["WelcomeMessage"]</MudText>
 
-<h1>Welcome to the club cash administration tool</h1>
+<MudGrid>
+    <MudItem xs="12" sm="6" md="4">
+        <MudPaper Class="pa-6 rounded-lg" Elevation="3">
+            <MudText Typo="Typo.h6" Color="Color.Primary">@Localizer["ClubCash"]</MudText>
+            <MudText Typo="Typo.subtitle1" Class="mt-1 mb-4">@_register?.Name</MudText>
+            <MudDivider Class="mb-4"/>
+            <MudText Typo="Typo.body2" Class="mud-text-secondary">@Localizer["AccountBalance"]</MudText>
+            <MudText Typo="Typo.h4" Color="Color.Success" Class="mt-1">
+                @_register?.CurrentBalance.ToString("C", CultureInfo.CurrentCulture)
+            </MudText>
+        </MudPaper>
+    </MudItem>
+
+    <MudFlexBreak />
+
+    <MudItem xs="12" sm="5">
+        <MudPaper Class="pa-2 rounded-lg" Elevation="3">
+            <MudChart ChartType="ChartType.Line"
+                      ChartSeries="@_chartSeries"
+                      ChartOptions="@_chartOptions"
+                      XAxisLabels="@_xAxisLabels"
+                      Width="100%"
+                      Height="450px"/>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code
+{
+    private CashRegisterModel? _register;
+    private List<ChartSeries> _chartSeries = [];
+    private string[] _xAxisLabels = [];
+    private readonly ChartOptions _chartOptions = new()
+    {
+        ChartPalette = [Colors.Blue.Default, Colors.Green.Default, Colors.Red.Default]
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        var cashRegisters = await CashRegisterService.GetAllCashRegisters();
+        _register = cashRegisters.FirstOrDefault();
+
+        if (_register is not null)
+            await LoadChartDataAsync(_register);
+    }
+
+    private async Task LoadChartDataAsync(CashRegisterModel register)
+    {
+        var beginDate = register.GetFiscalYearStart();
+        var now = DateTime.Now;
+        var months = BuildMonthRange(beginDate, now);
+
+        var startingBalance = await CalculateStartingBalanceAsync(register.Id, beginDate);
+        var transactions = await GetOrderedTransactionsAsync(register.Id, beginDate, now);
+
+        var (balanceData, incomeData, expenseData) = CalculateMonthlyData(months, transactions, startingBalance);
+
+        _xAxisLabels = months.Select(m => m.ToString("MMM", CultureInfo.CurrentCulture)).ToArray();
+        _chartSeries =
+        [
+            new ChartSeries { Name = Localizer["AccountBalance"], Data = balanceData },
+            new ChartSeries { Name = Localizer["Income"], Data = incomeData },
+            new ChartSeries { Name = Localizer["Expenses"], Data = expenseData }
+        ];
+    }
+
+    private static List<DateTime> BuildMonthRange(DateTime beginDate, DateTime endDate)
+    {
+        var months = new List<DateTime>();
+        var current = new DateTime(beginDate.Year, beginDate.Month, 1);
+        var endMonth = new DateTime(endDate.Year, endDate.Month, 1);
+        while (current <= endMonth)
+        {
+            months.Add(current);
+            current = current.AddMonths(1);
+        }
+        return months;
+    }
+
+    private async Task<double> CalculateStartingBalanceAsync(int registerId, DateTime fiscalYearStart)
+    {
+        var priorTransactions = await TransactionService.GetTransactionsForExport(
+            DateTime.MinValue, fiscalYearStart.AddDays(-1), registerId);
+        return (double)priorTransactions.Sum(t => t.AccountMovement);
+    }
+
+    private async Task<List<TransactionModel>> GetOrderedTransactionsAsync(int registerId, DateTime from, DateTime to)
+    {
+        return (await TransactionService.GetTransactionsForExport(from, to, registerId))
+            .OrderBy(t => t.Date)
+            .ToList();
+    }
+
+    private static (double[] Balance, double[] Income, double[] Expenses) CalculateMonthlyData(
+        List<DateTime> months, List<TransactionModel> transactions, double startingBalance)
+    {
+        var balanceData = new double[months.Count];
+        var incomeData = new double[months.Count];
+        var expenseData = new double[months.Count];
+
+        double cumulativeBalance = startingBalance;
+        double cumulativeIncome = 0;
+        double cumulativeExpenses = 0;
+
+        for (var i = 0; i < months.Count; i++)
+        {
+            var monthStart = DateOnly.FromDateTime(months[i]);
+            var monthEnd = DateOnly.FromDateTime(months[i].AddMonths(1));
+
+            foreach (var t in transactions.Where(t =>
+                         t.Date.HasValue &&
+                         t.Date.Value >= monthStart &&
+                         t.Date.Value < monthEnd))
+            {
+                var amount = (double)t.AccountMovement;
+                cumulativeBalance += amount;
+                if (amount > 0)
+                    cumulativeIncome += amount;
+                else
+                    cumulativeExpenses += Math.Abs(amount);
+            }
+
+            balanceData[i] = Math.Round(cumulativeBalance, 2);
+            incomeData[i] = Math.Round(cumulativeIncome, 2);
+            expenseData[i] = Math.Round(cumulativeExpenses, 2);
+        }
+
+        return (balanceData, incomeData, expenseData);
+    }
+}
