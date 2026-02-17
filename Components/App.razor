@@ -45,9 +45,9 @@
         };
     </script>
     <style>
-        /* Hide body until MudBlazor theme is applied, then fade in */
-        body { opacity: 0; transition: opacity 0.15s ease-in; }
-        body.theme-ready { opacity: 1; }
+        /* Set dark background immediately via the html.dark class that the
+           inline script above adds, so the page never flashes white. */
+        html.dark, html.dark body { background-color: @darkBg; color-scheme: dark; }
     </style>
 
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
@@ -58,7 +58,7 @@
     <HeadOutlet @rendermode="pageRenderMode" />
     <title>Club Cash Register</title>
 </head>
-<body class="@(isStaticRoute ? "theme-ready" : "")">
+<body>
     <Routes @rendermode="pageRenderMode" />
 
     <div id="blazor-error-ui">
@@ -67,15 +67,6 @@
         <a class="dismiss">&#x1F5D9;</a>
     </div>
 
-    <script>
-        // Ensure body becomes visible on non-Blazor pages (e.g. Identity pages)
-        // where MainLayout.razor never runs to add 'theme-ready'.
-        setTimeout(function() {
-            if (!document.body.classList.contains('theme-ready')) {
-                document.body.classList.add('theme-ready');
-            }
-        }, 100);
-    </script>
     <script src="_framework/blazor.web.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.js"></script>
