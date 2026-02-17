@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using Serilog.Data;
 using TTCCashRegister.Data.OperationResult;
 
 namespace TTCCashRegister.Data.Category
