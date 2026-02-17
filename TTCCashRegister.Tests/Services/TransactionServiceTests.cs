@@ -79,44 +79,6 @@ public class TransactionServiceTests
         return (cashRegister, allocation);
     }
 
-    #region GetAllTransactions Tests
-
-    [Test]
-    public async Task GetAllTransactions_WhenNoTransactionsExist_ShouldReturnEmptyList()
-    {
-        // Act
-        var result = await _sut.GetAllTransactions();
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Should().BeEmpty();
-    }
-
-    [Test]
-    public async Task GetAllTransactions_WhenTransactionsExist_ShouldReturnAllOrderedByIdDescending()
-    {
-        // Arrange
-        var (cashRegister, allocation) = await CreateTestDataAsync();
-
-        var transactions = new List<TransactionModel>
-        {
-            new() { Documentnumber = 1, CashRegisterId = cashRegister.Id, AllocationId = allocation.Id, Date = DateOnly.FromDateTime(DateTime.Now) },
-            new() { Documentnumber = 2, CashRegisterId = cashRegister.Id, AllocationId = allocation.Id, Date = DateOnly.FromDateTime(DateTime.Now) },
-            new() { Documentnumber = 3, CashRegisterId = cashRegister.Id, AllocationId = allocation.Id, Date = DateOnly.FromDateTime(DateTime.Now) }
-        };
-        await _context.Transactions.AddRangeAsync(transactions);
-        await _context.SaveChangesAsync();
-
-        // Act
-        var result = await _sut.GetAllTransactions();
-
-        // Assert
-        result.Should().HaveCount(3);
-        result!.First().Documentnumber.Should().Be(3);
-    }
-
-    #endregion
-
     #region GetTransactionByIdAsync Tests
 
     [Test]

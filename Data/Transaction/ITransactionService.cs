@@ -5,7 +5,6 @@ namespace TTCCashRegister.Data.Transaction;
 
 public interface ITransactionService
 {
-    Task<List<TransactionModel>?> GetAllTransactions();
     Task<TransactionModel?> GetTransactionByIdAsync(int id);
     Task<IEnumerable<TransactionModel>> GetTransactionsForExport(DateTime begin, DateTime end, int cashRegisterId);
     Task<IEnumerable<TransactionModel>> GetTransactionsForBudgetExport(DateTime begin, DateTime end, int cashRegisterId);
