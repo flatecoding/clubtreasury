@@ -5,8 +5,10 @@
 @using TTCCashRegister.Data.Export
 @using TTCCashRegister.Data.Notification
 @using TTCCashRegister.Data.OperationResult
+@using TTCCashRegister.Data.CashRegister
 @using TTCCashRegister.Data.Source
 @inject IExportService ExportService
+@inject ICashRegisterService CashRegisterService
 @inject IOperationResultFactory OperationResultFactory
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ExportTransactionDialog> Logger
@@ -18,12 +20,25 @@
         <MudForm Model="@_model" @ref="_form" Validation="@(ExportModelValidator.ValidateValue)" ValidationDelay="0">
             <MudGrid Spacing="2">
                 <MudItem xs="12">
+                    <MudSelect T="CashRegisterModel"
+                               Label="@Localizer["CashRegister"]"
+                               Required="true"
+                               ToStringFunc="@_cashRegisterConverter"
+                               @bind-Value="_selectedCashRegister">
+                        @foreach (var cr in _cashRegisters)
+                        {
+                            <MudSelectItem T="CashRegisterModel" Value="@cr">@cr.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12">
                     <MudDateRangePicker
                         Label="@Localizer["DateRange"]"
                         @bind-DateRange="_model.DateRange"
                         Editable="true"
                         DateFormat="dd.MM.yyyy"
-                        Style="width: 100%" />
+                        Style="width: 100%"/>
                 </MudItem>
 
                 <MudItem xs="12">
@@ -32,7 +47,7 @@
                                   Label="@Localizer["FileName"]"
                                   Placeholder="@Localizer["FileName"]"
                                   Required="true"
-                                  FullWidth />
+                                  FullWidth/>
                 </MudItem>
             </MudGrid>
         </MudForm>
@@ -71,10 +86,16 @@
     private const Adornment Adornment = MudBlazor.Adornment.Start;
     private const int CExportTimeOut = 30;
 
-    protected override void OnInitialized()
+    private List<CashRegisterModel> _cashRegisters = [];
+    private CashRegisterModel? _selectedCashRegister;
+    private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
+
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await base.OnInitializedAsync();
         _model.DateRange = new DateRange(UTools.GetBeginDateTime(), DateTime.Now);
+        _cashRegisters = await CashRegisterService.GetAllCashRegisters();
+        _selectedCashRegister = _cashRegisters.FirstOrDefault();
     }
 
     private async Task ExportCsv()
@@ -95,7 +116,7 @@
             var end = _model.DateRange.End!.Value.Date;
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
             
-            var result = await ExportService.ExportTransactionsToCsv(start, end, filename);
+            var result = await ExportService.ExportTransactionsToCsv(start, end, filename, _selectedCashRegister!.Id);
 
             MudDialog.Close(DialogResult.Ok(result));
         }
@@ -130,7 +151,7 @@
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
             
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(CExportTimeOut));
-            var result = await ExportService.ExportTransactionsToPdf(start, end, filename, cts.Token); 
+            var result = await ExportService.ExportTransactionsToPdf(start, end, filename, _selectedCashRegister!.Id, _selectedCashRegister.Name, cts.Token);
 
             MudDialog.Close(DialogResult.Ok(result));
         }

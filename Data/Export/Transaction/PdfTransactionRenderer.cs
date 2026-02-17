@@ -15,7 +15,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
     
 
     public async Task RenderTransactionPdfExportAsync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end,
-        string filePath, CancellationToken cancellationToken)
+        string filePath, string cashRegisterName, CancellationToken cancellationToken)
     {
         try
         {
@@ -35,7 +35,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
             await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                RenderPdfSync(transactions, begin, end, filePath);
+                RenderPdfSync(transactions, begin, end, filePath, cashRegisterName);
             }, cancellationToken);
             
             if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
@@ -57,7 +57,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
         }
     }
 
-    private void RenderPdfSync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end, string filePath)
+    private void RenderPdfSync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end, string filePath, string cashRegisterName)
     {
         var ordered = transactions.OrderBy(t => t.Documentnumber).ToList();
         using var fs = new FileStream(filePath, FileMode.Create);
@@ -68,8 +68,8 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                 page.Size(PageSizes.A4);
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(10).FontColor(Colors.Black));
-                page.Header().Element(lContainer => ComposeHeader(lContainer, begin, end));
-                page.Content().Element(c => ComposeContent(c, ordered));
+                page.Header().Element(lContainer => ComposeHeader(lContainer, begin, end, cashRegisterName));
+                page.Content().Element(c => ComposeContent(c, ordered, begin, end));
                 page.Footer()
                     .AlignCenter()
                     .Text(x =>
@@ -95,7 +95,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
             .PaddingHorizontal(2);
     }
 
-    private void ComposeHeader(IContainer container, DateTime begin, DateTime end)
+    private void ComposeHeader(IContainer container, DateTime begin, DateTime end, string cashRegisterName)
     {
         container.Row(row =>
         {
@@ -105,12 +105,13 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                 .Column(column =>
                 {
                     column.Item()
-                        .Text(localizer["CashBook"] + " TTC Hagen e.V.")
+                        .Text(localizer["CashBook"] + " " + cashRegisterName)
                         .FontSize(20)
                         .Bold()
                         .AlignCenter();
                     column.Item()
-                        .Text($"{begin:dd.MM.yyyy} - {end:dd.MM.yyyy}")
+                        .Text($"{begin.ToString("d", CultureInfo.CurrentUICulture)} - " +
+                              $"{end.ToString("d", CultureInfo.CurrentUICulture)}")
                         .AlignCenter();
                     column.Item().Height(5);
 
@@ -133,11 +134,11 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
         return imageData;
     }
     
-    private void ComposeContent(IContainer container, List<TransactionModel> ordered)
+    private void ComposeContent(IContainer container, List<TransactionModel> ordered, DateTime begin, DateTime end)
     {
         const string headerBackgroundColor = "#DDEBF7";
         var headerStyle = TextStyle.Default.SemiBold();
-        var culture = new CultureInfo("de-DE");
+        var culture = CultureInfo.CurrentUICulture;
 
         container.PaddingTop(5, Unit.Millimetre).Column(col =>
         {
@@ -147,7 +148,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                 {
                     columns.ConstantColumn(80);  
                     columns.ConstantColumn(60);  
-                    columns.RelativeColumn();    
+                    columns.RelativeColumn();
                     columns.ConstantColumn(70);  
                     columns.ConstantColumn(70);  
                 });
@@ -218,14 +219,14 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
         
         col.Item().Row(row =>
         {
-            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} 01.01:");
+            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} {begin.ToString("d", culture)}:");
             row.ConstantItem(100).AlignBottom().LineHorizontal(1)
                 .LineColor(Colors.Grey.Lighten1);
         });
-            
+
         col.Item().PaddingTop(10).Row(row =>
         {
-            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} 31.12:");
+            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} {end.ToString("d", culture)}:");
             row.ConstantItem(100).AlignBottom().LineHorizontal(1)
                 .LineColor(Colors.Grey.Lighten1);
         });

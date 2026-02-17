@@ -4,6 +4,6 @@ namespace TTCCashRegister.Data.Export.Transaction;
 
 public interface IPdfTransactionRenderer
 {
-    Task RenderTransactionPdfExportAsync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end, 
-        string filePath, CancellationToken cancellationToken);
+    Task RenderTransactionPdfExportAsync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end,
+        string filePath, string cashRegisterName, CancellationToken cancellationToken);
 }

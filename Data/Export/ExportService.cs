@@ -26,14 +26,14 @@ public class ExportService(
     private readonly string _exportPath = exportPathProvider.ExportPath;
 
     public async Task<IOperationResult> ExportTransactionsToCsv(
-        DateTime begin, DateTime end, string filename)
+        DateTime begin, DateTime end, string filename, int cashRegisterId)
     {
         try
         {
             logger.LogInformation("Beginning export transactions to csv");
 
             var transactions =
-                await transactionService.GetTransactionsForExport(begin, end);
+                await transactionService.GetTransactionsForExport(begin, end, cashRegisterId);
 
             var csv = new StringBuilder();
             foreach (var transaction in transactions.OrderBy(t => t.Documentnumber))
@@ -64,17 +64,17 @@ public class ExportService(
     }
 
     public async Task<IOperationResult> ExportTransactionsToPdf(
-        DateTime begin, DateTime end, string filename, CancellationToken cancellationToken)
+        DateTime begin, DateTime end, string filename, int cashRegisterId, string cashRegisterName, CancellationToken cancellationToken)
     {
         try
         {
             var transactions =
-                await transactionService.GetTransactionsForBudgetExport(begin, end);
+                await transactionService.GetTransactionsForExport(begin, end, cashRegisterId);
 
             var filePath = Path.Combine(_exportPath, filename);
 
             await transactionPdfRenderer.RenderTransactionPdfExportAsync(
-                transactions, begin, end, filePath, cancellationToken);
+                transactions, begin, end, filePath, cashRegisterName, cancellationToken);
 
             return operationResultFactory.ExportSuccessful(filename);
         }
@@ -91,12 +91,12 @@ public class ExportService(
     }
 
     public async Task<IOperationResult> ExportBudgetToCsv(
-        DateTime begin, DateTime end, string filename)
+        DateTime begin, DateTime end, string filename, int cashRegisterId)
     {
         try
         {
             var transactions =
-                await transactionService.GetTransactionsForBudgetExport(begin, end);
+                await transactionService.GetTransactionsForBudgetExport(begin, end, cashRegisterId);
 
             var flat = budgetMapper.BuildFlatEntries(transactions);
             var grouped = budgetMapper.BuildBudgetHierarchy(flat);
@@ -114,12 +114,12 @@ public class ExportService(
     }
 
     public async Task<IOperationResult> ExportBudgetToExcel(
-        DateTime begin, DateTime end, string filename)
+        DateTime begin, DateTime end, string filename, int cashRegisterId)
     {
         try
         {
             var transactions =
-                await transactionService.GetTransactionsForBudgetExport(begin, end);
+                await transactionService.GetTransactionsForBudgetExport(begin, end, cashRegisterId);
 
             var flat = budgetMapper.BuildFlatEntries(transactions);
             var grouped = budgetMapper.BuildBudgetHierarchy(flat);
@@ -137,10 +137,10 @@ public class ExportService(
     }
 
     public async Task<byte[]> ExportBudgetToExcelBytes(
-        DateTime begin, DateTime end)
+        DateTime begin, DateTime end, int cashRegisterId)
     {
         var filename = $"Budget_{begin:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-        var result = await ExportBudgetToExcel(begin, end, filename);
+        var result = await ExportBudgetToExcel(begin, end, filename, cashRegisterId);
 
         if (result.Status != OperationResultStatus.Success)
             return Array.Empty<byte>();

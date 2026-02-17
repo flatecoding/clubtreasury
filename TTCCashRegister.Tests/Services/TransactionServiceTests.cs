@@ -663,7 +663,8 @@ public class TransactionServiceTests
         // Act
         var result = await _sut.GetTransactionsForExport(
             new DateTime(2024, 1, 1),
-            new DateTime(2024, 1, 31));
+            new DateTime(2024, 1, 31),
+            cashRegister.Id);
 
         // Assert
         var resultList = result.ToList();
@@ -689,7 +690,8 @@ public class TransactionServiceTests
         // Act
         var result = await _sut.GetTransactionsForExport(
             new DateTime(2024, 1, 1),
-            new DateTime(2024, 1, 31));
+            new DateTime(2024, 1, 31),
+            cashRegister.Id);
 
         // Assert
         result.Should().BeEmpty();
@@ -715,7 +717,8 @@ public class TransactionServiceTests
         // Act
         var result = await _sut.GetTransactionsForBudgetExport(
             new DateTime(2024, 1, 1),
-            new DateTime(2024, 1, 31));
+            new DateTime(2024, 1, 31),
+            cashRegister.Id);
 
         // Assert
         var resultList = result.ToList();
