@@ -182,7 +182,7 @@ public class ExportServiceTests
             new() { Documentnumber = 1, Description = "Test" }
         };
 
-        A.CallTo(() => _transactionService.GetTransactionsForBudgetExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForExport(begin, end, 1))
             .Returns(transactions);
 
         var expectedResult = new OperationResult
@@ -243,7 +243,7 @@ public class ExportServiceTests
         var filename = "error_export.pdf";
         var cancellationToken = CancellationToken.None;
 
-        A.CallTo(() => _transactionService.GetTransactionsForBudgetExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForExport(begin, end, 1))
             .Throws(new Exception("Render error"));
 
         var expectedResult = new OperationResult
