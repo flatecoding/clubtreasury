@@ -1006,4 +1006,12 @@
         <value>Reset filter</value>
         <comment>ResetFilter</comment>
     </data>
+    <data name="WelcomeMessage" xml:space="preserve">
+        <value>Welcome to the club cash administration tool</value>
+        <comment>WelcomeMessage</comment>
+    </data>
+    <data name="FiscalYearStartMonth" xml:space="preserve">
+        <value>Start month of fiscal year</value>
+        <comment>FiscalYearStartMonth</comment>
+    </data>
 </root>

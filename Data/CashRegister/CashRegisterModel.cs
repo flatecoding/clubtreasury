@@ -10,9 +10,18 @@ namespace TTCCashRegister.Data.CashRegister
         public int Id { get; init; }
         [MaxLength(150)]
         public string Name { get; set; } = string.Empty;
-        [NotMapped] 
+        [Range(1, 12)]
+        public int FiscalYearStartMonth { get; set; } = 7;
+        [NotMapped]
         public decimal CurrentBalance => Transactions?.Sum(t => t.AccountMovement) ?? 0m;
         public ICollection<TransactionModel> Transactions { get; init; } = new List<TransactionModel>();
         public CashRegisterLogoModel? Logo { get; set; }
+
+        public DateTime GetFiscalYearStart()
+        {
+            return DateTime.Today.Month < FiscalYearStartMonth
+                ? new DateTime(DateTime.Today.Year - 1, FiscalYearStartMonth, 1)
+                : new DateTime(DateTime.Today.Year, FiscalYearStartMonth, 1);
+        }
     }
 }

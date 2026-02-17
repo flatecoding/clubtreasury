@@ -1005,4 +1005,12 @@
         <value>Filzer zurücksetzen</value>
         <comment>ResetFilter</comment>
     </data>
+    <data name="WelcomeMessage" xml:space="preserve">
+        <value>Willkommen im Verwaltungstool der Vereinskasse</value>
+        <comment>WelcomeMessage</comment>
+    </data>
+    <data name="FiscalYearStartMonth" xml:space="preserve">
+        <value>Beginn des Geschäftsjahres</value>
+        <comment>FiscalYearStartMonth</comment>
+    </data>
 </root>

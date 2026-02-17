@@ -8,6 +8,7 @@ public class CashRegisterValidator :AbstractValidator<CashRegisterModel>
     {
         RuleFor(cr => cr.Name).NotEmpty().WithMessage("Name for cash register is required.");
         RuleFor(cr => cr.Name).MaximumLength(150).WithMessage("Name max length is 150 characters.");
+        RuleFor(cr => cr.FiscalYearStartMonth).InclusiveBetween(1, 12);
     }
     
     public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>

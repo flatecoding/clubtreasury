@@ -962,4 +962,12 @@
         <value />
         <comment>ResetFilter</comment>
     </data>
+    <data name="WelcomeMessage" xml:space="preserve">
+        <value />
+        <comment>WelcomeMessage</comment>
+    </data>
+    <data name="FiscalYearStartMonth" xml:space="preserve">
+        <value />
+        <comment>FiscalYearStartMonth</comment>
+    </data>
 </root>

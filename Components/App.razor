@@ -20,7 +20,7 @@
             try {
                 let match = document.cookie.match(/ClubCash\.UserPrefData=([^;]+)/);
                 if (match) {
-                    var data = JSON.parse(decodeURIComponent(match[1]));
+                    let data = JSON.parse(decodeURIComponent(match[1]));
                     isDark = data && data.IsDarkMode === true;
                 }
             } catch(e) {}
@@ -44,8 +44,6 @@
         };
     </script>
     <style>
-        /* Set dark background immediately via the html.dark class that the
-           inline script above adds, so the page never flashes white. */
         html.dark, html.dark body { background-color: @darkBg; color-scheme: dark; }
     </style>
 
@@ -78,7 +76,7 @@
 
 @code {
     [CascadingParameter]
-    public HttpContext HttpContext { get; set; } = default!;
+    public HttpContext HttpContext { get; set; } = null!;
 
     private bool IsDarkModeFromCookie()
     {

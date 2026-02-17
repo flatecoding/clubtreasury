@@ -1,4 +1,5 @@
 @page "/cashregisterdialog"
+@using System.Globalization
 @using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.Notification
 @using TTCCashRegister.Data.OperationResult
@@ -12,6 +13,17 @@
         <MudForm @ref="_form" Model="_cashRegisterModel" Validation="_cashRegisterValidator.ValidateValue" ValidationDelay="0">
             <MudTextField @bind-Value="_cashRegisterModel.Name" Label="@Localizer["Name"]"
                           For="@(() => _cashRegisterModel.Name)" Immediate="true"/>
+            <MudSelect T="int" @bind-Value="_cashRegisterModel.FiscalYearStartMonth"
+                       Label="@Localizer["FiscalYearStartMonth"]"
+                       For="@(() => _cashRegisterModel.FiscalYearStartMonth)">
+                @for (var i = 1; i <= 12; i++)
+                {
+                    var month = i;
+                    <MudSelectItem T="int" Value="@month">
+                        @DateTimeFormatInfo.CurrentInfo.GetMonthName(month)
+                    </MudSelectItem>
+                }
+            </MudSelect>
         </MudForm>
 
         <MudText Typo="Typo.subtitle1" Class="mt-4 mb-2">Logo</MudText>
