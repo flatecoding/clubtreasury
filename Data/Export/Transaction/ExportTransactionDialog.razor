@@ -6,7 +6,6 @@
 @using TTCCashRegister.Data.Notification
 @using TTCCashRegister.Data.OperationResult
 @using TTCCashRegister.Data.CashRegister
-@using TTCCashRegister.Data.Source
 @inject IExportService ExportService
 @inject ICashRegisterService CashRegisterService
 @inject IOperationResultFactory OperationResultFactory
@@ -93,9 +92,9 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _model.DateRange = new DateRange(UTools.GetBeginDateTime(), DateTime.Now);
         _cashRegisters = await CashRegisterService.GetAllCashRegisters();
         _selectedCashRegister = _cashRegisters.FirstOrDefault();
+        _model.DateRange = new DateRange(_selectedCashRegister?.GetFiscalYearStart() ?? DateTime.Today, DateTime.Now);
     }
 
     private async Task ExportCsv()

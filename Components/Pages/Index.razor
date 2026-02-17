@@ -8,6 +8,7 @@
 @inject IStringLocalizer<Translation> Localizer
 
 <PageTitle>Index</PageTitle>
+
 <MudText class="mb-3" Typo="Typo.h4">@Localizer["WelcomeMessage"]</MudText>
 
 <MudGrid>
@@ -74,6 +75,7 @@
             new ChartSeries { Name = Localizer["Income"], Data = incomeData },
             new ChartSeries { Name = Localizer["Expenses"], Data = expenseData }
         ];
+
     }
 
     private static List<DateTime> BuildMonthRange(DateTime beginDate, DateTime endDate)
