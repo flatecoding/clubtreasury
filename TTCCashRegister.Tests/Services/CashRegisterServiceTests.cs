@@ -1,5 +1,5 @@
 using FakeItEasy;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -100,7 +100,7 @@ public class CashRegisterServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.Name.Should().Be("Test Register");
+        result.Name.Should().Be("Test Register");
     }
 
     [Test]
@@ -134,7 +134,7 @@ public class CashRegisterServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.Name.Should().Be("First Register");
+        result.Name.Should().Be("First Register");
     }
 
     [Test]
@@ -189,14 +189,14 @@ public class CashRegisterServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate an error
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new CashRegisterService(disposedContext, _logger, _operationResultFactory, _localizer);
 
@@ -253,14 +253,14 @@ public class CashRegisterServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate error
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new CashRegisterService(disposedContext, _logger, _operationResultFactory, _localizer);
 
@@ -337,14 +337,14 @@ public class CashRegisterServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate error during delete
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new CashRegisterService(disposedContext, _logger, _operationResultFactory, _localizer);
 
@@ -381,7 +381,7 @@ public class CashRegisterServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.Value.Data.Should().BeEquivalentTo(logoData);
+        result.Value.Data.Should().BeEquivalentTo(logoData);
         result.Value.ContentType.Should().Be("image/png");
     }
 
@@ -428,7 +428,7 @@ public class CashRegisterServiceTests
         result.Should().Be(expectedResult);
         var logo = await _context.CashRegisterLogos.FirstOrDefaultAsync(l => l.CashRegisterId == cashRegister.Id);
         logo.Should().NotBeNull();
-        logo!.Data.Should().BeEquivalentTo(logoData);
+        logo.Data.Should().BeEquivalentTo(logoData);
         logo.ContentType.Should().Be("image/png");
     }
 
@@ -480,14 +480,14 @@ public class CashRegisterServiceTests
         A.CallTo(() => _operationResultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new CashRegisterService(disposedContext, _logger, _operationResultFactory, _localizer);
 
@@ -570,14 +570,14 @@ public class CashRegisterServiceTests
         A.CallTo(() => _operationResultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new CashRegisterService(disposedContext, _logger, _operationResultFactory, _localizer);
 

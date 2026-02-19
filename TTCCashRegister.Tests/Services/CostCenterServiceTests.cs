@@ -1,5 +1,5 @@
 using FakeItEasy;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -100,7 +100,7 @@ public class CostCenterServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.CostUnitName.Should().Be("Test Cost Center");
+        result.CostUnitName.Should().Be("Test Cost Center");
     }
 
     [Test]
@@ -130,7 +130,7 @@ public class CostCenterServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.CostUnitName.Should().Be("Marketing");
+        result.CostUnitName.Should().Be("Marketing");
     }
 
     [Test]
@@ -200,14 +200,14 @@ public class CostCenterServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate an error
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new CostCenterService(disposedContext, _logger, _localizer, _operationResultFactory);
 
@@ -264,14 +264,14 @@ public class CostCenterServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate error
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new CostCenterService(disposedContext, _logger, _localizer, _operationResultFactory);
 
@@ -348,14 +348,14 @@ public class CostCenterServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate error during delete
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new CostCenterService(disposedContext, _logger, _localizer, _operationResultFactory);
 
