@@ -970,4 +970,13 @@
         <value />
         <comment>FiscalYearStartMonth</comment>
     </data>
+    <data name="Charts" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ExpensesByCostCenter" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ExpensesByCategory" xml:space="preserve">
+        <value />
+    </data>
 </root>

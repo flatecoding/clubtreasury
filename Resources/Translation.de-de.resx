@@ -1013,4 +1013,13 @@
         <value>Beginn des Geschäftsjahres</value>
         <comment>FiscalYearStartMonth</comment>
     </data>
+    <data name="Charts" xml:space="preserve">
+        <value>Diagramme</value>
+    </data>
+    <data name="ExpensesByCostCenter" xml:space="preserve">
+        <value>Ausgaben nach Kostenstelle</value>
+    </data>
+    <data name="ExpensesByCategory" xml:space="preserve">
+        <value>Ausgaben nach Kategorie</value>
+    </data>
 </root>
