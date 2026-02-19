@@ -56,8 +56,8 @@ Apache License 2.0: see `Apache-2.0.txt`
 ### FluentValidation.DependencyInjectionExtensions — Apache License 2.0
 Apache License 2.0: see `Apache-2.0.txt`
 
-### Blazored.FluentValidation — MIT License
-NuGet: https://www.nuget.org/packages/Blazored.FluentValidation
+### Blazilla — MIT License
+NuGet: https://www.nuget.org/packages/Blazilla
 
 ### Accelist.FluentValidation.Blazor — MIT License
 NuGet: https://www.nuget.org/packages/Accelist.FluentValidation.Blazor
