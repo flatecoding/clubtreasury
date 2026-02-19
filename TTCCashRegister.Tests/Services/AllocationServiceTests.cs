@@ -1,5 +1,5 @@
 using FakeItEasy;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -134,7 +134,7 @@ public class AllocationServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.CostCenter.CostUnitName.Should().Be("Test Cost Center");
+        result.CostCenter.CostUnitName.Should().Be("Test Cost Center");
         result.Category.Name.Should().Be("Test Category");
     }
 
@@ -216,14 +216,14 @@ public class AllocationServiceTests
         A.CallTo(() => _operationResultFactory.FailedToAdd(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new AllocationService(
             disposedContext, _logger, _operationResultFactory, _localizer,
@@ -377,14 +377,14 @@ public class AllocationServiceTests
         A.CallTo(() => _operationResultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new AllocationService(
             disposedContext, _logger, _operationResultFactory, _localizer,
@@ -470,14 +470,14 @@ public class AllocationServiceTests
         A.CallTo(() => _operationResultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new AllocationService(
             disposedContext, _logger, _operationResultFactory, _localizer,
@@ -562,7 +562,6 @@ public class AllocationServiceTests
     public async Task GetOrCreateAllocationAsync_WhenCostCenterDoesNotExist_ShouldCreateCostCenter()
     {
         // Arrange
-        var newCostCenter = new CostCenterModel { Id = 1, CostUnitName = "New Cost Center" };
         var category = new CategoryModel { Id = 1, Name = "Existing Category" };
 
         await _context.Categories.AddAsync(category);
@@ -673,7 +672,7 @@ public class AllocationServiceTests
             .Returns(category);
 
         // Act
-        var result = await _sut.GetOrCreateAllocationAsync("Cost Center", "Category", null);
+        var result = await _sut.GetOrCreateAllocationAsync("Cost Center", "Category");
 
         // Assert
         result.Should().NotBeNull();

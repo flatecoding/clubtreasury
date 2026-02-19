@@ -1,6 +1,6 @@
 using System.Text;
 using FakeItEasy;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using TTCCashRegister.Data.Allocation;

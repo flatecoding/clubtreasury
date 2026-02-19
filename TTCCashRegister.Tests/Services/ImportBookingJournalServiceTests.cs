@@ -1,5 +1,5 @@
 using FakeItEasy;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using OfficeOpenXml;

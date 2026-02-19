@@ -1,5 +1,5 @@
 using FakeItEasy;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -100,7 +100,7 @@ public class PersonServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.Name.Should().Be("Test Person");
+        result.Name.Should().Be("Test Person");
     }
 
     [Test]
@@ -134,7 +134,7 @@ public class PersonServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.Name.Should().Be("First Person");
+        result.Name.Should().Be("First Person");
     }
 
     [Test]
@@ -189,14 +189,14 @@ public class PersonServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate an error
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new PersonService(disposedContext, _logger, _localizer, _operationResultFactory);
 
@@ -253,14 +253,14 @@ public class PersonServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate error
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new PersonService(disposedContext, _logger, _localizer, _operationResultFactory);
 
@@ -337,14 +337,14 @@ public class PersonServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate error during delete
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new PersonService(disposedContext, _logger, _localizer, _operationResultFactory);
 

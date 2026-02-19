@@ -1,5 +1,5 @@
 using FakeItEasy;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -102,7 +102,7 @@ public class TransactionServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.Documentnumber.Should().Be(100);
+        result.Documentnumber.Should().Be(100);
         result.Description.Should().Be("Test Transaction");
     }
 
@@ -297,14 +297,14 @@ public class TransactionServiceTests
         A.CallTo(() => _operationResultFactory.FailedToAdd(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new TransactionService(disposedContext, _allocationService, _logger, _localizer, _operationResultFactory);
 
@@ -449,14 +449,14 @@ public class TransactionServiceTests
         A.CallTo(() => _operationResultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new TransactionService(disposedContext, _allocationService, _logger, _localizer, _operationResultFactory);
 
@@ -586,14 +586,14 @@ public class TransactionServiceTests
         A.CallTo(() => _operationResultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        _context.Dispose();
+        await _context.DisposeAsync();
         _contextDisposed = true;
 
         var options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var disposedContext = new CashDataContext(options);
-        disposedContext.Dispose();
+        await disposedContext.DisposeAsync();
 
         _sut = new TransactionService(disposedContext, _allocationService, _logger, _localizer, _operationResultFactory);
 
