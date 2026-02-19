@@ -1,11 +1,16 @@
 ﻿@page "/"
+@implements IDisposable
 @using System.Globalization
+@using ApexCharts
 @using Microsoft.Extensions.Localization
 @using TTCCashRegister.Data.CashRegister
 @using TTCCashRegister.Data.Transaction
 @inject ICashRegisterService CashRegisterService
 @inject ITransactionService TransactionService
+@using TTCCashRegister.Data.ThemeSetting
 @inject IStringLocalizer<Translation> Localizer
+@inject UserPrefService UserPrefService
+@inject ILogger<Index> Logger
 
 <PageTitle>Index</PageTitle>
 
@@ -14,11 +19,11 @@
 <MudGrid>
     <MudItem xs="12" sm="6" md="4">
         <MudPaper Class="pa-3 rounded-lg" Elevation="3">
-            <MudText Typo="Typo.h6" Color="Color.Primary">@Localizer["ClubCash"]</MudText>
+            <MudText Typo="Typo.h6" Color="MudBlazor.Color.Primary">@Localizer["ClubCash"]</MudText>
             <MudText Typo="Typo.subtitle1" Class="mt-1 mb-2">@_register?.Name</MudText>
             <MudDivider Class="mb-2"/>
             <MudText Typo="Typo.body2" Class="mud-text-secondary">@Localizer["AccountBalance"]</MudText>
-            <MudText Typo="Typo.h5" Color="Color.Success" Class="mt-1">
+            <MudText Typo="Typo.h5" Color="MudBlazor.Color.Success" Class="mt-1">
                 @_register?.CurrentBalance.ToString("C", CultureInfo.CurrentCulture)
             </MudText>
         </MudPaper>
@@ -28,11 +33,34 @@
 
     <MudItem xs="12" md="8" lg="5">
         <MudPaper Class="pa-2 rounded-lg" Elevation="3">
-            <MudChart ChartType="ChartType.Line"
-                      ChartSeries="@_chartSeries"
-                      ChartOptions="@_chartOptions"
-                      XAxisLabels="@_xAxisLabels"
-                      Width="100%"/>
+            @if (_chartData.Count > 0)
+            {
+                <ApexChart @ref="_chart" TItem="ChartDataPoint"
+                           Options="@_chartOptions"
+                           OnZoomed="OnZoomed">
+                    <ApexPointSeries TItem="ChartDataPoint"
+                                     Items="@_chartData"
+                                     Name="@Localizer["AccountBalance"]"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="e => e.Date"
+                                     YValue="e => (decimal)e.Balance"
+                                     OrderBy="e => e.X"/>
+                    <ApexPointSeries TItem="ChartDataPoint"
+                                     Items="@_chartData"
+                                     Name="@Localizer["Income"]"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="e => e.Date"
+                                     YValue="e => (decimal)e.Income"
+                                     OrderBy="e => e.X"/>
+                    <ApexPointSeries TItem="ChartDataPoint"
+                                     Items="@_chartData"
+                                     Name="@Localizer["Expenses"]"
+                                     SeriesType="SeriesType.Line"
+                                     XValue="e => e.Date"
+                                     YValue="e => (decimal)e.Expenses"
+                                     OrderBy="e => e.X"/>
+                </ApexChart>
+            }
         </MudPaper>
     </MudItem>
 </MudGrid>
@@ -40,55 +68,102 @@
 @code
 {
     private CashRegisterModel? _register;
-    private List<ChartSeries> _chartSeries = [];
-    private string[] _xAxisLabels = [];
-    private readonly ChartOptions _chartOptions = new()
-    {
-        ChartPalette = [Colors.Blue.Default, Colors.Green.Default, Colors.Red.Default]
-    };
+    private List<ChartDataPoint> _chartData = [];
+    private ApexChartOptions<ChartDataPoint> _chartOptions = new();
+    private ApexChart<ChartDataPoint>? _chart;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+        UserPrefService.PropertyChanged += OnUserPrefChanged;
+
         var cashRegisters = await CashRegisterService.GetAllCashRegisters();
         _register = cashRegisters.FirstOrDefault();
 
         if (_register is not null)
             await LoadChartDataAsync(_register);
+
+        UpdateChartOptions();
+    }
+
+    private void UpdateChartOptions()
+    {
+        var isDark = UserPrefService.IsDarkMode;
+        Palette palette = isDark
+            ? CustomTheme.ClubCashTheme.PaletteDark
+            : CustomTheme.ClubCashTheme.PaletteLight;
+        _chartOptions = new ApexChartOptions<ChartDataPoint>
+        {
+            Chart = new Chart
+            {
+                Background = "transparent",
+                ForeColor = palette.TextPrimary.ToString(),
+                Toolbar = new Toolbar
+                {
+                    Tools = new Tools { Download = false }
+                }
+            },
+            Theme = new Theme { Mode = isDark ? Mode.Dark : Mode.Light },
+            Colors = [palette.Primary.ToString(), palette.Success.ToString(), palette.Error.ToString()],
+            Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 },
+            Xaxis = new XAxis { Type = XAxisType.Datetime },
+            Yaxis = [new YAxis { Labels = new YAxisLabels { Formatter = "function(val) { return val.toFixed(2); }" } }],
+            Tooltip = new Tooltip { Theme = isDark ? Mode.Dark : Mode.Light, X = new TooltipX { Format = "dd MMM yyyy" } }
+        };
+    }
+
+    private async void OnUserPrefChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        try
+        {
+            if (e.PropertyName != nameof(UserPrefService.IsDarkMode)) return;
+
+            UpdateChartOptions();
+            await InvokeAsync(StateHasChanged);
+            if (_chart is not null)
+                await InvokeAsync(() => _chart.UpdateOptionsAsync(true, true, true));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating chart theme");
+        }
+    }
+
+    private async void OnZoomed(ZoomedData<ChartDataPoint> zoomedData)
+    {
+        try
+        {
+            if (_chart is null || _chartData.Count == 0) return;
+
+            var dataMin = new DateTimeOffset(_chartData[0].Date, TimeSpan.Zero).ToUnixTimeMilliseconds();
+            var dataMax = new DateTimeOffset(_chartData[^1].Date, TimeSpan.Zero).ToUnixTimeMilliseconds();
+            var dataRange = dataMax - dataMin;
+            var zoomRange = (zoomedData.XAxis.Max ?? dataMax) - (zoomedData.XAxis.Min ?? dataMin);
+
+            if (zoomRange > dataRange)
+                await _chart.ZoomXAsync(dataMin, dataMax);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Error while update zoom");
+        }
+    }
+
+    public void Dispose()
+    {
+        UserPrefService.PropertyChanged -= OnUserPrefChanged;
     }
 
     private async Task LoadChartDataAsync(CashRegisterModel register)
     {
         var beginDate = register.GetFiscalYearStart();
         var now = DateTime.Now;
-        var months = BuildMonthRange(beginDate, now);
 
         var startingBalance = await CalculateStartingBalanceAsync(register.Id, beginDate);
         var transactions = await GetOrderedTransactionsAsync(register.Id, beginDate, now);
 
-        var (balanceData, incomeData, expenseData) = CalculateMonthlyData(months, transactions, startingBalance);
-
-        _xAxisLabels = months.Select(m => m.ToString("MMM", CultureInfo.CurrentCulture)).ToArray();
-        _chartSeries =
-        [
-            new ChartSeries { Name = Localizer["AccountBalance"], Data = balanceData },
-            new ChartSeries { Name = Localizer["Income"], Data = incomeData },
-            new ChartSeries { Name = Localizer["Expenses"], Data = expenseData }
-        ];
-
-    }
-
-    private static List<DateTime> BuildMonthRange(DateTime beginDate, DateTime endDate)
-    {
-        var months = new List<DateTime>();
-        var current = new DateTime(beginDate.Year, beginDate.Month, 1);
-        var endMonth = new DateTime(endDate.Year, endDate.Month, 1);
-        while (current <= endMonth)
-        {
-            months.Add(current);
-            current = current.AddMonths(1);
-        }
-        return months;
+        _chartData = CalculateTransactionData(transactions, startingBalance, beginDate);
     }
 
     private async Task<double> CalculateStartingBalanceAsync(int registerId, DateTime fiscalYearStart)
@@ -105,26 +180,31 @@
             .ToList();
     }
 
-    private static (double[] Balance, double[] Income, double[] Expenses) CalculateMonthlyData(
-        List<DateTime> months, List<TransactionModel> transactions, double startingBalance)
+    private static List<ChartDataPoint> CalculateTransactionData(
+        IList<TransactionModel> transactions, double startingBalance, DateTime fiscalYearStart)
     {
-        var balanceData = new double[months.Count];
-        var incomeData = new double[months.Count];
-        var expenseData = new double[months.Count];
+        var result = new List<ChartDataPoint>();
 
-        double cumulativeBalance = startingBalance;
+        var cumulativeBalance = startingBalance;
         double cumulativeIncome = 0;
         double cumulativeExpenses = 0;
-
-        for (var i = 0; i < months.Count; i++)
+        
+        result.Add(new ChartDataPoint
         {
-            var monthStart = DateOnly.FromDateTime(months[i]);
-            var monthEnd = DateOnly.FromDateTime(months[i].AddMonths(1));
+            Date = DateTime.SpecifyKind(fiscalYearStart, DateTimeKind.Utc),
+            Balance = Math.Round(cumulativeBalance, 2),
+            Income = 0,
+            Expenses = 0
+        });
 
-            foreach (var t in transactions.Where(t =>
-                         t.Date.HasValue &&
-                         t.Date.Value >= monthStart &&
-                         t.Date.Value < monthEnd))
+        var groupedByDate = transactions
+            .Where(t => t.Date.HasValue)
+            .GroupBy(t => t.Date!.Value)
+            .OrderBy(g => g.Key);
+
+        foreach (var group in groupedByDate)
+        {
+            foreach (var t in group)
             {
                 var amount = (double)t.AccountMovement;
                 cumulativeBalance += amount;
@@ -134,11 +214,23 @@
                     cumulativeExpenses += Math.Abs(amount);
             }
 
-            balanceData[i] = Math.Round(cumulativeBalance, 2);
-            incomeData[i] = Math.Round(cumulativeIncome, 2);
-            expenseData[i] = Math.Round(cumulativeExpenses, 2);
+            result.Add(new ChartDataPoint
+            {
+                Date = DateTime.SpecifyKind(group.Key.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+                Balance = Math.Round(cumulativeBalance, 2),
+                Income = Math.Round(cumulativeIncome, 2),
+                Expenses = Math.Round(cumulativeExpenses, 2)
+            });
         }
 
-        return (balanceData, incomeData, expenseData);
+        return result;
+    }
+
+    private class ChartDataPoint
+    {
+        public DateTime Date { get; init; }
+        public double Balance { get; init; }
+        public double Income { get; init; }
+        public double Expenses { get; init; }
     }
 }
