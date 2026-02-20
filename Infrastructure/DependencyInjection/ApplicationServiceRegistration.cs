@@ -19,6 +19,7 @@ using TTCCashRegister.Data.SpecialItem;
 using TTCCashRegister.Data.ThemeSetting;
 using TTCCashRegister.Data.Transaction;
 using TTCCashRegister.Data.TransactionDetails;
+using TTCCashRegister.Infrastructure.Localization;
 
 namespace TTCCashRegister.Infrastructure.DependencyInjection;
 
@@ -68,6 +69,7 @@ public static class ApplicationServiceRegistration
             config.SnackbarConfiguration.ShowTransitionDuration = 500;
             config.SnackbarConfiguration.SnackbarVariant = Variant.Text;
         });
+        services.AddLocalizationInterceptor<MudBlazorLocalizationInterceptor>();
         services.AddMudBlazorDialog();
         services.AddMudPopoverService();
         services.AddMudExtensions();

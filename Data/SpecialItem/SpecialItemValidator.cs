@@ -1,13 +1,14 @@
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace TTCCashRegister.Data.SpecialItem;
 
 public class SpecialItemValidator:AbstractValidator<SpecialItemModel>
 {
-    public SpecialItemValidator()
+    public SpecialItemValidator(IStringLocalizer<Translation> localizer)
     {
-        RuleFor(s => s.Name).NotEmpty().WithMessage("Position description is required");
-        RuleFor(sp => sp.Name).MaximumLength(50).WithMessage("Name of special position is too long");
+        RuleFor(s => s.Name).NotEmpty().WithMessage(localizer["PositionDescriptionRequired"]);
+        RuleFor(sp => sp.Name).MaximumLength(50).WithMessage(localizer["SpecialPositionNameTooLong"]);
     }
     
     public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>

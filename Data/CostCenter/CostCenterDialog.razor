@@ -6,6 +6,7 @@
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 @inject IOperationResultFactory OperationResultFactory
+@inject CostCenterValidator CostCenterValidator
 
 <MudDialog>
     <DialogContent>
@@ -17,8 +18,7 @@
             <MudTextField @bind-Value="_costCenterModel.CostUnitName"
                           Label="@Localizer["CostCenter"]"
                           For="@(() => _costCenterModel.CostUnitName)"
-                          Immediate="true"
-                          Required="true" />
+                          Immediate="true" />
         </MudForm>
     </DialogContent>
 
@@ -43,7 +43,7 @@
 
     private MudForm _form = new();
     private CostCenterModel _costCenterModel = new();
-    private readonly CostCenterValidator _costCenterValidator = new();
+    private CostCenterValidator _costCenterValidator => CostCenterValidator;
 
     private bool _isEditMode;
 

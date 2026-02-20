@@ -8,6 +8,7 @@
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 @inject IOperationResultFactory OperationResultFactory
+@inject TransactionDetailsValidator TransactionDetailsValidator
 
 <MudDialog>
     <DialogContent>
@@ -23,16 +24,12 @@
             <MudTextField @bind-Value="_transactionDetailsModel.Description"
                           Label=@Localizer["Description"]
                           For="@(() => _transactionDetailsModel.Description)"
-                          Immediate="true"
-                          Required="true"
-                          RequiredError="Description is required" />
+                          Immediate="true" />
             
             <MudTextField @bind-Value="_transactionDetailsModel.Sum"
                              Label=@Localizer["Sum"]
                              For="@(() => _transactionDetailsModel.Sum)"
-                             Immediate="true"
-                             Required="true"
-                             RequiredError="Amount is required" />
+                             Immediate="true" />
             
             <MudSelect T="int?" Label=@Localizer["Person"] @bind-Value="_transactionDetailsModel.PersonId"
                        Clearable="true"
@@ -65,7 +62,7 @@
     private MudForm _form = new();
     private TransactionDetailsModel _transactionDetailsModel = new();
     private bool _isEditMode;
-    private readonly TransactionDetailsValidator _transactionDetailsValidator = new();
+    private TransactionDetailsValidator _transactionDetailsValidator => TransactionDetailsValidator;
 
     private IEnumerable<PersonModel> _persons = [];
 

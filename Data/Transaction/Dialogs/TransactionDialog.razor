@@ -18,6 +18,7 @@
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 @inject IOperationResultFactory OperationResultFactory
+@inject TransactionValidator TransactionValidator
 @inject IAllocationService AllocationService
 
 <MudDialog>
@@ -27,6 +28,7 @@
             <MudSelect T="CashRegisterModel"
                        Label="@Localizer["CashRegister"]"
                        Required="true"
+                       RequiredError="@Localizer["CashRegisterRequired"]"
                        ToStringFunc="@_cashRegisterConverter"
                        Immediate="true"
                        @bind-Value="_selectedCashRegisterModel"
@@ -42,7 +44,7 @@
                 Editable="true" 
                 Label="@Localizer["Date"]" 
                 Required="true" 
-                RequiredError="Date is required." />
+                RequiredError="@Localizer["DateRequired"]" />
 
             <MudTextField @bind-Value="_transactionModel.Documentnumber" 
                           Label="@Localizer["DocumentNumber"]" 
@@ -64,9 +66,10 @@
                           For="@(() => _transactionModel.AccountMovement)" 
                           Immediate="true" />
 
-            <MudSelect T="CostCenterModel" 
-                       Label="@Localizer["CostCenter"]" 
-                       Required="true" 
+            <MudSelect T="CostCenterModel"
+                       Label="@Localizer["CostCenter"]"
+                       Required="true"
+                       RequiredError="@Localizer["CostCenterRequired"]"
                        ToStringFunc="@_unitConverter"
                        Immediate="true"
                        @bind-Value="_selectedCostUnit"
@@ -77,10 +80,11 @@
                 }
             </MudSelect>
 
-            <MudSelect T="CategoryModel" 
-                       Label="@Localizer["Category"]"  
-                       Disabled="@(_selectedCostUnit == null)" 
-                       Required="true" 
+            <MudSelect T="CategoryModel"
+                       Label="@Localizer["Category"]"
+                       Disabled="@(_selectedCostUnit == null)"
+                       Required="true"
+                       RequiredError="@Localizer["CategoryRequired"]"
                        ToStringFunc="@_basicUnitConverter"
                        @bind-Value="_selectedCategory"
                        @bind-Value:after="OnBasicUnitChangedAsync">
@@ -133,7 +137,7 @@
 
     private MudForm _form = new();
     private TransactionModel _transactionModel = new();
-    private readonly TransactionValidator _transactionValidator = new();
+    private TransactionValidator _transactionValidator => TransactionValidator;
 
     private bool _isEditMode;
 
@@ -153,11 +157,11 @@
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     
-    private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
-    private readonly Func<CostCenterModel, string> _unitConverter = p => p?.CostUnitName ?? string.Empty;
-    private readonly Func<ItemDetailModel, string> _detailsConverter = d => d?.CostDetails ?? string.Empty;
-    private readonly Func<SpecialItemModel, string> _specialItemConverter = s => s?.Name ?? string.Empty;
-    private readonly Func<CategoryModel, string> _basicUnitConverter = b => b?.Name ?? string.Empty;
+    private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p.Name;
+    private readonly Func<CostCenterModel, string> _unitConverter = p => p.CostUnitName;
+    private readonly Func<ItemDetailModel, string> _detailsConverter = d => d.CostDetails;
+    private readonly Func<SpecialItemModel, string> _specialItemConverter = s => s.Name;
+    private readonly Func<CategoryModel, string> _basicUnitConverter = b => b.Name;
 
    protected override async Task OnInitializedAsync()
 {
@@ -173,9 +177,9 @@
 
         // Vorbelegung aus gespeicherter Transaktion
         _selectedCashRegisterModel = _transactionModel.CashRegister;
-        _selectedCostUnit = _transactionModel.Allocation?.CostCenter;
-        _selectedCategory = _transactionModel.Allocation?.Category;
-        _selectedItemDetail = _transactionModel.Allocation?.ItemDetail;
+        _selectedCostUnit = _transactionModel.Allocation.CostCenter;
+        _selectedCategory = _transactionModel.Allocation.Category;
+        _selectedItemDetail = _transactionModel.Allocation.ItemDetail;
         _selectedSpecialItem = _transactionModel.SpecialItem;
         TransactionDateTime = _transactionModel.Date?.ToDateTime(TimeOnly.MinValue);
 

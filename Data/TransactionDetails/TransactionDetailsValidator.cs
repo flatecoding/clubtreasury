@@ -1,21 +1,22 @@
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace TTCCashRegister.Data.TransactionDetails
 {
     public class TransactionDetailsValidator : AbstractValidator<TransactionDetailsModel>
     {
-        public TransactionDetailsValidator()
+        public TransactionDetailsValidator(IStringLocalizer<Translation> localizer)
         {
             RuleFor(st => st.TransactionId)
                 .NotEmpty()
-                .WithMessage("Transaction reference is required.");
-            
+                .WithMessage(localizer["TransactionReferenceRequired"]);
+
             RuleFor(st => st.Description)
                 .MaximumLength(300)
-                .WithMessage("Description max length is 300 characters.");
-            
+                .WithMessage(localizer["DescriptionMaxLength300"]);
+
             RuleFor(st => st.Sum)
-                .NotEmpty().WithMessage("Sum is required.");
+                .NotEmpty().WithMessage(localizer["SumRequired"]);
         }
         
         public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>

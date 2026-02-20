@@ -1,16 +1,17 @@
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace TTCCashRegister.Data.Person
 {
     public class PersonValidator : AbstractValidator<PersonModel>
     {
-        public PersonValidator()
+        public PersonValidator(IStringLocalizer<Translation> localizer)
         {
             RuleFor(p => p.Name)
-                .NotEmpty().WithMessage("Name for person is required.");
-            
+                .NotEmpty().WithMessage(localizer["PersonNameRequired"]);
+
             RuleFor(p => p.Name)
-                .MaximumLength(200).WithMessage("Name max length is 200 characters.");
+                .MaximumLength(200).WithMessage(localizer["NameMaxLength200"]);
         }
         
         public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>
