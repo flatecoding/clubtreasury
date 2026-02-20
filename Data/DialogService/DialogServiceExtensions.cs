@@ -13,7 +13,7 @@ public static class DialogServiceExtensions
         MaxWidth = MaxWidth.Medium,
         FullWidth = true,
         BackdropClick = false,
-        CloseButton = true
+        CloseButton = false
     };
     
     public static async Task<IOperationResult?> ShowDialogWithNotificationAsync<T>(
@@ -24,7 +24,8 @@ public static class DialogServiceExtensions
         DialogOptions? options = null) where T : ComponentBase
     {
         parameters ??= new DialogParameters();
-        var dialog = await dialogService.ShowAsync<T>(title, parameters, options: options ?? DefaultDialogOptions);
+        var mergedOptions = MergeOptions(options);
+        var dialog = await dialogService.ShowAsync<T>(title, parameters, options: mergedOptions);
         var result = await dialog.Result;
 
         if (result?.Data is not IOperationResult operationResult) return null;

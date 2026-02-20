@@ -1,8 +1,10 @@
 @page "/import-transaction-dialog"
 @using Microsoft.Extensions.Localization
 @using MudExtensions
+@using TTCCashRegister.Data.CashRegister
 @using TTCCashRegister.Data.OperationResult
 @inject IImportBookingJournalService ImportBookingJournalService
+@inject ICashRegisterService CashRegisterService
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ImportTransactionDialog> Logger
 @inject IOperationResultFactory OperationResultFactory
@@ -10,8 +12,8 @@
 <MudDialog>
     <DialogContent>
         <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Large">@Localizer["SelectBookingJournalFile"]</MudTextM3>
-        <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Medium"><strong>@Localizer["RequiredFormat"]</strong></MudTextM3> 
-        <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>@Localizer["NameOfSheet"]</strong>Bookings</MudTextM3>
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Medium"><strong>@Localizer["RequiredFormat"]</strong></MudTextM3>
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>@Localizer["NameOfSheet"]:</strong> Bookings</MudTextM3>
         <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>@Localizer["RowDefinition"]</strong></MudTextM3>
         <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium">
             @Localizer["Date"]; @Localizer["DocumentNumber"]; @Localizer["Description"]; @Localizer["Income"]; @Localizer["Expenses"]; @Localizer["Account"]; @Localizer["CostUnitCategory"]
@@ -22,20 +24,37 @@
             Src="images/ExampleBookingJournalImport.png"
                           Alt="Example">
                 </MudImage>
-        <MudForm>
-            <MudFileUpload T="IBrowserFile" 
-                           FilesChanged="UploadFiles"
-                           Accept="*.xlsx/*.ods">
-                <ActivatorContent>
-                    <MudButton Class="mb-2"
-                               Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               >
-                        @Localizer["SelectFile"]
-                    </MudButton>
-                </ActivatorContent>
-            </MudFileUpload>
-            <MudTextField Disabled="true" @bind-Value="_fileName" Label=@Localizer["FileName"] Placeholder=@Localizer["FileName"] Required="true"/>
+        <MudForm @ref="_form">
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <MudSelect T="CashRegisterModel"
+                               Label="@Localizer["CashRegister"]"
+                               Required="true"
+                               ToStringFunc="@_cashRegisterConverter"
+                               Value="_selectedCashRegister"
+                               ValueChanged="OnCashRegisterChanged">
+                        @foreach (var cr in _cashRegisters)
+                        {
+                            <MudSelectItem T="CashRegisterModel" Value="@cr">@cr.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <div class="d-flex align-center gap-2">
+                        <MudFileUpload T="IBrowserFile"
+                                       FilesChanged="UploadFiles"
+                                       Accept="*.xlsx/*.ods">
+                            <ActivatorContent>
+                                <MudIconButton Icon="@Icons.Material.Filled.UploadFile"
+                                               Variant="Variant.Filled"
+                                               Color="Color.Primary"/>
+                            </ActivatorContent>
+                        </MudFileUpload>
+                        <MudTextField Disabled="true" @bind-Value="_fileName" Label="@Localizer["FileName"]" Placeholder="@Localizer["FileName"]" Required="true" Style="flex: 1;"/>
+                    </div>
+                </MudItem> 
+            </MudGrid>
         </MudForm>
     </DialogContent>
     <DialogActions>
@@ -52,10 +71,30 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private MudForm _form = null!;
     private string? _fileName;
     private const Adornment Adornment = MudBlazor.Adornment.Start;
     private bool _isImporting;
+
+    private List<CashRegisterModel> _cashRegisters = [];
+    private CashRegisterModel? _selectedCashRegister;
+    private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
+
     private IBrowserFile? _file;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _cashRegisters = await CashRegisterService.GetAllCashRegisters();
+        _selectedCashRegister = _cashRegisters.FirstOrDefault();
+    }
+
+    private void OnCashRegisterChanged(CashRegisterModel? register)
+    {
+        _selectedCashRegister = register;
+    }
+
     private Task UploadFiles(IBrowserFile? file)
     {
         _file = file;
@@ -65,16 +104,16 @@
 
     private async Task ImportData()
     {
-        if (_file is null)
+        if (_file is null || _selectedCashRegister is null)
             return;
-        
+
             _isImporting = true;
             try
             {
                 await using var stream = _file.OpenReadStream();
                 if (_fileName != null)
                 {
-                    var result = await ImportBookingJournalService.ImportTransactions(stream, _fileName);
+                    var result = await ImportBookingJournalService.ImportTransactions(stream, _fileName, _selectedCashRegister.Id);
                     MudDialog.Close(DialogResult.Ok(result));
                 }
             }
@@ -91,6 +130,6 @@
 
     private void Cancel()
     {
-        MudDialog.Cancel();
+        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
     }
 }

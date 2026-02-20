@@ -18,7 +18,7 @@ public class ImportBookingJournalService(
     IOperationResultFactory operationResultFactory)
     : IImportBookingJournalService
 {
-    public async Task<IOperationResult> ImportTransactions(Stream? fileStream, string fileName)
+    public async Task<IOperationResult> ImportTransactions(Stream? fileStream, string fileName, int cashRegisterId)
     {
         if (fileStream == null)
         {
@@ -40,13 +40,13 @@ public class ImportBookingJournalService(
                 return validationResult.ErrorResult!;
             }
             
-            var cashRegister = await cashRegisterService.GetFirstCashRegisterAsync();
+            var cashRegister = await cashRegisterService.GetCashRegisterById(cashRegisterId);
             if (cashRegister == null)
             {
-                logger.LogError("Cash register not found.");
-                return operationResultFactory.NotFound(localizer["CashRegister"], 0);
+                logger.LogError("Cash register with ID {CashRegisterId} not found.", cashRegisterId);
+                return operationResultFactory.NotFound(localizer["CashRegister"], cashRegisterId);
             }
-            
+
             var importCounter = 0;
             var existingDocNumbers = await transactionService.GetAllDocumentNumbersAsync();
             
@@ -68,7 +68,7 @@ public class ImportBookingJournalService(
                     
                     var transaction = new TransactionModel
                     {
-                        CashRegisterId = cashRegister.Id,
+                        CashRegisterId = cashRegisterId,
                         Date = row.Date,
                         Documentnumber = row.DocumentNumber,
                         Description = row.Description,
