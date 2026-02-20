@@ -6,6 +6,7 @@
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 @inject IOperationResultFactory OperationResultFactory
+@inject ItemDetailValidator ItemDetailValidator
 
 <MudDialog>
     <DialogContent>
@@ -17,8 +18,7 @@
             <MudTextField @bind-Value="_itemDetailModel.CostDetails"
                           Label="@Localizer["Name"]"
                           For="@(() => _itemDetailModel.CostDetails)"
-                          Immediate="true"
-                          Required="true" />
+                          Immediate="true" />
         </MudForm>
     </DialogContent>
 
@@ -43,7 +43,7 @@
 
     private MudForm _form = new();
     private ItemDetailModel _itemDetailModel = new();
-    private readonly ItemDetailValidator _itemDetailValidator = new();
+    private ItemDetailValidator _itemDetailValidator => ItemDetailValidator;
 
     private bool _isEditMode;
 

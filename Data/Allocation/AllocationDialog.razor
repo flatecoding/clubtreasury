@@ -12,6 +12,7 @@
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 @inject IOperationResultFactory OperationResultFactory
+@inject AllocationValidator AllocationValidator
 
 <MudDialog>
     <DialogContent>
@@ -58,7 +59,7 @@
     [Parameter] public int? AllocationId { get; set; }
     private MudForm _form = new();
     private AllocationModel _allocationModel = new();
-    private readonly AllocationValidator _allocationValidator = new ();
+    private AllocationValidator _allocationValidator => AllocationValidator;
     private bool _isEditMode;
 
     private List<CostCenterModel> _costCenters = new();

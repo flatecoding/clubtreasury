@@ -1,13 +1,14 @@
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace TTCCashRegister.Data.Allocation;
 
 public class AllocationValidator: AbstractValidator<AllocationModel>
 {
-    public AllocationValidator()
+    public AllocationValidator(IStringLocalizer<Translation> localizer)
     {
-        RuleFor(a => a.CategoryId).GreaterThan(0).WithMessage("Category is required.");
-        RuleFor(a => a.CostCenterId).GreaterThan(0).WithMessage("Cost center is required.");
+        RuleFor(a => a.CategoryId).GreaterThan(0).WithMessage(localizer["CategoryRequired"]);
+        RuleFor(a => a.CostCenterId).GreaterThan(0).WithMessage(localizer["CostCenterRequired"]);
     }
     
     public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>

@@ -1,13 +1,14 @@
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace TTCCashRegister.Data.CashRegister;
 
 public class CashRegisterValidator :AbstractValidator<CashRegisterModel>
 {
-    public CashRegisterValidator()
+    public CashRegisterValidator(IStringLocalizer<Translation> localizer)
     {
-        RuleFor(cr => cr.Name).NotEmpty().WithMessage("Name for cash register is required.");
-        RuleFor(cr => cr.Name).MaximumLength(150).WithMessage("Name max length is 150 characters.");
+        RuleFor(cr => cr.Name).NotEmpty().WithMessage(localizer["CashRegisterNameRequired"]);
+        RuleFor(cr => cr.Name).MaximumLength(150).WithMessage(localizer["NameMaxLength150"]);
         RuleFor(cr => cr.FiscalYearStartMonth).InclusiveBetween(1, 12);
     }
     

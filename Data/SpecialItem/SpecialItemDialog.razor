@@ -7,6 +7,7 @@
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 @inject IOperationResultFactory OperationResultFactory
+@inject SpecialItemValidator SpecialItemValidator
 
 <MudDialog>
     <DialogContent>
@@ -35,7 +36,7 @@
 
     private MudForm _form = new();
     private SpecialItemModel _specialItemModel = new();
-    private readonly SpecialItemValidator _specialItemValidator = new();
+    private SpecialItemValidator _specialItemValidator => SpecialItemValidator;
     private bool _isEditMode;
 
     [CascadingParameter]

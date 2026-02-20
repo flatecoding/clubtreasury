@@ -6,6 +6,7 @@
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 @inject IOperationResultFactory OperationResultFactory
+@inject CategoryValidator CategoryValidator
 
 <MudDialog>
     <DialogContent>
@@ -17,8 +18,7 @@
             <MudTextField @bind-Value="_categoryModel.Name"
                           Label="@Localizer["Category"]"
                           For="@(() => _categoryModel.Name)"
-                          Immediate="true"
-                          Required="true" />
+                          Immediate="true" />
         </MudForm>
     </DialogContent>
 
@@ -43,7 +43,7 @@
 
     private MudForm _form = new();
     private CategoryModel _categoryModel = new();
-    private readonly CategoryValidator _categoryValidator = new();
+    private CategoryValidator _categoryValidator => CategoryValidator;
 
     private bool _isEditMode;
 

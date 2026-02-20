@@ -7,6 +7,7 @@
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 @inject IOperationResultFactory OperationResultFactory
+@inject CashRegisterValidator CashRegisterValidator
 
 <MudDialog>
     <DialogContent>
@@ -63,7 +64,7 @@
     [Parameter] public int? CashRegisterId { get; set; }
     private MudForm _form = new();
     private CashRegisterModel _cashRegisterModel = new();
-    private readonly CashRegisterValidator _cashRegisterValidator = new();
+    private CashRegisterValidator _cashRegisterValidator => CashRegisterValidator;
     private bool _isEditMode;
     private string? _existingLogoDataUri;
     private IBrowserFile? _pendingFile;

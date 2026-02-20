@@ -1,13 +1,14 @@
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace TTCCashRegister.Data.CostCenter;
 
 public class CostCenterValidator : AbstractValidator<CostCenterModel>
 {
-    public CostCenterValidator()
+    public CostCenterValidator(IStringLocalizer<Translation> localizer)
     {
-        RuleFor(n => n.CostUnitName).NotEmpty().WithMessage("CostUnit Name is required.");
-        RuleFor(n => n.CostUnitName).Length(1, 100).WithMessage("CostUnit Name must be between 1 and 100 characters.");
+        RuleFor(n => n.CostUnitName).NotEmpty().WithMessage(localizer["CostUnitNameRequired"]);
+        RuleFor(n => n.CostUnitName).Length(1, 100).WithMessage(localizer["CostUnitNameLength"]);
     }
     public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>
     {

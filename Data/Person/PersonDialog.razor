@@ -6,6 +6,7 @@
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 @inject IOperationResultFactory OperationResultFactory
+@inject PersonValidator PersonValidator
 
 <MudDialog>
     <DialogContent>
@@ -26,7 +27,7 @@
     [Parameter] public int? PersonId { get; set; } // null = Add, Wert = Edit
     private MudForm _form = new();
     private PersonModel _personModel = new();
-    private readonly PersonValidator _personValidator = new();
+    private PersonValidator _personValidator => PersonValidator;
     private bool _isEditMode;
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;

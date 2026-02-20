@@ -1027,4 +1027,106 @@
         <value>Loading data</value>
         <comment>LoadingData</comment>
     </data>
+    <data name="PositionDescriptionRequired" xml:space="preserve">
+        <value>Position description is required</value>
+    </data>
+    <data name="SpecialPositionNameTooLong" xml:space="preserve">
+        <value>Name of special position is too long</value>
+    </data>
+    <data name="PersonNameRequired" xml:space="preserve">
+        <value>Name for person is required</value>
+    </data>
+    <data name="NameMaxLength200" xml:space="preserve">
+        <value>Name max length is 200 characters</value>
+    </data>
+    <data name="CostUnitNameRequired" xml:space="preserve">
+        <value>CostUnit name is required</value>
+    </data>
+    <data name="CostUnitNameLength" xml:space="preserve">
+        <value>CostUnit name must be between 1 and 100 characters</value>
+    </data>
+    <data name="DetailDescriptionRequired" xml:space="preserve">
+        <value>Detail description is required</value>
+    </data>
+    <data name="DetailDescriptionMaxLength" xml:space="preserve">
+        <value>Detail description maximum length exceeded</value>
+    </data>
+    <data name="CashRegisterRequired" xml:space="preserve">
+        <value>Cash register is required</value>
+    </data>
+    <data name="DocumentNumberRequired" xml:space="preserve">
+        <value>Document number is required</value>
+    </data>
+    <data name="DescriptionRequired" xml:space="preserve">
+        <value>Description is required</value>
+    </data>
+    <data name="SumMinValue" xml:space="preserve">
+        <value>Sum must be greater than or equal to 0.01</value>
+    </data>
+    <data name="AccountMovementRequired" xml:space="preserve">
+        <value>Account sum is required</value>
+    </data>
+    <data name="AllocationRequired" xml:space="preserve">
+        <value>Allocation for transaction is required</value>
+    </data>
+    <data name="SpecialItemRequired" xml:space="preserve">
+        <value>Special item is required</value>
+    </data>
+    <data name="TransactionReferenceRequired" xml:space="preserve">
+        <value>Transaction reference is required</value>
+    </data>
+    <data name="DescriptionMaxLength300" xml:space="preserve">
+        <value>Description max length is 300 characters</value>
+    </data>
+    <data name="SumRequired" xml:space="preserve">
+        <value>Sum is required</value>
+    </data>
+    <data name="CategoryRequired" xml:space="preserve">
+        <value>Category is required</value>
+    </data>
+    <data name="CostCenterRequired" xml:space="preserve">
+        <value>Cost center is required</value>
+    </data>
+    <data name="CashRegisterNameRequired" xml:space="preserve">
+        <value>Name for cash register is required</value>
+    </data>
+    <data name="NameMaxLength150" xml:space="preserve">
+        <value>Name max length is 150 characters</value>
+    </data>
+    <data name="DateRequired" xml:space="preserve">
+        <value>Date is required</value>
+    </data>
+    <data name="MudTablePager_FirstPage" xml:space="preserve">
+        <value>First page</value>
+    </data>
+    <data name="MudTablePager_PreviousPage" xml:space="preserve">
+        <value>Previous page</value>
+    </data>
+    <data name="MudTablePager_NextPage" xml:space="preserve">
+        <value>Next page</value>
+    </data>
+    <data name="MudTablePager_LastPage" xml:space="preserve">
+        <value>Last page</value>
+    </data>
+    <data name="MudDataGridPager_RowsPerPage" xml:space="preserve">
+        <value>Rows per page:</value>
+    </data>
+    <data name="MudDataGridPager_InfoFormat" xml:space="preserve">
+        <value>{0}-{1} of {2}</value>
+    </data>
+    <data name="MudDataGridPager_AllItems" xml:space="preserve">
+        <value>All</value>
+    </data>
+    <data name="MudDataGridPager_FirstPage" xml:space="preserve">
+        <value>First page</value>
+    </data>
+    <data name="MudDataGridPager_PreviousPage" xml:space="preserve">
+        <value>Previous page</value>
+    </data>
+    <data name="MudDataGridPager_NextPage" xml:space="preserve">
+        <value>Next page</value>
+    </data>
+    <data name="MudDataGridPager_LastPage" xml:space="preserve">
+        <value>Last page</value>
+    </data>
 </root>

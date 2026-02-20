@@ -1,12 +1,13 @@
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace TTCCashRegister.Data.Category;
 
 public class CategoryValidator : AbstractValidator<CategoryModel>
 {
-    public CategoryValidator()
+    public CategoryValidator(IStringLocalizer<Translation> localizer)
     {
-        RuleFor(s => s.Name).NotEmpty().WithMessage("Position description is required");
+        RuleFor(s => s.Name).NotEmpty().WithMessage(localizer["PositionDescriptionRequired"]);
     }
     
     public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>
