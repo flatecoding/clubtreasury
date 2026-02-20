@@ -23,7 +23,8 @@
                                Label="@Localizer["CashRegister"]"
                                Required="true"
                                ToStringFunc="@_cashRegisterConverter"
-                               @bind-Value="_selectedCashRegister">
+                               Value="_selectedCashRegister"
+                               ValueChanged="OnCashRegisterChanged">
                         @foreach (var cr in _cashRegisters)
                         {
                             <MudSelectItem T="CashRegisterModel" Value="@cr">@cr.Name</MudSelectItem>
@@ -87,7 +88,7 @@
 
     private List<CashRegisterModel> _cashRegisters = [];
     private CashRegisterModel? _selectedCashRegister;
-    private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
+    private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p.Name;
 
     protected override async Task OnInitializedAsync()
     {
@@ -95,6 +96,12 @@
         _cashRegisters = await CashRegisterService.GetAllCashRegisters();
         _selectedCashRegister = _cashRegisters.FirstOrDefault();
         _model.DateRange = new DateRange(_selectedCashRegister?.GetFiscalYearStart() ?? DateTime.Today, DateTime.Now);
+    }
+
+    private void OnCashRegisterChanged(CashRegisterModel? register)
+    {
+        _selectedCashRegister = register;
+        _model.DateRange = new DateRange(register?.GetFiscalYearStart() ?? DateTime.Today, DateTime.Now);
     }
 
     private async Task ExportCsv()

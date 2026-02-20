@@ -4,5 +4,5 @@ namespace TTCCashRegister.Data.Import;
 
 public interface IImportBookingJournalService
 {
-    Task<IOperationResult> ImportTransactions(Stream? fileStream, string fileName);
+    Task<IOperationResult> ImportTransactions(Stream? fileStream, string fileName, int cashRegisterId);
 }

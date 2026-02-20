@@ -1022,4 +1022,8 @@
     <data name="ExpensesByCategory" xml:space="preserve">
         <value>Ausgaben nach Kategorie</value>
     </data>
+    <data name="LoadingData" xml:space="preserve">
+        <value>Daten werden geladen</value>
+        <comment>LoadingData</comment>
+    </data>
 </root>

@@ -24,8 +24,8 @@
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ConnectionStrings__DefaultConnection": "Server=localhost;Port=3306;Database=ClubCash_Empty;User Id=dev;Password={DbPassword}",
-        "ConnectionStrings__ProcudtionConnection": "Server=localhost;Port=3306;Database=ClubCash_Empty;User Id=dev;Password={DbPassword}",
+        "ConnectionStrings__DefaultConnection": "Server=localhost;Port=5432;Database=ClubCash_Empty;User Id=dev;Password={DbPassword}",
+        "ConnectionStrings__ProcudtionConnection": "Server=localhost;Port=5432;Database=ClubCash_Empty;User Id=dev;Password={DbPassword}",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true,

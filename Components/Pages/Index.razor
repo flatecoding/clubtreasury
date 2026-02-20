@@ -16,61 +16,78 @@
 
 <MudText class="mb-3" Typo="Typo.h4">@Localizer["WelcomeMessage"]</MudText>
 
-<MudGrid>
-    <MudItem xs="12" sm="6" md="4">
-        <MudPaper Class="pa-3 rounded-lg" Elevation="3">
-            <MudText Typo="Typo.h6" Color="MudBlazor.Color.Primary">@Localizer["ClubCash"]</MudText>
-            <MudText Typo="Typo.subtitle1" Class="mt-1 mb-2">@_register?.Name</MudText>
-            <MudDivider Class="mb-2"/>
-            <MudText Typo="Typo.body2" Class="mud-text-secondary">@Localizer["AccountBalance"]</MudText>
-            <MudText Typo="Typo.h5" Color="MudBlazor.Color.Success" Class="mt-1">
-                @_register?.CurrentBalance.ToString("C", CultureInfo.CurrentCulture)
-            </MudText>
-        </MudPaper>
-    </MudItem>
+<MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6"
+         ActivePanelIndexChanged="OnActivePanelIndexChanged">
+    @if (_allRegisters is null)
+    {
+        <MudText>@Localizer["LoadingData"]</MudText>
+    }
+    else
+    {
+    @foreach (var register in _allRegisters)
+    {
+        var registerId = register.Id;
+        <MudTabPanel Text="@register.Name">
+            <MudGrid>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudPaper Class="pa-3 rounded-lg" Elevation="3">
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary">@Localizer["AccountBalance"]</MudText>
+                        <MudText Typo="Typo.h5" Color="MudBlazor.Color.Success" Class="mt-1">
+                            @register.CurrentBalance.ToString("C", CultureInfo.CurrentCulture)
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudFlexBreak/>
+                <MudItem xs="12" md="8" lg="5">
+                    <MudPaper Class="pa-2 rounded-lg" Elevation="3">
+                        @if (GetChartData(registerId).Count > 0)
+                        {
+                            <ApexChart @ref="@(_charts[registerId])" TItem="ChartDataPoint"
+                                       Options="@_chartOptions"
+                                       OnZoomed="OnZoomed">
+                                <ApexPointSeries TItem="ChartDataPoint"
+                                                 Items="@GetChartData(registerId)"
+                                                 Name="@Localizer["AccountBalance"]"
+                                                 SeriesType="SeriesType.Line"
+                                                 XValue="e => e.Date"
+                                                 YValue="e => (decimal)e.Balance"
+                                                 OrderBy="e => e.X"/>
+                                <ApexPointSeries TItem="ChartDataPoint"
+                                                 Items="@GetChartData(registerId)"
+                                                 Name="@Localizer["Income"]"
+                                                 SeriesType="SeriesType.Line"
+                                                 XValue="e => e.Date"
+                                                 YValue="e => (decimal)e.Income"
+                                                 OrderBy="e => e.X"/>
+                                <ApexPointSeries TItem="ChartDataPoint"
+                                                 Items="@GetChartData(registerId)"
+                                                 Name="@Localizer["Expenses"]"
+                                                 SeriesType="SeriesType.Line"
+                                                 XValue="e => e.Date"
+                                                 YValue="e => (decimal)e.Expenses"
+                                                 OrderBy="e => e.X"/>
+                            </ApexChart>
+                        }
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
 
-    <MudFlexBreak />
+        </MudTabPanel>
 
-    <MudItem xs="12" md="8" lg="5">
-        <MudPaper Class="pa-2 rounded-lg" Elevation="3">
-            @if (_chartData.Count > 0)
-            {
-                <ApexChart @ref="_chart" TItem="ChartDataPoint"
-                           Options="@_chartOptions"
-                           OnZoomed="OnZoomed">
-                    <ApexPointSeries TItem="ChartDataPoint"
-                                     Items="@_chartData"
-                                     Name="@Localizer["AccountBalance"]"
-                                     SeriesType="SeriesType.Line"
-                                     XValue="e => e.Date"
-                                     YValue="e => (decimal)e.Balance"
-                                     OrderBy="e => e.X"/>
-                    <ApexPointSeries TItem="ChartDataPoint"
-                                     Items="@_chartData"
-                                     Name="@Localizer["Income"]"
-                                     SeriesType="SeriesType.Line"
-                                     XValue="e => e.Date"
-                                     YValue="e => (decimal)e.Income"
-                                     OrderBy="e => e.X"/>
-                    <ApexPointSeries TItem="ChartDataPoint"
-                                     Items="@_chartData"
-                                     Name="@Localizer["Expenses"]"
-                                     SeriesType="SeriesType.Line"
-                                     XValue="e => e.Date"
-                                     YValue="e => (decimal)e.Expenses"
-                                     OrderBy="e => e.X"/>
-                </ApexChart>
-            }
-        </MudPaper>
-    </MudItem>
-</MudGrid>
+    }
+    }
+</MudTabs>
 
 @code
 {
-    private CashRegisterModel? _register;
-    private List<ChartDataPoint> _chartData = [];
+    private List<CashRegisterModel>? _allRegisters;
+    private readonly Dictionary<int, List<ChartDataPoint>> _chartDataByRegister = new();
+    private readonly Dictionary<int, ApexChart<ChartDataPoint>> _charts = new();
     private ApexChartOptions<ChartDataPoint> _chartOptions = new();
-    private ApexChart<ChartDataPoint>? _chart;
+    private int _activeRegisterId;
+
+    private List<ChartDataPoint> GetChartData(int registerId) =>
+        _chartDataByRegister.TryGetValue(registerId, out var data) ? data : [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -78,13 +95,27 @@
 
         UserPrefService.PropertyChanged += OnUserPrefChanged;
 
-        var cashRegisters = await CashRegisterService.GetAllCashRegisters();
-        _register = cashRegisters.FirstOrDefault();
+        _allRegisters = (await CashRegisterService.GetAllCashRegisters()).ToList();
+        var firstRegister = _allRegisters.FirstOrDefault();
 
-        if (_register is not null)
-            await LoadChartDataAsync(_register);
+        if (firstRegister is not null)
+        {
+            _activeRegisterId = firstRegister.Id;
+            await LoadChartDataAsync(firstRegister);
+        }
 
         UpdateChartOptions();
+    }
+
+    private async Task OnActivePanelIndexChanged(int index)
+    {
+        if (_allRegisters is null || index < 0 || index >= _allRegisters.Count) return;
+
+        var register = _allRegisters[index];
+        _activeRegisterId = register.Id;
+
+        if (!_chartDataByRegister.ContainsKey(register.Id))
+            await LoadChartDataAsync(register);
     }
 
     private void UpdateChartOptions()
@@ -121,8 +152,8 @@
 
             UpdateChartOptions();
             await InvokeAsync(StateHasChanged);
-            if (_chart is not null)
-                await InvokeAsync(() => _chart.UpdateOptionsAsync(true, true, true));
+            if (_charts.TryGetValue(_activeRegisterId, out var activeChart))
+                await InvokeAsync(async () => await activeChart.UpdateOptionsAsync(true, true, true));
         }
         catch (Exception ex)
         {
@@ -134,15 +165,17 @@
     {
         try
         {
-            if (_chart is null || _chartData.Count == 0) return;
+            if (!_charts.TryGetValue(_activeRegisterId, out var activeChart)) return;
+            var chartData = GetChartData(_activeRegisterId);
+            if (chartData.Count == 0) return;
 
-            var dataMin = new DateTimeOffset(_chartData[0].Date, TimeSpan.Zero).ToUnixTimeMilliseconds();
-            var dataMax = new DateTimeOffset(_chartData[^1].Date, TimeSpan.Zero).ToUnixTimeMilliseconds();
+            var dataMin = new DateTimeOffset(chartData[0].Date, TimeSpan.Zero).ToUnixTimeMilliseconds();
+            var dataMax = new DateTimeOffset(chartData[^1].Date, TimeSpan.Zero).ToUnixTimeMilliseconds();
             var dataRange = dataMax - dataMin;
             var zoomRange = (zoomedData.XAxis.Max ?? dataMax) - (zoomedData.XAxis.Min ?? dataMin);
 
             if (zoomRange > dataRange)
-                await _chart.ZoomXAsync(dataMin, dataMax);
+                await activeChart.ZoomXAsync(dataMin, dataMax);
         }
         catch (Exception e)
         {
@@ -163,7 +196,7 @@
         var startingBalance = await CalculateStartingBalanceAsync(register.Id, beginDate);
         var transactions = await GetOrderedTransactionsAsync(register.Id, beginDate, now);
 
-        _chartData = CalculateTransactionData(transactions, startingBalance, beginDate);
+        _chartDataByRegister[register.Id] = CalculateTransactionData(transactions, startingBalance, beginDate);
     }
 
     private async Task<double> CalculateStartingBalanceAsync(int registerId, DateTime fiscalYearStart)
