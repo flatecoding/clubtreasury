@@ -1128,4 +1128,8 @@
     <data name="MudDataGridPager_LastPage" xml:space="preserve">
         <value>Letzte Seite</value>
     </data>
+    <data name="Logo" xml:space="preserve">
+        <value>Logo</value>
+        <comment>Logo</comment>
+    </data>
 </root>
