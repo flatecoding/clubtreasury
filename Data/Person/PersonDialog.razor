@@ -10,8 +10,8 @@
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" Model="_personModel" Validation="_personValidator.ValidateValue" ValidationDelay="0">
-            <MudTextField @bind-Value="_personModel.Name" Label=@Localizer["Name"] 
+        <MudForm @ref="_form" Model="_personModel" Validation="PersonValidator.ValidateValue" ValidationDelay="0">
+            <MudTextField @bind-Value="_personModel.Name" Label="@Localizer["Name"]"
                           For="@(() => _personModel.Name)" Immediate="true"/>
         </MudForm>
     </DialogContent>
@@ -19,36 +19,35 @@
         <MudButton Color="Color.Primary" OnClick="@(async () => await Save())">
             @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
-        <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="@(() => Cancel())">Cancel</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="@Cancel">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [Parameter] public int? PersonId { get; set; } // null = Add, Wert = Edit
-    private MudForm _form = new();
-    private PersonModel _personModel = new();
-    private PersonValidator _personValidator => PersonValidator;
-    private bool _isEditMode;
+    [Parameter] public int? PersonId { get; set; }
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private MudForm _form = new();
+    private PersonModel _personModel = new();
+    private bool _isEditMode;
 
     protected override async Task OnInitializedAsync()
     {
         _isEditMode = PersonId.HasValue;
-        string dialogTitle;
-        if (_isEditMode)
-        {
-            if (PersonId is not null) _personModel = 
-                await PersonService.GetPersonById(PersonId.Value) ?? new PersonModel();
-            dialogTitle = Localizer["Edit"];
-        }
-        else
+        await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
+        await LoadPersonAsync();
+    }
+
+    private async Task LoadPersonAsync()
+    {
+        if (!_isEditMode)
         {
             _personModel = new PersonModel();
-            dialogTitle = Localizer["AddEntry"];
+            return;
         }
-        await MudDialog.SetTitleAsync(dialogTitle);
-        StateHasChanged();
+
+        _personModel = await PersonService.GetPersonById(PersonId!.Value) ?? new PersonModel();
     }
 
     private async Task Save()
@@ -57,30 +56,15 @@
         if (!_form.IsValid)
             return;
 
-        IOperationResult result;
-
-        if (_isEditMode)
-        {
-            result = await PersonService.UpdatePersonAsync(_personModel);
-        }
-        else
-        {
-            result = await PersonService.AddPersonAsync(_personModel);
-        }
+        var result = _isEditMode
+            ? await PersonService.UpdatePersonAsync(_personModel)
+            : await PersonService.AddPersonAsync(_personModel);
 
         if (result.Status is OperationResultStatus.Success)
-        {
             MudDialog.Close(DialogResult.Ok(result));
-        }
         else
-        {
             await NotificationService.ShowOperationResultAsync(result);
-        }
-        
     }
 
-    private void Cancel()
-    {
-        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
-    }
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
 }

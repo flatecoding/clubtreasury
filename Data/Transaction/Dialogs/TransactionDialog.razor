@@ -73,7 +73,8 @@
                        ToStringFunc="@_unitConverter"
                        Immediate="true"
                        @bind-Value="_selectedCostUnit"
-                       @bind-Value:after="OnCostUnitChangedAsync">
+                       @bind-Value:after="OnCostUnitChangedAsync"
+                       Clearable="true">
                 @foreach (var unit in _costCenters)
                 {
                     <MudSelectItem T="CostCenterModel" Value="@unit">@unit.CostUnitName</MudSelectItem>
@@ -87,7 +88,8 @@
                        RequiredError="@Localizer["CategoryRequired"]"
                        ToStringFunc="@_basicUnitConverter"
                        @bind-Value="_selectedCategory"
-                       @bind-Value:after="OnBasicUnitChangedAsync">
+                       @bind-Value:after="OnBasicUnitChangedAsync"
+                       Clearable="true">
                 @if (_categories is not null)
                 {
                     @foreach (var basicUnit in _categories)
@@ -101,8 +103,8 @@
                        Label="@Localizer["ItemDetail"]"
                        Disabled="@(_selectedCategory == null)" 
                        ToStringFunc="@_detailsConverter"
-                       @bind-Value="_selectedItemDetail">
-                <MudSelectItem T="ItemDetailModel" Value="@null">None</MudSelectItem>
+                       @bind-Value="_selectedItemDetail"
+                       Clearable="true">
                 @if (_unitDetails is not null)
                 {
                     foreach (var unitDetail in _unitDetails)
@@ -115,8 +117,8 @@
                        Label="@Localizer["SpecialPositions"]"
                        ToStringFunc="@_specialItemConverter"
                        Placeholder="@Localizer["SpecialPositionIfRequired"]"
-                       @bind-Value="_selectedSpecialItem">
-                <MudSelectItem T="SpecialItemModel" Value="@null">None</MudSelectItem>
+                       @bind-Value="_selectedSpecialItem"
+                       Clearable="true">
                 @foreach (var specialItem in _specialItemList)
                 {
                     <MudSelectItem T="SpecialItemModel" Value="@specialItem">@specialItem.Name</MudSelectItem>

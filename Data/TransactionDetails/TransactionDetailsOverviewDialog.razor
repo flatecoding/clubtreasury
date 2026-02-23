@@ -36,7 +36,7 @@
                     <MudTd>
                         <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                        Color="Color.Info"
-                                       OnClick="@(async() => await ShowEditTransactionDetailDialog(row.Id))"/>
+                                       OnClick="@(async () => await ShowEditTransactionDetailDialog(row.Id))"/>
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
                                        OnClick="@(async () => await ShowDeleteTransactionDetailsDialog(row))"/>
@@ -46,35 +46,34 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton Color="Color.Primary" 
+        <MudButton Color="Color.Primary"
                    OnClick="@(async () => await ShowAddTransactionDetailsDialog())">
             @Localizer["AddEntry"]
         </MudButton>
-        <MudButton Color="Color.Secondary" OnClick="@(() => Close())">@Localizer["Close"]</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="@Close">@Localizer["Close"]</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [Parameter] public int TransactionId { get; set; }
     [Parameter] public int ParentDocumentNumber { get; set; }
-    private List<TransactionDetailsModel>? _transactionDetails;
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
+    private List<TransactionDetailsModel>? _transactionDetails;
+
     protected override async Task OnInitializedAsync()
     {
-        await LoadTransactionDetails();
         await MudDialog.SetTitleAsync($"{Localizer["TransactionDetailsFor"]}: {ParentDocumentNumber}");
-        StateHasChanged();
+        await LoadTransactionDetails();
     }
 
     private async Task LoadTransactionDetails()
     {
         _transactionDetails = await TransactionDetailsService.GetTransactionDetailsByTransactionIdAsync(TransactionId);
-        await InvokeAsync(StateHasChanged);
+        StateHasChanged();
     }
 
-    
     private async Task ShowAddTransactionDetailsDialog()
     {
         var parameters = new DialogParameters
@@ -84,12 +83,12 @@
         };
 
         var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDetailsDialog>(NotificationService,
-            $"{Localizer["AddEntry"]}", parameters);
+            Localizer["AddEntry"], parameters);
 
-        if(result?.Status is OperationResultStatus.Success)
+        if (result?.Status is OperationResultStatus.Success)
             await LoadTransactionDetails();
     }
-    
+
     private async Task ShowEditTransactionDetailDialog(int transactionDetailsId)
     {
         var parameters = new DialogParameters
@@ -99,9 +98,9 @@
         };
 
         var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDetailsDialog>(NotificationService,
-            $"{Localizer["Edit"]}", parameters);
+            Localizer["Edit"], parameters);
 
-        if (result?.Status is  OperationResultStatus.Success)
+        if (result?.Status is OperationResultStatus.Success)
             await LoadTransactionDetails();
     }
 
@@ -110,7 +109,7 @@
         await DialogService.ShowConfirmDeleteDialogAsync(
             NotificationService,
             entityName: Localizer["TransactionDetailsFor"].Value,
-            itemName: $"{details.Description}",
+            itemName: details.Description ?? string.Empty,
             onConfirm: () => TransactionDetailsService.DeleteTransactionDetailsAsync(details.Id),
             onSuccess: LoadTransactionDetails,
             deleteTitle: Localizer["Delete"]);

@@ -11,75 +11,70 @@
     <DialogContent>
         <MudText Typo="Typo.subtitle1">@Localizer["ImportQuestion"]</MudText>
         <MudForm>
-            <MudFileUpload T="IBrowserFile" 
+            <MudFileUpload T="IBrowserFile"
                            FilesChanged="UploadFiles"
                            Accept=".txt">
                 <ActivatorContent>
                     <MudButton Class="mb-2"
                                Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               >
+                               Color="Color.Primary">
                         @Localizer["SelectFile"]
                     </MudButton>
                 </ActivatorContent>
             </MudFileUpload>
-            <MudTextField Disabled="true" @bind-Value="_fileName" Label=@Localizer["FileName"] Placeholder="@Localizer["FileName"]" Required="true"/>
+            <MudTextField Disabled="true" @bind-Value="_fileName" Label="@Localizer["FileName"]" Placeholder="@Localizer["FileName"]" Required="true"/>
         </MudForm>
     </DialogContent>
     <DialogActions>
         <MudLoadingButton
             LoadingAdornment="Adornment"
-            OnClick="@(() => ImportData())"
+            OnClick="@ImportData"
             Color="Color.Primary">
             @Localizer["Import"]
         </MudLoadingButton>
-        <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="@(() => Cancel())">@Localizer["Close"]</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="@Cancel">@Localizer["Close"]</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
     private string? _fileName = string.Empty;
     private bool _isImporting;
     private const Adornment Adornment = MudBlazor.Adornment.Start;
-
     private IBrowserFile? _file;
-    private Task UploadFiles(IBrowserFile? file)
+
+    private void UploadFiles(IBrowserFile? file)
     {
         _file = file;
         _fileName = file?.Name;
-        return Task.CompletedTask;
     }
 
     private async Task ImportData()
     {
-        if (!_isImporting)
+        if (_isImporting)
+            return;
+
+        try
         {
-            try
+            _isImporting = true;
+            await using var stream = _file?.OpenReadStream();
+            if (stream is not null && _file is not null)
             {
-                _isImporting = true;
-                await using var stream = _file?.OpenReadStream();
-                if (stream is not null && _file is not null)
-                {
-                    var result = await ImportCostCenterService.ImportCostCentersAndPositions(stream, _file.Name);
-                    MudDialog.Close(DialogResult.Ok(result));
-                }
-                
+                var result = await ImportCostCenterService.ImportCostCentersAndPositions(stream, _file.Name);
+                MudDialog.Close(DialogResult.Ok(result));
             }
-            catch (Exception ex)
-            {
-                Logger.LogCritical(ex, "An error occured during import of file: '{_fileName}':", _fileName);
-                MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["Exception"])));
-            }
-            finally
-            {
-                _isImporting = false;
-            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogCritical(ex, "An error occured during import of file: '{_fileName}':", _fileName);
+            MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["Exception"])));
+        }
+        finally
+        {
+            _isImporting = false;
         }
     }
 
-    private void Cancel()
-    {
-        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
-    }
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
 }

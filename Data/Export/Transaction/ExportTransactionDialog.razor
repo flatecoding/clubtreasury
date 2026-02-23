@@ -1,4 +1,4 @@
-﻿@page "/export-transaction-dialog"
+@page "/export-transaction-dialog"
 @using FluentValidation
 @using Microsoft.Extensions.Localization
 @using MudExtensions
@@ -56,14 +56,14 @@
     <DialogActions>
         <MudLoadingButton @bind-Loading="_isExportingPdf"
                           LoadingAdornment="Adornment"
-                          OnClick="@(async () => await ExportPdf())"
+                          OnClick="@ExportPdf"
                           Color="Color.Primary">
             @Localizer["ExportPdf"]
         </MudLoadingButton>
 
         <MudLoadingButton @bind-Loading="_isExportingCsv"
                           LoadingAdornment="Adornment"
-                          OnClick="@(async () => await ExportCsv())"
+                          OnClick="@ExportCsv"
                           Color="Color.Primary">
             @Localizer["ExportCSV"]
         </MudLoadingButton>
@@ -78,7 +78,7 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-    
+
     private MudForm _form = null!;
     private readonly ExportModel _model = new();
     private bool _isExportingCsv;
@@ -92,7 +92,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
         _cashRegisters = await CashRegisterService.GetAllCashRegisters();
         _selectedCashRegister = _cashRegisters.FirstOrDefault();
         _model.DateRange = new DateRange(_selectedCashRegister?.GetFiscalYearStart() ?? DateTime.Today, DateTime.Now);
@@ -106,14 +105,8 @@
 
     private async Task ExportCsv()
     {
-        await _form.Validate();
-        var dateErrors = GetDateRangeErrors();
-        if (!_form.IsValid || dateErrors is not null)
-        {
-            if (dateErrors is not null)
-                await NotificationService.ShowOperationResultAsync(dateErrors);
+        if (!await ValidateFormAsync())
             return;
-        }
 
         _isExportingCsv = true;
         try
@@ -121,33 +114,26 @@
             var start = _model.DateRange!.Start!.Value.Date;
             var end = _model.DateRange.End!.Value.Date;
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
-            
-            var result = await ExportService.ExportTransactionsToCsv(start, end, filename, _selectedCashRegister!.Id);
 
+            var result = await ExportService.ExportTransactionsToCsv(start, end, filename, _selectedCashRegister!.Id);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
         {
             Logger.LogCritical(ex, "Error occurred during export transactions to csv-file");
             MudDialog.Close(DialogResult.Ok(
-                OperationResultFactory.ExportFailed($"{Localizer["Exception"]}")));
+                OperationResultFactory.ExportFailed(Localizer["Exception"])));
         }
         finally
         {
             _isExportingCsv = false;
         }
     }
-    
+
     private async Task ExportPdf()
     {
-        await _form.Validate();
-        var dateErrors = GetDateRangeErrors();
-        if (!_form.IsValid || dateErrors is not null)
-        {
-            if (dateErrors is not null)
-                await NotificationService.ShowOperationResultAsync(dateErrors);
+        if (!await ValidateFormAsync())
             return;
-        }
 
         _isExportingPdf = true;
         try
@@ -155,10 +141,9 @@
             var start = _model.DateRange!.Start!.Value.Date;
             var end = _model.DateRange.End!.Value.Date;
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
-            
+
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(CExportTimeOut));
             var result = await ExportService.ExportTransactionsToPdf(start, end, filename, _selectedCashRegister!.Id, _selectedCashRegister.Name, cts.Token);
-
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (OperationCanceledException)
@@ -170,14 +155,26 @@
         {
             Logger.LogCritical(ex, "Error occurred during export transactions to pdf-file");
             MudDialog.Close(DialogResult.Ok(
-                OperationResultFactory.ExportFailed($"{Localizer["Exception"]}")));
+                OperationResultFactory.ExportFailed(Localizer["Exception"])));
         }
         finally
         {
             _isExportingPdf = false;
         }
     }
-    
+
+    private async Task<bool> ValidateFormAsync()
+    {
+        await _form.Validate();
+        var dateErrors = GetDateRangeErrors();
+        if (_form.IsValid && dateErrors is null)
+            return true;
+
+        if (dateErrors is not null)
+            await NotificationService.ShowOperationResultAsync(dateErrors);
+        return false;
+    }
+
     private IOperationResult? GetDateRangeErrors()
     {
         var result = ExportModelValidator.Validate(
@@ -188,9 +185,6 @@
             ? null
             : OperationResultFactory.DateRangeInvalid(result.ToString());
     }
-    
-    private void Cancel()
-    {
-        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
-    }
+
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
 }

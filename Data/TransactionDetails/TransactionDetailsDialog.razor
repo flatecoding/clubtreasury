@@ -12,26 +12,26 @@
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" Model="_transactionDetailsModel" 
-                 Validation="_transactionDetailsValidator.ValidateValue"
+        <MudForm @ref="_form" Model="_transactionDetailsModel"
+                 Validation="TransactionDetailsValidator.ValidateValue"
                  ValidationDelay="0">
-            
+
             <MudTextField @bind-Value="_transactionDetailsModel.DocumentNumber"
-                          Label=@Localizer["DocumentNumber"]
+                          Label="@Localizer["DocumentNumber"]"
                           For="@(() => _transactionDetailsModel.DocumentNumber)"
                           Immediate="true" />
-            
+
             <MudTextField @bind-Value="_transactionDetailsModel.Description"
-                          Label=@Localizer["Description"]
+                          Label="@Localizer["Description"]"
                           For="@(() => _transactionDetailsModel.Description)"
                           Immediate="true" />
-            
+
             <MudTextField @bind-Value="_transactionDetailsModel.Sum"
-                             Label=@Localizer["Sum"]
-                             For="@(() => _transactionDetailsModel.Sum)"
-                             Immediate="true" />
-            
-            <MudSelect T="int?" Label=@Localizer["Person"] @bind-Value="_transactionDetailsModel.PersonId"
+                          Label="@Localizer["Sum"]"
+                          For="@(() => _transactionDetailsModel.Sum)"
+                          Immediate="true" />
+
+            <MudSelect T="int?" Label="@Localizer["Person"]" @bind-Value="_transactionDetailsModel.PersonId"
                        Clearable="true"
                        ToStringFunc="@PersonIdToName">
                 @foreach (var p in _persons)
@@ -42,13 +42,11 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton
-                   Color="Color.Primary"
+        <MudButton Color="Color.Primary"
                    OnClick="@(async () => await Save())">
             @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
-        <MudButton
-                   Color="Color.Secondary"
+        <MudButton Color="Color.Secondary"
                    OnClick="@Cancel">
             @Localizer["Cancel"]
         </MudButton>
@@ -57,72 +55,58 @@
 
 @code {
     [Parameter] public int TransactionId { get; set; }
-    [Parameter] public int? TransactionDetailsId { get; set; } // null = Add, Wert = Edit
+    [Parameter] public int? TransactionDetailsId { get; set; }
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     private MudForm _form = new();
     private TransactionDetailsModel _transactionDetailsModel = new();
     private bool _isEditMode;
-    private TransactionDetailsValidator _transactionDetailsValidator => TransactionDetailsValidator;
-
     private IEnumerable<PersonModel> _persons = [];
-
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
         _isEditMode = TransactionDetailsId.HasValue;
-        
         _persons = await PersonService.GetAllPersonsAsync();
-        string dialogTitle;
-        if (_isEditMode)
-        {
-            if (TransactionDetailsId is not null) 
-                _transactionDetailsModel = await TransactionDetailsService
-                                               .GetTransactionDetailsByIdAsync(TransactionDetailsId.Value)
-                                           ?? new TransactionDetailsModel { TransactionId = TransactionId };
-            dialogTitle = Localizer["EditTransactionDetails"];
-        }
-        else
+        await MudDialog.SetTitleAsync(_isEditMode ? Localizer["EditTransactionDetails"] : Localizer["AddTransactionDetails"]);
+        await LoadTransactionDetailsAsync();
+    }
+
+    private async Task LoadTransactionDetailsAsync()
+    {
+        if (!_isEditMode)
         {
             _transactionDetailsModel = new TransactionDetailsModel
             {
                 TransactionId = TransactionId,
                 Sum = 0m
             };
-            dialogTitle = Localizer["AddTransactionDetails"];
+            return;
         }
 
-        await MudDialog.SetTitleAsync(dialogTitle);
-        StateHasChanged();
+        _transactionDetailsModel = await TransactionDetailsService
+                                       .GetTransactionDetailsByIdAsync(TransactionDetailsId!.Value)
+                                   ?? new TransactionDetailsModel { TransactionId = TransactionId };
     }
 
     private async Task Save()
     {
         await _form.Validate();
-        if (_form.IsValid)
-        {
-            IOperationResult result;
-            if (_isEditMode)
-                result = await TransactionDetailsService.UpdateTransactionDetailsAsync(_transactionDetailsModel);
-            else
-                result = await TransactionDetailsService.AddTransactionDetailsAsync(_transactionDetailsModel);
-            
-            if(result.Status is OperationResultStatus.Success)
-                MudDialog.Close(DialogResult.Ok(result));
-            else
-            {
-                await NotificationService.ShowOperationResultAsync(result);
-            }
-        }
+        if (!_form.IsValid)
+            return;
+
+        var result = _isEditMode
+            ? await TransactionDetailsService.UpdateTransactionDetailsAsync(_transactionDetailsModel)
+            : await TransactionDetailsService.AddTransactionDetailsAsync(_transactionDetailsModel);
+
+        if (result.Status is OperationResultStatus.Success)
+            MudDialog.Close(DialogResult.Ok(result));
+        else
+            await NotificationService.ShowOperationResultAsync(result);
     }
 
     private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
-    
-    private string PersonIdToName(int? id)
-    {
-        if (id is null)
-            return string.Empty;
 
-        return _persons.FirstOrDefault(p => p.Id == id.Value)?.Name ?? string.Empty;
-    }
+    private string PersonIdToName(int? id)
+        => id is null ? string.Empty : _persons.FirstOrDefault(p => p.Id == id.Value)?.Name ?? string.Empty;
 }

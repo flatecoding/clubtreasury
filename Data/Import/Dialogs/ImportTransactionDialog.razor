@@ -19,11 +19,11 @@
             @Localizer["Date"]; @Localizer["DocumentNumber"]; @Localizer["Description"]; @Localizer["Income"]; @Localizer["Expenses"]; @Localizer["Account"]; @Localizer["CostUnitCategory"]
         </MudTextM3>
         <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>@Localizer["FileFormat"]:</strong> *.xlsx</MudTextM3>
-       <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Medium"><strong>@Localizer["Example"]:</strong></MudTextM3>
+        <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Medium"><strong>@Localizer["Example"]:</strong></MudTextM3>
         <MudImage Class="mb-2"
-            Src="images/ExampleBookingJournalImport.png"
-                          Alt="Example">
-                </MudImage>
+                  Src="images/ExampleBookingJournalImport.png"
+                  Alt="Example">
+        </MudImage>
         <MudForm @ref="_form">
             <MudGrid Spacing="2">
                 <MudItem xs="12">
@@ -53,7 +53,7 @@
                         </MudFileUpload>
                         <MudTextField Disabled="true" @bind-Value="_fileName" Label="@Localizer["FileName"]" Placeholder="@Localizer["FileName"]" Required="true" Style="flex: 1;"/>
                     </div>
-                </MudItem> 
+                </MudItem>
             </MudGrid>
         </MudForm>
     </DialogContent>
@@ -61,11 +61,11 @@
         <MudLoadingButton
             @bind-Loading="_isImporting"
             LoadingAdornment="Adornment"
-            OnClick="@(() => ImportData())"
+            OnClick="@ImportData"
             Color="Color.Primary">
             @Localizer["Import"]
         </MudLoadingButton>
-        <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="@(() => Cancel())">@Localizer["Close"]</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="@Cancel">@Localizer["Close"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -85,21 +85,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
         _cashRegisters = await CashRegisterService.GetAllCashRegisters();
         _selectedCashRegister = _cashRegisters.FirstOrDefault();
     }
 
-    private void OnCashRegisterChanged(CashRegisterModel? register)
-    {
-        _selectedCashRegister = register;
-    }
+    private void OnCashRegisterChanged(CashRegisterModel? register) => _selectedCashRegister = register;
 
-    private Task UploadFiles(IBrowserFile? file)
+    private void UploadFiles(IBrowserFile? file)
     {
         _file = file;
         _fileName = file?.Name;
-        return Task.CompletedTask;
     }
 
     private async Task ImportData()
@@ -107,29 +102,26 @@
         if (_file is null || _selectedCashRegister is null)
             return;
 
-            _isImporting = true;
-            try
+        _isImporting = true;
+        try
+        {
+            await using var stream = _file.OpenReadStream();
+            if (_fileName != null)
             {
-                await using var stream = _file.OpenReadStream();
-                if (_fileName != null)
-                {
-                    var result = await ImportBookingJournalService.ImportTransactions(stream, _fileName, _selectedCashRegister.Id);
-                    MudDialog.Close(DialogResult.Ok(result));
-                }
+                var result = await ImportBookingJournalService.ImportTransactions(stream, _fileName, _selectedCashRegister.Id);
+                MudDialog.Close(DialogResult.Ok(result));
             }
-            catch (Exception ex)
-            {
-                Logger.LogCritical(ex, "An exception occurred while importing transactions: {_fileName}", _fileName);
-                MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["Exception"])));
-            }
-            finally
-            {
-                _isImporting = false;
-            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogCritical(ex, "An exception occurred while importing transactions: {_fileName}", _fileName);
+            MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["Exception"])));
+        }
+        finally
+        {
+            _isImporting = false;
+        }
     }
 
-    private void Cancel()
-    {
-        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
-    }
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
 }

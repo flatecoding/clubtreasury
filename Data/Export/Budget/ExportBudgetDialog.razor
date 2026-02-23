@@ -52,14 +52,14 @@
     <DialogActions>
         <MudLoadingButton @bind-Loading="_isExportingCsv"
                           LoadingAdornment="Adornment"
-                          OnClick="@(async () => await ExportCsv())"
+                          OnClick="@ExportCsv"
                           Color="Color.Primary">
             @Localizer["ExportCSV"]
         </MudLoadingButton>
 
         <MudLoadingButton @bind-Loading="_isExportingXlsx"
                           LoadingAdornment="Adornment"
-                          OnClick="@(async () => await ExportXlsx())"
+                          OnClick="@ExportXlsx"
                           Color="Color.Primary">
             @Localizer["ExportXlsx"]
         </MudLoadingButton>
@@ -74,7 +74,7 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-    
+
     private MudForm _form = null!;
     private readonly ExportModel _model = new();
     private bool _isExportingCsv;
@@ -87,7 +87,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
         _cashRegisters = await CashRegisterService.GetAllCashRegisters();
         _selectedCashRegister = _cashRegisters.FirstOrDefault();
         _model.DateRange = new DateRange(_selectedCashRegister?.GetFiscalYearStart() ?? DateTime.Today, DateTime.Now);
@@ -111,7 +110,7 @@
             var start = _model.DateRange!.Start!.Value.Date;
             var end = _model.DateRange.End!.Value.Date;
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
-        
+
             var result = await ExportService.ExportBudgetToCsv(start, end, filename, _selectedCashRegister!.Id);
             MudDialog.Close(DialogResult.Ok(result));
         }
@@ -119,7 +118,7 @@
         {
             Logger.LogCritical(ex, "Unexpected error during export");
             MudDialog.Close(DialogResult.Ok(
-                OperationResultFactory.ExportFailed($"{Localizer["Exception"]}")));
+                OperationResultFactory.ExportFailed(Localizer["Exception"])));
         }
         finally
         {
@@ -139,16 +138,15 @@
             var start = _model.DateRange!.Start!.Value.Date;
             var end = _model.DateRange.End!.Value.Date;
             var fileName = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-            
-            var result = await ExportService.ExportBudgetToExcel(start, end, fileName, _selectedCashRegister!.Id);
 
+            var result = await ExportService.ExportBudgetToExcel(start, end, fileName, _selectedCashRegister!.Id);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
         {
             Logger.LogCritical(ex, "Error occurred during export!");
             MudDialog.Close(DialogResult.Ok(
-                OperationResultFactory.ExportFailed($"{Localizer["Exception"]}")));
+                OperationResultFactory.ExportFailed(Localizer["Exception"])));
         }
         finally
         {
@@ -156,8 +154,5 @@
         }
     }
 
-    private void Cancel()
-    {
-        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
-    }
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
 }

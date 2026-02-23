@@ -12,7 +12,7 @@
     <DialogContent>
         <MudForm @ref="_form"
                  Model="_itemDetailModel"
-                 Validation="_itemDetailValidator.ValidateValue"
+                 Validation="ItemDetailValidator.ValidateValue"
                  ValidationDelay="0">
 
             <MudTextField @bind-Value="_itemDetailModel.CostDetails"
@@ -43,27 +43,25 @@
 
     private MudForm _form = new();
     private ItemDetailModel _itemDetailModel = new();
-    private ItemDetailValidator _itemDetailValidator => ItemDetailValidator;
-
     private bool _isEditMode;
 
     protected override async Task OnInitializedAsync()
     {
         _isEditMode = ItemDetailId.HasValue;
+        await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
+        await LoadItemDetailAsync();
+    }
 
-        if (_isEditMode && ItemDetailId is not null)
-        {
-            _itemDetailModel =
-                await ItemDetailService.GetItemDetailByIdAsync(ItemDetailId.Value)
-                ?? new ItemDetailModel();
-
-            await MudDialog.SetTitleAsync(Localizer["Edit"]);
-        }
-        else
+    private async Task LoadItemDetailAsync()
+    {
+        if (!_isEditMode)
         {
             _itemDetailModel = new ItemDetailModel();
-            await MudDialog.SetTitleAsync(Localizer["AddEntry"]);
+            return;
         }
+
+        _itemDetailModel = await ItemDetailService.GetItemDetailByIdAsync(ItemDetailId!.Value)
+                           ?? new ItemDetailModel();
     }
 
     private async Task Save()
@@ -72,29 +70,15 @@
         if (!_form.IsValid)
             return;
 
-        IOperationResult result;
-
-        if (_isEditMode)
-        {
-            result = await ItemDetailService.UpdateItemDetailAsync(_itemDetailModel);
-        }
-        else
-        {
-            result = await ItemDetailService.AddItemDetailAsync(_itemDetailModel);
-        }
+        var result = _isEditMode
+            ? await ItemDetailService.UpdateItemDetailAsync(_itemDetailModel)
+            : await ItemDetailService.AddItemDetailAsync(_itemDetailModel);
 
         if (result.Status is OperationResultStatus.Success)
-        {
             MudDialog.Close(DialogResult.Ok(result));
-        }
         else
-        {
             await NotificationService.ShowOperationResultAsync(result);
-        }
     }
 
-    private void Cancel()
-    {
-        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
-    }
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
 }
