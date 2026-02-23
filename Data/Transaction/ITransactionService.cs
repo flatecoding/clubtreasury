@@ -12,7 +12,8 @@ public interface ITransactionService
     Task<IOperationResult> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default);
     Task<IOperationResult> UpdateTransactionAsync(TransactionModel entry, CancellationToken ct = default);
     Task<IOperationResult> DeleteTransactionAsync(int id);
-    Task<HashSet<int>> GetAllDocumentNumbersAsync();
+    Task<HashSet<int>> GetAllDocumentNumbersAsync(int registerId);
+    Task<int> GetLatestDocumentNumberAsync(int registerId);
 
     // MudBlazor Pagination
     Task<TableData<TransactionModel>> GetTransactionsPaged(

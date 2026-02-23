@@ -130,7 +130,7 @@ public class ImportBookingJournalServiceTests
         });
         const string fileName = "bookings.xlsx";
 
-        A.CallTo(() => _transactionService.GetAllDocumentNumbersAsync())
+        A.CallTo(() => _transactionService.GetAllDocumentNumbersAsync(1))
             .Returns(new HashSet<int>());
 
         var allocation = new AllocationModel { Id = 1 };
@@ -238,7 +238,7 @@ public class ImportBookingJournalServiceTests
         });
         const string fileName = "bookings.xlsx";
 
-        A.CallTo(() => _transactionService.GetAllDocumentNumbersAsync())
+        A.CallTo(() => _transactionService.GetAllDocumentNumbersAsync(1))
             .Returns([100]); // Document 100 already exists
 
         var allocation = new AllocationModel { Id = 1 };
@@ -282,7 +282,7 @@ public class ImportBookingJournalServiceTests
             ws.Cells[1, 7].Value = "Marketing/Advertising";
         });
 
-        A.CallTo(() => _transactionService.GetAllDocumentNumbersAsync())
+        A.CallTo(() => _transactionService.GetAllDocumentNumbersAsync(1))
             .Returns(new HashSet<int>());
 
         var allocation = new AllocationModel { Id = 1 };
@@ -391,7 +391,7 @@ public class ImportBookingJournalServiceTests
         });
         const string fileName = "bookings.xlsx";
 
-        A.CallTo(() => _transactionService.GetAllDocumentNumbersAsync())
+        A.CallTo(() => _transactionService.GetAllDocumentNumbersAsync(1))
             .Returns(new HashSet<int>());
 
         var allocation = new AllocationModel { Id = 1 };

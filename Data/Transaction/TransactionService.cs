@@ -28,14 +28,24 @@ public class TransactionService(
             .FirstOrDefaultAsync(x => x.Id == id);
     }
     
-    public async Task<HashSet<int>> GetAllDocumentNumbersAsync()
+    public async Task<HashSet<int>> GetAllDocumentNumbersAsync(int registerId)
     {
         return
         [
-            ..await context.Transactions
+            ..await context.Transactions.Where(t => t.CashRegisterId == registerId)
                 .Select(t => t.Documentnumber)
                 .ToListAsync()
         ];
+    }
+
+    public async Task<int> GetLatestDocumentNumberAsync(int registerId)
+    {
+        return await context.Transactions
+            .Where(t => t.CashRegisterId == registerId && t.Date.HasValue)
+            .OrderByDescending(t => t.Date)
+            .ThenByDescending(t => t.Documentnumber)
+            .Select(t => t.Documentnumber)
+            .FirstOrDefaultAsync();
     }
     
 

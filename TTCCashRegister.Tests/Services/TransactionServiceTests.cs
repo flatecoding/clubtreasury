@@ -135,7 +135,7 @@ public class TransactionServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetAllDocumentNumbersAsync();
+        var result = await _sut.GetAllDocumentNumbersAsync(1);
 
         // Assert
         result.Should().HaveCount(3);
@@ -146,10 +146,92 @@ public class TransactionServiceTests
     public async Task GetAllDocumentNumbersAsync_WhenNoTransactionsExist_ShouldReturnEmptySet()
     {
         // Act
-        var result = await _sut.GetAllDocumentNumbersAsync();
+        var result = await _sut.GetAllDocumentNumbersAsync(1);
 
         // Assert
         result.Should().BeEmpty();
+    }
+
+    #endregion
+
+    #region GetLatestDocumentNumberAsync Tests
+
+    [Test]
+    public async Task GetLatestDocumentNumberAsync_WhenTransactionsExist_ShouldReturnDocumentNumberOfLatestByDate()
+    {
+        // Arrange
+        var (cashRegister, allocation) = await CreateTestDataAsync();
+        var transactions = new List<TransactionModel>
+        {
+            new() { Documentnumber = 2385, Date = new DateOnly(2024, 3, 10), CashRegisterId = cashRegister.Id, AllocationId = allocation.Id },
+            new() { Documentnumber = 2386, Date = new DateOnly(2024, 3, 11), CashRegisterId = cashRegister.Id, AllocationId = allocation.Id },
+            new() { Documentnumber = 2387, Date = new DateOnly(2024, 3, 12), CashRegisterId = cashRegister.Id, AllocationId = allocation.Id },
+            new() { Documentnumber = 9001, Date = new DateOnly(2024, 1, 5), CashRegisterId = cashRegister.Id, AllocationId = allocation.Id },
+            new() { Documentnumber = 9002, Date = new DateOnly(2024, 1, 6), CashRegisterId = cashRegister.Id, AllocationId = allocation.Id }
+        };
+        await _context.Transactions.AddRangeAsync(transactions);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetLatestDocumentNumberAsync(cashRegister.Id);
+
+        // Assert
+        result.Should().Be(2387);
+    }
+
+    [Test]
+    public async Task GetLatestDocumentNumberAsync_WhenSameDateMultipleTransactions_ShouldReturnHighestDocumentNumber()
+    {
+        // Arrange
+        var (cashRegister, allocation) = await CreateTestDataAsync();
+        var transactions = new List<TransactionModel>
+        {
+            new() { Documentnumber = 100, Date = new DateOnly(2024, 3, 12), CashRegisterId = cashRegister.Id, AllocationId = allocation.Id },
+            new() { Documentnumber = 200, Date = new DateOnly(2024, 3, 12), CashRegisterId = cashRegister.Id, AllocationId = allocation.Id },
+            new() { Documentnumber = 150, Date = new DateOnly(2024, 3, 12), CashRegisterId = cashRegister.Id, AllocationId = allocation.Id }
+        };
+        await _context.Transactions.AddRangeAsync(transactions);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetLatestDocumentNumberAsync(cashRegister.Id);
+
+        // Assert
+        result.Should().Be(200);
+    }
+
+    [Test]
+    public async Task GetLatestDocumentNumberAsync_WhenNoTransactionsExist_ShouldReturnZero()
+    {
+        // Act
+        var result = await _sut.GetLatestDocumentNumberAsync(1);
+
+        // Assert
+        result.Should().Be(0);
+    }
+
+    [Test]
+    public async Task GetLatestDocumentNumberAsync_ShouldOnlyConsiderSpecifiedRegister()
+    {
+        // Arrange
+        var (cashRegister1, allocation) = await CreateTestDataAsync();
+        var cashRegister2 = new CashRegisterModel { Name = "Other Register" };
+        await _context.CashRegisters.AddAsync(cashRegister2);
+        await _context.SaveChangesAsync();
+
+        var transactions = new List<TransactionModel>
+        {
+            new() { Documentnumber = 500, Date = new DateOnly(2024, 3, 12), CashRegisterId = cashRegister1.Id, AllocationId = allocation.Id },
+            new() { Documentnumber = 9999, Date = new DateOnly(2024, 6, 1), CashRegisterId = cashRegister2.Id, AllocationId = allocation.Id }
+        };
+        await _context.Transactions.AddRangeAsync(transactions);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetLatestDocumentNumberAsync(cashRegister1.Id);
+
+        // Assert
+        result.Should().Be(500);
     }
 
     #endregion

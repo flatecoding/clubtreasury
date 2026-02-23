@@ -154,14 +154,15 @@
     private ItemDetailModel? _selectedItemDetail;
     private CashRegisterModel? _selectedCashRegisterModel;
     private SpecialItemModel? _selectedSpecialItem;
+    private int _suggestedDocNo;
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
     
-    private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p.Name;
-    private readonly Func<CostCenterModel, string> _unitConverter = p => p.CostUnitName;
-    private readonly Func<ItemDetailModel, string> _detailsConverter = d => d.CostDetails;
-    private readonly Func<SpecialItemModel, string> _specialItemConverter = s => s.Name;
-    private readonly Func<CategoryModel, string> _basicUnitConverter = b => b.Name;
+    private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p?.Name;
+    private readonly Func<CostCenterModel, string> _unitConverter = p => p?.CostUnitName;
+    private readonly Func<ItemDetailModel, string> _detailsConverter = d => d?.CostDetails;
+    private readonly Func<SpecialItemModel, string> _specialItemConverter = s => s?.Name;
+    private readonly Func<CategoryModel, string> _basicUnitConverter = b => b?.Name;
 
    protected override async Task OnInitializedAsync()
 {
@@ -241,7 +242,13 @@
         StateHasChanged();
     }
 
-    private Task OnCashRegisterChangedAsync() => InvokeAsync(StateHasChanged);
+    private async Task OnCashRegisterChangedAsync()
+    {
+        if (_selectedCashRegisterModel != null)
+            _suggestedDocNo = await TransactionService.GetLatestDocumentNumberAsync(_selectedCashRegisterModel.Id);
+        _transactionModel.Documentnumber = ++_suggestedDocNo;
+        await InvokeAsync(StateHasChanged);
+    } 
 
     private async Task Save()
     {
