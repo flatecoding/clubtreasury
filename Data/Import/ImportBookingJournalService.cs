@@ -48,7 +48,7 @@ public class ImportBookingJournalService(
             }
 
             var importCounter = 0;
-            var existingDocNumbers = await transactionService.GetAllDocumentNumbersAsync();
+            var existingDocNumbers = await transactionService.GetAllDocumentNumbersAsync(cashRegisterId);
             
             foreach (var row in parsedRows)
             {
