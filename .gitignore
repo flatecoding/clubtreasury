@@ -21,3 +21,7 @@
 /docker-compose.test.yml
 /dev-container.sh
 /migrate.load
+/Properties/launchSettings.json
+appsettings.Development.json
+*.env
+.env
