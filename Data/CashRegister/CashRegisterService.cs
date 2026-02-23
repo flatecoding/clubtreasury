@@ -29,7 +29,7 @@ namespace TTCCashRegister.Data.CashRegister
                 return cashRegister;
             }
 
-            logger.LogError($"Cash register not found with id '{id}'");
+            logger.LogError("Cash register not found with id '{CashRegisterId}'", id);
             return null;
         }
 
@@ -42,7 +42,7 @@ namespace TTCCashRegister.Data.CashRegister
                 return cashRegister;
             }
 
-            logger.LogError($"No cach register data available");
+            logger.LogError("No cash register data available");
             return null;
         }
 

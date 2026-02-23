@@ -51,7 +51,7 @@ namespace TTCCashRegister.Data.Person
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error: {ex}");
+                logger.LogError(ex, "An error occurred while updating person");
                 return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
             }
         }
@@ -73,7 +73,7 @@ namespace TTCCashRegister.Data.Person
             }
             catch (Exception ex)
             {
-                logger.LogCritical($"Error: {ex}");
+                logger.LogCritical(ex, "An error occurred while deleting person");
                 return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }
