@@ -15,15 +15,13 @@
                           AdornmentIcon="@Icons.Material.Filled.Search" />
 
             <MudSelect T="int?"
-                       Label="@Localizer["Person"]" 
+                       Label="@Localizer["Person"]"
                        @bind-Value="SelectedPersonId"
-                       Clearable="true">
-                @if (_persons is not null)
+                       Clearable="true"
+                       ToStringFunc="@PersonIdToName">
+                @foreach (var person in _persons)
                 {
-                    @foreach (var person in _persons)
-                    {
-                        <MudSelectItem T="int?" Value="@person.Id">@person.Name</MudSelectItem>
-                    }
+                    <MudSelectItem T="int?" Value="@person.Id">@person.Name</MudSelectItem>
                 }
             </MudSelect>
 
@@ -44,7 +42,7 @@
     [Parameter] public string SearchText { get; set; } = string.Empty;
     [Parameter] public int? SelectedPersonId { get; set; }
 
-    private List<PersonModel>? _persons;
+    private IEnumerable<PersonModel> _persons = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,5 +59,8 @@
         }));
     }
 
+    private string PersonIdToName(int? id)
+        => id is null ? string.Empty : _persons.FirstOrDefault(p => p.Id == id.Value)?.Name ?? string.Empty;
+    
     private void Cancel() => MudDialog.Cancel();
 }
