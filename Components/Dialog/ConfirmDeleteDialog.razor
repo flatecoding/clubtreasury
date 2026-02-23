@@ -8,34 +8,32 @@
 <MudDialog>
     <DialogContent>
         <MudTextM3 Typo="TypoM3.Title" Size="Size.Medium">@_deleteQuestion</MudTextM3>
-        <MudTextM3 Typo="TypoM3.Body" Size="Size.Large">@_entityName</MudTextM3>
+        <MudTextM3 Typo="TypoM3.Body" Size="Size.Large">@ItemName</MudTextM3>
     </DialogContent>
     <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="@(() => Confirm())">@Localizer["Delete"]</MudButton>
-        <MudButton Color="Color.Secondary" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="@Confirm">@Localizer["Delete"]</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="@Cancel">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [Inject]
     private IStringLocalizer<Translation> Localizer { get; set; } = null!;
-    // Parameter für universelle Nutzung
-    [Parameter] public string EntityName { get; set; } = string.Empty; 
-    [Parameter] public string ItemName { get; set; } = string.Empty;   
-    [Parameter] public EventCallback OnConfirm { get; set; }           
 
-    private string _entityName = string.Empty;
-    private string _deleteQuestion =  string.Empty;
+    [Parameter] public string EntityName { get; set; } = string.Empty;
+    [Parameter] public string ItemName { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnConfirm { get; set; }
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-    
+
+    private string _deleteQuestion = string.Empty;
+
     protected override async void OnInitialized()
     {
         try
         {
             Logger.LogInformation("Open delete dialog for: {EntityName}; {ItemName}", EntityName, ItemName);
             _deleteQuestion = Localizer["DeleteQuestion"];
-            _entityName = $"{ItemName}";
             await MudDialog.SetTitleAsync($"{Localizer["Delete"]}: {EntityName}");
             StateHasChanged();
         }

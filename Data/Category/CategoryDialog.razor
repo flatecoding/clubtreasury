@@ -12,7 +12,7 @@
     <DialogContent>
         <MudForm @ref="_form"
                  Model="_categoryModel"
-                 Validation="_categoryValidator.ValidateValue"
+                 Validation="CategoryValidator.ValidateValue"
                  ValidationDelay="0">
 
             <MudTextField @bind-Value="_categoryModel.Name"
@@ -38,32 +38,30 @@
 @code {
     [Parameter] public int? CategoryId { get; set; }
 
-    [CascadingParameter] 
+    [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = null!;
 
     private MudForm _form = new();
     private CategoryModel _categoryModel = new();
-    private CategoryValidator _categoryValidator => CategoryValidator;
-
     private bool _isEditMode;
 
     protected override async Task OnInitializedAsync()
     {
         _isEditMode = CategoryId.HasValue;
+        await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
+        await LoadCategoryAsync();
+    }
 
-        if (_isEditMode && CategoryId is not null)
-        {
-            _categoryModel =
-                await CategoryService.GetCategoryByIdAsync(CategoryId.Value)
-                ?? new CategoryModel();
-
-            await MudDialog.SetTitleAsync(Localizer["Edit"]);
-        }
-        else
+    private async Task LoadCategoryAsync()
+    {
+        if (!_isEditMode)
         {
             _categoryModel = new CategoryModel();
-            await MudDialog.SetTitleAsync(Localizer["AddEntry"]);
+            return;
         }
+
+        _categoryModel = await CategoryService.GetCategoryByIdAsync(CategoryId!.Value)
+                         ?? new CategoryModel();
     }
 
     private async Task Save()
@@ -72,29 +70,15 @@
         if (!_form.IsValid)
             return;
 
-        IOperationResult result;
-
-        if (_isEditMode)
-        {
-            result = await CategoryService.UpdateCategoryAsync(_categoryModel);
-        }
-        else
-        {
-            result = await CategoryService.AddCategoryAsync(_categoryModel);
-        }
+        var result = _isEditMode
+            ? await CategoryService.UpdateCategoryAsync(_categoryModel)
+            : await CategoryService.AddCategoryAsync(_categoryModel);
 
         if (result.Status is OperationResultStatus.Success)
-        {
             MudDialog.Close(DialogResult.Ok(result));
-        }
         else
-        {
             await NotificationService.ShowOperationResultAsync(result);
-        }
     }
 
-    private void Cancel()
-    {
-        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
-    }
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
 }

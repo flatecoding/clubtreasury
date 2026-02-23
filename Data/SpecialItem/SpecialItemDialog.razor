@@ -13,7 +13,7 @@
     <DialogContent>
         <MudForm @ref="_form"
                  Model="_specialItemModel"
-                 Validation="_specialItemValidator.ValidateValue"
+                 Validation="SpecialItemValidator.ValidateValue"
                  ValidationDelay="0">
 
             <MudTextField @bind-Value="_specialItemModel.Name"
@@ -32,40 +32,32 @@
 </MudDialog>
 
 @code {
-    [Parameter] public int? SpecialItemId { get; set; } // null = Add, Wert = Edit
-
-    private MudForm _form = new();
-    private SpecialItemModel _specialItemModel = new();
-    private SpecialItemValidator _specialItemValidator => SpecialItemValidator;
-    private bool _isEditMode;
+    [Parameter] public int? SpecialItemId { get; set; }
 
     [CascadingParameter]
     IMudDialogInstance MudDialog { get; set; } = null!;
 
+    private MudForm _form = new();
+    private SpecialItemModel _specialItemModel = new();
+    private bool _isEditMode;
+
     protected override async Task OnInitializedAsync()
     {
         _isEditMode = SpecialItemId.HasValue;
-        string dialogTitle;
+        await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
+        await LoadSpecialItemAsync();
+    }
 
-        if (_isEditMode)
-        {
-            if (SpecialItemId is not null)
-            {
-                _specialItemModel =
-                    await SpecialItemService.GetSpecialPositionById(SpecialItemId.Value)
-                    ?? new SpecialItemModel();
-            }
-
-            dialogTitle = Localizer["Edit"];
-        }
-        else
+    private async Task LoadSpecialItemAsync()
+    {
+        if (!_isEditMode)
         {
             _specialItemModel = new SpecialItemModel();
-            dialogTitle = Localizer["AddEntry"];
+            return;
         }
 
-        await MudDialog.SetTitleAsync(dialogTitle);
-        StateHasChanged();
+        _specialItemModel = await SpecialItemService.GetSpecialPositionById(SpecialItemId!.Value)
+                            ?? new SpecialItemModel();
     }
 
     private async Task Save()
@@ -74,29 +66,15 @@
         if (!_form.IsValid)
             return;
 
-        IOperationResult result;
-
-        if (_isEditMode)
-        {
-            result = await SpecialItemService.UpdateSpecialPositionAsync(_specialItemModel);
-        }
-        else
-        {
-            result = await SpecialItemService.AddSpecialPositionAsync(_specialItemModel);
-        }
+        var result = _isEditMode
+            ? await SpecialItemService.UpdateSpecialPositionAsync(_specialItemModel)
+            : await SpecialItemService.AddSpecialPositionAsync(_specialItemModel);
 
         if (result.Status is OperationResultStatus.Success)
-        {
             MudDialog.Close(DialogResult.Ok(result));
-        }
         else
-        {
             await NotificationService.ShowOperationResultAsync(result);
-        }
     }
 
-    private void Cancel()
-    {
-        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
-    }
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
 }

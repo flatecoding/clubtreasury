@@ -16,7 +16,7 @@
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" Model="_allocationModel" Validation="_allocationValidator.ValidateValue">
+        <MudForm @ref="_form" Model="_allocationModel" Validation="AllocationValidator.ValidateValue">
             <MudSelect T="int" Label="@Localizer["CostCenter"]" @bind-Value="_allocationModel.CostCenterId"
                        ToStringFunc="@CostCenterIdToString"
                        For="@(() => _allocationModel.CostCenterId)"
@@ -49,29 +49,34 @@
     </DialogContent>
     <DialogActions>
         <MudButton Color="Color.Primary" OnClick="@(async () => await Save())">
-            @(_isEditMode ? $"{Localizer["Save"]}" : $"{@Localizer["AddEntry"]}")
+            @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
-        <MudButton Color="Color.Secondary" OnClick="@(() => Cancel())">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="@Cancel">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [Parameter] public int? AllocationId { get; set; }
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
     private MudForm _form = new();
     private AllocationModel _allocationModel = new();
-    private AllocationValidator _allocationValidator => AllocationValidator;
     private bool _isEditMode;
 
     private List<CostCenterModel> _costCenters = new();
     private List<CategoryModel> _categories = new();
     private List<ItemDetailModel> _itemDetails = new();
 
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-
     protected override async Task OnInitializedAsync()
     {
         _isEditMode = AllocationId.HasValue;
-        
+        await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
+        await LoadReferenceDataAsync();
+        await LoadAllocationAsync();
+    }
+
+    private async Task LoadReferenceDataAsync()
+    {
         _costCenters = (await CostCenterService.GetAllCostCentersAsync())
             .OrderBy(c => c.CostUnitName)
             .ToList();
@@ -81,62 +86,44 @@
         _itemDetails = (await ItemDetailService.GetAllItemDetailsAsync())
             .OrderBy(i => i.CostDetails)
             .ToList();
-            
-        if (_isEditMode && AllocationId is not null)
-        {
-            _allocationModel = await AllocationService.GetAllocationsByIdAsync(AllocationId.Value) ?? new AllocationModel();
-            await MudDialog.SetTitleAsync($"{Localizer["Edit"]}");
-        }
-        else
+    }
+
+    private async Task LoadAllocationAsync()
+    {
+        if (!_isEditMode)
         {
             _allocationModel = new AllocationModel();
-            await MudDialog.SetTitleAsync($"{Localizer["AddEntry"]}");
+            return;
         }
-        StateHasChanged();
+
+        _allocationModel = await AllocationService.GetAllocationsByIdAsync(AllocationId!.Value)
+                           ?? new AllocationModel();
     }
 
     private async Task Save()
     {
         await _form.Validate();
-        if (_form.IsValid)
-        {
-            IOperationResult result;
-            if (_isEditMode) 
-                result = await AllocationService.UpdateAllocationAsync(_allocationModel);
-            else
-                result = await AllocationService.AddAllocationAsync(_allocationModel);
+        if (!_form.IsValid)
+            return;
 
-            if (result.Status is OperationResultStatus.Success)
-            {
-                MudDialog.Close(DialogResult.Ok(result));
-            }
-            else
-            {
-                await NotificationService.ShowOperationResultAsync(result);
-            }
-        }
+        var result = _isEditMode
+            ? await AllocationService.UpdateAllocationAsync(_allocationModel)
+            : await AllocationService.AddAllocationAsync(_allocationModel);
+
+        if (result.Status is OperationResultStatus.Success)
+            MudDialog.Close(DialogResult.Ok(result));
+        else
+            await NotificationService.ShowOperationResultAsync(result);
     }
 
-    private void Cancel()
-    {
-        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
-    }
-    
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+
     private string CostCenterIdToString(int id)
-    {
-        return _costCenters.FirstOrDefault(p => p.Id == id)?.CostUnitName ?? string.Empty;
-    }
-    
-    private string CategoryIdToString(int id)
-    {
-        return _categories.FirstOrDefault(c => c.Id == id)?.Name ?? string.Empty;
-    }
-    
-    private string ItemDetailIdToString(int? id)
-    {
-        if (id is null)
-            return string.Empty;
+        => _costCenters.FirstOrDefault(p => p.Id == id)?.CostUnitName ?? string.Empty;
 
-        return _itemDetails.FirstOrDefault(i => i.Id == id.Value)?.CostDetails ?? string.Empty;
-    }
+    private string CategoryIdToString(int id)
+        => _categories.FirstOrDefault(c => c.Id == id)?.Name ?? string.Empty;
+
+    private string ItemDetailIdToString(int? id)
+        => id is null ? string.Empty : _itemDetails.FirstOrDefault(i => i.Id == id.Value)?.CostDetails ?? string.Empty;
 }

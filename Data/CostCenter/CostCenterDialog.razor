@@ -12,7 +12,7 @@
     <DialogContent>
         <MudForm @ref="_form"
                  Model="_costCenterModel"
-                 Validation="_costCenterValidator.ValidateValue"
+                 Validation="CostCenterValidator.ValidateValue"
                  ValidationDelay="0">
 
             <MudTextField @bind-Value="_costCenterModel.CostUnitName"
@@ -43,27 +43,25 @@
 
     private MudForm _form = new();
     private CostCenterModel _costCenterModel = new();
-    private CostCenterValidator _costCenterValidator => CostCenterValidator;
-
     private bool _isEditMode;
 
     protected override async Task OnInitializedAsync()
     {
         _isEditMode = CostCenterId.HasValue;
+        await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
+        await LoadCostCenterAsync();
+    }
 
-        if (_isEditMode && CostCenterId is not null)
-        {
-            _costCenterModel =
-                await CostCenterService.GetCostCenterByIdAsync(CostCenterId.Value)
-                ?? new CostCenterModel();
-
-            await MudDialog.SetTitleAsync(Localizer["Edit"]);
-        }
-        else
+    private async Task LoadCostCenterAsync()
+    {
+        if (!_isEditMode)
         {
             _costCenterModel = new CostCenterModel();
-            await MudDialog.SetTitleAsync(Localizer["AddEntry"]);
+            return;
         }
+
+        _costCenterModel = await CostCenterService.GetCostCenterByIdAsync(CostCenterId!.Value)
+                           ?? new CostCenterModel();
     }
 
     private async Task Save()
@@ -72,29 +70,15 @@
         if (!_form.IsValid)
             return;
 
-        IOperationResult result;
-
-        if (_isEditMode)
-        {
-            result = await CostCenterService.UpdateCostCenterAsync(_costCenterModel);
-        }
-        else
-        {
-            result = await CostCenterService.AddCostCenterAsync(_costCenterModel);
-        }
+        var result = _isEditMode
+            ? await CostCenterService.UpdateCostCenterAsync(_costCenterModel)
+            : await CostCenterService.AddCostCenterAsync(_costCenterModel);
 
         if (result.Status is OperationResultStatus.Success)
-        {
             MudDialog.Close(DialogResult.Ok(result));
-        }
         else
-        {
             await NotificationService.ShowOperationResultAsync(result);
-        }
     }
 
-    private void Cancel()
-    {
-        MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
-    }
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
 }
