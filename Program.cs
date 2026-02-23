@@ -48,7 +48,11 @@ builder.Services.AddDbContext<CashDataContext>(options =>
 
     options.UseNpgsql(connectionString);
 });
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+}
+
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(
         builder.Environment.IsDevelopment() ? "bin/keys" : "/app/keys"))
@@ -71,6 +75,16 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
     options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+
+    options.Password.RequiredLength = 10;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireDigit = true;
+    options.Password.RequireNonAlphanumeric = true;
+
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.AllowedForNewUsers = true;
 })
     .AddEntityFrameworkStores<CashDataContext>()
     .AddSignInManager()
@@ -105,6 +119,40 @@ using (var scope = app.Services.CreateScope())
     {
         Log.Error(ex, "Database migration failed!");
         throw;
+    }
+
+    // Seed initial admin user from environment variables if no users exist
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    if (!userManager.Users.Any())
+    {
+        var adminUser = Environment.GetEnvironmentVariable("ADMIN_USERNAME");
+        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+
+        if (!string.IsNullOrWhiteSpace(adminUser) &&
+            !string.IsNullOrWhiteSpace(adminEmail) &&
+            !string.IsNullOrWhiteSpace(adminPassword))
+        {
+            var user = new ApplicationUser();
+            await userManager.SetUserNameAsync(user, adminUser);
+            await userManager.SetEmailAsync(user, adminEmail);
+            var result = await userManager.CreateAsync(user, adminPassword);
+
+            if (result.Succeeded)
+            {
+                Log.Information("Initial admin user '{AdminUser}' created successfully", adminUser);
+            }
+            else
+            {
+                Log.Error("Failed to create initial admin user: {Errors}",
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+        }
+        else
+        {
+            Log.Warning("No users exist and ADMIN_USERNAME, ADMIN_EMAIL, or ADMIN_PASSWORD environment variables are not set. " +
+                         "Set these variables to create an initial admin user.");
+        }
     }
 }
 

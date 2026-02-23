@@ -105,7 +105,14 @@
         _isImporting = true;
         try
         {
-            await using var stream = _file.OpenReadStream();
+            var allowedTypes = new[] { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.oasis.opendocument.spreadsheet" };
+            if (!allowedTypes.Contains(_file.ContentType, StringComparer.OrdinalIgnoreCase))
+            {
+                MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["InvalidFileFormat"])));
+                return;
+            }
+
+            await using var stream = _file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
             if (_fileName != null)
             {
                 var result = await ImportBookingJournalService.ImportTransactions(stream, _fileName, _selectedCashRegister.Id);

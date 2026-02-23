@@ -58,8 +58,18 @@
         try
         {
             _isImporting = true;
-            await using var stream = _file?.OpenReadStream();
-            if (stream is not null && _file is not null)
+            if (_file is null)
+                return;
+
+            if (!string.Equals(_file.ContentType, "text/plain", StringComparison.OrdinalIgnoreCase)
+                && !_file.Name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+            {
+                MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["InvalidFileFormat"])));
+                return;
+            }
+
+            await using var stream = _file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+            if (stream is not null)
             {
                 var result = await ImportCostCenterService.ImportCostCentersAndPositions(stream, _file.Name);
                 MudDialog.Close(DialogResult.Ok(result));

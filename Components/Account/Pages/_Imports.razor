@@ -1,5 +1,6 @@
+@using Microsoft.AspNetCore.Authorization
 @using TTCCashRegister.Components.Account
 @using TTCCashRegister.Components.Account.Shared
 @attribute [ExcludeFromInteractiveRouting]
-@attribute [AllowAnonymous]
+@attribute [Authorize]
 @layout AccountLayout

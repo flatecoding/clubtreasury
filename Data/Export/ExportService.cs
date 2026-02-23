@@ -27,6 +27,14 @@ public class ExportService(
 
     private readonly string _exportPath = exportPathProvider.ExportPath;
 
+    private string GetSafeFilePath(string filename)
+    {
+        var sanitized = Path.GetFileName(filename);
+        if (string.IsNullOrWhiteSpace(sanitized) || sanitized.Contains(".."))
+            throw new ArgumentException("Invalid filename");
+        return Path.Combine(_exportPath, sanitized);
+    }
+
     public async Task<IOperationResult> ExportTransactionsToCsv(
         DateTime begin, DateTime end, string filename, int cashRegisterId)
     {
@@ -50,7 +58,7 @@ public class ExportService(
                 return operationResultFactory.ExportFailed($"{localizer["NoData"]}");
             }
 
-            var filePath = Path.Combine(_exportPath, filename);
+            var filePath = GetSafeFilePath(filename);
             await using var sw = new StreamWriter(filePath);
             await sw.WriteLineAsync(CsvHeader);
             await sw.WriteAsync(csv);
@@ -74,7 +82,7 @@ public class ExportService(
                 await transactionService.GetTransactionsForExport(begin, end, cashRegisterId);
 
             var logo = await cashRegisterService.GetLogoAsync(cashRegisterId);
-            var filePath = Path.Combine(_exportPath, filename);
+            var filePath = GetSafeFilePath(filename);
 
             await transactionPdfRenderer.RenderTransactionPdfExportAsync(
                 transactions, begin, end, filePath, cashRegisterName, logo?.Data, logo?.ContentType, cancellationToken);
@@ -104,7 +112,7 @@ public class ExportService(
             var flat = budgetMapper.BuildFlatEntries(transactions);
             var grouped = budgetMapper.BuildBudgetHierarchy(flat);
 
-            var filePath = Path.Combine(_exportPath, filename);
+            var filePath = GetSafeFilePath(filename);
             await csvWriter.WriteAsync(filePath, grouped);
 
             return operationResultFactory.ExportSuccessful(filename);
@@ -127,7 +135,7 @@ public class ExportService(
             var flat = budgetMapper.BuildFlatEntries(transactions);
             var grouped = budgetMapper.BuildBudgetHierarchy(flat);
 
-            var filePath = Path.Combine(_exportPath, filename);
+            var filePath = GetSafeFilePath(filename);
             await excelWriter.WriteAsync(filePath, grouped, begin, end);
 
             return operationResultFactory.ExportSuccessful(filename);
@@ -148,7 +156,7 @@ public class ExportService(
         if (result.Status != OperationResultStatus.Success)
             return Array.Empty<byte>();
 
-        var filePath = Path.Combine(_exportPath, filename);
+        var filePath = GetSafeFilePath(filename);
         return await File.ReadAllBytesAsync(filePath);
     }
 }
