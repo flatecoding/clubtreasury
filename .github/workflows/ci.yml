@@ -26,11 +26,11 @@ jobs:
       run: dotnet build --no-restore --configuration Release
 
     - name: Run tests
-      run: dotnet test TTCCashRegister.Tests --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+      run: dotnet test ClubTreasury.Tests --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
-        path: TTCCashRegister.Tests/TestResults/*.trx
+        path: ClubTreasury.Tests/TestResults/*.trx

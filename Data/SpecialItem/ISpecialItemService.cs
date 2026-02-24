@@ -1,6 +1,6 @@
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.SpecialItem;
+namespace ClubTreasury.Data.SpecialItem;
 
 public interface ISpecialItemService
 {

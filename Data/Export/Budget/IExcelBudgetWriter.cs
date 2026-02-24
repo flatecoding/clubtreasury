@@ -1,6 +1,6 @@
-using TTCCashRegister.Data.Mapper.DTOs;
+using ClubTreasury.Data.Mapper.DTOs;
 
-namespace TTCCashRegister.Data.Export.Budget;
+namespace ClubTreasury.Data.Export.Budget;
 
 public interface IExcelBudgetWriter
 {

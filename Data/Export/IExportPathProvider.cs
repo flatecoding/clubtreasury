@@ -1,4 +1,4 @@
-namespace TTCCashRegister.Data.Export;
+namespace ClubTreasury.Data.Export;
 
 public interface IExportPathProvider
 {

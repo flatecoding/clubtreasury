@@ -1,4 +1,4 @@
-namespace TTCCashRegister;
+namespace ClubTreasury;
 
 public class Translation
 {

@@ -3,11 +3,11 @@ using AwesomeAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using TTCCashRegister.Data;
-using TTCCashRegister.Data.OperationResult;
-using TTCCashRegister.Data.SpecialItem;
+using ClubTreasury.Data;
+using ClubTreasury.Data.OperationResult;
+using ClubTreasury.Data.SpecialItem;
 
-namespace TTCCashRegister.Tests.Services;
+namespace ClubTreasury.Tests.Services;
 
 [TestFixture]
 public class SpecialItemServiceTests

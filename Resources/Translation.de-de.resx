@@ -478,9 +478,9 @@
         <value>Transaktion für Dokumentnnummer konnte nicht hinzugefügt werden</value>
         <comment>DocumentNumberError</comment>
     </data>
-    <data name="ClubCash" xml:space="preserve">
+    <data name="ClubTreasury" xml:space="preserve">
         <value>Vereinsverwaltung</value>
-        <comment>ClubCash</comment>
+        <comment>ClubTreasury</comment>
     </data>
     <data name="DateMissing" xml:space="preserve">
         <value>Datum fehlt</value>

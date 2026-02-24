@@ -1,6 +1,6 @@
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Allocation;
+namespace ClubTreasury.Data.Allocation;
 
 public interface IAllocationService
 {

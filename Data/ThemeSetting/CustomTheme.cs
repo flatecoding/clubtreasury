@@ -1,10 +1,10 @@
 using MudBlazor;
 
-namespace TTCCashRegister.Data.ThemeSetting;
+namespace ClubTreasury.Data.ThemeSetting;
 
 public static class CustomTheme
 {
-    public static readonly MudTheme ClubCashTheme = new()
+    public static readonly MudTheme ClubTreasuryTheme = new()
     {
         PaletteLight = new PaletteLight()
         {

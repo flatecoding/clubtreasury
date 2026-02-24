@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.CashRegister
+namespace ClubTreasury.Data.CashRegister
 {
     public class CashRegisterService(
         CashDataContext context,

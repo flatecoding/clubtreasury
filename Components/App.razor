@@ -1,8 +1,8 @@
-@using TTCCashRegister.Data.ThemeSetting
+@using ClubTreasury.Data.ThemeSetting
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @{
-    var lightBg = CustomTheme.ClubCashTheme.PaletteLight.Background.Value;
-    var darkBg = CustomTheme.ClubCashTheme.PaletteDark.Background.Value;
+    var lightBg = CustomTheme.ClubTreasuryTheme.PaletteLight.Background.Value;
+    var darkBg = CustomTheme.ClubTreasuryTheme.PaletteDark.Background.Value;
     var isStaticRoute = HttpContext.GetEndpoint()?.Metadata
         .GetMetadata<ExcludeFromInteractiveRoutingAttribute>() is not null;
     IComponentRenderMode? pageRenderMode = isStaticRoute ? null : InteractiveServer;
@@ -23,7 +23,7 @@
         (function() {
             let isDark = false;
             try {
-                let match = document.cookie.match(/ClubCash\.UserPrefData=([^;]+)/);
+                let match = document.cookie.match(/ClubTreasury\.UserPrefData=([^;]+)/);
                 if (match) {
                     let data = JSON.parse(decodeURIComponent(match[1]));
                     isDark = data && data.IsDarkMode === true;
@@ -58,7 +58,7 @@
     <link href="_content/CodeBeam.MudBlazor.Extensions/MudExtensions.min.css" rel="stylesheet" />
     <link href="css/identity.css" rel="stylesheet" />
     <HeadOutlet @rendermode="pageRenderMode" />
-    <title>Club Cash Register</title>
+    <title>Club Treasury</title>
 </head>
 <body>
     <Routes @rendermode="pageRenderMode" />
@@ -85,7 +85,7 @@
 
     private bool IsDarkModeFromCookie()
     {
-        var cookie = HttpContext.Request.Cookies["ClubCash.UserPrefData"];
+        var cookie = HttpContext.Request.Cookies["ClubTreasury.UserPrefData"];
         if (string.IsNullOrEmpty(cookie))
             return false;
         try

@@ -1,4 +1,4 @@
-namespace TTCCashRegister.Data.Culture;
+namespace ClubTreasury.Data.Culture;
 
 using System.Globalization;
 

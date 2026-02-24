@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using Microsoft.JSInterop;
 
-namespace TTCCashRegister.Data.ThemeSetting;
+namespace ClubTreasury.Data.ThemeSetting;
 
 public sealed class UserPrefService : INotifyPropertyChanged
 {
@@ -10,7 +10,7 @@ public sealed class UserPrefService : INotifyPropertyChanged
     private IJSObjectReference? _module;
     private IJSRuntime? _jsRuntime;
     private readonly ILogger<UserPrefService> _logger;
-    public const string StorageKey = "ClubCash.UserPrefData";
+    public const string StorageKey = "ClubTreasury.UserPrefData";
 
     public UserPrefService(ILogger<UserPrefService> logger)
     {

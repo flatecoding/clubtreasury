@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
-using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.Allocation;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Transaction;
+namespace ClubTreasury.Data.Transaction;
 
 public class TransactionService(
     CashDataContext context,

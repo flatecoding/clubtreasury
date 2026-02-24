@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace TTCCashRegister.Resources {
+namespace ClubTreasury.Resources {
     using System;
     
     
@@ -28,7 +28,7 @@ namespace TTCCashRegister.Resources {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("TTCCashRegister.Resources.Translation", typeof(Translation).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("ClubTreasury.Resources.Translation", typeof(Translation).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

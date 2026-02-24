@@ -1,6 +1,6 @@
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Import;
+namespace ClubTreasury.Data.Import;
 
 public interface IImportCostCenterService
 {

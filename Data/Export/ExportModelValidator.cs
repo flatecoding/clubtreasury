@@ -1,7 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
-namespace TTCCashRegister.Data.Export;
+namespace ClubTreasury.Data.Export;
 
 public class ExportModelValidator : AbstractValidator<ExportModel>
 {

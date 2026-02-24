@@ -3,7 +3,7 @@ version: "3.8"
 services:
   postgres:
     image: postgres:17
-    container_name: ttc-db
+    container_name: clubtreasury-db
     restart: always
     environment:
       POSTGRES_PASSWORD: #Set root password
@@ -11,9 +11,9 @@ services:
       POSTGRES_USER: dev
     volumes:
       # Change volume to store the data
-      - /volume1/docker/ttccashregister/postgres:/var/lib/postgresql/data
+      - /volume1/docker/clubtreasury/postgres:/var/lib/postgresql/data
     networks:
-      - clubcash-backend
+      - clubtreasury-backend
 
     #Use this if you need direct acces to docker database container for debugging purposes
     #ports:
@@ -26,8 +26,8 @@ services:
       retries: 5
 
   webapp:
-    container_name: ttc-web
-    image: clubcashregister:latest
+    container_name: clubtreasury-web
+    image: clubtreasury:latest
     depends_on:
       postgres:
         condition: service_healthy
@@ -35,9 +35,9 @@ services:
     environment:
       USERMAP_UID: 1029
       USERMAP_GID: 100
-      UI_APPNAME: ClubCash
+      UI_APPNAME: ClubTreasury
       UI_HOMEDESCRIPTION: Administrationtool for club treasures
-      UI_APPNAMENAVBAR: ClubCash
+      UI_APPNAMENAVBAR: ClubTreasury
       Logging__LogLevel__Default: "Debug"
       Logging__LogLevel__Microsoft.EntityFrameworkCore: "Information"
       ASPNETCORE_ENVIRONMENT: "Production"
@@ -48,14 +48,14 @@ services:
 
     volumes:
 
-      - /volume1/docker/ttccashregister/Exports:/app/exports
-      - /volume1/docker/ttccashregister/logs:/app/logs
+      - /volume1/docker/clubtreasury/Exports:/app/exports
+      - /volume1/docker/clubtreasury/logs:/app/logs
     networks:
-      - clubcash-backend
+      - clubtreasury-backend
       - proxy
 
 networks:
-  clubcash-backend:
+  clubtreasury-backend:
     driver: bridge
   proxy:
     external: true

@@ -5,7 +5,7 @@
 @using System.Text
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.Extensions.Localization
-@using TTCCashRegister.Data
+@using ClubTreasury.Data
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
@@ -131,7 +131,7 @@
         return string.Format(
             CultureInfo.InvariantCulture,
             "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6",
-            Uri.EscapeDataString("TTCCashRegister"),
+            Uri.EscapeDataString("ClubTreasury"),
             Uri.EscapeDataString(email),
             unformattedKey);
     }

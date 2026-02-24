@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
-using TTCCashRegister.Data;
+using ClubTreasury.Data;
 
-namespace TTCCashRegister.Components.Account;
+namespace ClubTreasury.Components.Account;
 
 internal sealed class IdentityRedirectManager(NavigationManager navigationManager)
 {

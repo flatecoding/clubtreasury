@@ -1,7 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
-namespace TTCCashRegister.Data.Category;
+namespace ClubTreasury.Data.Category;
 
 public class CategoryValidator : AbstractValidator<CategoryModel>
 {

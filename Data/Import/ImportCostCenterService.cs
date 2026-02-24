@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.Allocation;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Import;
+namespace ClubTreasury.Data.Import;
 
 public class ImportCostCenterService(
     IAllocationService allocationService, 

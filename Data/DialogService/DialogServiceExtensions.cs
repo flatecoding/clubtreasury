@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using TTCCashRegister.Components.Dialog;
-using TTCCashRegister.Data.Notification;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Components.Dialog;
+using ClubTreasury.Data.Notification;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.DialogService;
+namespace ClubTreasury.Data.DialogService;
 
 public static class DialogServiceExtensions
 {

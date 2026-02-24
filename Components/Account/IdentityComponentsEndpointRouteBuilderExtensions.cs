@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using TTCCashRegister.Data;
+using ClubTreasury.Data;
 
-namespace TTCCashRegister.Components.Account;
+namespace ClubTreasury.Components.Account;
 
 internal static class IdentityComponentsEndpointRouteBuilderExtensions
 {

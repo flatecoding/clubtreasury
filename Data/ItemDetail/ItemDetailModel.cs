@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TTCCashRegister.Data.Allocation;
+using ClubTreasury.Data.Allocation;
 
-namespace TTCCashRegister.Data.ItemDetail
+namespace ClubTreasury.Data.ItemDetail
 {
     public class ItemDetailModel
     {

@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TTCCashRegister.csproj" />
+    <ProjectReference Include="..\ClubTreasury.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,27 +1,27 @@
 using MudBlazor;
 using MudBlazor.Services;
 using MudExtensions.Services;
-using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.CashRegister;
-using TTCCashRegister.Data.Category;
-using TTCCashRegister.Data.CostCenter;
-using TTCCashRegister.Data.Culture;
-using TTCCashRegister.Data.Export;
-using TTCCashRegister.Data.Export.Budget;
-using TTCCashRegister.Data.Export.Transaction;
-using TTCCashRegister.Data.Import;
-using TTCCashRegister.Data.ItemDetail;
-using TTCCashRegister.Data.Mapper;
-using TTCCashRegister.Data.Notification;
-using TTCCashRegister.Data.OperationResult;
-using TTCCashRegister.Data.Person;
-using TTCCashRegister.Data.SpecialItem;
-using TTCCashRegister.Data.ThemeSetting;
-using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.TransactionDetails;
-using TTCCashRegister.Infrastructure.Localization;
+using ClubTreasury.Data.Allocation;
+using ClubTreasury.Data.CashRegister;
+using ClubTreasury.Data.Category;
+using ClubTreasury.Data.CostCenter;
+using ClubTreasury.Data.Culture;
+using ClubTreasury.Data.Export;
+using ClubTreasury.Data.Export.Budget;
+using ClubTreasury.Data.Export.Transaction;
+using ClubTreasury.Data.Import;
+using ClubTreasury.Data.ItemDetail;
+using ClubTreasury.Data.Mapper;
+using ClubTreasury.Data.Notification;
+using ClubTreasury.Data.OperationResult;
+using ClubTreasury.Data.Person;
+using ClubTreasury.Data.SpecialItem;
+using ClubTreasury.Data.ThemeSetting;
+using ClubTreasury.Data.Transaction;
+using ClubTreasury.Data.TransactionDetails;
+using ClubTreasury.Infrastructure.Localization;
 
-namespace TTCCashRegister.Infrastructure.DependencyInjection;
+namespace ClubTreasury.Infrastructure.DependencyInjection;
 
 public static class ApplicationServiceRegistration
 {

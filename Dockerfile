@@ -2,15 +2,15 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["TTCCashRegister.csproj", "./"]
-RUN dotnet restore "TTCCashRegister.csproj"
+COPY ["ClubTreasury.csproj", "./"]
+RUN dotnet restore "ClubTreasury.csproj"
 
 COPY . .
-RUN dotnet build "TTCCashRegister.csproj" -c $BUILD_CONFIGURATION -o /app/build -v minimal
+RUN dotnet build "ClubTreasury.csproj" -c $BUILD_CONFIGURATION -o /app/build -v minimal
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "TTCCashRegister.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "ClubTreasury.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 USER root
@@ -29,4 +29,4 @@ RUN mkdir -p /app/exports /app/logs && \
 EXPOSE 8080
 EXPOSE 8081
 
-ENTRYPOINT ["dotnet", "TTCCashRegister.dll"]
+ENTRYPOINT ["dotnet", "ClubTreasury.dll"]

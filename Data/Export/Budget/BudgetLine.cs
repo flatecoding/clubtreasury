@@ -1,4 +1,4 @@
-namespace TTCCashRegister.Data.Export.Budget;
+namespace ClubTreasury.Data.Export.Budget;
 
 public class BudgetLine
 {

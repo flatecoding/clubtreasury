@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.CostCenter;
+using ClubTreasury.Data.Allocation;
+using ClubTreasury.Data.CostCenter;
 
-namespace TTCCashRegister.Data.Category
+namespace ClubTreasury.Data.Category
 {
     public class CategoryModel
     {

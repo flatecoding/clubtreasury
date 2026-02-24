@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace TTCCashRegister.Migrations
+namespace ClubTreasury.Migrations
 {
     /// <inheritdoc />
     public partial class AddFiscalYearStartMonth : Migration

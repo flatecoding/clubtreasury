@@ -1,7 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
-namespace TTCCashRegister.Data.SpecialItem;
+namespace ClubTreasury.Data.SpecialItem;
 
 public class SpecialItemValidator:AbstractValidator<SpecialItemModel>
 {

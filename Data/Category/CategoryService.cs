@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Category
+namespace ClubTreasury.Data.Category
 {
     public class CategoryService(CashDataContext context, ILogger<CategoryService> logger,
     IOperationResultFactory operationResultFactory,

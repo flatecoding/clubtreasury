@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.Category;
-using TTCCashRegister.Data.CostCenter;
-using TTCCashRegister.Data.ItemDetail;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.Category;
+using ClubTreasury.Data.CostCenter;
+using ClubTreasury.Data.ItemDetail;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Allocation;
+namespace ClubTreasury.Data.Allocation;
 
 public class AllocationService(
     CashDataContext context, 

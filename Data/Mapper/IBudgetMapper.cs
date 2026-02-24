@@ -1,8 +1,8 @@
-using TTCCashRegister.Data.Mapper.DTOs;
-using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.TransactionDetails;
+using ClubTreasury.Data.Mapper.DTOs;
+using ClubTreasury.Data.Transaction;
+using ClubTreasury.Data.TransactionDetails;
 
-namespace TTCCashRegister.Data.Mapper;
+namespace ClubTreasury.Data.Mapper;
 
 public interface IBudgetMapper
 {

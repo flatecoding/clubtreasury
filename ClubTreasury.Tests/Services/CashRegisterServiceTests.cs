@@ -3,11 +3,11 @@ using AwesomeAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using TTCCashRegister.Data;
-using TTCCashRegister.Data.CashRegister;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data;
+using ClubTreasury.Data.CashRegister;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Tests.Services;
+namespace ClubTreasury.Tests.Services;
 
 [TestFixture]
 public class CashRegisterServiceTests

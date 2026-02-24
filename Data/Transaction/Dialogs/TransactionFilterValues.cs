@@ -1,6 +1,6 @@
 using MudBlazor;
 
-namespace TTCCashRegister.Data.Transaction.Dialogs;
+namespace ClubTreasury.Data.Transaction.Dialogs;
 
 public class TransactionFilterValues
 {

@@ -1,7 +1,7 @@
 using MudBlazor;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Notification;
+namespace ClubTreasury.Data.Notification;
 
 public class NotificationService(ISnackbar snackbar) : INotificationService
 {

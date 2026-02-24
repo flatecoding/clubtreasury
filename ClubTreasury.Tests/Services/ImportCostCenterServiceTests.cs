@@ -3,18 +3,18 @@ using FakeItEasy;
 using AwesomeAssertions;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.Import;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.Allocation;
+using ClubTreasury.Data.Import;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Tests.Services;
+namespace ClubTreasury.Tests.Services;
 
 [TestFixture]
 public class ImportCostCenterServiceTests
 {
     private IAllocationService _allocationService = null!;
     private ILogger<ImportCostCenterService> _logger = null!;
-    private IStringLocalizer<TTCCashRegister.Resources.Translation> _localizer = null!;
+    private IStringLocalizer<ClubTreasury.Resources.Translation> _localizer = null!;
     private IOperationResultFactory _operationResultFactory = null!;
     private ImportCostCenterService _sut = null!;
 
@@ -23,7 +23,7 @@ public class ImportCostCenterServiceTests
     {
         _allocationService = A.Fake<IAllocationService>();
         _logger = A.Fake<ILogger<ImportCostCenterService>>();
-        _localizer = A.Fake<IStringLocalizer<TTCCashRegister.Resources.Translation>>();
+        _localizer = A.Fake<IStringLocalizer<ClubTreasury.Resources.Translation>>();
         _operationResultFactory = A.Fake<IOperationResultFactory>();
 
         A.CallTo(() => _localizer["FileStreamError"])

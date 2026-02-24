@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace TTCCashRegister.Data;
+namespace ClubTreasury.Data;
 
 public class ApplicationUser : IdentityUser
 {

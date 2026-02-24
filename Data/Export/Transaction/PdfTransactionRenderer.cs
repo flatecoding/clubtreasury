@@ -4,9 +4,9 @@ using Microsoft.Extensions.Localization;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using TTCCashRegister.Data.Transaction;
+using ClubTreasury.Data.Transaction;
 
-namespace TTCCashRegister.Data.Export.Transaction;
+namespace ClubTreasury.Data.Export.Transaction;
 
 public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStringLocalizer<Translation> localizer) : IPdfTransactionRenderer
 {

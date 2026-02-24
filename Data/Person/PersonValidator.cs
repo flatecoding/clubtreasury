@@ -1,7 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
-namespace TTCCashRegister.Data.Person
+namespace ClubTreasury.Data.Person
 {
     public class PersonValidator : AbstractValidator<PersonModel>
     {

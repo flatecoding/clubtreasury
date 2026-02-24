@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Person
+namespace ClubTreasury.Data.Person
 {
     public class PersonService(CashDataContext context, ILogger<PersonService> logger,
         IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : IPersonService

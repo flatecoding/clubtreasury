@@ -1,6 +1,6 @@
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Category;
+namespace ClubTreasury.Data.Category;
 
 public interface ICategoryService
 {

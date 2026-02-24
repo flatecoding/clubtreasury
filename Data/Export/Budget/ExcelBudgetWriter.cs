@@ -4,9 +4,9 @@ using OfficeOpenXml;
 using OfficeOpenXml.Drawing.Chart;
 using OfficeOpenXml.Drawing.Chart.Style;
 using OfficeOpenXml.Style;
-using TTCCashRegister.Data.Mapper.DTOs;
+using ClubTreasury.Data.Mapper.DTOs;
 
-namespace TTCCashRegister.Data.Export.Budget;
+namespace ClubTreasury.Data.Export.Budget;
 
 public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcelBudgetWriter
 {

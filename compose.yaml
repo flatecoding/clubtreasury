@@ -3,14 +3,14 @@ version: "3.8"
 services:
   postgres:
     image: postgres:17
-    container_name: clubcash-db
+    container_name: clubtreasury-db
     restart: always
     environment:
       POSTGRES_PASSWORD: #Set root password
       POSTGRES_DB: ClubCash
       POSTGRES_USER: user
     volumes:
-      - /volume1/docker/ttccashregister/postgres:/var/lib/postgresql/data
+      - /volume1/docker/clubtreasury/postgres:/var/lib/postgresql/data
     ports:
       - "5433:5432"
     healthcheck:
@@ -21,8 +21,8 @@ services:
       retries: 5
 
   webapp:
-    container_name: clubcash-web
-    image: clubcashregister:latest
+    container_name: clubtreasury-web
+    image: clubtreasury:latest
     depends_on:
       postgres:
         condition: service_healthy
@@ -39,7 +39,7 @@ services:
       ADMIN_PASSWORD: #another secret pw for first user
       
     volumes:
-      - /volume1/docker/ttccashregister/exports:/app/exports
-      - /volume1/docker/ttccashregister/logs:/app/logs
+      - /volume1/docker/clubtreasury/exports:/app/exports
+      - /volume1/docker/clubtreasury/logs:/app/logs
     ports:
       - "8080:8080"
