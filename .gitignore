@@ -9,15 +9,15 @@
 /Export
 /bin
 /.idea
-/TTCCashRegister.csproj.DotSettings.user
-/TTCCashRegister.sln.DotSettings.user
+/ClubTreasury.csproj.DotSettings.user
+/ClubTreasury.sln.DotSettings.user
 /DBbackup/
 /Images/
 *.tar
 
 # Test project build artifacts
-/TTCCashRegister.Tests/bin/
-/TTCCashRegister.Tests/obj/
+/ClubTreasury.Tests/bin/
+/ClubTreasury.Tests/obj/
 /docker-compose.test.yml
 /dev-container.sh
 /migrate.load
