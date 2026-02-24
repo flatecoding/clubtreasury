@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace TTCCashRegister.Data.Source;
+namespace ClubTreasury.Data.Source;
 
 public static class SupportedAppCultures
 {

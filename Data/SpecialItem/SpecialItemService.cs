@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.SpecialItem
+namespace ClubTreasury.Data.SpecialItem
 {
     public class SpecialItemService(CashDataContext context, ILogger<SpecialItemService> logger,
         IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : ISpecialItemService

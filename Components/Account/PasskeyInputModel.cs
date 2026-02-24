@@ -1,4 +1,4 @@
-namespace TTCCashRegister.Components.Account;
+namespace ClubTreasury.Components.Account;
 
 public class PasskeyInputModel
 {

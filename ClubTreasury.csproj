@@ -4,15 +4,15 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>aspnet-TTCCashRegister-cc8749e6-64ae-440d-9e75-9f1e91749cbf</UserSecretsId>
+    <UserSecretsId>aspnet-ClubTreasury-cc8749e6-64ae-440d-9e75-9f1e91749cbf</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
-<Compile Remove="TTCCashRegister.Tests\**" />
-    <Content Remove="TTCCashRegister.Tests\**" />
-    <EmbeddedResource Remove="TTCCashRegister.Tests\**" />
-    <None Remove="TTCCashRegister.Tests\**" />
+<Compile Remove="ClubTreasury.Tests\**" />
+    <Content Remove="ClubTreasury.Tests\**" />
+    <EmbeddedResource Remove="ClubTreasury.Tests\**" />
+    <None Remove="ClubTreasury.Tests\**" />
     <EmbeddedResource Update="Resources\Helper\Navmenu.resx">
       <LastGenOutput>Navmenu.Designer.cs</LastGenOutput>
     </EmbeddedResource>

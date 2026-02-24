@@ -1,7 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
-namespace TTCCashRegister.Data.CashRegister;
+namespace ClubTreasury.Data.CashRegister;
 
 public class CashRegisterValidator :AbstractValidator<CashRegisterModel>
 {

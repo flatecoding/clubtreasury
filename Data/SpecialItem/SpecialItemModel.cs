@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using TTCCashRegister.Data.Transaction;
+using ClubTreasury.Data.Transaction;
 
-namespace TTCCashRegister.Data.SpecialItem
+namespace ClubTreasury.Data.SpecialItem
 {
     public class SpecialItemModel
     {

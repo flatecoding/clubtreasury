@@ -1,8 +1,8 @@
 using System.Text;
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.Mapper.DTOs;
+using ClubTreasury.Data.Mapper.DTOs;
 
-namespace TTCCashRegister.Data.Export.Budget;
+namespace ClubTreasury.Data.Export.Budget;
 
 public class CsvBudgetWriter(IStringLocalizer<Translation> localizer) : ICsvBudgetWriter
 {

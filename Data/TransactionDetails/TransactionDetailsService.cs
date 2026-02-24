@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.TransactionDetails;
+namespace ClubTreasury.Data.TransactionDetails;
 
 public class TransactionDetailsService(CashDataContext context, ILogger<TransactionDetailsService> logger,
     IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory)

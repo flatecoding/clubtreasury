@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.CashRegister;
-using TTCCashRegister.Data.SpecialItem;
-using TTCCashRegister.Data.TransactionDetails;
+using ClubTreasury.Data.Allocation;
+using ClubTreasury.Data.CashRegister;
+using ClubTreasury.Data.SpecialItem;
+using ClubTreasury.Data.TransactionDetails;
 
-namespace TTCCashRegister.Data.Transaction
+namespace ClubTreasury.Data.Transaction
 {
     public class TransactionModel
     {

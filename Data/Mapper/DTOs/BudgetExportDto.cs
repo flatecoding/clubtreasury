@@ -1,4 +1,4 @@
-namespace TTCCashRegister.Data.Mapper.DTOs;
+namespace ClubTreasury.Data.Mapper.DTOs;
 
 public class BudgetFlatEntryDto
 {

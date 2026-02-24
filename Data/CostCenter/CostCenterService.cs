@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.CostCenter
+namespace ClubTreasury.Data.CostCenter
 {
     public class CostCenterService(CashDataContext context, ILogger<CostCenterService> logger, 
         IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : ICostCenterService

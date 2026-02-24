@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using TTCCashRegister.Data.Person;
-using TTCCashRegister.Data.Transaction;
+using ClubTreasury.Data.Person;
+using ClubTreasury.Data.Transaction;
 
-namespace TTCCashRegister.Data.TransactionDetails;
+namespace ClubTreasury.Data.TransactionDetails;
 
 public class TransactionDetailsModel
 {

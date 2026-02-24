@@ -1,6 +1,6 @@
-using TTCCashRegister.Data.Transaction;
+using ClubTreasury.Data.Transaction;
 
-namespace TTCCashRegister.Data.Export.Transaction;
+namespace ClubTreasury.Data.Export.Transaction;
 
 public interface IPdfTransactionRenderer
 {

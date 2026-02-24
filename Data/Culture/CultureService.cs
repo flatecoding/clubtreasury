@@ -1,8 +1,8 @@
 using System.Globalization;
 using Microsoft.JSInterop;
-using TTCCashRegister.Data.Source;
+using ClubTreasury.Data.Source;
 
-namespace TTCCashRegister.Data.Culture;
+namespace ClubTreasury.Data.Culture;
 
 public sealed class CultureService(IJSRuntime js) : ICultureService
 {

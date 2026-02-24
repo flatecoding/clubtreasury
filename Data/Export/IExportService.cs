@@ -1,6 +1,6 @@
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Export;
+namespace ClubTreasury.Data.Export;
 
 public interface IExportService
 {

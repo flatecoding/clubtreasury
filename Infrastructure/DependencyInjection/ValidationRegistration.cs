@@ -1,7 +1,7 @@
 using FluentValidation;
-using TTCCashRegister.Data.Export;
+using ClubTreasury.Data.Export;
 
-namespace TTCCashRegister.Infrastructure.DependencyInjection;
+namespace ClubTreasury.Infrastructure.DependencyInjection;
 
 public static class ValidationRegistration
 {

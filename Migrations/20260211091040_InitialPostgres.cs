@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace TTCCashRegister.Migrations
+namespace ClubTreasury.Migrations
 {
     /// <inheritdoc />
     public partial class InitialPostgres : Migration

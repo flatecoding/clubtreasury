@@ -1,10 +1,10 @@
 using System.ComponentModel.DataAnnotations;
-using TTCCashRegister.Data.Category;
-using TTCCashRegister.Data.CostCenter;
-using TTCCashRegister.Data.ItemDetail;
-using TTCCashRegister.Data.Transaction;
+using ClubTreasury.Data.Category;
+using ClubTreasury.Data.CostCenter;
+using ClubTreasury.Data.ItemDetail;
+using ClubTreasury.Data.Transaction;
 
-namespace TTCCashRegister.Data.Allocation;
+namespace ClubTreasury.Data.Allocation;
 
 public class AllocationModel
 {

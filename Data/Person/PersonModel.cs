@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TTCCashRegister.Data.Person;
+namespace ClubTreasury.Data.Person;
 
 public class PersonModel
 {

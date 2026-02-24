@@ -3,11 +3,11 @@
 @using System.Globalization
 @using ApexCharts
 @using Microsoft.Extensions.Localization
-@using TTCCashRegister.Data.CashRegister
-@using TTCCashRegister.Data.Transaction
+@using ClubTreasury.Data.CashRegister
+@using ClubTreasury.Data.Transaction
 @inject ICashRegisterService CashRegisterService
 @inject ITransactionService TransactionService
-@using TTCCashRegister.Data.ThemeSetting
+@using ClubTreasury.Data.ThemeSetting
 @inject IStringLocalizer<Translation> Localizer
 @inject UserPrefService UserPrefService
 @inject ILogger<Index> Logger
@@ -137,8 +137,8 @@
     {
         var isDark = UserPrefService.IsDarkMode;
         Palette palette = isDark
-            ? CustomTheme.ClubCashTheme.PaletteDark
-            : CustomTheme.ClubCashTheme.PaletteLight;
+            ? CustomTheme.ClubTreasuryTheme.PaletteDark
+            : CustomTheme.ClubTreasuryTheme.PaletteLight;
         _chartOptions = new ApexChartOptions<ChartDataPoint>
         {
             Chart = new Chart

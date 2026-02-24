@@ -2,16 +2,16 @@ using FakeItEasy;
 using AwesomeAssertions;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using TTCCashRegister.Data.CashRegister;
-using TTCCashRegister.Data.Export;
-using TTCCashRegister.Data.Export.Budget;
-using TTCCashRegister.Data.Export.Transaction;
-using TTCCashRegister.Data.Mapper;
-using TTCCashRegister.Data.Mapper.DTOs;
-using TTCCashRegister.Data.OperationResult;
-using TTCCashRegister.Data.Transaction;
+using ClubTreasury.Data.CashRegister;
+using ClubTreasury.Data.Export;
+using ClubTreasury.Data.Export.Budget;
+using ClubTreasury.Data.Export.Transaction;
+using ClubTreasury.Data.Mapper;
+using ClubTreasury.Data.Mapper.DTOs;
+using ClubTreasury.Data.OperationResult;
+using ClubTreasury.Data.Transaction;
 
-namespace TTCCashRegister.Tests.Services;
+namespace ClubTreasury.Tests.Services;
 
 [TestFixture]
 public class ExportServiceTests

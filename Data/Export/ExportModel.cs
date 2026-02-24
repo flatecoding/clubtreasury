@@ -1,6 +1,6 @@
 using MudBlazor;
 
-namespace TTCCashRegister.Data.Export;
+namespace ClubTreasury.Data.Export;
 
 public class ExportModel
 {

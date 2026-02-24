@@ -2,12 +2,12 @@ using System.Data;
 using System.Text;
 using ExcelDataReader;
 using Microsoft.Extensions.Localization;
-using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.CashRegister;
-using TTCCashRegister.Data.OperationResult;
-using TTCCashRegister.Data.Transaction;
+using ClubTreasury.Data.Allocation;
+using ClubTreasury.Data.CashRegister;
+using ClubTreasury.Data.OperationResult;
+using ClubTreasury.Data.Transaction;
 
-namespace TTCCashRegister.Data.Import;
+namespace ClubTreasury.Data.Import;
 
 public class ImportBookingJournalService(
     ITransactionService transactionService,

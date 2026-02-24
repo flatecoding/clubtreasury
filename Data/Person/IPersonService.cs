@@ -1,6 +1,6 @@
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Person;
+namespace ClubTreasury.Data.Person;
 
 public interface IPersonService
 {

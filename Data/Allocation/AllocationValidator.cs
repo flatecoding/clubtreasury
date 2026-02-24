@@ -1,7 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
-namespace TTCCashRegister.Data.Allocation;
+namespace ClubTreasury.Data.Allocation;
 
 public class AllocationValidator: AbstractValidator<AllocationModel>
 {

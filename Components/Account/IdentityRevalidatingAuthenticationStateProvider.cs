@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using TTCCashRegister.Data;
+using ClubTreasury.Data;
 
-namespace TTCCashRegister.Components.Account;
+namespace ClubTreasury.Components.Account;
 
 internal sealed class IdentityRevalidatingAuthenticationStateProvider(
     ILoggerFactory loggerFactory,

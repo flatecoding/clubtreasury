@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TTCCashRegister.Data.CashRegister;
+namespace ClubTreasury.Data.CashRegister;
 
 public class CashRegisterLogoModel
 {

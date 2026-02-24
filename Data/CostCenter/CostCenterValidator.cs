@@ -1,7 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
-namespace TTCCashRegister.Data.CostCenter;
+namespace ClubTreasury.Data.CostCenter;
 
 public class CostCenterValidator : AbstractValidator<CostCenterModel>
 {

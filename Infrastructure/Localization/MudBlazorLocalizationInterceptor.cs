@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Localization;
 using MudBlazor;
 
-namespace TTCCashRegister.Infrastructure.Localization;
+namespace ClubTreasury.Infrastructure.Localization;
 
 public class MudBlazorLocalizationInterceptor(
     ILoggerFactory loggerFactory,

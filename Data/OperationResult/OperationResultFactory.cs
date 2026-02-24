@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Localization;
 
-namespace TTCCashRegister.Data.OperationResult;
+namespace ClubTreasury.Data.OperationResult;
 
 public class OperationResultFactory(IStringLocalizer<Translation> localizer) : IOperationResultFactory
 {

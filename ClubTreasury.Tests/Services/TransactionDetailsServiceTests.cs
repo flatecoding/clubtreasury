@@ -3,17 +3,17 @@ using AwesomeAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using TTCCashRegister.Data;
-using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.CashRegister;
-using TTCCashRegister.Data.Category;
-using TTCCashRegister.Data.CostCenter;
-using TTCCashRegister.Data.OperationResult;
-using TTCCashRegister.Data.Person;
-using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.TransactionDetails;
+using ClubTreasury.Data;
+using ClubTreasury.Data.Allocation;
+using ClubTreasury.Data.CashRegister;
+using ClubTreasury.Data.Category;
+using ClubTreasury.Data.CostCenter;
+using ClubTreasury.Data.OperationResult;
+using ClubTreasury.Data.Person;
+using ClubTreasury.Data.Transaction;
+using ClubTreasury.Data.TransactionDetails;
 
-namespace TTCCashRegister.Tests.Services;
+namespace ClubTreasury.Tests.Services;
 
 [TestFixture]
 public class TransactionDetailsServiceTests

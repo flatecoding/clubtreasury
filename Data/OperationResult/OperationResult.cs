@@ -1,4 +1,4 @@
-namespace TTCCashRegister.Data.OperationResult;
+namespace ClubTreasury.Data.OperationResult;
 
 
 public class OperationResult : IOperationResult

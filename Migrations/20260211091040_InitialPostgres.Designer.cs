@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using TTCCashRegister.Data;
+using ClubTreasury.Data;
 
 #nullable disable
 
-namespace TTCCashRegister.Migrations
+namespace ClubTreasury.Migrations
 {
     [DbContext(typeof(CashDataContext))]
     [Migration("20260211091040_InitialPostgres")]
@@ -178,7 +178,7 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Allocation.AllocationModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.Allocation.AllocationModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -207,7 +207,7 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("Allocations");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.ApplicationUser", b =>
+            modelBuilder.Entity("ClubTreasury.Data.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -272,7 +272,7 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.CashRegister.CashRegisterModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.CashRegister.CashRegisterModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -290,7 +290,7 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("CashRegisters");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Category.CategoryModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.Category.CategoryModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -307,7 +307,7 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.CostCenter.CostCenterModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.CostCenter.CostCenterModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -325,7 +325,7 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("CostCenters");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.ItemDetail.ItemDetailModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.ItemDetail.ItemDetailModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -343,7 +343,7 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("ItemDetails");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Person.PersonModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.Person.PersonModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -361,7 +361,7 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("Persons");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.SpecialItem.SpecialItemModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.SpecialItem.SpecialItemModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -379,7 +379,7 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("SpecialItems");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Transaction.TransactionModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.Transaction.TransactionModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -426,7 +426,7 @@ namespace TTCCashRegister.Migrations
                     b.ToTable("Transactions");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.TransactionDetails.TransactionDetailsModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.TransactionDetails.TransactionDetailsModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -470,7 +470,7 @@ namespace TTCCashRegister.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("TTCCashRegister.Data.ApplicationUser", null)
+                    b.HasOne("ClubTreasury.Data.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -479,7 +479,7 @@ namespace TTCCashRegister.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("TTCCashRegister.Data.ApplicationUser", null)
+                    b.HasOne("ClubTreasury.Data.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -488,7 +488,7 @@ namespace TTCCashRegister.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserPasskey<string>", b =>
                 {
-                    b.HasOne("TTCCashRegister.Data.ApplicationUser", null)
+                    b.HasOne("ClubTreasury.Data.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -545,7 +545,7 @@ namespace TTCCashRegister.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TTCCashRegister.Data.ApplicationUser", null)
+                    b.HasOne("ClubTreasury.Data.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -554,28 +554,28 @@ namespace TTCCashRegister.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("TTCCashRegister.Data.ApplicationUser", null)
+                    b.HasOne("ClubTreasury.Data.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Allocation.AllocationModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.Allocation.AllocationModel", b =>
                 {
-                    b.HasOne("TTCCashRegister.Data.Category.CategoryModel", "Category")
+                    b.HasOne("ClubTreasury.Data.Category.CategoryModel", "Category")
                         .WithMany("Allocations")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("TTCCashRegister.Data.CostCenter.CostCenterModel", "CostCenter")
+                    b.HasOne("ClubTreasury.Data.CostCenter.CostCenterModel", "CostCenter")
                         .WithMany("Allocations")
                         .HasForeignKey("CostCenterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("TTCCashRegister.Data.ItemDetail.ItemDetailModel", "ItemDetail")
+                    b.HasOne("ClubTreasury.Data.ItemDetail.ItemDetailModel", "ItemDetail")
                         .WithMany("Allocations")
                         .HasForeignKey("ItemDetailId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -587,21 +587,21 @@ namespace TTCCashRegister.Migrations
                     b.Navigation("ItemDetail");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Transaction.TransactionModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.Transaction.TransactionModel", b =>
                 {
-                    b.HasOne("TTCCashRegister.Data.Allocation.AllocationModel", "Allocation")
+                    b.HasOne("ClubTreasury.Data.Allocation.AllocationModel", "Allocation")
                         .WithMany("Transactions")
                         .HasForeignKey("AllocationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("TTCCashRegister.Data.CashRegister.CashRegisterModel", "CashRegister")
+                    b.HasOne("ClubTreasury.Data.CashRegister.CashRegisterModel", "CashRegister")
                         .WithMany("Transactions")
                         .HasForeignKey("CashRegisterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TTCCashRegister.Data.SpecialItem.SpecialItemModel", "SpecialItem")
+                    b.HasOne("ClubTreasury.Data.SpecialItem.SpecialItemModel", "SpecialItem")
                         .WithMany("Transactions")
                         .HasForeignKey("SpecialItemId");
 
@@ -612,14 +612,14 @@ namespace TTCCashRegister.Migrations
                     b.Navigation("SpecialItem");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.TransactionDetails.TransactionDetailsModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.TransactionDetails.TransactionDetailsModel", b =>
                 {
-                    b.HasOne("TTCCashRegister.Data.Person.PersonModel", "Person")
+                    b.HasOne("ClubTreasury.Data.Person.PersonModel", "Person")
                         .WithMany()
                         .HasForeignKey("PersonId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("TTCCashRegister.Data.Transaction.TransactionModel", "Transaction")
+                    b.HasOne("ClubTreasury.Data.Transaction.TransactionModel", "Transaction")
                         .WithMany("TransactionDetails")
                         .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -630,37 +630,37 @@ namespace TTCCashRegister.Migrations
                     b.Navigation("Transaction");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Allocation.AllocationModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.Allocation.AllocationModel", b =>
                 {
                     b.Navigation("Transactions");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.CashRegister.CashRegisterModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.CashRegister.CashRegisterModel", b =>
                 {
                     b.Navigation("Transactions");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Category.CategoryModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.Category.CategoryModel", b =>
                 {
                     b.Navigation("Allocations");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.CostCenter.CostCenterModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.CostCenter.CostCenterModel", b =>
                 {
                     b.Navigation("Allocations");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.ItemDetail.ItemDetailModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.ItemDetail.ItemDetailModel", b =>
                 {
                     b.Navigation("Allocations");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.SpecialItem.SpecialItemModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.SpecialItem.SpecialItemModel", b =>
                 {
                     b.Navigation("Transactions");
                 });
 
-            modelBuilder.Entity("TTCCashRegister.Data.Transaction.TransactionModel", b =>
+            modelBuilder.Entity("ClubTreasury.Data.Transaction.TransactionModel", b =>
                 {
                     b.Navigation("TransactionDetails");
                 });

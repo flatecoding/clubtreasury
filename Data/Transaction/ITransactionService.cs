@@ -1,7 +1,7 @@
 using MudBlazor;
-using TTCCashRegister.Data.OperationResult;
+using ClubTreasury.Data.OperationResult;
 
-namespace TTCCashRegister.Data.Transaction;
+namespace ClubTreasury.Data.Transaction;
 
 public interface ITransactionService
 {

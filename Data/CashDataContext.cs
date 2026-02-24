@@ -1,16 +1,16 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using TTCCashRegister.Data.Allocation;
-using TTCCashRegister.Data.Transaction;
-using TTCCashRegister.Data.CashRegister;
-using TTCCashRegister.Data.Category;
-using TTCCashRegister.Data.CostCenter;
-using TTCCashRegister.Data.ItemDetail;
-using TTCCashRegister.Data.Person;
-using TTCCashRegister.Data.SpecialItem;
-using TTCCashRegister.Data.TransactionDetails;
+using ClubTreasury.Data.Allocation;
+using ClubTreasury.Data.Transaction;
+using ClubTreasury.Data.CashRegister;
+using ClubTreasury.Data.Category;
+using ClubTreasury.Data.CostCenter;
+using ClubTreasury.Data.ItemDetail;
+using ClubTreasury.Data.Person;
+using ClubTreasury.Data.SpecialItem;
+using ClubTreasury.Data.TransactionDetails;
 
-namespace TTCCashRegister.Data
+namespace ClubTreasury.Data
 {
     public class CashDataContext(DbContextOptions<CashDataContext> options) : IdentityDbContext<ApplicationUser>(options)
     {

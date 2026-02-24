@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using QuestPDF.Infrastructure;
 using Serilog;
-using TTCCashRegister.Components;
-using TTCCashRegister.Components.Account;
-using TTCCashRegister.Data;
-using TTCCashRegister.Data.Source;
-using TTCCashRegister.Infrastructure.DependencyInjection;
+using ClubTreasury.Components;
+using ClubTreasury.Components.Account;
+using ClubTreasury.Data;
+using ClubTreasury.Data.Source;
+using ClubTreasury.Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
@@ -56,7 +56,7 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(
         builder.Environment.IsDevelopment() ? "bin/keys" : "/app/keys"))
-    .SetApplicationName("ClubCashApp");
+    .SetApplicationName("ClubTreasuryApp");
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

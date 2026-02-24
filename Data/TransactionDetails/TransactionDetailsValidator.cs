@@ -1,7 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
-namespace TTCCashRegister.Data.TransactionDetails
+namespace ClubTreasury.Data.TransactionDetails
 {
     public class TransactionDetailsValidator : AbstractValidator<TransactionDetailsModel>
     {
