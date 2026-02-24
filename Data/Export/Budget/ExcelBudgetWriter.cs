@@ -36,12 +36,11 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
 
         // Header
         int row = 4;
-        ws.Cells[row, 1].Value = localizer["CostCenter"];
-        ws.Cells[row, 2].Value = localizer["Category"];
-        ws.Cells[row, 3].Value = localizer["DetailOrPerson"];
-        ws.Cells[row, 4].Value = localizer["Sum"];
+        ws.Cells[row, 1].Value = $"{localizer["CostCenter"]} / {localizer["Category"]}";
+        ws.Cells[row, 2].Value = localizer["DetailOrPerson"];
+        ws.Cells[row, 3].Value = localizer["Sum"];
 
-        using (var range = ws.Cells[row, 1, row, 4])
+        using (var range = ws.Cells[row, 1, row, 3])
         {
             range.Style.Font.Bold = true;
             range.Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -53,7 +52,7 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
 
         row++;
 
-        int detailRowCounter = 0;
+        var detailRowCounter = 0;
 
         foreach (var cc in groupedList)
         {
@@ -61,10 +60,10 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
             ws.Cells[row, 1].Style.Font.Bold = true;
             ws.Cells[row, 1].Style.Font.Size = 12;
 
-            ws.Cells[row, 4].Value = (double)cc.SumCostCenter;
-            ws.Cells[row, 4].Style.Numberformat.Format = "#,##0.00 €";
+            ws.Cells[row, 3].Value = (double)cc.SumCostCenter;
+            ws.Cells[row, 3].Style.Numberformat.Format = "#,##0.00 €";
 
-            using (var range = ws.Cells[row, 1, row, 4])
+            using (var range = ws.Cells[row, 1, row, 3])
             {
                 range.Style.Fill.PatternType = ExcelFillStyle.Solid;
                 range.Style.Fill.BackgroundColor.SetColor(ColorTranslator.FromHtml("#D9D9D9"));
@@ -76,14 +75,15 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
 
             foreach (var cat in cc.Categories)
             {
-                ws.Cells[row, 2].Value = cat.CategoryName;
-                ws.Cells[row, 2].Style.Font.Bold = true;
-                ws.Cells[row, 2].Style.Font.Size = 11;
+                ws.Cells[row, 1].Value = cat.CategoryName;
+                ws.Cells[row, 1].Style.Font.Bold = true;
+                ws.Cells[row, 1].Style.Font.Size = 11;
+                ws.Cells[row, 1].Style.Indent = 1;
 
-                ws.Cells[row, 4].Value = (double)cat.SumCategories;
-                ws.Cells[row, 4].Style.Numberformat.Format = "#,##0.00 €";
+                ws.Cells[row, 3].Value = (double)cat.SumCategories;
+                ws.Cells[row, 3].Style.Numberformat.Format = "#,##0.00 €";
 
-                using (var range = ws.Cells[row, 2, row, 4])
+                using (var range = ws.Cells[row, 1, row, 3])
                 {
                     range.Style.Fill.PatternType = ExcelFillStyle.Solid;
                     range.Style.Fill.BackgroundColor.SetColor(ColorTranslator.FromHtml("#EDEDED"));
@@ -94,9 +94,9 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
 
                 foreach (var item in cat.ItemDetails)
                 {
-                    decimal personSum = item.Persons.Sum(p => p.SumPerson);
+                    var personSum = item.Persons.Sum(p => p.SumPerson);
 
-                    bool showItemRow =
+                    var showItemRow =
                         !string.IsNullOrWhiteSpace(item.ItemDetailName) ||
                         item.Persons.Count == 0 ||
                         personSum != item.SumItemDetails;
@@ -105,11 +105,11 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
                     {
                         detailRowCounter++;
 
-                        bool altBackground = detailRowCounter % 2 == 0;
+                        var altBackground = detailRowCounter % 2 == 0;
 
-                        ws.Cells[row, 3].Value = item.ItemDetailName;
+                        ws.Cells[row, 2].Value = item.ItemDetailName;
 
-                        using (var range = ws.Cells[row, 3, row, 4])
+                        using (var range = ws.Cells[row, 2, row, 3])
                         {
                             if (altBackground)
                             {
@@ -118,21 +118,21 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
                             }
                         }
 
-                        ws.Cells[row, 4].Value = (double)item.SumItemDetails;
-                        ws.Cells[row, 4].Style.Numberformat.Format = "#,##0.00 €";
+                        ws.Cells[row, 3].Value = (double)item.SumItemDetails;
+                        ws.Cells[row, 3].Style.Numberformat.Format = "#,##0.00 €";
 
                         row++;
                     }
 
                     foreach (var p in item.Persons)
                     {
-                        ws.Cells[row, 3].Value = $"      {p.PersonName}";
-                        ws.Cells[row, 3].Style.Font.Italic = true;
+                        ws.Cells[row, 2].Value = $"      {p.PersonName}";
+                        ws.Cells[row, 2].Style.Font.Italic = true;
 
-                        ws.Cells[row, 4].Value = (double)p.SumPerson;
-                        ws.Cells[row, 4].Style.Numberformat.Format = "#,##0.00 €";
+                        ws.Cells[row, 3].Value = (double)p.SumPerson;
+                        ws.Cells[row, 3].Style.Numberformat.Format = "#,##0.00 €";
 
-                        ws.Cells[row, 3].Style.Indent = 2;
+                        ws.Cells[row, 2].Style.Indent = 2;
 
                         row++;
                     }
@@ -140,7 +140,7 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
                 row++;
             }
         }
-        ws.Cells.AutoFitColumns();
+        ws.Cells[4, 1, row, 3].AutoFitColumns();
     }
 
     private void WriteChartsSheet(ExcelPackage package, List<BudgetGroupedDto> groupedList)
