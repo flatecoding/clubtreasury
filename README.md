@@ -1,7 +1,7 @@
-# Club Cash Register
+# Club Treasury
 
-Club Cash Register is a web-based financial management system for non-profit clubs.  
-It allows club treasurers to record income and expenses, generate financial reports, 
+Club Treasury is a web-based financial management system for non-profit clubs.
+It allows club treasurers to record income and expenses, generate financial reports,
 and manage all financial data in a structured and transparent way.
 
 ---
@@ -33,15 +33,14 @@ and manage all financial data in a structured and transparent way.
 
 ## 🛠️ Technical Details
 
-- **Framework:** .NET 9 (ASP.NET Core Blazor WebApp)
+- **Framework:** .NET 10 (ASP.NET Core Blazor WebApp)
 - **UI Framework:** MudBlazor
-- **Database:** MariaDB / MySQL  
-  (using EF Core + Pomelo.EntityFrameworkCore.MySql)
-  **PDF Generation:** QuestPDF Community Edition
+- **Database:** PostgreSQL (using EF Core + Npgsql)
+- **PDF Generation:** QuestPDF Community Edition
 - **Excel Export:** EPPlus (Polyform NonCommercial 1.0.0)
 - **Excel Import:** ExcelDataReader
 - **Logging:** Serilog
-- **Dependency Injection:** Standard .NET DI + MySqlConnector DI extensions
+- **Dependency Injection:** Standard .NET DI
 
 ---
 
@@ -67,7 +66,7 @@ More information can be found in:
 1. Clone the repository
 2. Open in Visual Studio / Rider
 3. Restore NuGet packages
-4. Configure **MariaDB connection**
+4. Configure **PostgreSQL connection**
     - via *appsettings.json* or *User Secrets*
 5. (Optional) Apply database migrations
    ```bash
