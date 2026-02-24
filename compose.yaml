@@ -6,7 +6,7 @@ services:
     container_name: clubcash-db
     restart: always
     environment:
-      POSTGRES_PASSWORD: rootPasswort123
+      POSTGRES_PASSWORD: #Set root password
       POSTGRES_DB: ClubCash
       POSTGRES_USER: user
     volumes:
@@ -34,6 +34,10 @@ services:
       Logging__LogLevel__Microsoft.EntityFrameworkCore: "Information"
       ASPNETCORE_ENVIRONMENT: "Production"
       DbPassword: #Db passwort from postgres
+      ADMIN_USERNAME: admin
+      ADMIN_EMAIL: admin@admin.de
+      ADMIN_PASSWORD: #another secret pw for first user
+      
     volumes:
       - /volume1/docker/ttccashregister/exports:/app/exports
       - /volume1/docker/ttccashregister/logs:/app/logs
