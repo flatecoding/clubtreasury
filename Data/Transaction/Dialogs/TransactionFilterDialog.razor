@@ -3,29 +3,31 @@
 @inject IStringLocalizer<Translation> Localizer
 <MudDialog>
     <DialogContent>
-        <MudStack Spacing="2">
-            <MudDateRangePicker @bind-DateRange="DateRange"
-                                Editable="true"
-                                DateFormat="dd.MM.yyyy"
-                                Label="@Localizer["DateRange"]" />
+        <MudForm OnEnterPressed="@Apply">
+            <MudStack Spacing="2">
+                <MudDateRangePicker @bind-DateRange="DateRange"
+                                    Editable="true"
+                                    DateFormat="dd.MM.yyyy"
+                                    Label="@Localizer["DateRange"]" />
 
-            <MudTextField @bind-Value="SearchText"
-                          Label="@Localizer["Search"]"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search" />
+                <MudTextField @bind-Value="SearchText"
+                              Label="@Localizer["Search"]"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search" />
 
-            <MudSelect T="int?"
-                       Label="@Localizer["Person"]"
-                       @bind-Value="SelectedPersonId"
-                       Clearable="true"
-                       ToStringFunc="@PersonIdToName">
-                @foreach (var person in _persons)
-                {
-                    <MudSelectItem T="int?" Value="@person.Id">@person.Name</MudSelectItem>
-                }
-            </MudSelect>
+                <MudSelect T="int?"
+                           Label="@Localizer["Person"]"
+                           @bind-Value="SelectedPersonId"
+                           Clearable="true"
+                           ToStringFunc="@PersonIdToName">
+                    @foreach (var person in _persons)
+                    {
+                        <MudSelectItem T="int?" Value="@person.Id">@person.Name</MudSelectItem>
+                    }
+                </MudSelect>
 
-        </MudStack>
+            </MudStack>
+        </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton Color="Color.Primary" OnClick="@Apply">@Localizer["Apply"]</MudButton>

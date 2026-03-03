@@ -13,7 +13,8 @@
         <MudForm @ref="_form"
                  Model="_itemDetailModel"
                  Validation="ItemDetailValidator.ValidateValue"
-                 ValidationDelay="0">
+                 ValidationDelay="0"
+                 OnEnterPressed="@Save">
 
             <MudTextField @bind-Value="_itemDetailModel.CostDetails"
                           Label="@Localizer["Name"]"

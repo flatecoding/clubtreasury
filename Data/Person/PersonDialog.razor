@@ -10,7 +10,7 @@
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" Model="_personModel" Validation="PersonValidator.ValidateValue" ValidationDelay="0">
+        <MudForm @ref="_form" Model="_personModel" Validation="PersonValidator.ValidateValue" ValidationDelay="0" OnEnterPressed="@Save">
             <MudTextField @bind-Value="_personModel.Name" Label="@Localizer["Name"]"
                           For="@(() => _personModel.Name)" Immediate="true"/>
         </MudForm>

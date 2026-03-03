@@ -13,7 +13,8 @@
         <MudForm @ref="_form"
                  Model="_costCenterModel"
                  Validation="CostCenterValidator.ValidateValue"
-                 ValidationDelay="0">
+                 ValidationDelay="0"
+                 OnEnterPressed="@Save">
 
             <MudTextField @bind-Value="_costCenterModel.CostUnitName"
                           Label="@Localizer["CostCenter"]"
