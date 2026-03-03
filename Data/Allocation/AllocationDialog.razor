@@ -16,7 +16,7 @@
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" Model="_allocationModel" Validation="AllocationValidator.ValidateValue">
+        <MudForm @ref="_form" Model="_allocationModel" Validation="AllocationValidator.ValidateValue" OnEnterPressed="@Save">
             <MudSelect T="int" Label="@Localizer["CostCenter"]" @bind-Value="_allocationModel.CostCenterId"
                        ToStringFunc="@CostCenterIdToString"
                        For="@(() => _allocationModel.CostCenterId)"
