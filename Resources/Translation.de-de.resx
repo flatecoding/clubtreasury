@@ -519,7 +519,7 @@
         <comment>DuplicateRow</comment>
     </data>
     <data name="RowErrorFormat" xml:space="preserve">
-        <value>Zeilenformat fehler</value>
+        <value>Zeile {0}: {1}</value>
         <comment>RowErrorFormat</comment>
     </data>
     <data name="RequiredDataIsMissing" xml:space="preserve">
@@ -1131,5 +1131,13 @@
     <data name="Logo" xml:space="preserve">
         <value>Logo</value>
         <comment>Logo</comment>
+    </data>
+    <data name="InvalidFileFormat" xml:space="preserve">
+        <value>Falsches Dateiformat</value>
+        <comment>InvalidFileFormat</comment>
+    </data>
+    <data name="ImportIn" xml:space="preserve">
+        <value>Importieren in</value>
+        <comment>ImportIn</comment>
     </data>
 </root>

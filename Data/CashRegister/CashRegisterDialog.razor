@@ -44,11 +44,11 @@
         <MudFileUpload T="IBrowserFile"
                        FilesChanged="OnFileSelected"
                        Accept=".png,.jpg,.jpeg,.svg">
-            <ActivatorContent>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary">
+            <CustomContent Context="fileUpload">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@fileUpload.OpenFilePickerAsync">
                     @Localizer["SelectFile"]
                 </MudButton>
-            </ActivatorContent>
+            </CustomContent>
         </MudFileUpload>
 
         @if (_pendingFile is not null)
