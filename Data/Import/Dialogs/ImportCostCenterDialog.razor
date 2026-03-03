@@ -13,16 +13,8 @@
         <MudForm>
             <MudFileUpload T="IBrowserFile"
                            FilesChanged="UploadFiles"
-                           Accept=".txt">
-                <ActivatorContent>
-                    <MudButton Class="mb-2"
-                               Variant="Variant.Filled"
-                               Color="Color.Primary">
-                        @Localizer["SelectFile"]
-                    </MudButton>
-                </ActivatorContent>
-            </MudFileUpload>
-            <MudTextField Disabled="true" @bind-Value="_fileName" Label="@Localizer["FileName"]" Placeholder="@Localizer["FileName"]" Required="true"/>
+                           Accept=".txt"
+                           DragAndDrop="true" />
         </MudForm>
     </DialogContent>
     <DialogActions>
@@ -39,7 +31,6 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
-    private string? _fileName = string.Empty;
     private bool _isImporting;
     private const Adornment Adornment = MudBlazor.Adornment.Start;
     private IBrowserFile? _file;
@@ -47,7 +38,6 @@
     private void UploadFiles(IBrowserFile? file)
     {
         _file = file;
-        _fileName = file?.Name;
     }
 
     private async Task ImportData()
@@ -69,15 +59,12 @@
             }
 
             await using var stream = _file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
-            if (stream is not null)
-            {
-                var result = await ImportCostCenterService.ImportCostCentersAndPositions(stream, _file.Name);
-                MudDialog.Close(DialogResult.Ok(result));
-            }
+            var result = await ImportCostCenterService.ImportCostCentersAndPositions(stream, _file.Name);
+            MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "An error occured during import of file: '{_fileName}':", _fileName);
+            Logger.LogCritical(ex, "An error occured during import of file: '{FileName}':", _file?.Name);
             MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["Exception"])));
         }
         finally
