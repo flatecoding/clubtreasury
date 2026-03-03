@@ -62,7 +62,8 @@ public class TransactionService(
                 }
             
                 if (await context.Transactions
-                        .AnyAsync(t => t.Documentnumber == entry.Documentnumber, ct))
+                        .AnyAsync(t => t.Documentnumber == entry.Documentnumber
+                                       && t.CashRegisterId == entry.CashRegisterId, ct))
                 {
                     logger.LogWarning(
                         "Transaction with DocumentNumber {DocumentNumber} already exists.",
@@ -131,6 +132,7 @@ public class TransactionService(
             }
             if (await context.Transactions.AnyAsync(t =>
                     t.Documentnumber == entry.Documentnumber &&
+                    t.CashRegisterId == entry.CashRegisterId &&
                     t.Id != entry.Id, ct))
             {
                 return operationResultFactory.AlreadyExists(
