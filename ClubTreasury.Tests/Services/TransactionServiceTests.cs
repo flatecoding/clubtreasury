@@ -340,6 +340,53 @@ public class TransactionServiceTests
     }
 
     [Test]
+    public async Task AddTransactionAsync_WhenDocumentNumberExistsInDifferentCashRegister_ShouldAddSuccessfully()
+    {
+        // Arrange
+        var (cashRegister1, allocation) = await CreateTestDataAsync();
+        var cashRegister2 = new CashRegisterModel { Name = "Second Register" };
+        await _context.CashRegisters.AddAsync(cashRegister2);
+        await _context.SaveChangesAsync();
+
+        var existingTransaction = new TransactionModel
+        {
+            Documentnumber = 2002,
+            CashRegisterId = cashRegister1.Id,
+            AllocationId = allocation.Id
+        };
+        await _context.Transactions.AddAsync(existingTransaction);
+        await _context.SaveChangesAsync();
+
+        var newTransaction = new TransactionModel
+        {
+            Documentnumber = 2002, // Same document number, different cash register
+            CashRegisterId = cashRegister2.Id,
+            AllocationId = allocation.Id,
+            Sum = 10.00m,
+            AccountMovement = 10.00m,
+            Date = DateOnly.FromDateTime(DateTime.Now)
+        };
+
+        var expectedResult = new OperationResult
+        {
+            Status = OperationResultStatus.Success,
+            Message = "Successfully added"
+        };
+        A.CallTo(() => _operationResultFactory.SuccessAdded(A<string>._, A<object?>._))
+            .Returns(expectedResult);
+        A.CallTo(() => _allocationService.GetRequiredAllocationAsync(allocation.Id, A<CancellationToken>._))
+            .Returns(allocation);
+
+        // Act
+        var result = await _sut.AddTransactionAsync(newTransaction);
+
+        // Assert
+        result.Should().Be(expectedResult);
+        var transactions = await _context.Transactions.Where(t => t.Documentnumber == 2002).ToListAsync();
+        transactions.Should().HaveCount(2);
+    }
+
+    [Test]
     public async Task AddTransactionAsync_WhenAllocationIdIsMissing_ShouldReturnFailure()
     {
         // Arrange
@@ -509,6 +556,55 @@ public class TransactionServiceTests
             Id = transaction2.Id,
             Documentnumber = 100, // Same as transaction1
             CashRegisterId = cashRegister.Id,
+            AllocationId = allocation.Id
+        };
+
+        // Act
+        var result = await _sut.UpdateTransactionAsync(updatedTransaction);
+
+        // Assert
+        result.Should().Be(expectedResult);
+    }
+
+    [Test]
+    public async Task UpdateTransactionAsync_WhenDocumentNumberExistsInDifferentCashRegister_ShouldUpdateSuccessfully()
+    {
+        // Arrange
+        var (cashRegister1, allocation) = await CreateTestDataAsync();
+        var cashRegister2 = new CashRegisterModel { Name = "Second Register" };
+        await _context.CashRegisters.AddAsync(cashRegister2);
+        await _context.SaveChangesAsync();
+
+        var transaction1 = new TransactionModel
+        {
+            Documentnumber = 2002,
+            CashRegisterId = cashRegister1.Id,
+            AllocationId = allocation.Id
+        };
+        var transaction2 = new TransactionModel
+        {
+            Documentnumber = 200,
+            CashRegisterId = cashRegister2.Id,
+            AllocationId = allocation.Id
+        };
+        await _context.Transactions.AddRangeAsync(transaction1, transaction2);
+        await _context.SaveChangesAsync();
+
+        var expectedResult = new OperationResult
+        {
+            Status = OperationResultStatus.Success,
+            Message = "Successfully updated"
+        };
+        A.CallTo(() => _operationResultFactory.SuccessUpdated(A<string>._, A<object?>._))
+            .Returns(expectedResult);
+        A.CallTo(() => _allocationService.GetRequiredAllocationAsync(allocation.Id, A<CancellationToken>._))
+            .Returns(allocation);
+
+        var updatedTransaction = new TransactionModel
+        {
+            Id = transaction2.Id,
+            Documentnumber = 2002, // Same as transaction1, but different cash register
+            CashRegisterId = cashRegister2.Id,
             AllocationId = allocation.Id
         };
 
