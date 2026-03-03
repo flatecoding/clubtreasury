@@ -120,23 +120,14 @@ public class ImportBookingJournalService(
         var result = reader.AsDataSet();
         var dataTable = result.Tables["Bookings"];
 
-        if (dataTable?.Rows == null)
-        {
-            logger.LogWarning("No rows found in sheet: 'Bookings'!");
-            return null;
-        }
+        if (dataTable?.Rows != null)
+            return (from DataRow row in dataTable.Rows select ParseRow(row))
+                .Where(r => r != null)
+                .Select(r => r!)
+                .ToList();
+        logger.LogWarning("No rows found in sheet: 'Bookings'!");
+        return null;
 
-        var rows = new List<BookingJournalRowDto>();
-        foreach (DataRow row in dataTable.Rows)
-        {
-            var parsedRow = ParseRow(row);
-            if (parsedRow != null)
-            {
-                rows.Add(parsedRow);
-            }
-        }
-
-        return rows;
     }
 
     private BookingJournalRowDto? ParseRow(DataRow row)
@@ -185,22 +176,20 @@ public class ImportBookingJournalService(
             const int cCostCenterCategoryCell = 6;
             var costCenterCategory = row.ItemArray[cCostCenterCategoryCell]?.ToString();
             var parts = costCenterCategory?.Split('/');
-            if (parts == null || parts.Length == 0)
-            {
-                logger.LogWarning("Missing cost center info in row: {@RowData}", row.ItemArray);
-                return null;
-            }
+            if (parts != null && parts.Length != 0)
+                return new BookingJournalRowDto
+                {
+                    Date = DateOnly.FromDateTime(datum),
+                    DocumentNumber = documentNumber,
+                    Description = description,
+                    Sum = sumValue,
+                    AccountMovement = accountMovement,
+                    CostCenterName = parts[0].Trim(),
+                    CategoryName = parts.Length >= 2 ? parts[1].Trim() : "Undefined"
+                };
+            logger.LogWarning("Missing cost center info in row: {@RowData}", row.ItemArray);
+            return null;
 
-            return new BookingJournalRowDto
-            {
-                Date = DateOnly.FromDateTime(datum),
-                DocumentNumber = documentNumber,
-                Description = description,
-                Sum = sumValue,
-                AccountMovement = accountMovement,
-                CostCenterName = parts[0].Trim(),
-                CategoryName = parts.Length >= 2 ? parts[1].Trim() : "Undefined"
-            };
         }
         catch (Exception ex)
         {

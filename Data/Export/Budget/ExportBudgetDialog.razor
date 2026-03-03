@@ -83,7 +83,7 @@
 
     private List<CashRegisterModel> _cashRegisters = [];
     private CashRegisterModel? _selectedCashRegister;
-    private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p.Name;
+    private readonly Func<CashRegisterModel?, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
 
     protected override async Task OnInitializedAsync()
     {

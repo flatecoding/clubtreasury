@@ -10,8 +10,10 @@
 @inject IOperationResultFactory OperationResultFactory
 
 <MudDialog>
-    <DialogContent>
+    <TitleContent>
         <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Large">@Localizer["SelectBookingJournalFile"]</MudTextM3>
+    </TitleContent>
+    <DialogContent>
         <MudTextM3 Class="mb-2" Typo="TypoM3.Title" Size="Size.Medium"><strong>@Localizer["RequiredFormat"]</strong></MudTextM3>
         <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>@Localizer["NameOfSheet"]:</strong> Bookings</MudTextM3>
         <MudTextM3 Class="mb-2" Typo="TypoM3.Body" Size="Size.Medium"><strong>@Localizer["RowDefinition"]</strong></MudTextM3>
@@ -24,9 +26,11 @@
                   Src="images/ExampleBookingJournalImport.png"
                   Alt="Example">
         </MudImage>
-        <MudForm @ref="_form">
+        <MudDivider Class="my-4"/>
+        <MudForm>
             <MudGrid Spacing="2">
                 <MudItem xs="12">
+                    <MudTextM3 Typo="TypoM3.Title" Size="Size.Medium" Class="mb-3">@Localizer["ImportIn"]</MudTextM3>
                     <MudSelect T="CashRegisterModel"
                                Label="@Localizer["CashRegister"]"
                                Required="true"
@@ -39,20 +43,11 @@
                         }
                     </MudSelect>
                 </MudItem>
-
                 <MudItem xs="12">
-                    <div class="d-flex align-center gap-2">
-                        <MudFileUpload T="IBrowserFile"
-                                       FilesChanged="UploadFiles"
-                                       Accept="*.xlsx/*.ods">
-                            <ActivatorContent>
-                                <MudIconButton Icon="@Icons.Material.Filled.UploadFile"
-                                               Variant="Variant.Filled"
-                                               Color="Color.Primary"/>
-                            </ActivatorContent>
-                        </MudFileUpload>
-                        <MudTextField Disabled="true" @bind-Value="_fileName" Label="@Localizer["FileName"]" Placeholder="@Localizer["FileName"]" Required="true" Style="flex: 1;"/>
-                    </div>
+                    <MudFileUpload T="IBrowserFile"
+                                   FilesChanged="UploadFiles"
+                                   Accept="*.xlsx/*.ods"
+                                   DragAndDrop="true"/>
                 </MudItem>
             </MudGrid>
         </MudForm>
@@ -72,14 +67,12 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
-    private MudForm _form = null!;
-    private string? _fileName;
     private const Adornment Adornment = MudBlazor.Adornment.Start;
     private bool _isImporting;
 
     private List<CashRegisterModel> _cashRegisters = [];
     private CashRegisterModel? _selectedCashRegister;
-    private readonly Func<CashRegisterModel, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
+    private readonly Func<CashRegisterModel?, string> _cashRegisterConverter = p => p?.Name ?? string.Empty;
 
     private IBrowserFile? _file;
 
@@ -94,7 +87,6 @@
     private void UploadFiles(IBrowserFile? file)
     {
         _file = file;
-        _fileName = file?.Name;
     }
 
     private async Task ImportData()
@@ -113,15 +105,12 @@
             }
 
             await using var stream = _file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-            if (_fileName != null)
-            {
-                var result = await ImportBookingJournalService.ImportTransactions(stream, _fileName, _selectedCashRegister.Id);
-                MudDialog.Close(DialogResult.Ok(result));
-            }
+            var result = await ImportBookingJournalService.ImportTransactions(stream, _file.Name, _selectedCashRegister.Id);
+            MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "An exception occurred while importing transactions: {_fileName}", _fileName);
+            Logger.LogCritical(ex, "An exception occurred while importing transactions: {FileName}", _file?.Name);
             MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["Exception"])));
         }
         finally

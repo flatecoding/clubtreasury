@@ -1089,4 +1089,12 @@
         <value />
         <comment>Logo</comment>
     </data>
+    <data name="InvalidFileFormat" xml:space="preserve">
+        <value />
+        <comment>InvalidFileFormat</comment>
+    </data>
+    <data name="ImportIn" xml:space="preserve">
+        <value />
+        <comment>ImportIn</comment>
+    </data>
 </root>
