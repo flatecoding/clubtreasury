@@ -14,7 +14,8 @@
     <DialogContent>
         <MudForm @ref="_form" Model="_transactionDetailsModel"
                  Validation="TransactionDetailsValidator.ValidateValue"
-                 ValidationDelay="0">
+                 ValidationDelay="0"
+                 OnEnterPressed="@Save">
 
             <MudTextField @bind-Value="_transactionDetailsModel.DocumentNumber"
                           Label="@Localizer["DocumentNumber"]"
