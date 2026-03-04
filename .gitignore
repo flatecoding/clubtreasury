@@ -18,6 +18,8 @@
 # Test project build artifacts
 /ClubTreasury.Tests/bin/
 /ClubTreasury.Tests/obj/
+/ClubTreasury.IntegrationTests/bin/
+/ClubTreasury.IntegrationTests/obj/
 /docker-compose.test.yml
 /dev-container.sh
 /migrate.load

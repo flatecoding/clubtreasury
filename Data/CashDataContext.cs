@@ -54,7 +54,7 @@ namespace ClubTreasury.Data
                 .OnDelete(DeleteBehavior.Restrict);
             
             modelBuilder.Entity<TransactionModel>()
-                .HasIndex(t => t.Documentnumber)
+                .HasIndex(t => new { t.Documentnumber, t.CashRegisterId })
                 .IsUnique();
             
             modelBuilder.Entity<TransactionModel>()
