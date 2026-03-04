@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using ClubTreasury.Data;
 
-namespace ClubTreasury.Tests.Integration;
+namespace ClubTreasury.IntegrationTests.Integration;
 
 [TestFixture]
 public abstract class IntegrationTestBase

@@ -7,7 +7,7 @@ using ClubTreasury.Data.CostCenter;
 using ClubTreasury.Data.OperationResult;
 using ClubTreasury.Data.Transaction;
 
-namespace ClubTreasury.Tests.Integration;
+namespace ClubTreasury.IntegrationTests.Integration;
 
 [TestFixture]
 public class TransactionServiceIntegrationTests : IntegrationTestBase
@@ -72,7 +72,7 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
             .FirstOrDefaultAsync(t => t.Documentnumber == 1001);
 
         savedTransaction.Should().NotBeNull();
-        savedTransaction!.Description.Should().Be("Integration Test Transaction");
+        savedTransaction.Description.Should().Be("Integration Test Transaction");
         savedTransaction.Sum.Should().Be(100.50m);
         savedTransaction.Allocation.CostCenter.CostUnitName.Should().Be("Test Cost Center");
     }
@@ -81,35 +81,35 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
     public async Task UpdateTransaction_WhenChangingAllocation_ShouldSucceed()
     {
         // Arrange - Create initial data
-        var (cashRegister, allocation1) = await CreateTestDataAsync();
+        var (cashRegister, allocation) = await CreateTestDataAsync();
 
         // Create a second allocation with different cost center
-        var costCenter2 = new CostCenterModel { CostUnitName = "Second Cost Center" };
-        var category2 = new CategoryModel { Name = "Second Category" };
-        await GetDbContext().CostCenters.AddAsync(costCenter2);
-        await GetDbContext().Categories.AddAsync(category2);
+        var secondCostCenter = new CostCenterModel { CostUnitName = "Second Cost Center" };
+        var secondCategory = new CategoryModel { Name = "Second Category" };
+        await GetDbContext().CostCenters.AddAsync(secondCostCenter);
+        await GetDbContext().Categories.AddAsync(secondCategory);
         await GetDbContext().SaveChangesAsync();
 
-        var allocation2 = new AllocationModel
+        var secondAllocation = new AllocationModel
         {
-            CostCenterId = costCenter2.Id,
-            CategoryId = category2.Id
+            CostCenterId = secondCostCenter.Id,
+            CategoryId = secondCategory.Id
         };
-        await GetDbContext().Allocations.AddAsync(allocation2);
+        await GetDbContext().Allocations.AddAsync(secondAllocation);
         await GetDbContext().SaveChangesAsync();
 
-        // Create a transaction with allocation1
-        var transaction = new TransactionModel
+        // Create a transaction with initial allocation
+        var originalTransaction = new TransactionModel
         {
             Documentnumber = 2001,
             Description = "Transaction to update",
             CashRegisterId = cashRegister.Id,
-            AllocationId = allocation1.Id,
+            AllocationId = allocation.Id,
             Sum = 50.00m,
             AccountMovement = 50.00m,
             Date = DateOnly.FromDateTime(DateTime.Now)
         };
-        await GetDbContext().Transactions.AddAsync(transaction);
+        await GetDbContext().Transactions.AddAsync(originalTransaction);
         await GetDbContext().SaveChangesAsync();
 
         // Clear the change tracker to simulate fresh context like in real app
@@ -118,10 +118,10 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         // Load transaction with Include (simulating GetTransactionByIdAsync behavior)
         var loadedTransaction = await GetDbContext().Transactions
             .Include(t => t.Allocation)
-            .FirstAsync(t => t.Id == transaction.Id);
+            .FirstAsync(t => t.Id == originalTransaction.Id);
 
-        // Change allocation to allocation2
-        loadedTransaction.AllocationId = allocation2.Id;
+        // Change allocation to secondAllocation
+        loadedTransaction.AllocationId = secondAllocation.Id;
         loadedTransaction.Description = "Updated allocation";
 
         // Act
@@ -134,9 +134,9 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         var updatedTransaction = await GetDbContext().Transactions
             .Include(t => t.Allocation)
             .ThenInclude(a => a.CostCenter)
-            .FirstAsync(t => t.Id == transaction.Id);
+            .FirstAsync(t => t.Id == originalTransaction.Id);
 
-        updatedTransaction.AllocationId.Should().Be(allocation2.Id);
+        updatedTransaction.AllocationId.Should().Be(secondAllocation.Id);
         updatedTransaction.Allocation.CostCenter.CostUnitName.Should().Be("Second Cost Center");
         updatedTransaction.Description.Should().Be("Updated allocation");
     }
@@ -221,7 +221,7 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         // Arrange
         var (cashRegister, allocation) = await CreateTestDataAsync();
 
-        var transaction1 = new TransactionModel
+        var existingTransaction = new TransactionModel
         {
             Documentnumber = 5001,
             Description = "First transaction",
@@ -231,10 +231,10 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
             AccountMovement = 10.00m,
             Date = DateOnly.FromDateTime(DateTime.Now)
         };
-        await GetDbContext().Transactions.AddAsync(transaction1);
+        await GetDbContext().Transactions.AddAsync(existingTransaction);
         await GetDbContext().SaveChangesAsync();
 
-        var transaction2 = new TransactionModel
+        var duplicateTransaction = new TransactionModel
         {
             Documentnumber = 5001, // Same document number
             Description = "Second transaction",
@@ -246,11 +246,52 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         };
 
         // Act
-        var result = await _transactionService.AddTransactionAsync(transaction2);
+        var result = await _transactionService.AddTransactionAsync(duplicateTransaction);
 
         // Assert - AlreadyExists returns Warning status per OperationResultFactory
         result.Status.Should().Be(OperationResultStatus.Warning);
         result.Status.Should().NotBe(OperationResultStatus.Success);
+    }
+
+    [Test]
+    public async Task AddTransaction_WithSameDocumentNumberInDifferentCashRegister_ShouldSucceed()
+    {
+        // Arrange
+        var (firstCashRegister, allocation) = await CreateTestDataAsync();
+
+        var secondCashRegister = new CashRegisterModel { Name = "Second Register" };
+        await GetDbContext().CashRegisters.AddAsync(secondCashRegister);
+        await GetDbContext().SaveChangesAsync();
+
+        var existingTransaction = new TransactionModel
+        {
+            Documentnumber = 7001,
+            Description = "Transaction in first register",
+            CashRegisterId = firstCashRegister.Id,
+            AllocationId = allocation.Id,
+            Sum = 10.00m,
+            AccountMovement = 10.00m,
+            Date = DateOnly.FromDateTime(DateTime.Now)
+        };
+        await GetDbContext().Transactions.AddAsync(existingTransaction);
+        await GetDbContext().SaveChangesAsync();
+
+        var transactionInOtherRegister = new TransactionModel
+        {
+            Documentnumber = 7001, // Same document number, different cash register
+            Description = "Transaction in second register",
+            CashRegisterId = secondCashRegister.Id,
+            AllocationId = allocation.Id,
+            Sum = 30.00m,
+            AccountMovement = 30.00m,
+            Date = DateOnly.FromDateTime(DateTime.Now)
+        };
+
+        // Act
+        var result = await _transactionService.AddTransactionAsync(transactionInOtherRegister);
+
+        // Assert
+        result.Status.Should().Be(OperationResultStatus.Success);
     }
 
     [Test]
@@ -259,41 +300,38 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         // Arrange
         var (cashRegister, allocation) = await CreateTestDataAsync();
 
-        var transactions = new[]
+        var januaryTransaction = new TransactionModel
         {
-            new TransactionModel
-            {
-                Documentnumber = 6001,
-                Description = "January transaction",
-                CashRegisterId = cashRegister.Id,
-                AllocationId = allocation.Id,
-                Sum = 100.00m,
-                AccountMovement = 100.00m,
-                Date = new DateOnly(2024, 1, 15)
-            },
-            new TransactionModel
-            {
-                Documentnumber = 6002,
-                Description = "February transaction",
-                CashRegisterId = cashRegister.Id,
-                AllocationId = allocation.Id,
-                Sum = 200.00m,
-                AccountMovement = 200.00m,
-                Date = new DateOnly(2024, 2, 15)
-            },
-            new TransactionModel
-            {
-                Documentnumber = 6003,
-                Description = "March transaction",
-                CashRegisterId = cashRegister.Id,
-                AllocationId = allocation.Id,
-                Sum = 300.00m,
-                AccountMovement = 300.00m,
-                Date = new DateOnly(2024, 3, 15)
-            }
+            Documentnumber = 6001,
+            Description = "January transaction",
+            CashRegisterId = cashRegister.Id,
+            AllocationId = allocation.Id,
+            Sum = 100.00m,
+            AccountMovement = 100.00m,
+            Date = new DateOnly(2024, 1, 15)
+        };
+        var februaryTransaction = new TransactionModel
+        {
+            Documentnumber = 6002,
+            Description = "February transaction",
+            CashRegisterId = cashRegister.Id,
+            AllocationId = allocation.Id,
+            Sum = 200.00m,
+            AccountMovement = 200.00m,
+            Date = new DateOnly(2024, 2, 15)
+        };
+        var marchTransaction = new TransactionModel
+        {
+            Documentnumber = 6003,
+            Description = "March transaction",
+            CashRegisterId = cashRegister.Id,
+            AllocationId = allocation.Id,
+            Sum = 300.00m,
+            AccountMovement = 300.00m,
+            Date = new DateOnly(2024, 3, 15)
         };
 
-        await GetDbContext().Transactions.AddRangeAsync(transactions);
+        await GetDbContext().Transactions.AddRangeAsync(januaryTransaction, februaryTransaction, marchTransaction);
         await GetDbContext().SaveChangesAsync();
 
         // Act
@@ -305,7 +343,7 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         // Assert
         var resultList = result.ToList();
         resultList.Should().HaveCount(2);
-        resultList.Select(t => t.Documentnumber).Should().Contain(new[] { 6001, 6002 });
+        resultList.Select(t => t.Documentnumber).Should().Contain([6001, 6002]);
         resultList.Select(t => t.Documentnumber).Should().NotContain(6003);
     }
 }

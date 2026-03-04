@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 using ClubTreasury.Data;
 
-namespace ClubTreasury.Tests.Integration;
+namespace ClubTreasury.IntegrationTests.Integration;
 
 public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program>
 {
