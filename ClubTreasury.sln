@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClubTreasury.Tests", "ClubTreasury.Tests\ClubTreasury.Tests.csproj", "{14E9A03E-FEE2-424B-A60F-0E8C0AAA9F6B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClubTreasury.IntegrationTests", "ClubTreasury.IntegrationTests\ClubTreasury.IntegrationTests.csproj", "{9C0F585A-9D70-46EB-9471-FE8C94E9A388}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,18 @@ Global
 		{14E9A03E-FEE2-424B-A60F-0E8C0AAA9F6B}.Release|x64.Build.0 = Release|Any CPU
 		{14E9A03E-FEE2-424B-A60F-0E8C0AAA9F6B}.Release|x86.ActiveCfg = Release|Any CPU
 		{14E9A03E-FEE2-424B-A60F-0E8C0AAA9F6B}.Release|x86.Build.0 = Release|Any CPU
+		{9C0F585A-9D70-46EB-9471-FE8C94E9A388}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C0F585A-9D70-46EB-9471-FE8C94E9A388}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C0F585A-9D70-46EB-9471-FE8C94E9A388}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9C0F585A-9D70-46EB-9471-FE8C94E9A388}.Debug|x64.Build.0 = Debug|Any CPU
+		{9C0F585A-9D70-46EB-9471-FE8C94E9A388}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9C0F585A-9D70-46EB-9471-FE8C94E9A388}.Debug|x86.Build.0 = Debug|Any CPU
+		{9C0F585A-9D70-46EB-9471-FE8C94E9A388}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C0F585A-9D70-46EB-9471-FE8C94E9A388}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C0F585A-9D70-46EB-9471-FE8C94E9A388}.Release|x64.ActiveCfg = Release|Any CPU
+		{9C0F585A-9D70-46EB-9471-FE8C94E9A388}.Release|x64.Build.0 = Release|Any CPU
+		{9C0F585A-9D70-46EB-9471-FE8C94E9A388}.Release|x86.ActiveCfg = Release|Any CPU
+		{9C0F585A-9D70-46EB-9471-FE8C94E9A388}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
