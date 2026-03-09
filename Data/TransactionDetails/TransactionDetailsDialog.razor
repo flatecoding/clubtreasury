@@ -57,6 +57,7 @@
 @code {
     [Parameter] public int TransactionId { get; set; }
     [Parameter] public int? TransactionDetailsId { get; set; }
+    [Parameter] public int? SuggestedDocumentNumber { get; set; }
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
@@ -80,6 +81,7 @@
             _transactionDetailsModel = new TransactionDetailsModel
             {
                 TransactionId = TransactionId,
+                DocumentNumber = SuggestedDocumentNumber,
                 Sum = 0m
             };
             return;

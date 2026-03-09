@@ -79,7 +79,8 @@
         var parameters = new DialogParameters
         {
             ["TransactionId"] = TransactionId,
-            ["TransactionDetailsId"] = null
+            ["TransactionDetailsId"] = null,
+            ["SuggestedDocumentNumber"] = TransactionDetailsDocumentNumberHelper.GetNextDetailDocumentNumber(ParentDocumentNumber, _transactionDetails)
         };
 
         var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDetailsDialog>(NotificationService,

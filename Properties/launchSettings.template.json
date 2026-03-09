@@ -1,0 +1,52 @@
+{
+  "profiles": {
+    "ClubTreasury": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:4300;http://localhost:4300"
+    },
+    "ClubTreasury_local": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:4300"
+    },
+    "ClubTreasury_EmptyDB": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ConnectionStrings__DefaultConnection": "Server=localhost;Port=5432;Database=ClubCash_Empty;User Id=dev;Password=<YOUR_PASSWORD>",
+        "ConnectionStrings__ProductionConnection": "Server=localhost;Port=5432;Database=ClubCash_Empty;User Id=dev;Password=<YOUR_PASSWORD>",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:4300"
+    },
+    "ClubTreasury_DockerDb": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ConnectionStrings__DefaultConnection": "Server=<YOUR_HOST>;Port=5433;Database=ClubCash;User Id=dev;Password=<YOUR_PASSWORD>",
+        "ConnectionStrings__ProductionConnection": "Server=<YOUR_HOST>;Port=5433;Database=ClubCash;User Id=dev;Password=<YOUR_PASSWORD>",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:4300"
+    }
+  },
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:42851",
+      "sslPort": 44345
+    }
+  }
+}
