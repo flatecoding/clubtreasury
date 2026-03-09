@@ -254,7 +254,7 @@ public class TransactionService(
         string? searchText,
         int? personId)
     {
-        IQueryable<TransactionModel> baseQuery = context.Transactions.AsNoTracking();
+        var baseQuery = context.Transactions.AsNoTracking();
         if (dateRange?.Start is not null && dateRange.End is not null)
         {
             var start = DateOnly.FromDateTime(dateRange.Start.Value);

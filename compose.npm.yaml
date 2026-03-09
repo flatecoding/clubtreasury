@@ -15,7 +15,7 @@ services:
     networks:
       - clubtreasury-backend
 
-    #Use this if you need direct acces to docker database container for debugging purposes
+    #Use this if you need direct access to docker database container for debugging purposes
     #ports:
       # - "5433:5432"
     healthcheck:

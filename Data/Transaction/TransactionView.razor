@@ -277,7 +277,7 @@
     {
         get
         {
-            int count = 0;
+            var count = 0;
             if (_dateRange.Start.HasValue|| _dateRange.End.HasValue) count++;
             if (!string.IsNullOrWhiteSpace(_searchTerm)) count++;
             if (_personId.HasValue) count++;
