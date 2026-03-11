@@ -104,7 +104,7 @@ using (var scope = app.Services.CreateScope())
     {
         var pending = db.Database.GetPendingMigrations().ToList();
 
-        if (pending.Any())
+        if (pending.Count != 0)
         {
             Log.Information("Found {Count} pending migrations: {Migrations}", pending.Count, string.Join(", ", pending));
             db.Database.Migrate();
@@ -199,4 +199,4 @@ app.MapAdditionalIdentityEndpoints();
 
 app.Run();
 
-public partial class Program { }
+
