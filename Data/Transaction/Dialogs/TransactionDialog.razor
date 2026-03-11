@@ -9,6 +9,7 @@
 @using ClubTreasury.Data.OperationResult
 @using ClubTreasury.Data.SpecialItem
 @using ClubTreasury.Data.Transaction
+@using System.Globalization
 @inject ITransactionService TransactionService
 @inject ICostCenterService CostCenterService
 @inject ICategoryService CategoryService
@@ -58,11 +59,15 @@
 
             <MudTextField @bind-Value="_transactionModel.Sum"
                           Label="@Localizer["Sum"]" 
+                          Adornment="Adornment.Start"
+                          AdornmentText=@CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol
                           For="@(() => _transactionModel.Sum)" 
                           Immediate="true" />
 
             <MudTextField @bind-Value="_transactionModel.AccountMovement"
                           Label="@Localizer["Account"]" 
+                          Adornment="Adornment.Start"
+                          AdornmentText=@CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol
                           For="@(() => _transactionModel.AccountMovement)" 
                           Immediate="true" />
 

@@ -3,6 +3,7 @@
 @using ClubTreasury.Data.Notification
 @using ClubTreasury.Data.OperationResult
 @using ClubTreasury.Data.Person
+@using System.Globalization
 @inject ITransactionDetailsService TransactionDetailsService
 @inject IPersonService PersonService
 @inject IStringLocalizer<Translation> Localizer
@@ -29,6 +30,8 @@
 
             <MudTextField @bind-Value="_transactionDetailsModel.Sum"
                           Label="@Localizer["Sum"]"
+                          Adornment="Adornment.Start"
+                          AdornmentText=@CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol
                           For="@(() => _transactionDetailsModel.Sum)"
                           Immediate="true" />
 
