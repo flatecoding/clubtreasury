@@ -16,12 +16,12 @@ using ClubTreasury.Data.SpecialItem;
 using ClubTreasury.Data.Transaction;
 using ClubTreasury.Data.Transaction.Dialogs;
 
-namespace ClubTreasury.Tests.Components;
+namespace ClubTreasury.ComponentTests.Components;
 
 [TestFixture]
-public class TransactionDialogTests
+[FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
+public class TransactionDialogTests : BunitContext
 {
-    private BunitContext _ctx = null!;
     private ITransactionService _transactionService = null!;
     private ICostCenterService _costCenterService = null!;
     private ICategoryService _categoryService = null!;
@@ -40,18 +40,16 @@ public class TransactionDialogTests
     [SetUp]
     public void SetUp()
     {
-        _ctx = new BunitContext();
-
-        _transactionService = A.Fake<ITransactionService>();
-        _costCenterService = A.Fake<ICostCenterService>();
-        _categoryService = A.Fake<ICategoryService>();
-        _itemDetailService = A.Fake<IItemDetailService>();
-        _cashRegisterService = A.Fake<ICashRegisterService>();
-        _specialItemService = A.Fake<ISpecialItemService>();
-        _localizer = A.Fake<IStringLocalizer<Translation>>();
-        _notificationService = A.Fake<INotificationService>();
-        _operationResultFactory = A.Fake<IOperationResultFactory>();
-        _allocationService = A.Fake<IAllocationService>();
+        Services.AddSingleton(_transactionService = A.Fake<ITransactionService>());
+        Services.AddSingleton(_costCenterService = A.Fake<ICostCenterService>());
+        Services.AddSingleton(_categoryService = A.Fake<ICategoryService>());
+        Services.AddSingleton(_itemDetailService = A.Fake<IItemDetailService>());
+        Services.AddSingleton(_cashRegisterService = A.Fake<ICashRegisterService>());
+        Services.AddSingleton(_specialItemService = A.Fake<ISpecialItemService>());
+        Services.AddSingleton(_localizer = A.Fake<IStringLocalizer<Translation>>());
+        Services.AddSingleton(_notificationService = A.Fake<INotificationService>());
+        Services.AddSingleton(_operationResultFactory = A.Fake<IOperationResultFactory>());
+        Services.AddSingleton(_allocationService = A.Fake<IAllocationService>());
 
         // Localizer returns key as value for any lookup
         A.CallTo(() => _localizer[A<string>._])
@@ -70,55 +68,38 @@ public class TransactionDialogTests
         A.CallTo(() => _costCenterService.GetAllCostCentersAsync()).Returns(_costCenters);
         A.CallTo(() => _specialItemService.GetAllSpecialItems()).Returns(_specialItems);
 
-        // Register services
-        _ctx.Services.AddSingleton(_transactionService);
-        _ctx.Services.AddSingleton(_costCenterService);
-        _ctx.Services.AddSingleton(_categoryService);
-        _ctx.Services.AddSingleton(_itemDetailService);
-        _ctx.Services.AddSingleton(_cashRegisterService);
-        _ctx.Services.AddSingleton(_specialItemService);
-        _ctx.Services.AddSingleton(_localizer);
-        _ctx.Services.AddSingleton(_notificationService);
-        _ctx.Services.AddSingleton(_operationResultFactory);
-        _ctx.Services.AddSingleton(_allocationService);
-        _ctx.Services.AddSingleton(new TransactionValidator(_localizer));
-        _ctx.Services.AddMudServices();
+        Services.AddSingleton(new TransactionValidator(_localizer));
+        Services.AddMudServices();
 
-        _ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await _ctx.DisposeAsync();
+        JSInterop.Mode = JSRuntimeMode.Loose;
     }
 
     private IRenderedComponent<MudDialogProvider> RenderDialog(int? transactionId = null)
     {
-        var provider = _ctx.Render<MudDialogProvider>();
-        var dialogService = _ctx.Services.GetRequiredService<IDialogService>();
+        var cut = Render<MudDialogProvider>();
+        var dialogService = Services.GetRequiredService<IDialogService>();
 
         var parameters = new DialogParameters<TransactionDialog>();
         if (transactionId.HasValue)
             parameters.Add(x => x.TransactionId, transactionId);
 
-        provider.InvokeAsync(() =>
+        cut.InvokeAsync(() =>
             dialogService.ShowAsync<TransactionDialog>("Dialog", parameters));
 
-        return provider;
+        return cut;
     }
 
     [Test]
     public void AddMode_RendersAndLoadsReferenceData()
     {
-        var provider = RenderDialog();
+        var cut = RenderDialog();
 
         A.CallTo(() => _cashRegisterService.GetAllCashRegisters()).MustHaveHappenedOnceExactly();
         A.CallTo(() => _costCenterService.GetAllCostCentersAsync()).MustHaveHappenedOnceExactly();
         A.CallTo(() => _specialItemService.GetAllSpecialItems()).MustHaveHappenedOnceExactly();
 
         // Should contain the action button with AddEntry text
-        provider.Markup.Should().Contain("AddEntry");
+        cut.Markup.Should().Contain("AddEntry");
     }
 
     [Test]
@@ -155,12 +136,12 @@ public class TransactionDialogTests
         A.CallTo(() => _itemDetailService.GetItemDetailByCategoryIdAsync(10))
             .Returns(new List<ItemDetailModel>());
 
-        var provider = RenderDialog(transactionId: 42);
+        var cut = RenderDialog(transactionId: 42);
 
         A.CallTo(() => _transactionService.GetTransactionByIdAsync(42)).MustHaveHappenedOnceExactly();
 
         // Should show Save button in edit mode
-        provider.Markup.Should().Contain("Save");
+        cut.Markup.Should().Contain("Save");
     }
 
     [Test]
@@ -173,15 +154,15 @@ public class TransactionDialogTests
         };
         A.CallTo(() => _operationResultFactory.Canceled()).Returns(canceledResult);
 
-        var provider = RenderDialog();
+        var cut = RenderDialog();
 
         // Find and click the Cancel button
-        var cancelButton = provider.FindAll("button")
+        var cancelButton = cut.FindAll("button")
             .First(b => b.TextContent.Contains("Cancel"));
         cancelButton.Click();
 
-        // After cancel, dialog content should be removed from provider
-        provider.Markup.Should().NotContain("Cancel");
+        // After cancel, dialog content should be removed from cut
+        cut.Markup.Should().NotContain("Cancel");
     }
 
     [Test]
@@ -222,12 +203,12 @@ public class TransactionDialogTests
         A.CallTo(() => _transactionService.UpdateTransactionAsync(A<TransactionModel>._, A<CancellationToken>._))
             .Returns(new OperationResult { Status = OperationResultStatus.Success });
 
-        var provider = RenderDialog(transactionId: 42);
+        var cut = RenderDialog(transactionId: 42);
 
         // Click the Save button
-        var saveButton = provider.FindAll("button")
+        var saveButton = cut.FindAll("button")
             .First(b => b.TextContent.Contains("Save"));
-        await provider.InvokeAsync(() => saveButton.Click());
+        await cut.InvokeAsync(() => saveButton.Click());
 
         A.CallTo(() => _transactionService.UpdateTransactionAsync(A<TransactionModel>._, A<CancellationToken>._))
             .MustHaveHappened();
@@ -277,11 +258,11 @@ public class TransactionDialogTests
         A.CallTo(() => _transactionService.UpdateTransactionAsync(A<TransactionModel>._, A<CancellationToken>._))
             .Returns(failResult);
 
-        var provider = RenderDialog(transactionId: 42);
+        var cut = RenderDialog(transactionId: 42);
 
-        var saveButton = provider.FindAll("button")
+        var saveButton = cut.FindAll("button")
             .First(b => b.TextContent.Contains("Save"));
-        await provider.InvokeAsync(() => saveButton.Click());
+        await cut.InvokeAsync(() => saveButton.Click());
 
         A.CallTo(() => _notificationService.ShowOperationResultAsync(failResult)).MustHaveHappened();
     }
