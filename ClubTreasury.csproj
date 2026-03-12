@@ -17,6 +17,10 @@
     <Content Remove="ClubTreasury.IntegrationTests\**" />
     <EmbeddedResource Remove="ClubTreasury.IntegrationTests\**" />
     <None Remove="ClubTreasury.IntegrationTests\**" />
+    <Compile Remove="ClubTreasury.ComponentTests\**" />
+    <Content Remove="ClubTreasury.ComponentTests\**" />
+    <EmbeddedResource Remove="ClubTreasury.ComponentTests\**" />
+    <None Remove="ClubTreasury.ComponentTests\**" />
     <EmbeddedResource Update="Resources\Helper\Navmenu.resx">
       <LastGenOutput>Navmenu.Designer.cs</LastGenOutput>
     </EmbeddedResource>
