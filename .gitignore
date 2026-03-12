@@ -20,6 +20,10 @@
 /ClubTreasury.Tests/obj/
 /ClubTreasury.IntegrationTests/bin/
 /ClubTreasury.IntegrationTests/obj/
+/ClubTreasury.ComponentTests/bin/
+/ClubTreasury.ComponentTests/obj/
+
+# Tools
 /docker-compose.test.yml
 /dev-container.sh
 /migrate.load
