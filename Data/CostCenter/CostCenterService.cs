@@ -1,16 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using ClubTreasury.Data.OperationResult;
 
 namespace ClubTreasury.Data.CostCenter
 {
-    public class CostCenterService(CashDataContext context, ILogger<CostCenterService> logger, 
+    public class CostCenterService(CashDataContext context, ILogger<CostCenterService> logger,
         IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : ICostCenterService
     {
         private string EntityName => localizer["CostCenter"];
         private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-        public async Task<List<CostCenterModel>> GetAllCostCentersAsync()
+        public async Task<List<CostCenterModel>> GetAllCostCentersAsync(CancellationToken ct = default)
         {
             return await _context.CostCenters
                 .Include(c => c.Allocations)
@@ -18,30 +18,30 @@ namespace ClubTreasury.Data.CostCenter
                 .Include(c => c.Allocations)
                     .ThenInclude(a => a.ItemDetail)
                 .OrderBy(c => c.Id)
-                .ToListAsync();
+                .ToListAsync(ct);
         }
-        
-        public async Task<CostCenterModel?> GetCostCenterByIdAsync(int id)
+
+        public async Task<CostCenterModel?> GetCostCenterByIdAsync(int id, CancellationToken ct = default)
         {
             return await _context.CostCenters
                 .Include(c => c.Allocations)
                     .ThenInclude(a => a.Category)
                 .Include(c => c.Allocations)
                     .ThenInclude(a => a.ItemDetail)
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .FirstOrDefaultAsync(c => c.Id == id, ct);
         }
 
-        public async Task<CostCenterModel?> GetCostCenterByNameAsync(string name)
+        public async Task<CostCenterModel?> GetCostCenterByNameAsync(string name, CancellationToken ct = default)
         {
-            return await  _context.CostCenters.FirstOrDefaultAsync(c => c.CostUnitName == name);
+            return await  _context.CostCenters.FirstOrDefaultAsync(c => c.CostUnitName == name, ct);
         }
 
-        public async Task<IOperationResult> AddCostCenterAsync(CostCenterModel costCenter)
+        public async Task<IOperationResult> AddCostCenterAsync(CostCenterModel costCenter, CancellationToken ct = default)
         {
             try
             {
-                await _context.CostCenters.AddAsync(costCenter);
-                await _context.SaveChangesAsync();
+                await _context.CostCenters.AddAsync(costCenter, ct);
+                await _context.SaveChangesAsync(ct);
                 logger.LogInformation("Cost center added: {@costCenter}", costCenter.CostUnitName);
                 return operationResultFactory.SuccessAdded($"{EntityName}: '{costCenter.CostUnitName}'", costCenter.Id);
             }
@@ -52,12 +52,12 @@ namespace ClubTreasury.Data.CostCenter
             }
         }
 
-        public async Task<IOperationResult> UpdateCostCenterAsync(CostCenterModel costCenter)
+        public async Task<IOperationResult> UpdateCostCenterAsync(CostCenterModel costCenter, CancellationToken ct = default)
         {
             try
             {
                 _context.CostCenters.Update(costCenter);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
                 logger.LogInformation("Cost center updated: {@costCenter}", costCenter.CostUnitName);
                 return operationResultFactory.SuccessUpdated(EntityName, costCenter.Id);
             }
@@ -68,18 +68,18 @@ namespace ClubTreasury.Data.CostCenter
             }
         }
 
-        public async Task<IOperationResult> DeleteCostCenterAsync(int id)
+        public async Task<IOperationResult> DeleteCostCenterAsync(int id, CancellationToken ct = default)
         {
             try
             {
-                var costUnit = await _context.CostCenters.FindAsync(id);
+                var costUnit = await _context.CostCenters.FindAsync([id], ct);
                 if (costUnit == null)
                 {
                     logger.LogError("Cost center Id '{ID}' not found", id);
                     return operationResultFactory.NotFound(EntityName, $"Id: '{id}' not found");
                 }
                 _context.CostCenters.Remove(costUnit);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
                 logger.LogInformation("Cost center deleted: {@costUnit}", costUnit.CostUnitName);
                 return operationResultFactory.SuccessDeleted(EntityName, id);
             }

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using ClubTreasury.Data.OperationResult;
 
@@ -11,48 +11,48 @@ namespace ClubTreasury.Data.Category
         private string EntityName => localizer["Category"];
         private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-        public async Task<List<CategoryModel>> GetAllCategoriesAsync()
+        public async Task<List<CategoryModel>> GetAllCategoriesAsync(CancellationToken ct = default)
         {
             return await _context.Categories
                 .Include(b => b.Allocations)
                     .ThenInclude(a => a.CostCenter)
                 .Include(b => b.Allocations)
                     .ThenInclude(a => a.ItemDetail)
-                .ToListAsync();
+                .ToListAsync(ct);
         }
 
-        public async Task<CategoryModel?> GetCategoryByIdAsync(int id)
+        public async Task<CategoryModel?> GetCategoryByIdAsync(int id, CancellationToken ct = default)
         {
             return await _context.Categories
                 .Include(b => b.Allocations)
                     .ThenInclude(a => a.CostCenter)
                 .Include(b => b.Allocations)
                     .ThenInclude(a => a.ItemDetail)
-                .FirstOrDefaultAsync(b => b.Id == id);
+                .FirstOrDefaultAsync(b => b.Id == id, ct);
         }
 
-        public async Task<CategoryModel?> GetCategoryByNameAsync(string name)
+        public async Task<CategoryModel?> GetCategoryByNameAsync(string name, CancellationToken ct = default)
         {
-            return await  _context.Categories.FirstOrDefaultAsync(b => b.Name == name);
+            return await  _context.Categories.FirstOrDefaultAsync(b => b.Name == name, ct);
         }
 
-        public async Task<IEnumerable<CategoryModel>> GetCategoriesByCostCenterIdAsync(int costUnitId)
+        public async Task<IEnumerable<CategoryModel>> GetCategoriesByCostCenterIdAsync(int costUnitId, CancellationToken ct = default)
         {
             var categories = await _context.Categories
                 .Where(b => b.Allocations.Any(a => a.CostCenterId == costUnitId))
                 .OrderBy(c => c.Name)
-                .ToListAsync();
+                .ToListAsync(ct);
             if (categories.Count == 0) return new List<CategoryModel>();
             logger.LogInformation("Available categories found");
             return categories;
         }
 
-        public async Task<IOperationResult> AddCategoryAsync(CategoryModel category)
+        public async Task<IOperationResult> AddCategoryAsync(CategoryModel category, CancellationToken ct = default)
         {
             try
             {
                 _context.Categories.Add(category);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
                 logger.LogInformation("Category added: {@unit}", category.Name);
 
                 return operationResultFactory.SuccessAdded($"{EntityName}: '{category.Name}", category.Id);
@@ -63,15 +63,15 @@ namespace ClubTreasury.Data.Category
                 logger.LogCritical(e, "Error adding category: {@category}", category);
                 return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
-            
+
         }
 
-        public async Task<IOperationResult> UpdateCategoryAsync(CategoryModel category)
+        public async Task<IOperationResult> UpdateCategoryAsync(CategoryModel category, CancellationToken ct = default)
         {
             try
             {
                 _context.Categories.Update(category);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
                 logger.LogInformation("Category updated: {@unit}", category.Name);
 
                 return operationResultFactory.SuccessUpdated($"{EntityName}: '{category.Name}'", category.Id);
@@ -83,20 +83,20 @@ namespace ClubTreasury.Data.Category
             }
         }
 
-        public async Task<IOperationResult> DeleteCategoryAsync(int id)
+        public async Task<IOperationResult> DeleteCategoryAsync(int id, CancellationToken ct = default)
         {
             try
             {
-                var category = await _context.Categories.FindAsync(id);
+                var category = await _context.Categories.FindAsync([id], ct);
                 if (category == null)
                 {
                     logger.LogError("Category not found");
                     return operationResultFactory.NotFound(EntityName, $"Id: '{id}' not found");
                 }
                 _context.Categories.Remove(category);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
                 logger.LogInformation("Category deleted: {@unit}", category.Name);
-                
+
                 return operationResultFactory.SuccessDeleted($"{EntityName}: '{category.Name}'", category.Id);
             }
             catch (Exception ex)

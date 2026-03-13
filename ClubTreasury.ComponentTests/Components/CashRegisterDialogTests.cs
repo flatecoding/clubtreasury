@@ -163,7 +163,7 @@ public class CashRegisterDialogTests : BunitContext
 
         // Click the delete logo button (MudIconButton rendered with mud-icon-button class)
         var deleteButton = cut.Find("button.mud-icon-button");
-        deleteButton.Click();
+        await deleteButton.ClickAsync();
 
         // Logo image should be gone
         cut.Markup.Should().NotContain("data:image/png;base64,");

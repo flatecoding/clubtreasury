@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using ClubTreasury.Data.OperationResult;
 
@@ -8,26 +8,26 @@ namespace ClubTreasury.Data.SpecialItem
         IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : ISpecialItemService
     {
         private string EntityName => localizer["SpecialPosition"];
-        public async Task<List<SpecialItemModel>> GetAllSpecialItems()
-        {
-            return await context.SpecialItems
-                .Include(s => s.Transactions)  
-                .ToListAsync();
-        }
-
-        public async Task<SpecialItemModel?> GetSpecialPositionById(int id)
+        public async Task<List<SpecialItemModel>> GetAllSpecialItems(CancellationToken ct = default)
         {
             return await context.SpecialItems
                 .Include(s => s.Transactions)
-                .FirstOrDefaultAsync(s => s.Id == id);
+                .ToListAsync(ct);
         }
 
-        public async Task<IOperationResult> AddSpecialPositionAsync(SpecialItemModel specialPosition)
+        public async Task<SpecialItemModel?> GetSpecialPositionById(int id, CancellationToken ct = default)
+        {
+            return await context.SpecialItems
+                .Include(s => s.Transactions)
+                .FirstOrDefaultAsync(s => s.Id == id, ct);
+        }
+
+        public async Task<IOperationResult> AddSpecialPositionAsync(SpecialItemModel specialPosition, CancellationToken ct = default)
         {
             try
             {
-                await context.SpecialItems.AddAsync(specialPosition);
-                await context.SaveChangesAsync();
+                await context.SpecialItems.AddAsync(specialPosition, ct);
+                await context.SaveChangesAsync(ct);
 
                 logger.LogInformation("SpecialItem added: {@SpecialItem}", specialPosition);
                 return operationResultFactory.SuccessAdded(
@@ -41,12 +41,12 @@ namespace ClubTreasury.Data.SpecialItem
             }
         }
 
-        public async Task<IOperationResult> UpdateSpecialPositionAsync(SpecialItemModel specialPosition)
+        public async Task<IOperationResult> UpdateSpecialPositionAsync(SpecialItemModel specialPosition, CancellationToken ct = default)
         {
             try
             {
                 context.SpecialItems.Update(specialPosition);
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(ct);
 
                 logger.LogInformation("SpecialItem updated: {@SpecialItem}", specialPosition);
                 return operationResultFactory.SuccessUpdated(
@@ -60,11 +60,11 @@ namespace ClubTreasury.Data.SpecialItem
             }
         }
 
-        public async Task<IOperationResult> DeleteSpecialPositionAsync(int id)
+        public async Task<IOperationResult> DeleteSpecialPositionAsync(int id, CancellationToken ct = default)
         {
             try
             {
-                var entity = await context.SpecialItems.FindAsync(id);
+                var entity = await context.SpecialItems.FindAsync([id], ct);
                 if (entity is null)
                 {
                     logger.LogInformation("SpecialItem not found: {Id}", id);
@@ -74,7 +74,7 @@ namespace ClubTreasury.Data.SpecialItem
                 }
 
                 context.SpecialItems.Remove(entity);
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(ct);
 
                 logger.LogInformation("SpecialItem deleted: {@SpecialItem}", entity);
                 return operationResultFactory.SuccessDeleted(
