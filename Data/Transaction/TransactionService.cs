@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
 using ClubTreasury.Data.Allocation;
@@ -14,7 +14,7 @@ public class TransactionService(
     IOperationResultFactory operationResultFactory) : ITransactionService
 {
     private string EntityName => localizer["Transaction"];
-    public async Task<TransactionModel?> GetTransactionByIdAsync(int id)
+    public async Task<TransactionModel?> GetTransactionByIdAsync(int id, CancellationToken ct = default)
     {
         return await context.Transactions
             .Include(t => t.Allocation)
@@ -25,29 +25,29 @@ public class TransactionService(
             .ThenInclude(a => a.ItemDetail)
             .Include(t => t.TransactionDetails)
             .ThenInclude(st => st.Person)
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
     }
-    
-    public async Task<HashSet<int>> GetAllDocumentNumbersAsync(int registerId)
+
+    public async Task<HashSet<int>> GetAllDocumentNumbersAsync(int registerId, CancellationToken ct = default)
     {
         return
         [
             ..await context.Transactions.Where(t => t.CashRegisterId == registerId)
                 .Select(t => t.Documentnumber)
-                .ToListAsync()
+                .ToListAsync(ct)
         ];
     }
 
-    public async Task<int> GetLatestDocumentNumberAsync(int registerId)
+    public async Task<int> GetLatestDocumentNumberAsync(int registerId, CancellationToken ct = default)
     {
         return await context.Transactions
             .Where(t => t.CashRegisterId == registerId && t.Date.HasValue)
             .OrderByDescending(t => t.Date)
             .ThenByDescending(t => t.Documentnumber)
             .Select(t => t.Documentnumber)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(ct);
     }
-    
+
 
 
     public async Task<IOperationResult> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default)
@@ -60,7 +60,7 @@ public class TransactionService(
                     return operationResultFactory.NotFound(
                         EntityName, entry.CashRegisterId);
                 }
-            
+
                 if (await context.Transactions
                         .AnyAsync(t => t.Documentnumber == entry.Documentnumber
                                        && t.CashRegisterId == entry.CashRegisterId, ct))
@@ -73,7 +73,7 @@ public class TransactionService(
                         EntityName,
                         $"{localizer["DocumentNumber"]} '{entry.Documentnumber}'");
                 }
-                
+
                 var allocation = await allocationService.GetRequiredAllocationAsync(
                     entry.AllocationId > 0
                         ? entry.AllocationId
@@ -115,7 +115,7 @@ public class TransactionService(
             return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
         }
     }
-    
+
     public async Task<IOperationResult> UpdateTransactionAsync(TransactionModel entry, CancellationToken ct = default)
     {
         try
@@ -139,7 +139,7 @@ public class TransactionService(
                     EntityName,
                     $"{localizer["DocumentNumber"]} '{entry.Documentnumber}'");
             }
-            
+
             var allocation = await allocationService.GetRequiredAllocationAsync(entry.AllocationId, ct);
 
             existing.Description     = entry.Description;
@@ -154,7 +154,7 @@ public class TransactionService(
 
             await context.SaveChangesAsync(ct);
             logger.LogInformation("Transaction updated: B{@DocumentNumber}; Desc.:{@Description}; Sum:{@Sum} " +
-                                  "AccMov.: {@AccMov}", existing.Documentnumber, existing.Description, existing.Sum, 
+                                  "AccMov.: {@AccMov}", existing.Documentnumber, existing.Description, existing.Sum,
                                    existing.AccountMovement);
             return operationResultFactory.SuccessUpdated(
                 $"{EntityName}: '{existing.Documentnumber}'", existing.Id);
@@ -171,12 +171,12 @@ public class TransactionService(
             return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
         }
     }
-    
-    public async Task<IOperationResult> DeleteTransactionAsync(int id)
+
+    public async Task<IOperationResult> DeleteTransactionAsync(int id, CancellationToken ct = default)
     {
         try
         {
-            var transaction = await context.Transactions.FindAsync(id);
+            var transaction = await context.Transactions.FindAsync([id], ct);
             if (transaction is null)
             {
                 logger.LogError("Transaction with id '{Id}' could not be found", id);
@@ -184,11 +184,11 @@ public class TransactionService(
                     $"{EntityName} not found",
                     id);
             }
-  
+
             context.Transactions.Remove(transaction);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(ct);
             logger.LogInformation("Transaction deleted: B{@DocumentNumber}; Desc.:{@Description}; Sum:{@Sum} " +
-                                  "AccMov.: {@AccMov}", transaction.Documentnumber, transaction.Description, 
+                                  "AccMov.: {@AccMov}", transaction.Documentnumber, transaction.Description,
                 transaction.Sum, transaction.AccountMovement);
             return operationResultFactory.SuccessDeleted(
                 $"{EntityName}: '{transaction.Documentnumber}'",
@@ -205,8 +205,8 @@ public class TransactionService(
             return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
     }
-    
-    public async Task<IEnumerable<TransactionModel>> GetTransactionsForExport(DateTime begin, DateTime end, int cashRegisterId)
+
+    public async Task<IEnumerable<TransactionModel>> GetTransactionsForExport(DateTime begin, DateTime end, int cashRegisterId, CancellationToken ct = default)
     {
         return await context.Transactions
             .AsNoTracking()
@@ -222,13 +222,14 @@ public class TransactionService(
                 Sum = t.Sum,
                 AccountMovement = t.AccountMovement
             })
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
     public async Task<IEnumerable<TransactionModel>> GetTransactionsForBudgetExport(
         DateTime begin,
         DateTime end,
-        int cashRegisterId)
+        int cashRegisterId,
+        CancellationToken ct = default)
     {
         var beginDateOnly = DateOnly.FromDateTime(begin);
         var endDateOnly = DateOnly.FromDateTime(end);
@@ -244,7 +245,7 @@ public class TransactionService(
                         t.Date.Value >= beginDateOnly &&
                         t.Date.Value <= endDateOnly)
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
     public async Task<TableData<TransactionModel>> GetTransactionsPaged(
@@ -259,7 +260,7 @@ public class TransactionService(
         {
             var start = DateOnly.FromDateTime(dateRange.Start.Value);
             var end = DateOnly.FromDateTime(dateRange.End.Value);
-            
+
             baseQuery = baseQuery.Where(t => t.Date.HasValue &&
                                              t.Date.Value >= start &&
                                              t.Date.Value <= end);
@@ -286,7 +287,7 @@ public class TransactionService(
                 t.TransactionDetails.Any(st => st.PersonId == personId)
             );
         }
-        
+
         var totalItems = await baseQuery.CountAsync(cancellationToken);
 
         IQueryable<TransactionModel> dataQuery = baseQuery.AsSplitQuery()
@@ -321,8 +322,8 @@ public class TransactionService(
             TotalItems = totalItems,
             Items = items
         };
-        
+
         return tableData;
     }
-    
+
 }

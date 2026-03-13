@@ -5,15 +5,16 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.Import;
 
 public class ImportCostCenterService(
-    IAllocationService allocationService, 
+    IAllocationService allocationService,
     ILogger<ImportCostCenterService> logger,
     IStringLocalizer<Resources.Translation> localizer,
-    IOperationResultFactory operationResultFactory) 
+    IOperationResultFactory operationResultFactory)
     : IImportCostCenterService
 {
     public async Task<IOperationResult> ImportCostCentersAndPositions(
-        Stream? fileStream, 
-        string fileName)
+        Stream? fileStream,
+        string fileName,
+        CancellationToken ct = default)
     {
         if (fileStream == null)
         {
@@ -24,23 +25,31 @@ public class ImportCostCenterService(
         try
         {
             logger.LogDebug("Start import of cost centers");
-            
+
             var lines = await ParseFile(fileStream);
-            
+
             var importCount = 0;
             foreach (var (costCenterName, categoryName) in lines)
             {
+                ct.ThrowIfCancellationRequested();
+
                 await allocationService.GetOrCreateAllocationAsync(
-                    costCenterName, 
-                    categoryName);
+                    costCenterName,
+                    categoryName,
+                    ct: ct);
                 importCount++;
             }
 
             logger.LogInformation(
-                "Import of cost centers completed. Count: {Count}", 
+                "Import of cost centers completed. Count: {Count}",
                 importCount);
-            
+
             return operationResultFactory.ImportSuccessful(fileName);
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogWarning("Import of cost centers was canceled");
+            return operationResultFactory.Canceled();
         }
         catch (Exception ex)
         {
@@ -52,7 +61,7 @@ public class ImportCostCenterService(
     private async Task<List<(string CostCenter, string Category)>> ParseFile(Stream fileStream)
     {
         var result = new List<(string, string)>();
-        
+
         using var reader = new StreamReader(fileStream);
         while (await reader.ReadLineAsync() is { } currentLine)
         {
@@ -60,10 +69,10 @@ public class ImportCostCenterService(
                 continue;
 
             var parts = currentLine.Split('/');
-            
+
             var costCenterName = parts[0].Trim();
-            var categoryName = parts.Length >= 2 
-                ? parts[1].Trim() 
+            var categoryName = parts.Length >= 2
+                ? parts[1].Trim()
                 : localizer["Undefined"].Value;
 
             result.Add((costCenterName, categoryName));

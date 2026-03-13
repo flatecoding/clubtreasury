@@ -11,14 +11,14 @@ namespace ClubTreasury.Data.Import;
 
 public class ImportBookingJournalService(
     ITransactionService transactionService,
-    IAllocationService allocationService,     
+    IAllocationService allocationService,
     ICashRegisterService cashRegisterService,
     ILogger<ImportBookingJournalService> logger,
     IStringLocalizer<Translation> localizer,
     IOperationResultFactory operationResultFactory)
     : IImportBookingJournalService
 {
-    public async Task<IOperationResult> ImportTransactions(Stream? fileStream, string fileName, int cashRegisterId)
+    public async Task<IOperationResult> ImportTransactions(Stream? fileStream, string fileName, int cashRegisterId, CancellationToken ct = default)
     {
         if (fileStream == null)
         {
@@ -33,14 +33,14 @@ public class ImportBookingJournalService(
             {
                 return operationResultFactory.ImportFailed(localizer["NoData"]);
             }
-            
+
             var validationResult = await ValidateRows(parsedRows);
             if (!validationResult.IsValid)
             {
                 return validationResult.ErrorResult!;
             }
-            
-            var cashRegister = await cashRegisterService.GetCashRegisterById(cashRegisterId);
+
+            var cashRegister = await cashRegisterService.GetCashRegisterById(cashRegisterId, ct);
             if (cashRegister == null)
             {
                 logger.LogError("Cash register with ID {CashRegisterId} not found.", cashRegisterId);
@@ -48,24 +48,27 @@ public class ImportBookingJournalService(
             }
 
             var importCounter = 0;
-            var existingDocNumbers = await transactionService.GetAllDocumentNumbersAsync(cashRegisterId);
-            
+            var existingDocNumbers = await transactionService.GetAllDocumentNumbersAsync(cashRegisterId, ct);
+
             foreach (var row in parsedRows)
             {
                 try
                 {
+                    ct.ThrowIfCancellationRequested();
+
                     if (existingDocNumbers.Contains(row.DocumentNumber))
                     {
                         logger.LogInformation(
-                            "Skipping duplicate document number: {DocumentNumber}", 
+                            "Skipping duplicate document number: {DocumentNumber}",
                             row.DocumentNumber);
                         continue;
                     }
-                    
+
                     var allocation = await allocationService.GetOrCreateAllocationAsync(
                         row.CostCenterName,
-                        row.CategoryName);
-                    
+                        row.CategoryName,
+                        ct: ct);
+
                     var transaction = new TransactionModel
                     {
                         CashRegisterId = cashRegisterId,
@@ -77,17 +80,21 @@ public class ImportBookingJournalService(
                         AllocationId = allocation.Id
                     };
 
-                    var addResult = await transactionService.AddTransactionAsync(transaction);
+                    var addResult = await transactionService.AddTransactionAsync(transaction, ct);
                     if (addResult.Status == OperationResultStatus.Failed)
                     {
                         logger.LogError(
-                            "Failed to add transaction for document number: {DocumentNumber}", 
+                            "Failed to add transaction for document number: {DocumentNumber}",
                             row.DocumentNumber);
                         return operationResultFactory.ImportFailed(
                             $"{localizer["DocumentNumberError"]}: '{row.DocumentNumber}'");
                     }
                     existingDocNumbers.Add(row.DocumentNumber);
                     importCounter++;
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
                 }
                 catch (Exception rowEx)
                 {
@@ -97,10 +104,15 @@ public class ImportBookingJournalService(
             }
 
             logger.LogInformation(
-                "Booking journal successfully imported. Transactions: {Count}", 
+                "Booking journal successfully imported. Transactions: {Count}",
                 importCounter);
-            
+
             return operationResultFactory.ImportSuccessful(fileName);
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogWarning("Import of booking journal was canceled");
+            return operationResultFactory.Canceled();
         }
         catch (Exception ex)
         {
@@ -108,7 +120,7 @@ public class ImportBookingJournalService(
             return operationResultFactory.ImportFailed(localizer["Exception"]);
         }
     }
-    
+
     private async Task<List<BookingJournalRowDto>?> ParseExcelFile(Stream fileStream)
     {
         using var memoryStream = new MemoryStream();
@@ -154,7 +166,7 @@ public class ImportBookingJournalService(
 
             const int cSumIncomeCell = 3;
             const int cSumOutcomeCell = 4;
-            
+
             var sumStr = row.ItemArray[cSumIncomeCell]?.ToString()?.Trim();
             if (string.IsNullOrEmpty(sumStr))
                 sumStr = row.ItemArray[cSumOutcomeCell]?.ToString()?.Trim();
@@ -167,7 +179,7 @@ public class ImportBookingJournalService(
 
             var accountMovement = 0m;
             const int cAccountMovementCell = 5;
-            if (row.ItemArray[cAccountMovementCell] != DBNull.Value && 
+            if (row.ItemArray[cAccountMovementCell] != DBNull.Value &&
                 decimal.TryParse(row.ItemArray[5]?.ToString(), out var accMove))
             {
                 accountMovement = accMove;
@@ -266,7 +278,7 @@ public class ImportBookingJournalService(
             IsValid = true
         });
     }
-    
+
     private Task<ValidationResult> Invalid(
         int rowNumber,
         string message)
@@ -289,4 +301,3 @@ public record ValidationResult
     public bool IsValid { get; init; }
     public IOperationResult? ErrorResult { get; init; }
 }
-

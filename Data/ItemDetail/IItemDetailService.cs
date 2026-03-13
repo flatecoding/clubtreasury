@@ -4,11 +4,11 @@ namespace ClubTreasury.Data.ItemDetail;
 
 public interface IItemDetailService
 {
-    Task<List<ItemDetailModel>> GetAllItemDetailsAsync();
-    Task<ItemDetailModel?> GetItemDetailByIdAsync(int id);
-    Task<ItemDetailModel?> GetItemDetailByNameAsync(string name);
-    Task<List<ItemDetailModel>> GetItemDetailByCategoryIdAsync(int categoryId);
-    Task<IOperationResult> AddItemDetailAsync(ItemDetailModel itemDetail);
-    Task<IOperationResult> UpdateItemDetailAsync(ItemDetailModel itemDetail);
-    Task<IOperationResult> DeleteItemDetailAsync(int id);
+    Task<List<ItemDetailModel>> GetAllItemDetailsAsync(CancellationToken ct = default);
+    Task<ItemDetailModel?> GetItemDetailByIdAsync(int id, CancellationToken ct = default);
+    Task<ItemDetailModel?> GetItemDetailByNameAsync(string name, CancellationToken ct = default);
+    Task<List<ItemDetailModel>> GetItemDetailByCategoryIdAsync(int categoryId, CancellationToken ct = default);
+    Task<IOperationResult> AddItemDetailAsync(ItemDetailModel itemDetail, CancellationToken ct = default);
+    Task<IOperationResult> UpdateItemDetailAsync(ItemDetailModel itemDetail, CancellationToken ct = default);
+    Task<IOperationResult> DeleteItemDetailAsync(int id, CancellationToken ct = default);
 }

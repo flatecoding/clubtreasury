@@ -9,39 +9,39 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
     : ITransactionDetailsService
 {
     private string EntityName => localizer["TransactionDetails"];
-    public async Task<List<TransactionDetailsModel>> GetAllTransactionDetailsAsync()
+    public async Task<List<TransactionDetailsModel>> GetAllTransactionDetailsAsync(CancellationToken ct = default)
     {
         return await context.TransactionDetails
             .Include(st => st.Transaction)
             .Include(st => st.Person)
-            .ToListAsync();
+            .ToListAsync(ct);
     }
-    
-    public async Task<TransactionDetailsModel?> GetTransactionDetailsByIdAsync(int id)
+
+    public async Task<TransactionDetailsModel?> GetTransactionDetailsByIdAsync(int id, CancellationToken ct = default)
     {
         return await context.TransactionDetails
             .Include(st => st.Transaction)
             .Include(st => st.Person)
-            .FirstOrDefaultAsync(st => st.Id == id);
+            .FirstOrDefaultAsync(st => st.Id == id, ct);
     }
-    
-    public async Task<List<TransactionDetailsModel>> GetTransactionDetailsByTransactionIdAsync(int transactionId)
+
+    public async Task<List<TransactionDetailsModel>> GetTransactionDetailsByTransactionIdAsync(int transactionId, CancellationToken ct = default)
     {
         return await context.TransactionDetails
             .Include(st => st.Transaction)
             .Include(st => st.Person)
             .Where(st => st.TransactionId == transactionId)
-            .ToListAsync();
+            .ToListAsync(ct);
     }
-    
-    public async Task<IOperationResult> AddTransactionDetailsAsync(TransactionDetailsModel detailsModel)
+
+    public async Task<IOperationResult> AddTransactionDetailsAsync(TransactionDetailsModel detailsModel, CancellationToken ct = default)
     {
         try
         {
             context.TransactionDetails.Add(detailsModel);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(ct);
             logger.LogInformation("Transaction details added: {@DetailsModelDescription}, Sum: {@Sum}" +
-                                  " Name: {@Name}" , 
+                                  " Name: {@Name}" ,
                 detailsModel.Description,  decimal.Round(detailsModel.Sum, 2), detailsModel.Person?.Name ?? "null");
             return operationResultFactory.SuccessAdded($"{EntityName}: '{detailsModel.Description}'", detailsModel.Person?.Name ?? "null");
 
@@ -51,17 +51,17 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
             logger.LogCritical(EntityName, e);
             return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
         }
-        
+
     }
-    
-    public async Task<IOperationResult> UpdateTransactionDetailsAsync(TransactionDetailsModel detailsModel)
+
+    public async Task<IOperationResult> UpdateTransactionDetailsAsync(TransactionDetailsModel detailsModel, CancellationToken ct = default)
     {
         try
         {
             context.TransactionDetails.Update(detailsModel);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(ct);
             logger.LogInformation("Transaction details updated: {@DetailsModelDescription}, Sum: {@SUm}" +
-                                  " Name: {@Name}" , 
+                                  " Name: {@Name}" ,
                 detailsModel.Description, decimal.Round(detailsModel.Sum, 2),  detailsModel.Person?.Name ?? "null");
             return operationResultFactory.SuccessUpdated($"{EntityName}: '{detailsModel.Description}'", detailsModel);
         }
@@ -71,20 +71,20 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
             return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
         }
     }
-    
-    public async Task<IOperationResult> DeleteTransactionDetailsAsync(int id)
+
+    public async Task<IOperationResult> DeleteTransactionDetailsAsync(int id, CancellationToken ct = default)
     {
         try
         {
-            var existing = await GetTransactionDetailsByIdAsync(id);
+            var existing = await GetTransactionDetailsByIdAsync(id, ct);
             if (existing is null)
             {
                 logger.LogError("Transaction details not found with id: {Id}", id);
                 return operationResultFactory.NotFound(EntityName, id);
             }
             context.TransactionDetails.Remove(existing);
-            await context.SaveChangesAsync();
-            logger.LogInformation("Transaction details deleted: {@DetailsModelDescription}, Sum: {@Sum} Name: {@Name}", 
+            await context.SaveChangesAsync(ct);
+            logger.LogInformation("Transaction details deleted: {@DetailsModelDescription}, Sum: {@Sum} Name: {@Name}",
                 existing.Description,  decimal.Round(existing.Sum, 2),  existing.Person?.Name ?? "null");
             return operationResultFactory.SuccessDeleted($"{EntityName}: '{existing.Description}'");
         }

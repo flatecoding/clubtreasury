@@ -8,28 +8,28 @@ namespace ClubTreasury.Data.Person
         IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : IPersonService
     {
         private string EntityName => localizer["Person"];
-        public async Task<List<PersonModel>> GetAllPersonsAsync()
+        public async Task<List<PersonModel>> GetAllPersonsAsync(CancellationToken ct = default)
         {
             return await context.Persons
-                .ToListAsync();
+                .ToListAsync(ct);
         }
 
-        public async Task<PersonModel?> GetPersonById(int id)
+        public async Task<PersonModel?> GetPersonById(int id, CancellationToken ct = default)
         {
-            return await context.Persons.FindAsync(id);
+            return await context.Persons.FindAsync([id], ct);
         }
 
-        public async Task<PersonModel?> GetFirstEntry()
+        public async Task<PersonModel?> GetFirstEntry(CancellationToken ct = default)
         {
-            return await context.Persons.FirstOrDefaultAsync();
+            return await context.Persons.FirstOrDefaultAsync(ct);
         }
 
-        public async Task<IOperationResult> AddPersonAsync(PersonModel personModel)
+        public async Task<IOperationResult> AddPersonAsync(PersonModel personModel, CancellationToken ct = default)
         {
             try
             {
-                await context.Persons.AddAsync(personModel);
-                await context.SaveChangesAsync();
+                await context.Persons.AddAsync(personModel, ct);
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("Person added: {@PersonModel}", personModel);
                 return operationResultFactory.SuccessAdded($"{EntityName}: '{personModel.Name}'", personModel.Id);
             }
@@ -40,12 +40,12 @@ namespace ClubTreasury.Data.Person
             }
         }
 
-        public async Task<IOperationResult> UpdatePersonAsync(PersonModel personModel)
+        public async Task<IOperationResult> UpdatePersonAsync(PersonModel personModel, CancellationToken ct = default)
         {
             try
             {
                 context.Persons.Update(personModel);
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("Person updated: {@PersonModel}", personModel);
                 return operationResultFactory.SuccessUpdated($"{EntityName}: '{personModel.Name}'", personModel);
             }
@@ -56,18 +56,18 @@ namespace ClubTreasury.Data.Person
             }
         }
 
-        public async Task<IOperationResult> DeletePersonAsync(int id)
+        public async Task<IOperationResult> DeletePersonAsync(int id, CancellationToken ct = default)
         {
             try
             {
-                var person = await context.Persons.FindAsync(id);
+                var person = await context.Persons.FindAsync([id], ct);
                 if (person is null)
                 {
                     logger.LogInformation("Person not found: Id: '{ID}'", id);
                     return operationResultFactory.NotFound($"Person with Id '{id} not found", id);
                 }
                 context.Persons.Remove(person);
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("Person deleted: {@PersonModel}", person);
                 return operationResultFactory.SuccessDeleted($"{EntityName}: '{person.Name}'", id);
             }
