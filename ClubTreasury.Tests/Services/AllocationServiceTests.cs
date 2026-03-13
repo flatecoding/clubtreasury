@@ -567,17 +567,17 @@ public class AllocationServiceTests
         await _context.Categories.AddAsync(category);
         await _context.SaveChangesAsync();
 
-        A.CallTo(() => _costCenterService.GetCostCenterByNameAsync("New Cost Center"))
+        A.CallTo(() => _costCenterService.GetCostCenterByNameAsync("New Cost Center", A<CancellationToken>._))
             .Returns((CostCenterModel?)null);
-        A.CallTo(() => _costCenterService.AddCostCenterAsync(A<CostCenterModel>._))
-            .Invokes((CostCenterModel cc) =>
+        A.CallTo(() => _costCenterService.AddCostCenterAsync(A<CostCenterModel>._, A<CancellationToken>._))
+            .Invokes((CostCenterModel cc, CancellationToken _) =>
             {
                 cc.Id = 1;
                 _context.CostCenters.Add(cc);
                 _context.SaveChanges();
             })
             .Returns(new OperationResult { Status = OperationResultStatus.Success });
-        A.CallTo(() => _categoryService.GetCategoryByNameAsync("Existing Category"))
+        A.CallTo(() => _categoryService.GetCategoryByNameAsync("Existing Category", A<CancellationToken>._))
             .Returns(category);
 
         // Act
@@ -585,7 +585,7 @@ public class AllocationServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        A.CallTo(() => _costCenterService.AddCostCenterAsync(A<CostCenterModel>.That.Matches(c => c.CostUnitName == "New Cost Center")))
+        A.CallTo(() => _costCenterService.AddCostCenterAsync(A<CostCenterModel>.That.Matches(c => c.CostUnitName == "New Cost Center"), A<CancellationToken>._))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -598,12 +598,12 @@ public class AllocationServiceTests
         await _context.CostCenters.AddAsync(costCenter);
         await _context.SaveChangesAsync();
 
-        A.CallTo(() => _costCenterService.GetCostCenterByNameAsync("Existing Cost Center"))
+        A.CallTo(() => _costCenterService.GetCostCenterByNameAsync("Existing Cost Center", A<CancellationToken>._))
             .Returns(costCenter);
-        A.CallTo(() => _categoryService.GetCategoryByNameAsync("New Category"))
+        A.CallTo(() => _categoryService.GetCategoryByNameAsync("New Category", A<CancellationToken>._))
             .Returns((CategoryModel?)null);
-        A.CallTo(() => _categoryService.AddCategoryAsync(A<CategoryModel>._))
-            .Invokes((CategoryModel cat) =>
+        A.CallTo(() => _categoryService.AddCategoryAsync(A<CategoryModel>._, A<CancellationToken>._))
+            .Invokes((CategoryModel cat, CancellationToken _) =>
             {
                 cat.Id = 1;
                 _context.Categories.Add(cat);
@@ -616,7 +616,7 @@ public class AllocationServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        A.CallTo(() => _categoryService.AddCategoryAsync(A<CategoryModel>.That.Matches(c => c.Name == "New Category")))
+        A.CallTo(() => _categoryService.AddCategoryAsync(A<CategoryModel>.That.Matches(c => c.Name == "New Category"), A<CancellationToken>._))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -631,14 +631,14 @@ public class AllocationServiceTests
         await _context.Categories.AddAsync(category);
         await _context.SaveChangesAsync();
 
-        A.CallTo(() => _costCenterService.GetCostCenterByNameAsync("Cost Center"))
+        A.CallTo(() => _costCenterService.GetCostCenterByNameAsync("Cost Center", A<CancellationToken>._))
             .Returns(costCenter);
-        A.CallTo(() => _categoryService.GetCategoryByNameAsync("Category"))
+        A.CallTo(() => _categoryService.GetCategoryByNameAsync("Category", A<CancellationToken>._))
             .Returns(category);
-        A.CallTo(() => _itemDetailService.GetItemDetailByNameAsync("New Item Detail"))
+        A.CallTo(() => _itemDetailService.GetItemDetailByNameAsync("New Item Detail", A<CancellationToken>._))
             .Returns((ItemDetailModel?)null);
-        A.CallTo(() => _itemDetailService.AddItemDetailAsync(A<ItemDetailModel>._))
-            .Invokes((ItemDetailModel item) =>
+        A.CallTo(() => _itemDetailService.AddItemDetailAsync(A<ItemDetailModel>._, A<CancellationToken>._))
+            .Invokes((ItemDetailModel item, CancellationToken _) =>
             {
                 item.Id = 1;
                 _context.ItemDetails.Add(item);
@@ -651,7 +651,7 @@ public class AllocationServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        A.CallTo(() => _itemDetailService.AddItemDetailAsync(A<ItemDetailModel>.That.Matches(i => i.CostDetails == "New Item Detail")))
+        A.CallTo(() => _itemDetailService.AddItemDetailAsync(A<ItemDetailModel>.That.Matches(i => i.CostDetails == "New Item Detail"), A<CancellationToken>._))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -666,9 +666,9 @@ public class AllocationServiceTests
         await _context.Categories.AddAsync(category);
         await _context.SaveChangesAsync();
 
-        A.CallTo(() => _costCenterService.GetCostCenterByNameAsync("Cost Center"))
+        A.CallTo(() => _costCenterService.GetCostCenterByNameAsync("Cost Center", A<CancellationToken>._))
             .Returns(costCenter);
-        A.CallTo(() => _categoryService.GetCategoryByNameAsync("Category"))
+        A.CallTo(() => _categoryService.GetCategoryByNameAsync("Category", A<CancellationToken>._))
             .Returns(category);
 
         // Act
@@ -677,7 +677,7 @@ public class AllocationServiceTests
         // Assert
         result.Should().NotBeNull();
         result.ItemDetailId.Should().BeNull();
-        A.CallTo(() => _itemDetailService.GetItemDetailByNameAsync(A<string>._))
+        A.CallTo(() => _itemDetailService.GetItemDetailByNameAsync(A<string>._, A<CancellationToken>._))
             .MustNotHaveHappened();
     }
 

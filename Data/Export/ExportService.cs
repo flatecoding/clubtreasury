@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Microsoft.Extensions.Localization;
 using ClubTreasury.Data.CashRegister;
 using ClubTreasury.Data.Export.Budget;
@@ -22,7 +22,7 @@ public class ExportService(
     ICashRegisterService cashRegisterService
 ) : IExportService
 {
-    private const string CsvHeader = 
+    private const string CsvHeader =
         "Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung";
 
     private readonly string _exportPath = exportPathProvider.ExportPath;
@@ -36,14 +36,14 @@ public class ExportService(
     }
 
     public async Task<IOperationResult> ExportTransactionsToCsv(
-        DateTime begin, DateTime end, string filename, int cashRegisterId)
+        DateTime begin, DateTime end, string filename, int cashRegisterId, CancellationToken ct = default)
     {
         try
         {
             logger.LogInformation("Beginning export transactions to csv");
 
             var transactions =
-                await transactionService.GetTransactionsForExport(begin, end, cashRegisterId);
+                await transactionService.GetTransactionsForExport(begin, end, cashRegisterId, ct);
 
             var csv = new StringBuilder();
             foreach (var transaction in transactions.OrderBy(t => t.Documentnumber))
@@ -79,9 +79,9 @@ public class ExportService(
         try
         {
             var transactions =
-                await transactionService.GetTransactionsForExport(begin, end, cashRegisterId);
+                await transactionService.GetTransactionsForExport(begin, end, cashRegisterId, cancellationToken);
 
-            var logo = await cashRegisterService.GetLogoAsync(cashRegisterId);
+            var logo = await cashRegisterService.GetLogoAsync(cashRegisterId, cancellationToken);
             var filePath = GetSafeFilePath(filename);
 
             await transactionPdfRenderer.RenderTransactionPdfExportAsync(
@@ -102,12 +102,12 @@ public class ExportService(
     }
 
     public async Task<IOperationResult> ExportBudgetToCsv(
-        DateTime begin, DateTime end, string filename, int cashRegisterId)
+        DateTime begin, DateTime end, string filename, int cashRegisterId, CancellationToken ct = default)
     {
         try
         {
             var transactions =
-                await transactionService.GetTransactionsForBudgetExport(begin, end, cashRegisterId);
+                await transactionService.GetTransactionsForBudgetExport(begin, end, cashRegisterId, ct);
 
             var flat = budgetMapper.BuildFlatEntries(transactions);
             var grouped = budgetMapper.BuildBudgetHierarchy(flat);
@@ -125,12 +125,12 @@ public class ExportService(
     }
 
     public async Task<IOperationResult> ExportBudgetToExcel(
-        DateTime begin, DateTime end, string filename, int cashRegisterId)
+        DateTime begin, DateTime end, string filename, int cashRegisterId, CancellationToken ct = default)
     {
         try
         {
             var transactions =
-                await transactionService.GetTransactionsForBudgetExport(begin, end, cashRegisterId);
+                await transactionService.GetTransactionsForBudgetExport(begin, end, cashRegisterId, ct);
 
             var flat = budgetMapper.BuildFlatEntries(transactions);
             var grouped = budgetMapper.BuildBudgetHierarchy(flat);
@@ -148,15 +148,15 @@ public class ExportService(
     }
 
     public async Task<byte[]> ExportBudgetToExcelBytes(
-        DateTime begin, DateTime end, int cashRegisterId)
+        DateTime begin, DateTime end, int cashRegisterId, CancellationToken ct = default)
     {
         var filename = $"Budget_{begin:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-        var result = await ExportBudgetToExcel(begin, end, filename, cashRegisterId);
+        var result = await ExportBudgetToExcel(begin, end, filename, cashRegisterId, ct);
 
         if (result.Status != OperationResultStatus.Success)
             return Array.Empty<byte>();
 
         var filePath = GetSafeFilePath(filename);
-        return await File.ReadAllBytesAsync(filePath);
+        return await File.ReadAllBytesAsync(filePath, ct);
     }
 }

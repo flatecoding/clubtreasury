@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using ClubTreasury.Data.OperationResult;
 
@@ -13,16 +13,16 @@ namespace ClubTreasury.Data.CashRegister
     {
         private string EntityName => localizer["CashRegister"];
 
-        public async Task<List<CashRegisterModel>> GetAllCashRegisters()
+        public async Task<List<CashRegisterModel>> GetAllCashRegisters(CancellationToken ct = default)
         {
             return await context.CashRegisters
                 .Include(t => t.Transactions)
-                .ToListAsync();
+                .ToListAsync(ct);
         }
 
-        public async Task<CashRegisterModel?> GetCashRegisterById(int id)
+        public async Task<CashRegisterModel?> GetCashRegisterById(int id, CancellationToken ct = default)
         {
-            var cashRegister = await context.CashRegisters.FindAsync(id);
+            var cashRegister = await context.CashRegisters.FindAsync([id], ct);
             if (cashRegister is not null)
             {
                 logger.LogInformation("Cash register found: {@CashRegister}", cashRegister.Name);
@@ -33,9 +33,9 @@ namespace ClubTreasury.Data.CashRegister
             return null;
         }
 
-        public async Task<CashRegisterModel?> GetFirstCashRegisterAsync()
+        public async Task<CashRegisterModel?> GetFirstCashRegisterAsync(CancellationToken ct = default)
         {
-            var cashRegister = await context.CashRegisters.FirstOrDefaultAsync();
+            var cashRegister = await context.CashRegisters.FirstOrDefaultAsync(ct);
             if (cashRegister is not null)
             {
                 logger.LogInformation("First cash register found: {@CashRegister}", cashRegister.Name);
@@ -46,12 +46,12 @@ namespace ClubTreasury.Data.CashRegister
             return null;
         }
 
-        public async Task<IOperationResult> AddCashRegister(CashRegisterModel cashRegisterModel)
+        public async Task<IOperationResult> AddCashRegister(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
         {
             try
             {
-                await context.CashRegisters.AddAsync(cashRegisterModel);
-                await context.SaveChangesAsync();
+                await context.CashRegisters.AddAsync(cashRegisterModel, ct);
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("Cash register added: {@CashRegister}", cashRegisterModel.Name);
                 return operationResultFactory.SuccessAdded($"{EntityName}: '{cashRegisterModel.Name}'", cashRegisterModel.Id);
             }
@@ -62,12 +62,12 @@ namespace ClubTreasury.Data.CashRegister
             }
         }
 
-        public async Task<IOperationResult> UpdateCashRegister(CashRegisterModel cashRegisterModel)
+        public async Task<IOperationResult> UpdateCashRegister(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
         {
             try
             {
                 context.CashRegisters.Update(cashRegisterModel);
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("Cash register updated: {@CashRegister}", cashRegisterModel.Name);
                 return operationResultFactory.SuccessUpdated($"{EntityName}: '{cashRegisterModel.Name}'", cashRegisterModel.Id);
             }
@@ -80,11 +80,11 @@ namespace ClubTreasury.Data.CashRegister
         }
 
 
-        public async Task<IOperationResult> DeleteCashRegisterAsync(int id)
+        public async Task<IOperationResult> DeleteCashRegisterAsync(int id, CancellationToken ct = default)
         {
             try
             {
-                var cashRegister = await context.CashRegisters.FindAsync(id);
+                var cashRegister = await context.CashRegisters.FindAsync([id], ct);
                 if (cashRegister is null)
                 {
                     logger.LogWarning("Cash register with Id {CashRegisterId} not found.", id);
@@ -92,7 +92,7 @@ namespace ClubTreasury.Data.CashRegister
                 }
 
                 context.CashRegisters.Remove(cashRegister);
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("Cash register deleted: {@CashRegister}", cashRegister.Name);
                 return operationResultFactory.SuccessDeleted(EntityName, id);
             }
@@ -103,19 +103,19 @@ namespace ClubTreasury.Data.CashRegister
             }
         }
 
-        public async Task<(byte[] Data, string ContentType)?> GetLogoAsync(int cashRegisterId)
+        public async Task<(byte[] Data, string ContentType)?> GetLogoAsync(int cashRegisterId, CancellationToken ct = default)
         {
             var logo = await context.CashRegisterLogos
-                .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId);
+                .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId, ct);
             return logo is not null ? (logo.Data, logo.ContentType) : null;
         }
 
-        public async Task<IOperationResult> UploadLogoAsync(int cashRegisterId, byte[] data, string contentType)
+        public async Task<IOperationResult> UploadLogoAsync(int cashRegisterId, byte[] data, string contentType, CancellationToken ct = default)
         {
             try
             {
                 var logo = await context.CashRegisterLogos
-                    .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId);
+                    .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId, ct);
 
                 if (logo is not null)
                 {
@@ -133,7 +133,7 @@ namespace ClubTreasury.Data.CashRegister
                     context.CashRegisterLogos.Add(logo);
                 }
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("Logo uploaded for cash register {CashRegisterId}", cashRegisterId);
                 return operationResultFactory.SuccessUpdated(EntityName);
             }
@@ -144,17 +144,17 @@ namespace ClubTreasury.Data.CashRegister
             }
         }
 
-        public async Task<IOperationResult> DeleteLogoAsync(int cashRegisterId)
+        public async Task<IOperationResult> DeleteLogoAsync(int cashRegisterId, CancellationToken ct = default)
         {
             try
             {
                 var logo = await context.CashRegisterLogos
-                    .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId);
+                    .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId, ct);
 
                 if (logo is not null)
                 {
                     context.CashRegisterLogos.Remove(logo);
-                    await context.SaveChangesAsync();
+                    await context.SaveChangesAsync(ct);
                     logger.LogInformation("Logo deleted for cash register {CashRegisterId}", cashRegisterId);
                 }
 
