@@ -35,7 +35,7 @@ namespace ClubTreasury.Data.Person
             }
             catch (Exception ex)
             {
-                logger.LogCritical(EntityName, ex);
+                logger.LogError(ex, "An error occurred while adding person: {PersonName}", personModel.Name);
                 return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
         }
@@ -73,7 +73,7 @@ namespace ClubTreasury.Data.Person
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "An error occurred while deleting person");
+                logger.LogError(ex, "An error occurred while deleting person");
                 return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }

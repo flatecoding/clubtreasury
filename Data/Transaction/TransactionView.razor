@@ -293,12 +293,24 @@
     
     private async Task<TableData<TransactionModel?>> LoadServerData(TableState state, CancellationToken cancellationToken)
     {
-        var result = await TransactionService.GetTransactionsPaged(
-            state,
-            cancellationToken,
-            _dateRange,
-            _searchTerm,
-            _personId);
-        return new TableData<TransactionModel?> { Items = result.Items, TotalItems = result.TotalItems };  
+        var request = new PagedRequest
+        {
+            Page = state.Page,
+            PageSize = state.PageSize,
+            SortLabel = state.SortLabel,
+            SortDirection = state.SortDirection switch
+            {
+                MudBlazor.SortDirection.Ascending => SortDirection.Ascending,
+                MudBlazor.SortDirection.Descending => SortDirection.Descending,
+                _ => SortDirection.None
+            },
+            DateStart = _dateRange.Start,
+            DateEnd = _dateRange.End,
+            SearchText = _searchTerm,
+            PersonId = _personId
+        };
+
+        var result = await TransactionService.GetTransactionsPaged(request, cancellationToken);
+        return new TableData<TransactionModel?> { Items = result.Items, TotalItems = result.TotalItems };
     }
 }

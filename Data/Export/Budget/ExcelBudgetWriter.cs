@@ -10,6 +10,21 @@ namespace ClubTreasury.Data.Export.Budget;
 
 public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcelBudgetWriter
 {
+    private const float TitleFontSize = 18;
+    private const float SubtitleFontSize = 12;
+    private const float CostCenterFontSize = 12;
+    private const float CategoryFontSize = 11;
+
+    private const string CostCenterRowColor = "#D9D9D9";
+    private const string CategoryRowColor = "#EDEDED";
+    private const string AlternatingRowColor = "#F6F6F6";
+
+    private const int CostCenterChartWidth = 200;
+    private const int CostCenterChartHeight = 400;
+    private const int CategoryChartWidth = 300;
+    private const int CategoryChartHeight = 450;
+
+    private const int MinCategoryPercentageThreshold = 2;
     public async Task WriteAsync(string filePath, IEnumerable<BudgetGroupedDto> grouped, DateTime begin, DateTime end)
     {
         using var package = new ExcelPackage();
@@ -28,11 +43,11 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
         // Titel
         ws.Cells[1, 1].Value = localizer["BalanceSheetTitle"];
         ws.Cells[1, 1].Style.Font.Bold = true;
-        ws.Cells[1, 1].Style.Font.Size = 18;
+        ws.Cells[1, 1].Style.Font.Size = TitleFontSize;
 
         ws.Cells[2, 1].Value = $"{localizer["DateRange"]}: {begin:dd.MM.yyyy} - {end:dd.MM.yyyy}";
         ws.Cells[2, 1].Style.Font.Italic = true;
-        ws.Cells[2, 1].Style.Font.Size = 12;
+        ws.Cells[2, 1].Style.Font.Size = SubtitleFontSize;
 
         // Header
         int row = 4;
@@ -58,7 +73,7 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
         {
             ws.Cells[row, 1].Value = cc.CostUnitName;
             ws.Cells[row, 1].Style.Font.Bold = true;
-            ws.Cells[row, 1].Style.Font.Size = 12;
+            ws.Cells[row, 1].Style.Font.Size = CostCenterFontSize;
 
             ws.Cells[row, 3].Value = (double)cc.SumCostCenter;
             ws.Cells[row, 3].Style.Numberformat.Format = "#,##0.00 €";
@@ -66,7 +81,7 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
             using (var range = ws.Cells[row, 1, row, 3])
             {
                 range.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                range.Style.Fill.BackgroundColor.SetColor(ColorTranslator.FromHtml("#D9D9D9"));
+                range.Style.Fill.BackgroundColor.SetColor(ColorTranslator.FromHtml(CostCenterRowColor));
                 range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
                 range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
             }
@@ -77,7 +92,7 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
             {
                 ws.Cells[row, 1].Value = cat.CategoryName;
                 ws.Cells[row, 1].Style.Font.Bold = true;
-                ws.Cells[row, 1].Style.Font.Size = 11;
+                ws.Cells[row, 1].Style.Font.Size = CategoryFontSize;
                 ws.Cells[row, 1].Style.Indent = 1;
 
                 ws.Cells[row, 3].Value = (double)cat.SumCategories;
@@ -86,7 +101,7 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
                 using (var range = ws.Cells[row, 1, row, 3])
                 {
                     range.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    range.Style.Fill.BackgroundColor.SetColor(ColorTranslator.FromHtml("#EDEDED"));
+                    range.Style.Fill.BackgroundColor.SetColor(ColorTranslator.FromHtml(CategoryRowColor));
                     range.Style.Border.Bottom.Style = ExcelBorderStyle.Hair;
                 }
 
@@ -114,7 +129,7 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
                             if (altBackground)
                             {
                                 range.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                                range.Style.Fill.BackgroundColor.SetColor(ColorTranslator.FromHtml("#F6F6F6"));
+                                range.Style.Fill.BackgroundColor.SetColor(ColorTranslator.FromHtml(AlternatingRowColor));
                             }
                         }
 
@@ -159,10 +174,10 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
 
         var totalCategoryAmount = allCategoryExpenses.Sum(c => c.Amount);
         var categoryExpenses = totalCategoryAmount > 0
-            ? allCategoryExpenses.Where(c => Math.Round(c.Amount / totalCategoryAmount * 100) >= 2).ToList()
+            ? allCategoryExpenses.Where(c => Math.Round(c.Amount / totalCategoryAmount * 100) >= MinCategoryPercentageThreshold).ToList()
             : allCategoryExpenses;
         var smallCategoryExpenses = totalCategoryAmount > 0
-            ? allCategoryExpenses.Where(c => Math.Round(c.Amount / totalCategoryAmount * 100) < 2).ToList()
+            ? allCategoryExpenses.Where(c => Math.Round(c.Amount / totalCategoryAmount * 100) < MinCategoryPercentageThreshold).ToList()
             : [];
 
         if (costCenterExpenses.Count == 0 && categoryExpenses.Count == 0)
@@ -196,7 +211,7 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
 
             var costCenterChart = ws.Drawings.AddChart(localizer["ExpensesByCostCenter"], eChartType.Pie);
             costCenterChart.SetPosition(chartRow - 1, 0, 0, 0);
-            costCenterChart.SetSize(200, 400);
+            costCenterChart.SetSize(CostCenterChartWidth, CostCenterChartHeight);
             costCenterChart.Title.Text = localizer["ExpensesByCostCenter"];
             costCenterChart.StyleManager.SetChartStyle(ePresetChartStyle.PieChartStyle3);
 
@@ -270,7 +285,7 @@ public class ExcelBudgetWriter(IStringLocalizer<Translation> localizer) : IExcel
 
             var categoryChart = ws.Drawings.AddChart(localizer["ExpensesByCategory"], eChartType.Pie);
             categoryChart.SetPosition(chartRow - 1, 0, 0, 0);
-            categoryChart.SetSize(300, 450);
+            categoryChart.SetSize(CategoryChartWidth, CategoryChartHeight);
             categoryChart.Title.Text = localizer["ExpensesByCategory"];
             categoryChart.StyleManager.SetChartStyle(ePresetChartStyle.PieChartStyle3);
 

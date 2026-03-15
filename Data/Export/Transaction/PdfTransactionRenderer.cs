@@ -10,6 +10,11 @@ namespace ClubTreasury.Data.Export.Transaction;
 
 public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStringLocalizer<Translation> localizer) : IPdfTransactionRenderer
 {
+    private const string HeaderBackgroundColor = "#DDEBF7";
+    private const int DateColumnWidth = 80;
+    private const int DocumentNumberColumnWidth = 60;
+    private const int SumColumnWidth = 70;
+    private const int AccountColumnWidth = 70;
     public async Task RenderTransactionPdfExportAsync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end,
         string filePath, string cashRegisterName, byte[]? logoData, string? logoContentType, CancellationToken cancellationToken)
     {
@@ -154,7 +159,6 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
     
     private void ComposeContent(IContainer container, List<TransactionModel> ordered, DateTime begin, DateTime end)
     {
-        const string headerBackgroundColor = "#DDEBF7";
         var headerStyle = TextStyle.Default.SemiBold();
         var culture = CultureInfo.CurrentUICulture;
 
@@ -164,11 +168,11 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
             {
                 table.ColumnsDefinition(columns =>
                 {
-                    columns.ConstantColumn(80);  
-                    columns.ConstantColumn(60);  
+                    columns.ConstantColumn(DateColumnWidth);
+                    columns.ConstantColumn(DocumentNumberColumnWidth);
                     columns.RelativeColumn();
-                    columns.ConstantColumn(70);  
-                    columns.ConstantColumn(70);  
+                    columns.ConstantColumn(SumColumnWidth);
+                    columns.ConstantColumn(AccountColumnWidth);
                 });
 
                 table.Header(header =>
@@ -180,7 +184,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                     header.Cell().Element(CellHeaderStyle).Text($"{localizer["Account"]}").Style(headerStyle).AlignCenter();
 
                     IContainer CellHeaderStyle(IContainer containerHeader)
-                        => DefaultCellStyle(containerHeader, headerBackgroundColor);
+                        => DefaultCellStyle(containerHeader, HeaderBackgroundColor);
                 });
 
                 var index = 0;

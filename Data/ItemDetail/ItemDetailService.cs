@@ -8,11 +8,10 @@ namespace ClubTreasury.Data.ItemDetail
         IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : IItemDetailService
     {
         private string EntityName => localizer["ItemDetail"];
-        private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
         public async Task<List<ItemDetailModel>> GetAllItemDetailsAsync(CancellationToken ct = default)
         {
-            return await _context.ItemDetails
+            return await context.ItemDetails
                 .Include(ud => ud.Allocations)
                 .ThenInclude(a => a.Category)
                 .Include(ud => ud.Allocations)
@@ -23,7 +22,7 @@ namespace ClubTreasury.Data.ItemDetail
 
         public async Task<ItemDetailModel?> GetItemDetailByIdAsync(int id, CancellationToken ct = default)
         {
-            return await _context.ItemDetails
+            return await context.ItemDetails
                 .Include(ud => ud.Allocations)
                 .ThenInclude(a => a.Category)
                 .Include(ud => ud.Allocations)
@@ -33,12 +32,12 @@ namespace ClubTreasury.Data.ItemDetail
 
         public async Task<ItemDetailModel?> GetItemDetailByNameAsync(string name, CancellationToken ct = default)
         {
-            return await  _context.ItemDetails.FirstOrDefaultAsync(i => i.CostDetails == name, ct);
+            return await  context.ItemDetails.FirstOrDefaultAsync(i => i.CostDetails == name, ct);
         }
 
         public async Task<List<ItemDetailModel>> GetItemDetailByCategoryIdAsync(int categoryId, CancellationToken ct = default)
         {
-            return await _context.ItemDetails
+            return await context.ItemDetails
                 .Where(u => u.Allocations.Any(a => a.CategoryId == categoryId))
                 .ToListAsync(ct);
         }
@@ -47,14 +46,14 @@ namespace ClubTreasury.Data.ItemDetail
         {
             try
             {
-                await _context.ItemDetails.AddAsync(itemDetail, ct);
-                await _context.SaveChangesAsync(ct);
+                await context.ItemDetails.AddAsync(itemDetail, ct);
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("ItemDetail added: {@ItemDetail}", itemDetail.CostDetails);
                 return operationResultFactory.SuccessAdded($"{EntityName}: '{itemDetail.CostDetails}'", itemDetail.Id);
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "ItemDetail could not be added");
+                logger.LogError(ex, "ItemDetail could not be added");
                 return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
         }
@@ -63,15 +62,15 @@ namespace ClubTreasury.Data.ItemDetail
         {
             try
             {
-                _context.ItemDetails.Update(itemDetail);
-                await _context.SaveChangesAsync(ct);
+                context.ItemDetails.Update(itemDetail);
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("ItemDetail updated: {@ItemDetail}", itemDetail.CostDetails);
                 return operationResultFactory.SuccessUpdated(EntityName, itemDetail.Id);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "ItemDetail {@ItemDetail} could not be updated", itemDetail.CostDetails);
-                return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
+                return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
             }
         }
 
@@ -79,20 +78,20 @@ namespace ClubTreasury.Data.ItemDetail
         {
             try
             {
-                var itemDetail = await _context.ItemDetails.FindAsync([id], ct);
+                var itemDetail = await context.ItemDetails.FindAsync([id], ct);
                 if (itemDetail == null)
                 {
                     logger.LogWarning("ItemDetail with Id {ItemDetailId} not found", id);
                     return operationResultFactory.NotFound(EntityName, id);
                 }
-                _context.ItemDetails.Remove(itemDetail);
-                await _context.SaveChangesAsync(ct);
+                context.ItemDetails.Remove(itemDetail);
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("ItemDetail deleted: {@ItemDetail}", itemDetail.CostDetails);
                 return operationResultFactory.SuccessDeleted($"{EntityName}: '{itemDetail.CostDetails}'", id);
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "ItemDetail with {ID} could not be deleted", id );
+                logger.LogError(ex, "ItemDetail with {ID} could not be deleted", id);
                 return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }

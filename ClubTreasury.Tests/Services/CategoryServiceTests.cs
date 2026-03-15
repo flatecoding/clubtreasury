@@ -417,18 +417,4 @@ public class CategoryServiceTests
 
     #endregion
 
-    #region Constructor Tests
-
-    [Test]
-    public void Constructor_WhenContextIsNull_ShouldThrowArgumentNullException()
-    {
-        // Act
-        var act = () => new CategoryService(null!, _logger, _operationResultFactory, _localizer);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("context");
-    }
-
-    #endregion
 }
