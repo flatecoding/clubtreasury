@@ -310,9 +310,9 @@ public class ItemDetailServiceTests
         var expectedResult = new OperationResult
         {
             Status = OperationResultStatus.Failed,
-            Message = "Failed to add"
+            Message = "Failed to update"
         };
-        A.CallTo(() => _operationResultFactory.FailedToAdd(A<string>._, A<string?>._))
+        A.CallTo(() => _operationResultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         await _context.DisposeAsync();
@@ -417,19 +417,5 @@ public class ItemDetailServiceTests
     }
 
     #endregion
-
-    #region Constructor Tests
-
-    [Test]
-    public void Constructor_WhenContextIsNull_ShouldThrowArgumentNullException()
-    {
-        // Act
-        var act = () => new ItemDetailService(null!, _logger, _localizer, _operationResultFactory);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("context");
-    }
-
-    #endregion
+    
 }

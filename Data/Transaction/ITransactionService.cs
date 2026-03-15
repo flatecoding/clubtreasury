@@ -1,4 +1,3 @@
-using MudBlazor;
 using ClubTreasury.Data.OperationResult;
 
 namespace ClubTreasury.Data.Transaction;
@@ -15,11 +14,7 @@ public interface ITransactionService
     Task<HashSet<int>> GetAllDocumentNumbersAsync(int registerId, CancellationToken ct = default);
     Task<int> GetLatestDocumentNumberAsync(int registerId, CancellationToken ct = default);
 
-    // MudBlazor Pagination
-    Task<TableData<TransactionModel>> GetTransactionsPaged(
-        TableState state,
-        CancellationToken cancellationToken,
-        DateRange? dateRange,
-        string? searchText,
-        int? personId);
+    Task<PagedResult<TransactionModel>> GetTransactionsPaged(
+        PagedRequest request,
+        CancellationToken cancellationToken);
 }

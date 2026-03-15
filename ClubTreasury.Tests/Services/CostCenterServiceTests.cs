@@ -368,18 +368,4 @@ public class CostCenterServiceTests
 
     #endregion
 
-    #region Constructor Tests
-
-    [Test]
-    public void Constructor_WhenContextIsNull_ShouldThrowArgumentNullException()
-    {
-        // Act
-        var act = () => new CostCenterService(null!, _logger, _localizer, _operationResultFactory);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("context");
-    }
-
-    #endregion
 }

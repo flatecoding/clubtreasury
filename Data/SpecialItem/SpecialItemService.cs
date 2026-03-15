@@ -36,7 +36,7 @@ namespace ClubTreasury.Data.SpecialItem
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "Failed to add SpecialItem");
+                logger.LogError(ex, "Failed to add SpecialItem");
                 return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
         }
@@ -83,7 +83,7 @@ namespace ClubTreasury.Data.SpecialItem
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "Failed to delete SpecialItem");
+                logger.LogError(ex, "Failed to delete SpecialItem");
                 return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }

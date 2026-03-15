@@ -9,11 +9,10 @@ namespace ClubTreasury.Data.Category
         IStringLocalizer<Translation> localizer): ICategoryService
     {
         private string EntityName => localizer["Category"];
-        private readonly CashDataContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
         public async Task<List<CategoryModel>> GetAllCategoriesAsync(CancellationToken ct = default)
         {
-            return await _context.Categories
+            return await context.Categories
                 .Include(b => b.Allocations)
                     .ThenInclude(a => a.CostCenter)
                 .Include(b => b.Allocations)
@@ -23,7 +22,7 @@ namespace ClubTreasury.Data.Category
 
         public async Task<CategoryModel?> GetCategoryByIdAsync(int id, CancellationToken ct = default)
         {
-            return await _context.Categories
+            return await context.Categories
                 .Include(b => b.Allocations)
                     .ThenInclude(a => a.CostCenter)
                 .Include(b => b.Allocations)
@@ -33,12 +32,12 @@ namespace ClubTreasury.Data.Category
 
         public async Task<CategoryModel?> GetCategoryByNameAsync(string name, CancellationToken ct = default)
         {
-            return await  _context.Categories.FirstOrDefaultAsync(b => b.Name == name, ct);
+            return await  context.Categories.FirstOrDefaultAsync(b => b.Name == name, ct);
         }
 
         public async Task<IEnumerable<CategoryModel>> GetCategoriesByCostCenterIdAsync(int costUnitId, CancellationToken ct = default)
         {
-            var categories = await _context.Categories
+            var categories = await context.Categories
                 .Where(b => b.Allocations.Any(a => a.CostCenterId == costUnitId))
                 .OrderBy(c => c.Name)
                 .ToListAsync(ct);
@@ -51,8 +50,8 @@ namespace ClubTreasury.Data.Category
         {
             try
             {
-                _context.Categories.Add(category);
-                await _context.SaveChangesAsync(ct);
+                context.Categories.Add(category);
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("Category added: {@unit}", category.Name);
 
                 return operationResultFactory.SuccessAdded($"{EntityName}: '{category.Name}", category.Id);
@@ -60,7 +59,7 @@ namespace ClubTreasury.Data.Category
             }
             catch (Exception e)
             {
-                logger.LogCritical(e, "Error adding category: {@category}", category);
+                logger.LogError(e, "Error adding category: {@category}", category);
                 return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
 
@@ -70,15 +69,15 @@ namespace ClubTreasury.Data.Category
         {
             try
             {
-                _context.Categories.Update(category);
-                await _context.SaveChangesAsync(ct);
+                context.Categories.Update(category);
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("Category updated: {@unit}", category.Name);
 
                 return operationResultFactory.SuccessUpdated($"{EntityName}: '{category.Name}'", category.Id);
             }
             catch (Exception e)
             {
-                logger.LogCritical(e, "Error updating category: {@category}", category);
+                logger.LogError(e, "Error updating category: {@category}", category);
                 return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
             }
         }
@@ -87,21 +86,21 @@ namespace ClubTreasury.Data.Category
         {
             try
             {
-                var category = await _context.Categories.FindAsync([id], ct);
+                var category = await context.Categories.FindAsync([id], ct);
                 if (category == null)
                 {
                     logger.LogError("Category not found");
                     return operationResultFactory.NotFound(EntityName, $"Id: '{id}' not found");
                 }
-                _context.Categories.Remove(category);
-                await _context.SaveChangesAsync(ct);
+                context.Categories.Remove(category);
+                await context.SaveChangesAsync(ct);
                 logger.LogInformation("Category deleted: {@unit}", category.Name);
 
                 return operationResultFactory.SuccessDeleted($"{EntityName}: '{category.Name}'", category.Id);
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "Error deleting category with id: {@id}", id);
+                logger.LogError(ex, "Error deleting category with id: {@id}", id);
                 return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }
