@@ -116,7 +116,7 @@
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "Unexpected error during export");
+            Logger.LogError(ex, "Unexpected error during export");
             MudDialog.Close(DialogResult.Ok(
                 ResultFactory.ExportFailed(Localizer["Exception"])));
         }
@@ -144,7 +144,7 @@
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "Error occurred during export!");
+            Logger.LogError(ex, "Error occurred during export!");
             MudDialog.Close(DialogResult.Ok(
                 ResultFactory.ExportFailed(Localizer["Exception"])));
         }

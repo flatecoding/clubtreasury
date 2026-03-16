@@ -48,7 +48,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
         }
         catch (Exception e)
         {
-            logger.LogCritical(EntityName, e);
+            logger.LogError(EntityName, e);
             return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
         }
 
@@ -67,7 +67,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
         }
         catch (Exception e)
         {
-            logger.LogCritical(EntityName, e);
+            logger.LogError(EntityName, e);
             return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
         }
     }
@@ -90,12 +90,12 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
         }
         catch (DbUpdateException dbUpdateException)
         {
-            logger.LogCritical(dbUpdateException, "An exception occurred while deleting transaction with id: {Id}", id);
+            logger.LogError(dbUpdateException, "An exception occurred while deleting transaction with id: {Id}", id);
             return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
         catch (Exception ex)
         {
-            logger.LogCritical(ex, "An exception occurred while deleting transaction with id: {Id}", id);
+            logger.LogError(ex, "An exception occurred while deleting transaction with id: {Id}", id);
             return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
     }
