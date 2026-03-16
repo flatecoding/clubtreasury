@@ -27,7 +27,7 @@ public class ExportServiceTests
     private ExportService _sut = null!;
     private string _testExportPath = null!;
     private IExportPathProvider _exportPathProvider = null!;
-    private ICashRegisterService _cashRegisterService = null!;
+    private ICashRegisterLogoService _cashRegisterLogoService = null!;
 
     [SetUp]
     public void SetUp()
@@ -41,7 +41,7 @@ public class ExportServiceTests
         _resultFactory = A.Fake<IResultFactory>();
         _localizer = A.Fake<IStringLocalizer<Resources.Translation>>();
         _exportPathProvider = A.Fake<IExportPathProvider>();
-        _cashRegisterService = A.Fake<ICashRegisterService>();
+        _cashRegisterLogoService = A.Fake<ICashRegisterLogoService>();
 
         _testExportPath = Path.Combine(Path.GetTempPath(), $"ExportTest_{Guid.NewGuid()}");
         Directory.CreateDirectory(_testExportPath);
@@ -63,7 +63,7 @@ public class ExportServiceTests
             _resultFactory,
             _localizer,
             _exportPathProvider,
-            _cashRegisterService);
+            _cashRegisterLogoService);
     }
 
     [TearDown]

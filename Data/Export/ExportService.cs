@@ -19,7 +19,7 @@ public class ExportService(
     IResultFactory operationResultFactory,
     IStringLocalizer<Resources.Translation> localizer,
     IExportPathProvider exportPathProvider,
-    ICashRegisterService cashRegisterService
+    ICashRegisterLogoService cashRegisterLogoService
 ) : IExportService
 {
     private const string CsvHeader =
@@ -81,7 +81,7 @@ public class ExportService(
             var transactions =
                 await transactionService.GetTransactionsForExport(begin, end, cashRegisterId, cancellationToken);
 
-            var logo = await cashRegisterService.GetLogoAsync(cashRegisterId, cancellationToken);
+            var logo = await cashRegisterLogoService.GetLogoAsync(cashRegisterId, cancellationToken);
             var filePath = GetSafeFilePath(filename);
 
             await transactionPdfRenderer.RenderTransactionPdfExportAsync(

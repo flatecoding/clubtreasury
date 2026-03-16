@@ -16,6 +16,7 @@ namespace ClubTreasury.ComponentTests.Components;
 public class CashRegisterDialogTests : BunitContext
 {
     private ICashRegisterService _cashRegisterService = null!;
+    private ICashRegisterLogoService _cashRegisterLogoService = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private INotificationService _notificationService = null!;
     private IResultFactory _resultFactory = null!;
@@ -24,6 +25,7 @@ public class CashRegisterDialogTests : BunitContext
     public void SetUp()
     {
         Services.AddSingleton(_cashRegisterService = A.Fake<ICashRegisterService>());
+        Services.AddSingleton(_cashRegisterLogoService = A.Fake<ICashRegisterLogoService>());
         Services.AddSingleton(_localizer = A.Fake<IStringLocalizer<Translation>>());
         Services.AddSingleton(_notificationService = A.Fake<INotificationService>());
         Services.AddSingleton(_resultFactory = A.Fake<IResultFactory>());
@@ -66,7 +68,7 @@ public class CashRegisterDialogTests : BunitContext
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
         A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
-        A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
+        A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
 
         var cut = RenderDialog(cashRegisterId: 1);
 
@@ -80,7 +82,7 @@ public class CashRegisterDialogTests : BunitContext
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
         var logoData = new byte[] { 1, 2, 3 };
         A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
-        A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns((logoData, "image/png"));
+        A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns((logoData, "image/png"));
 
         var cut = RenderDialog(cashRegisterId: 1);
 
@@ -108,7 +110,7 @@ public class CashRegisterDialogTests : BunitContext
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
         A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
-        A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
+        A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
         A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
             .Returns(Result.Success());
 
@@ -128,7 +130,7 @@ public class CashRegisterDialogTests : BunitContext
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
         var failResult = Result.Failure(new Error("Test.Error", "Update failed"));
         A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
-        A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
+        A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
         A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
             .Returns(failResult);
 
@@ -147,7 +149,7 @@ public class CashRegisterDialogTests : BunitContext
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
         var logoData = new byte[] { 1, 2, 3 };
         A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
-        A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns((logoData, "image/png"));
+        A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns((logoData, "image/png"));
         A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
             .Returns(Result.Success());
 
@@ -165,6 +167,6 @@ public class CashRegisterDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _cashRegisterService.DeleteLogoAsync(1)).MustHaveHappened();
+        A.CallTo(() => _cashRegisterLogoService.DeleteLogoAsync(1)).MustHaveHappened();
     }
 }

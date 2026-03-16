@@ -32,6 +32,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<ITransactionService, TransactionService>();
         services.AddScoped<ISpecialItemService, SpecialItemService>();
         services.AddScoped<ICashRegisterService, CashRegisterService>();
+        services.AddScoped<ICashRegisterLogoService, CashRegisterLogoService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<INotificationService, NotificationService>();
