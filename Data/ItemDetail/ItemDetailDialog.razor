@@ -1,24 +1,22 @@
-@using Microsoft.Extensions.Localization
-@using ClubTreasury.Data.Notification
+@using ClubTreasury.Components.Dialog
 @using ClubTreasury.Data.OperationResult
 
+@inherits SimpleEntityDialogBase<ItemDetailModel>
+
 @inject IItemDetailService ItemDetailService
-@inject IStringLocalizer<Translation> Localizer
-@inject INotificationService NotificationService
-@inject IResultFactory ResultFactory
 @inject ItemDetailValidator ItemDetailValidator
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form"
-                 Model="_itemDetailModel"
-                 Validation="ItemDetailValidator.ValidateValue"
+        <MudForm @ref="Form"
+                 Model="Model"
+                 Validation="ValidateValue"
                  ValidationDelay="0"
                  OnEnterPressed="@Save">
 
-            <MudTextField @bind-Value="_itemDetailModel.CostDetails"
+            <MudTextField @bind-Value="Model.CostDetails"
                           Label="@Localizer["Name"]"
-                          For="@(() => _itemDetailModel.CostDetails)"
+                          For="@(() => Model.CostDetails)"
                           Immediate="true" />
         </MudForm>
     </DialogContent>
@@ -26,7 +24,7 @@
     <DialogActions>
         <MudButton Color="Color.Primary"
                    OnClick="@(async () => await Save())">
-            @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
+            @(IsEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
 
         <MudButton Color="Color.Secondary"
@@ -39,47 +37,9 @@
 @code {
     [Parameter] public int? ItemDetailId { get; set; }
 
-    [CascadingParameter]
-    private IMudDialogInstance MudDialog { get; set; } = null!;
-
-    private MudForm _form = new();
-    private ItemDetailModel _itemDetailModel = new();
-    private bool _isEditMode;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _isEditMode = ItemDetailId.HasValue;
-        await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
-        await LoadItemDetailAsync();
-    }
-
-    private async Task LoadItemDetailAsync()
-    {
-        if (!_isEditMode)
-        {
-            _itemDetailModel = new ItemDetailModel();
-            return;
-        }
-
-        _itemDetailModel = await ItemDetailService.GetItemDetailByIdAsync(ItemDetailId!.Value)
-                           ?? new ItemDetailModel();
-    }
-
-    private async Task Save()
-    {
-        await _form.Validate();
-        if (!_form.IsValid)
-            return;
-
-        var result = _isEditMode
-            ? await ItemDetailService.UpdateItemDetailAsync(_itemDetailModel)
-            : await ItemDetailService.AddItemDetailAsync(_itemDetailModel);
-
-        if (result.IsSuccess)
-            MudDialog.Close(DialogResult.Ok(result));
-        else
-            await NotificationService.ShowResultAsync(result);
-    }
-
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
+    protected override int? EntityId => ItemDetailId;
+    protected override Func<object, string, Task<IEnumerable<string>>> ValidateValue => ItemDetailValidator.ValidateValue;
+    protected override Task<ItemDetailModel?> LoadEntityAsync(int id) => ItemDetailService.GetItemDetailByIdAsync(id);
+    protected override Task<Result> AddEntityAsync(ItemDetailModel model) => ItemDetailService.AddItemDetailAsync(model);
+    protected override Task<Result> UpdateEntityAsync(ItemDetailModel model) => ItemDetailService.UpdateItemDetailAsync(model);
 }
