@@ -110,7 +110,7 @@
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "An exception occurred while importing transactions: {FileName}", _file?.Name);
+            Logger.LogError(ex, "An exception occurred while importing transactions: {FileName}", _file?.Name);
             MudDialog.Close(DialogResult.Ok(ResultFactory.ImportFailed(Localizer["Exception"])));
         }
         finally

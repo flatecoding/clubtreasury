@@ -120,7 +120,7 @@
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "Error occurred during export transactions to csv-file");
+            Logger.LogError(ex, "Error occurred during export transactions to csv-file");
             MudDialog.Close(DialogResult.Ok(
                 ResultFactory.ExportFailed(Localizer["Exception"])));
         }
@@ -153,7 +153,7 @@
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "Error occurred during export transactions to pdf-file");
+            Logger.LogError(ex, "Error occurred during export transactions to pdf-file");
             MudDialog.Close(DialogResult.Ok(
                 ResultFactory.ExportFailed(Localizer["Exception"])));
         }
