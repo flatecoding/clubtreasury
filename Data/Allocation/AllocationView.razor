@@ -2,7 +2,6 @@
 @using Microsoft.Extensions.Localization
 @using ClubTreasury.Data.DialogService
 @using ClubTreasury.Data.Notification
-@using ClubTreasury.Data.OperationResult
 @inject IAllocationService AllocationService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
@@ -139,7 +138,7 @@
         var result = await DialogService.ShowDialogWithNotificationAsync<AllocationDialog>(
             NotificationService);
     
-        if (result?.Status == OperationResultStatus.Success)
+        if (result is { IsSuccess: true })
         {
             await UpdateAllocations();
         }
@@ -154,7 +153,7 @@
             $"{Localizer["Edit"]} ",
             parameters);
     
-        if (result?.Status == OperationResultStatus.Success)
+        if (result is { IsSuccess: true })
         {
             await UpdateAllocations();
         }

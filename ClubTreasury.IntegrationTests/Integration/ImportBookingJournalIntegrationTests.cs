@@ -41,7 +41,7 @@ public class ImportBookingJournalIntegrationTests : IntegrationTestBase
         var result = await _importService.ImportTransactions(fileStream, "ValidBookingJournal.xlsx", cashRegister.Id);
 
         // Assert
-        result.Status.Should().Be(OperationResultStatus.Success);
+        result.IsSuccess.Should().BeTrue();
 
         var transactions = await GetDbContext().Transactions
             .Include(t => t.Allocation)
@@ -115,7 +115,7 @@ public class ImportBookingJournalIntegrationTests : IntegrationTestBase
         var result = await _importService.ImportTransactions(secondStream, "ValidBookingJournal.xlsx", cashRegister.Id);
 
         // Assert - should succeed but not create duplicates
-        result.Status.Should().Be(OperationResultStatus.Success);
+        result.IsSuccess.Should().BeTrue();
 
         var transactionCount = await GetDbContext().Transactions
             .CountAsync(t => t.CashRegisterId == cashRegister.Id);
@@ -141,7 +141,7 @@ public class ImportBookingJournalIntegrationTests : IntegrationTestBase
         var result = await _importService.ImportTransactions(secondStream, "ValidBookingJournal.xlsx", secondCashRegister.Id);
 
         // Assert
-        result.Status.Should().Be(OperationResultStatus.Success);
+        result.IsSuccess.Should().BeTrue();
 
         var firstRegisterCount = await GetDbContext().Transactions
             .CountAsync(t => t.CashRegisterId == firstCashRegister.Id);
@@ -164,7 +164,7 @@ public class ImportBookingJournalIntegrationTests : IntegrationTestBase
         var result = await _importService.ImportTransactions(fileStream, "DuplicateRowBookingJournal.xlsx", cashRegister.Id);
 
         // Assert
-        result.Status.Should().Be(OperationResultStatus.Failed);
+        result.IsFailure.Should().BeTrue();
 
         var transactionCount = await GetDbContext().Transactions
             .CountAsync(t => t.CashRegisterId == cashRegister.Id);
@@ -181,7 +181,7 @@ public class ImportBookingJournalIntegrationTests : IntegrationTestBase
         var result = await _importService.ImportTransactions(null, "nonexistent.xlsx", cashRegister.Id);
 
         // Assert
-        result.Status.Should().Be(OperationResultStatus.Failed);
+        result.IsFailure.Should().BeTrue();
     }
 
     [Test]
@@ -195,6 +195,6 @@ public class ImportBookingJournalIntegrationTests : IntegrationTestBase
         var result = await _importService.ImportTransactions(fileStream, "ValidBookingJournal.xlsx", 99999);
 
         // Assert
-        result.Status.Should().Be(OperationResultStatus.Failed);
+        result.IsFailure.Should().BeTrue();
     }
 }

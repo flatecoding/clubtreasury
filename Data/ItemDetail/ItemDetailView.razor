@@ -2,7 +2,6 @@
 @using Microsoft.Extensions.Localization
 @using ClubTreasury.Data.DialogService
 @using ClubTreasury.Data.Notification
-@using ClubTreasury.Data.OperationResult
 @inject IItemDetailService ItemDetailService
 @inject IDialogService DialogService
 @inject IStringLocalizer<Translation> Localizer
@@ -113,7 +112,7 @@
     {
         var result = await DialogService.ShowDialogWithNotificationAsync<ItemDetailDialog>(NotificationService);
 
-        if (result?.Status is OperationResultStatus.Success)
+        if (result is { IsSuccess: true })
         {
             await UpdateView();
         }
@@ -132,7 +131,7 @@
             new DialogParameters { ["ItemDetailId"] = itemDetailId }
             );
         
-        if (result?.Status is OperationResultStatus.Success)
+        if (result is { IsSuccess: true })
         {
             await UpdateView();
         }

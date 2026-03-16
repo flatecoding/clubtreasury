@@ -5,7 +5,7 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.ItemDetail
 {
     public class ItemDetailService(CashDataContext context, ILogger<ItemDetailService> logger,
-        IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : IItemDetailService
+        IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory) : IItemDetailService
     {
         private string EntityName => localizer["ItemDetail"];
 
@@ -42,7 +42,7 @@ namespace ClubTreasury.Data.ItemDetail
                 .ToListAsync(ct);
         }
 
-        public async Task<IOperationResult> AddItemDetailAsync(ItemDetailModel itemDetail, CancellationToken ct = default)
+        public async Task<Result> AddItemDetailAsync(ItemDetailModel itemDetail, CancellationToken ct = default)
         {
             try
             {
@@ -58,7 +58,7 @@ namespace ClubTreasury.Data.ItemDetail
             }
         }
 
-        public async Task<IOperationResult> UpdateItemDetailAsync(ItemDetailModel itemDetail, CancellationToken ct = default)
+        public async Task<Result> UpdateItemDetailAsync(ItemDetailModel itemDetail, CancellationToken ct = default)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace ClubTreasury.Data.ItemDetail
             }
         }
 
-        public async Task<IOperationResult> DeleteItemDetailAsync(int id, CancellationToken ct = default)
+        public async Task<Result> DeleteItemDetailAsync(int id, CancellationToken ct = default)
         {
             try
             {

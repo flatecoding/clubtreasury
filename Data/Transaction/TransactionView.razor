@@ -3,7 +3,6 @@
 @using Microsoft.Extensions.Localization
 @using ClubTreasury.Data.DialogService
 @using ClubTreasury.Data.Notification
-@using ClubTreasury.Data.OperationResult
 @using ClubTreasury.Data.Transaction.Dialogs
 @using ClubTreasury.Data.TransactionDetails
 @inject ITransactionService TransactionService
@@ -226,7 +225,7 @@
             },
             new DialogOptions(){MaxWidth = MaxWidth.Large});
         
-        if(result?.Status is OperationResultStatus.Success)
+        if(result is { IsSuccess: true })
             await UpdateView();
         
     }
@@ -238,7 +237,7 @@
             null,
             new DialogOptions(){MaxWidth = MaxWidth.Small});
         
-        if(result?.Status is OperationResultStatus.Success)
+        if(result is { IsSuccess: true })
             await UpdateView();
     }
 
@@ -250,7 +249,7 @@
             new DialogParameters { ["TransactionId"] = transactionId },
             new DialogOptions(){MaxWidth = MaxWidth.Small});
         
-        if(result?.Status is OperationResultStatus.Success)
+        if(result is { IsSuccess: true })
             await UpdateView();
     }
     

@@ -17,7 +17,7 @@ public class ItemDetailServiceTests
 {
     private CashDataContext _context = null!;
     private ILogger<ItemDetailService> _logger = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private ItemDetailService _sut = null!;
     private bool _contextDisposed;
@@ -32,7 +32,7 @@ public class ItemDetailServiceTests
         _context = new CashDataContext(options);
         _contextDisposed = false;
         _logger = A.Fake<ILogger<ItemDetailService>>();
-        _operationResultFactory = A.Fake<IOperationResultFactory>();
+        _resultFactory = A.Fake<IResultFactory>();
         _localizer = A.Fake<IStringLocalizer<Translation>>();
 
         A.CallTo(() => _localizer["ItemDetail"])
@@ -40,7 +40,7 @@ public class ItemDetailServiceTests
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
 
-        _sut = new ItemDetailService(_context, _logger, _localizer, _operationResultFactory);
+        _sut = new ItemDetailService(_context, _logger, _localizer, _resultFactory);
     }
 
     [TearDown]
@@ -220,12 +220,8 @@ public class ItemDetailServiceTests
     {
         // Arrange
         var itemDetail = new ItemDetailModel { CostDetails = "New Item" };
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Successfully added"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessAdded(A<string>._, A<object?>._))
+        var expectedResult = Result.Success("Successfully added");
+        A.CallTo(() => _resultFactory.SuccessAdded(A<string>._, A<object?>._))
             .Returns(expectedResult);
 
         // Act
@@ -235,7 +231,7 @@ public class ItemDetailServiceTests
         result.Should().Be(expectedResult);
         var addedItem = await _context.ItemDetails.FirstOrDefaultAsync(i => i.CostDetails == "New Item");
         addedItem.Should().NotBeNull();
-        A.CallTo(() => _operationResultFactory.SuccessAdded(
+        A.CallTo(() => _resultFactory.SuccessAdded(
             A<string>.That.Contains("New Item"),
             A<object?>._)).MustHaveHappenedOnceExactly();
     }
@@ -244,12 +240,8 @@ public class ItemDetailServiceTests
     public async Task AddItemDetailAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed to add"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToAdd(A<string>._, A<string?>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to add"));
+        A.CallTo(() => _resultFactory.FailedToAdd(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         await _context.DisposeAsync();
@@ -261,7 +253,7 @@ public class ItemDetailServiceTests
         var disposedContext = new CashDataContext(options);
         await disposedContext.DisposeAsync();
 
-        _sut = new ItemDetailService(disposedContext, _logger, _localizer, _operationResultFactory);
+        _sut = new ItemDetailService(disposedContext, _logger, _localizer, _resultFactory);
 
         var itemDetail = new ItemDetailModel { CostDetails = "New Item" };
 
@@ -284,12 +276,8 @@ public class ItemDetailServiceTests
         await _context.ItemDetails.AddAsync(itemDetail);
         await _context.SaveChangesAsync();
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Successfully updated"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessUpdated(A<string>._, A<object?>._))
+        var expectedResult = Result.Success("Successfully updated");
+        A.CallTo(() => _resultFactory.SuccessUpdated(A<string>._, A<object?>._))
             .Returns(expectedResult);
 
         itemDetail.CostDetails = "Updated Name";
@@ -307,12 +295,8 @@ public class ItemDetailServiceTests
     public async Task UpdateItemDetailAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed to update"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToUpdate(A<string>._, A<string?>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to update"));
+        A.CallTo(() => _resultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         await _context.DisposeAsync();
@@ -324,7 +308,7 @@ public class ItemDetailServiceTests
         var disposedContext = new CashDataContext(options);
         await disposedContext.DisposeAsync();
 
-        _sut = new ItemDetailService(disposedContext, _logger, _localizer, _operationResultFactory);
+        _sut = new ItemDetailService(disposedContext, _logger, _localizer, _resultFactory);
 
         var itemDetail = new ItemDetailModel { CostDetails = "Test" };
 
@@ -348,12 +332,8 @@ public class ItemDetailServiceTests
         await _context.SaveChangesAsync();
         var id = itemDetail.Id;
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Successfully deleted"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessDeleted(A<string>._, A<object?>._))
+        var expectedResult = Result.Success("Successfully deleted");
+        A.CallTo(() => _resultFactory.SuccessDeleted(A<string>._, A<object?>._))
             .Returns(expectedResult);
 
         // Act
@@ -369,12 +349,8 @@ public class ItemDetailServiceTests
     public async Task DeleteItemDetailAsync_WhenItemDetailDoesNotExist_ShouldReturnNotFound()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Not found"
-        };
-        A.CallTo(() => _operationResultFactory.NotFound(A<string>._, A<object>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Not found"));
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, A<object>._))
             .Returns(expectedResult);
 
         // Act
@@ -382,7 +358,7 @@ public class ItemDetailServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
-        A.CallTo(() => _operationResultFactory.NotFound(A<string>._, 999))
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, 999))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -390,12 +366,8 @@ public class ItemDetailServiceTests
     public async Task DeleteItemDetailAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed to delete"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToDelete(A<string>._, A<string?>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to delete"));
+        A.CallTo(() => _resultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         await _context.DisposeAsync();
@@ -407,7 +379,7 @@ public class ItemDetailServiceTests
         var disposedContext = new CashDataContext(options);
         await disposedContext.DisposeAsync();
 
-        _sut = new ItemDetailService(disposedContext, _logger, _localizer, _operationResultFactory);
+        _sut = new ItemDetailService(disposedContext, _logger, _localizer, _resultFactory);
 
         // Act
         var result = await _sut.DeleteItemDetailAsync(1);

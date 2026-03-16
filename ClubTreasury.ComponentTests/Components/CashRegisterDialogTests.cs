@@ -18,7 +18,7 @@ public class CashRegisterDialogTests : BunitContext
     private ICashRegisterService _cashRegisterService = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private INotificationService _notificationService = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
 
     [SetUp]
     public void SetUp()
@@ -26,7 +26,7 @@ public class CashRegisterDialogTests : BunitContext
         Services.AddSingleton(_cashRegisterService = A.Fake<ICashRegisterService>());
         Services.AddSingleton(_localizer = A.Fake<IStringLocalizer<Translation>>());
         Services.AddSingleton(_notificationService = A.Fake<INotificationService>());
-        Services.AddSingleton(_operationResultFactory = A.Fake<IOperationResultFactory>());
+        Services.AddSingleton(_resultFactory = A.Fake<IResultFactory>());
 
         A.CallTo(() => _localizer[A<string>._])
             .ReturnsLazily((string key) => new LocalizedString(key, key));
@@ -91,12 +91,8 @@ public class CashRegisterDialogTests : BunitContext
     [Test]
     public void Cancel_ClosesDialog()
     {
-        var canceledResult = new OperationResult
-        {
-            Status = OperationResultStatus.Canceled,
-            Message = "Canceled"
-        };
-        A.CallTo(() => _operationResultFactory.Canceled()).Returns(canceledResult);
+        var canceledResult = Result.Failure(Error.Canceled with { Message = "Canceled" });
+        A.CallTo(() => _resultFactory.Canceled()).Returns(canceledResult);
 
         var cut = RenderDialog();
 
@@ -114,7 +110,7 @@ public class CashRegisterDialogTests : BunitContext
         A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
         A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
         A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog(cashRegisterId: 1);
 
@@ -130,11 +126,7 @@ public class CashRegisterDialogTests : BunitContext
     public async Task SaveInEditMode_ShowsNotificationOnFailure()
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
-        var failResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Update failed"
-        };
+        var failResult = Result.Failure(new Error("Test.Error", "Update failed"));
         A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
         A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
         A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
@@ -146,7 +138,7 @@ public class CashRegisterDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _notificationService.ShowOperationResultAsync(failResult)).MustHaveHappened();
+        A.CallTo(() => _notificationService.ShowResultAsync(failResult)).MustHaveHappened();
     }
 
     [Test]
@@ -157,7 +149,7 @@ public class CashRegisterDialogTests : BunitContext
         A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
         A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns((logoData, "image/png"));
         A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog(cashRegisterId: 1);
 

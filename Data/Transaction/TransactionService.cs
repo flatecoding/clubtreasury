@@ -10,7 +10,7 @@ public class TransactionService(
     IAllocationService allocationService,
     ILogger<TransactionService> logger,
     IStringLocalizer<Translation> localizer,
-    IOperationResultFactory operationResultFactory) : ITransactionService
+    IResultFactory operationResultFactory) : ITransactionService
 {
     private string EntityName => localizer["Transaction"];
     public async Task<TransactionModel?> GetTransactionByIdAsync(int id, CancellationToken ct = default)
@@ -43,7 +43,7 @@ public class TransactionService(
 
 
 
-    public async Task<IOperationResult> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default)
+    public async Task<Result> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default)
     {
         try
         {
@@ -109,7 +109,7 @@ public class TransactionService(
         }
     }
 
-    public async Task<IOperationResult> UpdateTransactionAsync(TransactionModel entry, CancellationToken ct = default)
+    public async Task<Result> UpdateTransactionAsync(TransactionModel entry, CancellationToken ct = default)
     {
         try
         {
@@ -165,7 +165,7 @@ public class TransactionService(
         }
     }
 
-    public async Task<IOperationResult> DeleteTransactionAsync(int id, CancellationToken ct = default)
+    public async Task<Result> DeleteTransactionAsync(int id, CancellationToken ct = default)
     {
         try
         {

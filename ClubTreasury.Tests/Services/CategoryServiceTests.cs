@@ -16,7 +16,7 @@ public class CategoryServiceTests
 {
     private CashDataContext _context = null!;
     private ILogger<CategoryService> _logger = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private CategoryService _sut = null!;
     private bool _contextDisposed;
@@ -31,7 +31,7 @@ public class CategoryServiceTests
         _context = new CashDataContext(options);
         _contextDisposed = false;
         _logger = A.Fake<ILogger<CategoryService>>();
-        _operationResultFactory = A.Fake<IOperationResultFactory>();
+        _resultFactory = A.Fake<IResultFactory>();
         _localizer = A.Fake<IStringLocalizer<Translation>>();
 
         A.CallTo(() => _localizer["Category"])
@@ -39,7 +39,7 @@ public class CategoryServiceTests
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
 
-        _sut = new CategoryService(_context, _logger, _operationResultFactory, _localizer);
+        _sut = new CategoryService(_context, _logger, _resultFactory, _localizer);
     }
 
     [TearDown]
@@ -217,12 +217,8 @@ public class CategoryServiceTests
     {
         // Arrange
         var category = new CategoryModel { Name = "New Category" };
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Successfully added"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessAdded(A<string>._, A<object?>._))
+        var expectedResult = Result.Success("Successfully added");
+        A.CallTo(() => _resultFactory.SuccessAdded(A<string>._, A<object?>._))
             .Returns(expectedResult);
 
         // Act
@@ -232,7 +228,7 @@ public class CategoryServiceTests
         result.Should().Be(expectedResult);
         var addedCategory = await _context.Categories.FirstOrDefaultAsync(c => c.Name == "New Category");
         addedCategory.Should().NotBeNull();
-        A.CallTo(() => _operationResultFactory.SuccessAdded(
+        A.CallTo(() => _resultFactory.SuccessAdded(
             A<string>.That.Contains("New Category"),
             A<object?>._)).MustHaveHappenedOnceExactly();
     }
@@ -241,12 +237,8 @@ public class CategoryServiceTests
     public async Task AddCategoryAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed to add"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToAdd(A<string>._, A<string?>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to add"));
+        A.CallTo(() => _resultFactory.FailedToAdd(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         // Dispose context to simulate an error
@@ -259,7 +251,7 @@ public class CategoryServiceTests
         var disposedContext = new CashDataContext(options);
         await disposedContext.DisposeAsync();
 
-        _sut = new CategoryService(disposedContext, _logger, _operationResultFactory, _localizer);
+        _sut = new CategoryService(disposedContext, _logger, _resultFactory, _localizer);
 
         var category = new CategoryModel { Name = "New Category" };
 
@@ -282,12 +274,8 @@ public class CategoryServiceTests
         await _context.Categories.AddAsync(category);
         await _context.SaveChangesAsync();
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Successfully updated"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessUpdated(A<string>._, A<object?>._))
+        var expectedResult = Result.Success("Successfully updated");
+        A.CallTo(() => _resultFactory.SuccessUpdated(A<string>._, A<object?>._))
             .Returns(expectedResult);
 
         category.Name = "Updated Name";
@@ -305,12 +293,8 @@ public class CategoryServiceTests
     public async Task UpdateCategoryAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed to update"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToUpdate(A<string>._, A<string?>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to update"));
+        A.CallTo(() => _resultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         await _context.DisposeAsync();
@@ -322,7 +306,7 @@ public class CategoryServiceTests
         var disposedContext = new CashDataContext(options);
         await disposedContext.DisposeAsync();
 
-        _sut = new CategoryService(disposedContext, _logger, _operationResultFactory, _localizer);
+        _sut = new CategoryService(disposedContext, _logger, _resultFactory, _localizer);
 
         var category = new CategoryModel { Name = "Test" };
 
@@ -346,12 +330,8 @@ public class CategoryServiceTests
         await _context.SaveChangesAsync();
         var id = category.Id;
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Successfully deleted"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessDeleted(A<string>._, A<object?>._))
+        var expectedResult = Result.Success("Successfully deleted");
+        A.CallTo(() => _resultFactory.SuccessDeleted(A<string>._, A<object?>._))
             .Returns(expectedResult);
 
         // Act
@@ -367,12 +347,8 @@ public class CategoryServiceTests
     public async Task DeleteCategoryAsync_WhenCategoryDoesNotExist_ShouldReturnNotFound()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Not found"
-        };
-        A.CallTo(() => _operationResultFactory.NotFound(A<string>._, A<object>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Not found"));
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, A<object>._))
             .Returns(expectedResult);
 
         // Act
@@ -380,7 +356,7 @@ public class CategoryServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
-        A.CallTo(() => _operationResultFactory.NotFound(A<string>._, A<string>._))
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, A<string>._))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -388,12 +364,8 @@ public class CategoryServiceTests
     public async Task DeleteCategoryAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed to delete"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToDelete(A<string>._, A<string?>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to delete"));
+        A.CallTo(() => _resultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         // Dispose context to simulate error during delete
@@ -406,7 +378,7 @@ public class CategoryServiceTests
         var disposedContext = new CashDataContext(options);
         await disposedContext.DisposeAsync();
 
-        _sut = new CategoryService(disposedContext, _logger, _operationResultFactory, _localizer);
+        _sut = new CategoryService(disposedContext, _logger, _resultFactory, _localizer);
 
         // Act
         var result = await _sut.DeleteCategoryAsync(1);

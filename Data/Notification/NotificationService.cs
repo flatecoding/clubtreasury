@@ -5,29 +5,17 @@ namespace ClubTreasury.Data.Notification;
 
 public class NotificationService(ISnackbar snackbar) : INotificationService
 {
-    public Task ShowOperationResultAsync(IOperationResult result)
+    public Task ShowResultAsync(Result result)
     {
-        var severity = result.Status switch
+        var severity = result switch
         {
-            OperationResultStatus.Success => Severity.Success,
-            OperationResultStatus.Canceled => Severity.Warning,
-            OperationResultStatus.Failed => Severity.Error,
-            OperationResultStatus.Warning => Severity.Info,
-            _ => Severity.Normal
+            { IsSuccess: true } => Severity.Success,
+            { Error.Code: "Operation.Canceled" } => Severity.Warning,
+            { Error.Type: ErrorType.Warning } => Severity.Info,
+            _ => Severity.Error
         };
 
-        var message = result.Message;
-        if (result.AffectedItems is > 1)
-        {
-            message += $" ({result.AffectedItems} items)";
-        }
-        
-        else if (result.Data is int id)
-        {
-            message += $" (Id: {id})";
-        }
-
-        snackbar.Add(message, severity);
+        snackbar.Add(result.Message, severity);
         return Task.CompletedTask;
     }
 }

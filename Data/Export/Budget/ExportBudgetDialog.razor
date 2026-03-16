@@ -6,7 +6,7 @@
 @using ClubTreasury.Data.CashRegister
 @inject IExportService ExportService
 @inject ICashRegisterService CashRegisterService
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ExportBudgetDialog> Logger
 
@@ -118,7 +118,7 @@
         {
             Logger.LogCritical(ex, "Unexpected error during export");
             MudDialog.Close(DialogResult.Ok(
-                OperationResultFactory.ExportFailed(Localizer["Exception"])));
+                ResultFactory.ExportFailed(Localizer["Exception"])));
         }
         finally
         {
@@ -146,7 +146,7 @@
         {
             Logger.LogCritical(ex, "Error occurred during export!");
             MudDialog.Close(DialogResult.Ok(
-                OperationResultFactory.ExportFailed(Localizer["Exception"])));
+                ResultFactory.ExportFailed(Localizer["Exception"])));
         }
         finally
         {
@@ -154,5 +154,5 @@
         }
     }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
 }

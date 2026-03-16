@@ -6,7 +6,7 @@
 @inject ICashRegisterService CashRegisterService
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 @inject CashRegisterValidator CashRegisterValidator
 
 <MudDialog>
@@ -119,13 +119,13 @@
             ? await CashRegisterService.UpdateCashRegister(_cashRegisterModel)
             : await CashRegisterService.AddCashRegister(_cashRegisterModel);
 
-        if (result.Status is not OperationResultStatus.Success)
+        if (!result.IsSuccess)
         {
-            await NotificationService.ShowOperationResultAsync(result);
+            await NotificationService.ShowResultAsync(result);
             return;
         }
 
-        var cashRegisterId = _isEditMode ? _cashRegisterModel.Id : (int)(result.Data ?? 0);
+        var cashRegisterId = _cashRegisterModel.Id;
         await HandleLogoAsync(cashRegisterId);
         MudDialog.Close(DialogResult.Ok(result));
     }
@@ -145,5 +145,5 @@
         }
     }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
 }

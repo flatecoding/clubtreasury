@@ -4,5 +4,5 @@ namespace ClubTreasury.Data.Notification;
 
 public interface INotificationService
 {
-    Task ShowOperationResultAsync(IOperationResult result);
+    Task ShowResultAsync(Result result);
 }

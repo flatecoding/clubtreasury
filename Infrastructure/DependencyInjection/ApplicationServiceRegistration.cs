@@ -45,7 +45,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IExcelBudgetWriter, ExcelBudgetWriter>();
         services.AddScoped<IPdfTransactionRenderer, PdfTransactionRenderer>();
         services.AddScoped<ICultureService, CultureService>();
-        services.AddScoped<IOperationResultFactory, OperationResultFactory>();
+        services.AddScoped<IResultFactory, ResultFactory>();
         services.AddSingleton<IExportPathProvider, ExportPathProvider>();
         services.AddHttpContextAccessor();
         services.AddScoped<UserPrefService>(sp =>

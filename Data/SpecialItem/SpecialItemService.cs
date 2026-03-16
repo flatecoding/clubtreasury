@@ -5,7 +5,7 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.SpecialItem
 {
     public class SpecialItemService(CashDataContext context, ILogger<SpecialItemService> logger,
-        IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : ISpecialItemService
+        IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory) : ISpecialItemService
     {
         private string EntityName => localizer["SpecialPosition"];
         public async Task<List<SpecialItemModel>> GetAllSpecialItems(CancellationToken ct = default)
@@ -22,7 +22,7 @@ namespace ClubTreasury.Data.SpecialItem
                 .FirstOrDefaultAsync(s => s.Id == id, ct);
         }
 
-        public async Task<IOperationResult> AddSpecialPositionAsync(SpecialItemModel specialPosition, CancellationToken ct = default)
+        public async Task<Result> AddSpecialPositionAsync(SpecialItemModel specialPosition, CancellationToken ct = default)
         {
             try
             {
@@ -41,7 +41,7 @@ namespace ClubTreasury.Data.SpecialItem
             }
         }
 
-        public async Task<IOperationResult> UpdateSpecialPositionAsync(SpecialItemModel specialPosition, CancellationToken ct = default)
+        public async Task<Result> UpdateSpecialPositionAsync(SpecialItemModel specialPosition, CancellationToken ct = default)
         {
             try
             {
@@ -60,7 +60,7 @@ namespace ClubTreasury.Data.SpecialItem
             }
         }
 
-        public async Task<IOperationResult> DeleteSpecialPositionAsync(int id, CancellationToken ct = default)
+        public async Task<Result> DeleteSpecialPositionAsync(int id, CancellationToken ct = default)
         {
             try
             {

@@ -5,7 +5,7 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.TransactionDetails;
 
 public class TransactionDetailsService(CashDataContext context, ILogger<TransactionDetailsService> logger,
-    IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory)
+    IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory)
     : ITransactionDetailsService
 {
     private string EntityName => localizer["TransactionDetails"];
@@ -34,7 +34,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
             .ToListAsync(ct);
     }
 
-    public async Task<IOperationResult> AddTransactionDetailsAsync(TransactionDetailsModel detailsModel, CancellationToken ct = default)
+    public async Task<Result> AddTransactionDetailsAsync(TransactionDetailsModel detailsModel, CancellationToken ct = default)
     {
         try
         {
@@ -54,7 +54,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
 
     }
 
-    public async Task<IOperationResult> UpdateTransactionDetailsAsync(TransactionDetailsModel detailsModel, CancellationToken ct = default)
+    public async Task<Result> UpdateTransactionDetailsAsync(TransactionDetailsModel detailsModel, CancellationToken ct = default)
     {
         try
         {
@@ -72,7 +72,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
         }
     }
 
-    public async Task<IOperationResult> DeleteTransactionDetailsAsync(int id, CancellationToken ct = default)
+    public async Task<Result> DeleteTransactionDetailsAsync(int id, CancellationToken ct = default)
     {
         try
         {

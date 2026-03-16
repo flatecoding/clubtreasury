@@ -2,7 +2,6 @@
 @using Microsoft.Extensions.Localization
 @using ClubTreasury.Data.DialogService
 @using ClubTreasury.Data.Notification
-@using ClubTreasury.Data.OperationResult
 @inject IPersonService PersonService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
@@ -108,7 +107,7 @@
     {
         var result = await DialogService.ShowDialogWithNotificationAsync<PersonDialog>(NotificationService);
         
-        if(result?.Status is OperationResultStatus.Success)
+        if(result is { IsSuccess: true })
             await UpdateView();
     }
 
@@ -117,7 +116,7 @@
         var result = await DialogService.ShowDialogWithNotificationAsync<PersonDialog>(NotificationService,
             $"{Localizer["Edit"]}",
             new DialogParameters() { ["PersonId"] = personId });
-        if(result?.Status is OperationResultStatus.Success)
+        if(result is { IsSuccess: true })
             await UpdateView();
     }
 

@@ -3,7 +3,7 @@
 @using MudExtensions
 @using ClubTreasury.Data.OperationResult
 @inject ILogger<ConfirmDeleteDialog> Logger
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 
 <MudDialog>
     <DialogContent>
@@ -52,7 +52,7 @@
             Logger.LogInformation("An entity was deleted: '{EntityName}', Item: '{ItemName}'", EntityName, ItemName);
 
             MudDialog.Close(DialogResult.Ok(
-                OperationResultFactory.SuccessDeleted($"{EntityName}: '{ItemName}'")));
+                ResultFactory.SuccessDeleted($"{EntityName}: '{ItemName}'")));
         }
         catch (Exception ex)
         {
@@ -64,7 +64,7 @@
 
             MudDialog.Close(
                 DialogResult.Ok(
-                    OperationResultFactory.FailedToDelete($"{EntityName}: '{ItemName}'")));
+                    ResultFactory.FailedToDelete($"{EntityName}: '{ItemName}'")));
         }
     }
 
@@ -76,6 +76,6 @@
             ItemName);
 
         MudDialog.Close(
-            DialogResult.Ok(OperationResultFactory.Canceled()));
+            DialogResult.Ok(ResultFactory.Canceled()));
     }
 }

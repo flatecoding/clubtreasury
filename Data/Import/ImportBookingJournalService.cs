@@ -15,7 +15,7 @@ public class ImportBookingJournalService(
     ICashRegisterService cashRegisterService,
     ILogger<ImportBookingJournalService> logger,
     IStringLocalizer<Translation> localizer,
-    IOperationResultFactory operationResultFactory)
+    IResultFactory operationResultFactory)
     : IImportBookingJournalService
 {
     private const int DateCell = 0;
@@ -27,7 +27,7 @@ public class ImportBookingJournalService(
     private const int CostCenterCategoryCell = 6;
     private const string DefaultCategoryName = "Undefined";
     private const char DocumentNumberPrefix = 'B';
-    public async Task<IOperationResult> ImportTransactions(Stream? fileStream, string fileName, int cashRegisterId, CancellationToken ct = default)
+    public async Task<Result> ImportTransactions(Stream? fileStream, string fileName, int cashRegisterId, CancellationToken ct = default)
     {
         if (fileStream == null)
         {
@@ -90,7 +90,7 @@ public class ImportBookingJournalService(
                     };
 
                     var addResult = await transactionService.AddTransactionAsync(transaction, ct);
-                    if (addResult.Status == OperationResultStatus.Failed)
+                    if (addResult.IsFailure)
                     {
                         logger.LogError(
                             "Failed to add transaction for document number: {DocumentNumber}",
@@ -300,5 +300,5 @@ public class ImportBookingJournalService(
 public record ValidationResult
 {
     public bool IsValid { get; init; }
-    public IOperationResult? ErrorResult { get; init; }
+    public Result? ErrorResult { get; init; }
 }
