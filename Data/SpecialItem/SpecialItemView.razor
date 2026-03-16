@@ -1,12 +1,11 @@
-﻿@page "/specialitems"
+@page "/specialitems"
 @using System.Globalization
-@using Microsoft.Extensions.Localization
-@using ClubTreasury.Data.DialogService
-@using ClubTreasury.Data.Notification
+@using ClubTreasury.Components.View
+@using ClubTreasury.Data.OperationResult
+
+@inherits CrudViewBase<SpecialItemModel, SpecialItemDialog>
+
 @inject ISpecialItemService SpecialItemService
-@inject IDialogService DialogService
-@inject INotificationService NotificationService
-@inject IStringLocalizer<Translation> Localizer
 
 <MudGrid Spacing="0">
     <MudItem xs="12">
@@ -16,23 +15,23 @@
     </MudItem>
     <MudItem xs="12" md="12" lg="10">
         <MudPaper Elevation="0">
-            <MudTable Items="@_allEntries"
-                      Dense="@Dense"
-                      Hover="@Hover"
-                      Bordered="@Bordered"
-                      Striped="@Striped"
+            <MudTable Items="@AllEntries"
+                      Dense="true"
+                      Hover="true"
+                      Bordered="false"
+                      Striped="true"
                       FixedHeader="true"
-                      @bind-SelectedItem="_selectedItemModel"
+                      @bind-SelectedItem="SelectedItem"
                       Filter="new Func<SpecialItemModel,bool>(FilterFunc)"
                       SortLabel="Sort By">
                 <ToolBarContent>
                     <MudIconButton Variant="Variant.Filled"
                                Icon="@Icons.Material.Filled.Add"
                                Color="Color.Primary"
-                               OnClick="@ShowAddSpecialItemDialog">
+                               OnClick="@ShowAddDialog">
                     </MudIconButton>
                     <MudSpacer />
-                    <MudTextField @bind-Value="_searchTerm"
+                    <MudTextField @bind-Value="SearchTerm"
                                   Placeholder="Search"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Search"
@@ -65,16 +64,15 @@
                     <MudTd DataLabel="@Localizer["Sum"]">
                         @context.Sum.ToString("C", CultureInfo.CurrentCulture)
                     </MudTd>
-
                     <MudTd DataLabel="@Localizer["Actions"]">
                         <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                        Color="Color.Info"
                                        aria-label="edit"
-                                       OnClick="@(() => ShowEditSpecialItemDialog(context.Id))" />
+                                       OnClick="@(() => ShowEditDialog(context.Id))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
                                        aria-label="delete"
-                                       OnClick="@(() => ShowDeleteSpecialItemDialog(context))" />
+                                       OnClick="@(() => ShowDeleteDialog(context))" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -86,61 +84,19 @@
 </MudGrid>
 
 @code {
-    private IEnumerable<SpecialItemModel>? _allEntries;
-    private const bool Dense = true;
-    private const bool Hover = true;
-    private const bool Striped = true;
-    private const bool Bordered = false;
-    private string _searchTerm = string.Empty;
-    private SpecialItemModel _selectedItemModel = new();
+    protected override string EntityIdParameterName => "SpecialItemId";
+    protected override string EntityLocalizedName => Localizer["SpecialPosition"];
+    protected override int GetEntityId(SpecialItemModel entity) => entity.Id;
+    protected override string GetEntityDisplayName(SpecialItemModel entity) => entity.Name;
+    protected override Task<List<SpecialItemModel>> LoadAllAsync() => SpecialItemService.GetAllSpecialItems();
+    protected override Task<Result> DeleteEntityAsync(int id) => SpecialItemService.DeleteSpecialPositionAsync(id);
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        _allEntries = await SpecialItemService.GetAllSpecialItems();
-    }
-
-    private bool FilterFunc(SpecialItemModel? element) => MatchesFilter(element, _searchTerm);
-
-    private static bool MatchesFilter(SpecialItemModel? element, string searchTerm)
+    protected override bool MatchesFilter(SpecialItemModel? element, string searchTerm)
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
             return true;
-        if (element is null || string.IsNullOrWhiteSpace(searchTerm)) return false;
+        if (element is null)
+            return false;
         return element.Name.ToLower().Contains(searchTerm.ToLowerInvariant());
-    }
-
-    private async Task ShowAddSpecialItemDialog()
-    {
-        var result = await DialogService.ShowDialogWithNotificationAsync<SpecialItemDialog>(NotificationService);
-        if(result is { IsSuccess: true })
-            await UpdateView();
-    }
-
-    private async Task UpdateView()
-    {
-        _allEntries = await SpecialItemService.GetAllSpecialItems();
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task ShowEditSpecialItemDialog(int specialItemId)
-    {
-        var result = await DialogService.ShowDialogWithNotificationAsync<SpecialItemDialog>(NotificationService,
-            $"{Localizer["Edit"]}",
-            new DialogParameters() { ["SpecialItemId"] = specialItemId });
-        
-        if(result is { IsSuccess: true })
-            await UpdateView();
-    }
-
-    private async Task ShowDeleteSpecialItemDialog(SpecialItemModel specialItem)
-    {
-        await DialogService.ShowConfirmDeleteDialogAsync(
-            NotificationService,
-            entityName: Localizer["SpecialPosition"].Value,
-            itemName: $"{specialItem.Name}",
-            onConfirm: () => SpecialItemService.DeleteSpecialPositionAsync(specialItem.Id),
-            onSuccess: UpdateView,
-            deleteTitle: Localizer["Delete"]);
     }
 }

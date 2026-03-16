@@ -1,11 +1,10 @@
 @page "/persons"
-@using Microsoft.Extensions.Localization
-@using ClubTreasury.Data.DialogService
-@using ClubTreasury.Data.Notification
+@using ClubTreasury.Components.View
+@using ClubTreasury.Data.OperationResult
+
+@inherits CrudViewBase<PersonModel, PersonDialog>
+
 @inject IPersonService PersonService
-@inject IDialogService DialogService
-@inject INotificationService NotificationService
-@inject IStringLocalizer<Translation> Localizer
 
 <MudGrid Spacing="0">
     <MudItem xs="12">
@@ -15,23 +14,23 @@
     </MudItem>
     <MudItem xs="12" md="10" lg="4">
         <MudPaper Elevation="0">
-            <MudTable Items="@_allEntries"
-                      Dense="@Dense"
-                      Hover="@Hover"
-                      Bordered="@Bordered"
-                      Striped="@Striped"
+            <MudTable Items="@AllEntries"
+                      Dense="true"
+                      Hover="true"
+                      Bordered="false"
+                      Striped="true"
                       FixedHeader="true"
-                      @bind-SelectedItem="_selectedItem"
+                      @bind-SelectedItem="SelectedItem"
                       Filter="new Func<PersonModel,bool>(FilterFunc)"
                       SortLabel="Sort By">
                 <ToolBarContent>
                     <MudIconButton Variant="Variant.Filled"
                                Icon="@Icons.Material.Filled.Add"
                                Color="Color.Primary"
-                               OnClick="@ShowAddPersonDialog">
+                               OnClick="@ShowAddDialog">
                     </MudIconButton>
                     <MudSpacer />
-                    <MudTextField @bind-Value="_searchTerm"
+                    <MudTextField @bind-Value="SearchTerm"
                                   Placeholder="Search"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Search"
@@ -64,11 +63,11 @@
                         <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                        Color="Color.Info"
                                        aria-label="edit"
-                                       OnClick="@(() => ShowEditPersonDialog(context.Id))" />
+                                       OnClick="@(() => ShowEditDialog(context.Id))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
                                        aria-label="delete"
-                                       OnClick="@(() => ShowDeletePersonDialog(context))" />
+                                       OnClick="@(() => ShowDeleteDialog(context))" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -80,61 +79,17 @@
 </MudGrid>
 
 @code {
-    private IEnumerable<PersonModel>? _allEntries;
-    private const bool Dense = true;
-    private const bool Hover = true;
-    private const bool Striped = true;
-    private const bool Bordered = false;
-    private string _searchTerm = string.Empty;
-    private PersonModel _selectedItem = new();
+    protected override string EntityIdParameterName => "PersonId";
+    protected override string EntityLocalizedName => Localizer["Person"];
+    protected override int GetEntityId(PersonModel entity) => entity.Id;
+    protected override string GetEntityDisplayName(PersonModel entity) => entity.Name;
+    protected override Task<List<PersonModel>> LoadAllAsync() => PersonService.GetAllPersonsAsync();
+    protected override Task<Result> DeleteEntityAsync(int id) => PersonService.DeletePersonAsync(id);
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        _allEntries = await PersonService.GetAllPersonsAsync();
-    }
-
-    private bool FilterFunc(PersonModel? element) => MatchesFilter(element, _searchTerm);
-
-    private static bool MatchesFilter(PersonModel? element, string searchTerm)
+    protected override bool MatchesFilter(PersonModel? element, string searchTerm)
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
             return true;
         return element is not null && element.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private async Task ShowAddPersonDialog()
-    {
-        var result = await DialogService.ShowDialogWithNotificationAsync<PersonDialog>(NotificationService);
-        
-        if(result is { IsSuccess: true })
-            await UpdateView();
-    }
-
-    private async Task ShowEditPersonDialog(int personId)
-    {
-        var result = await DialogService.ShowDialogWithNotificationAsync<PersonDialog>(NotificationService,
-            $"{Localizer["Edit"]}",
-            new DialogParameters() { ["PersonId"] = personId });
-        if(result is { IsSuccess: true })
-            await UpdateView();
-    }
-
-    private async Task ShowDeletePersonDialog(PersonModel person)
-    {
-        await DialogService.ShowConfirmDeleteDialogAsync(
-            NotificationService,
-            entityName: Localizer["Person"].Value,
-            itemName: $"{person.Name}",
-            onConfirm: () => PersonService.DeletePersonAsync(person.Id),
-            onSuccess: UpdateView,
-            deleteTitle: Localizer["Delete"]);
-    }
-
-    
-    private async Task UpdateView()
-    {
-        _allEntries = await PersonService.GetAllPersonsAsync();
-        await InvokeAsync(StateHasChanged);
     }
 }
