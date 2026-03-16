@@ -1,6 +1,4 @@
-@page "/transactiondialog"
 @using Microsoft.Extensions.Localization
-@using ClubTreasury.Data.Allocation
 @using ClubTreasury.Data.CashRegister
 @using ClubTreasury.Data.Category
 @using ClubTreasury.Data.CostCenter
@@ -10,22 +8,16 @@
 @using ClubTreasury.Data.SpecialItem
 @using ClubTreasury.Data.Transaction
 @using System.Globalization
-@inject ITransactionService TransactionService
-@inject ICostCenterService CostCenterService
-@inject ICategoryService CategoryService
-@inject IItemDetailService ItemDetailService
-@inject ICashRegisterService CashRegisterService
-@inject ISpecialItemService SpecialItemService
+@inject ITransactionFormService FormService
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
 @inject IResultFactory ResultFactory
 @inject TransactionValidator TransactionValidator
-@inject IAllocationService AllocationService
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form" Model="_transactionModel" Validation="TransactionValidator.ValidateValue" ValidationDelay="0" OnEnterPressed="@Save">
-            
+
             <MudSelect T="CashRegisterModel"
                        Label="@Localizer["CashRegister"]"
                        Required="true"
@@ -40,35 +32,35 @@
                 }
             </MudSelect>
 
-            <MudDatePicker 
+            <MudDatePicker
                 @bind-Date="@TransactionDateTime"
-                Editable="true" 
-                Label="@Localizer["Date"]" 
-                Required="true" 
+                Editable="true"
+                Label="@Localizer["Date"]"
+                Required="true"
                 RequiredError="@Localizer["DateRequired"]" />
 
-            <MudTextField @bind-Value="_transactionModel.Documentnumber" 
-                          Label="@Localizer["DocumentNumber"]" 
-                          For="@(() => _transactionModel.Documentnumber)" 
+            <MudTextField @bind-Value="_transactionModel.Documentnumber"
+                          Label="@Localizer["DocumentNumber"]"
+                          For="@(() => _transactionModel.Documentnumber)"
                           Immediate="true" />
 
-            <MudTextField @bind-Value="_transactionModel.Description" 
-                          Label="@Localizer["Description"]" 
-                          For="@(() => _transactionModel.Description)" 
+            <MudTextField @bind-Value="_transactionModel.Description"
+                          Label="@Localizer["Description"]"
+                          For="@(() => _transactionModel.Description)"
                           Immediate="true" />
 
             <MudTextField @bind-Value="_transactionModel.Sum"
-                          Label="@Localizer["Sum"]" 
+                          Label="@Localizer["Sum"]"
                           Adornment="Adornment.Start"
                           AdornmentText=@CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol
-                          For="@(() => _transactionModel.Sum)" 
+                          For="@(() => _transactionModel.Sum)"
                           Immediate="true" />
 
             <MudTextField @bind-Value="_transactionModel.AccountMovement"
-                          Label="@Localizer["Account"]" 
+                          Label="@Localizer["Account"]"
                           Adornment="Adornment.Start"
                           AdornmentText=@CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol
-                          For="@(() => _transactionModel.AccountMovement)" 
+                          For="@(() => _transactionModel.AccountMovement)"
                           Immediate="true" />
 
             <MudSelect T="CostCenterModel"
@@ -93,32 +85,26 @@
                        RequiredError="@Localizer["CategoryRequired"]"
                        ToStringFunc="@_basicUnitConverter"
                        @bind-Value="_selectedCategory"
-                       @bind-Value:after="OnBasicUnitChangedAsync"
+                       @bind-Value:after="OnCategoryChangedAsync"
                        Clearable="true">
-                @if (_categories is not null)
+                @foreach (var basicUnit in _categories)
                 {
-                    @foreach (var basicUnit in _categories)
-                    {
-                        <MudSelectItem T="CategoryModel" Value="@basicUnit">@basicUnit.Name</MudSelectItem>
-                    }
+                    <MudSelectItem T="CategoryModel" Value="@basicUnit">@basicUnit.Name</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudSelect T="ItemDetailModel" 
+            <MudSelect T="ItemDetailModel"
                        Label="@Localizer["ItemDetail"]"
-                       Disabled="@(_selectedCategory == null)" 
+                       Disabled="@(_selectedCategory == null)"
                        ToStringFunc="@_detailsConverter"
                        @bind-Value="_selectedItemDetail"
                        Clearable="true">
-                @if (_unitDetails is not null)
+                @foreach (var unitDetail in _unitDetails)
                 {
-                    foreach (var unitDetail in _unitDetails)
-                    {
-                        <MudSelectItem T="ItemDetailModel" Value="@unitDetail">@unitDetail.CostDetails</MudSelectItem>
-                    }
+                    <MudSelectItem T="ItemDetailModel" Value="@unitDetail">@unitDetail.CostDetails</MudSelectItem>
                 }
             </MudSelect>
-            <MudSelect T="SpecialItemModel" 
+            <MudSelect T="SpecialItemModel"
                        Label="@Localizer["SpecialPositions"]"
                        ToStringFunc="@_specialItemConverter"
                        Placeholder="@Localizer["SpecialPositionIfRequired"]"
@@ -149,8 +135,8 @@
     private DateTime? TransactionDateTime { get; set; } = DateTime.Now;
 
     private IEnumerable<CostCenterModel> _costCenters = [];
-    private IEnumerable<CategoryModel>? _categories = [];
-    private IEnumerable<ItemDetailModel>? _unitDetails = [];
+    private IEnumerable<CategoryModel> _categories = [];
+    private IEnumerable<ItemDetailModel> _unitDetails = [];
     private IEnumerable<CashRegisterModel> _cashRegisters = [];
     private IEnumerable<SpecialItemModel> _specialItemList = [];
 
@@ -161,7 +147,7 @@
     private SpecialItemModel? _selectedSpecialItem;
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-    
+
     private readonly Func<CashRegisterModel?, string?> _cashRegisterConverter = p => p?.Name;
     private readonly Func<CostCenterModel?, string?> _unitConverter = p => p?.CostUnitName;
     private readonly Func<ItemDetailModel?, string?> _detailsConverter = d => d?.CostDetails;
@@ -172,15 +158,13 @@
     {
         _isEditMode = TransactionId.HasValue;
         await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
-        await LoadReferenceDataAsync();
-        await LoadTransactionAsync();
-    }
 
-    private async Task LoadReferenceDataAsync()
-    {
-        _costCenters = await CostCenterService.GetAllCostCentersAsync();
-        _specialItemList = await SpecialItemService.GetAllSpecialItems();
-        _cashRegisters = await CashRegisterService.GetAllCashRegisters();
+        var referenceData = await FormService.LoadReferenceDataAsync();
+        _cashRegisters = referenceData.CashRegisters;
+        _costCenters = referenceData.CostCenters;
+        _specialItemList = referenceData.SpecialItems;
+
+        await LoadTransactionAsync();
     }
 
     private async Task LoadTransactionAsync()
@@ -191,7 +175,7 @@
             return;
         }
 
-        _transactionModel = await TransactionService.GetTransactionByIdAsync(TransactionId!.Value) ?? new TransactionModel();
+        _transactionModel = await FormService.LoadTransactionAsync(TransactionId!.Value) ?? new TransactionModel();
         RestoreSelections();
         await ReloadDependentDropdownsAsync();
     }
@@ -211,16 +195,15 @@
         if (_selectedCostUnit is null)
             return;
 
-        _categories = await CategoryService.GetCategoriesByCostCenterIdAsync(_selectedCostUnit.Id);
+        _categories = await FormService.GetCategoriesForCostCenterAsync(_selectedCostUnit.Id);
 
-        var categoryModels = _categories.ToList();
-        if (_selectedCategory is not null && categoryModels.All(b => b.Id != _selectedCategory.Id))
-            _selectedCategory = categoryModels.FirstOrDefault();
+        if (_selectedCategory is not null && _categories.All(b => b.Id != _selectedCategory.Id))
+            _selectedCategory = _categories.FirstOrDefault();
 
         if (_selectedCategory is null)
             return;
 
-        _unitDetails = await ItemDetailService.GetItemDetailByCategoryIdAsync(_selectedCategory.Id);
+        _unitDetails = await FormService.GetItemDetailsForCategoryAsync(_selectedCategory.Id);
 
         if (_selectedItemDetail is not null && _unitDetails.All(u => u.Id != _selectedItemDetail.Id))
             _selectedItemDetail = _unitDetails.FirstOrDefault();
@@ -235,23 +218,23 @@
 
         if (_selectedCostUnit is not null)
         {
-            _categories = await CategoryService.GetCategoriesByCostCenterIdAsync(_selectedCostUnit.Id);
-            if (_categories != null) _selectedCategory = _categories.FirstOrDefault();
-            await OnBasicUnitChangedAsync();
+            _categories = await FormService.GetCategoriesForCostCenterAsync(_selectedCostUnit.Id);
+            _selectedCategory = _categories.FirstOrDefault();
+            await OnCategoryChangedAsync();
         }
 
        StateHasChanged();
     }
 
-    private async Task OnBasicUnitChangedAsync()
+    private async Task OnCategoryChangedAsync()
     {
         _unitDetails = [];
         _selectedItemDetail = null;
 
         if (_selectedCategory is not null)
-        {                                          
-            _unitDetails = await ItemDetailService.GetItemDetailByCategoryIdAsync(_selectedCategory.Id);
-            if (_unitDetails != null) _selectedItemDetail = _unitDetails.FirstOrDefault();
+        {
+            _unitDetails = await FormService.GetItemDetailsForCategoryAsync(_selectedCategory.Id);
+            _selectedItemDetail = _unitDetails.FirstOrDefault();
         }
 
         StateHasChanged();
@@ -259,67 +242,40 @@
 
     private async Task OnCashRegisterChangedAsync()
     {
-        var suggestedDocNo = 0;
-        if (_selectedCashRegisterModel != null)
-            suggestedDocNo = await TransactionService.GetLatestDocumentNumberAsync(_selectedCashRegisterModel.Id);
-        _transactionModel.Documentnumber = ++suggestedDocNo;
+        _transactionModel.Documentnumber = _selectedCashRegisterModel != null
+            ? await FormService.GetNextDocumentNumberAsync(_selectedCashRegisterModel.Id)
+            : 0;
         StateHasChanged();
-    } 
+    }
 
     private async Task Save()
     {
         await _form.Validate();
-        if (_form.IsValid && IsProcessable())
-        {
-            await MapFormToModelAsync();
+        if (!_form.IsValid || !IsProcessable())
+            return;
 
-            var result = _isEditMode
-                ? await TransactionService.UpdateTransactionAsync(_transactionModel)
-                : await TransactionService.AddTransactionAsync(_transactionModel);
+        var selections = new TransactionFormSelections(
+            _selectedCashRegisterModel!,
+            _selectedCostUnit!,
+            _selectedCategory!,
+            _selectedItemDetail,
+            _selectedSpecialItem,
+            TransactionDateTime!.Value);
 
-            if (result.IsSuccess)
-                MudDialog.Close(DialogResult.Ok(result));
-            else
-                await NotificationService.ShowResultAsync(result);
-        }
-    }
+        var result = await FormService.SaveTransactionAsync(_transactionModel, selections, _isEditMode);
 
-
-    private async Task MapFormToModelAsync()
-    {
-        _transactionModel.CashRegister = _selectedCashRegisterModel
-            ?? throw new InvalidOperationException("CashRegister is required.");
-        _transactionModel.CashRegisterId = _selectedCashRegisterModel.Id;
-        
-        if (_selectedCostUnit is null || _selectedCostUnit.Id < 1 ||
-            _selectedCategory is null || _selectedCategory.Id < 1)
-            throw new InvalidOperationException("CostCenter and Category are required.");
-
-        var allocation = await AllocationService.GetOrCreateAllocationAsync(
-            _selectedCostUnit.CostUnitName,
-            _selectedCategory.Name,
-            _selectedItemDetail?.CostDetails);
-
-        _transactionModel.AllocationId = allocation.Id;
-        
-        _transactionModel.Allocation = null!;
-
-        _transactionModel.SpecialItem = _selectedSpecialItem;
-        _transactionModel.SpecialItemId = _selectedSpecialItem?.Id;
-
-        if (TransactionDateTime.HasValue)
-            _transactionModel.Date = DateOnly.FromDateTime(TransactionDateTime.Value);
+        if (result.IsSuccess)
+            MudDialog.Close(DialogResult.Ok(result));
         else
-            throw new InvalidOperationException("A date is required.");
+            await NotificationService.ShowResultAsync(result);
     }
 
-    
     private bool IsProcessable()
         => _selectedCostUnit?.Id >= 1
            && _selectedCategory?.Id >= 1
            && _selectedCashRegisterModel?.Id >= 1
            && TransactionDateTime.HasValue;
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled())); 
-    
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
+
 }

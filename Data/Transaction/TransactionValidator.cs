@@ -11,6 +11,10 @@ public class TransactionValidator : AbstractValidator<TransactionModel>
         RuleFor(t => t.Description).NotEmpty().WithMessage(localizer["DescriptionRequired"]);
         RuleFor(t => t.Sum).GreaterThanOrEqualTo(0.01m).WithMessage(localizer["SumMinValue"]);
         RuleFor(t => t.AccountMovement).NotEmpty().WithMessage(localizer["AccountMovementRequired"]);
+        RuleFor(t => t.AccountMovement)
+            .Must((t, accountMovement) => Math.Abs(accountMovement) == t.Sum)
+            .WithMessage(localizer["SumAccountMismatch"])
+            .WithSeverity(Severity.Warning);
     }
     
     public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>
