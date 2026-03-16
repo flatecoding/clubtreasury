@@ -18,7 +18,7 @@
 @inject ISpecialItemService SpecialItemService
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 @inject TransactionValidator TransactionValidator
 @inject IAllocationService AllocationService
 
@@ -277,10 +277,10 @@
                 ? await TransactionService.UpdateTransactionAsync(_transactionModel)
                 : await TransactionService.AddTransactionAsync(_transactionModel);
 
-            if (result.Status is OperationResultStatus.Success)
+            if (result.IsSuccess)
                 MudDialog.Close(DialogResult.Ok(result));
             else
-                await NotificationService.ShowOperationResultAsync(result);
+                await NotificationService.ShowResultAsync(result);
         }
     }
 
@@ -320,6 +320,6 @@
            && _selectedCashRegisterModel?.Id >= 1
            && TransactionDateTime.HasValue;
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled())); 
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled())); 
     
 }

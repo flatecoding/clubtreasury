@@ -2,7 +2,6 @@
 @using Microsoft.Extensions.Localization
 @using ClubTreasury.Data.DialogService
 @using ClubTreasury.Data.Notification
-@using ClubTreasury.Data.OperationResult
 @inject ICategoryService CategoryService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
@@ -113,7 +112,7 @@
     private async Task ShowAddCategoryDialog()
     {
         var result = await DialogService.ShowDialogWithNotificationAsync<CategoryDialog>(NotificationService);
-        if (result?.Status is OperationResultStatus.Success)
+        if (result is { IsSuccess: true })
         {
             await UpdateView();
         }
@@ -125,7 +124,7 @@
             $"{Localizer["Edit"]}",
             new DialogParameters(){["CategoryId"] = categoryId});
 
-        if (result?.Status is OperationResultStatus.Success)
+        if (result is { IsSuccess: true })
         {
             await UpdateView();
         }

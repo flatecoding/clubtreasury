@@ -7,7 +7,7 @@ namespace ClubTreasury.Data.CashRegister
     public class CashRegisterService(
         CashDataContext context,
         ILogger<CashRegisterService> logger,
-        IOperationResultFactory operationResultFactory,
+        IResultFactory operationResultFactory,
         IStringLocalizer<Translation> localizer)
         : ICashRegisterService
     {
@@ -46,7 +46,7 @@ namespace ClubTreasury.Data.CashRegister
             return null;
         }
 
-        public async Task<IOperationResult> AddCashRegister(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
+        public async Task<Result> AddCashRegister(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace ClubTreasury.Data.CashRegister
             }
         }
 
-        public async Task<IOperationResult> UpdateCashRegister(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
+        public async Task<Result> UpdateCashRegister(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
         {
             try
             {
@@ -80,7 +80,7 @@ namespace ClubTreasury.Data.CashRegister
         }
 
 
-        public async Task<IOperationResult> DeleteCashRegisterAsync(int id, CancellationToken ct = default)
+        public async Task<Result> DeleteCashRegisterAsync(int id, CancellationToken ct = default)
         {
             try
             {
@@ -110,7 +110,7 @@ namespace ClubTreasury.Data.CashRegister
             return logo is not null ? (logo.Data, logo.ContentType) : null;
         }
 
-        public async Task<IOperationResult> UploadLogoAsync(int cashRegisterId, byte[] data, string contentType, CancellationToken ct = default)
+        public async Task<Result> UploadLogoAsync(int cashRegisterId, byte[] data, string contentType, CancellationToken ct = default)
         {
             try
             {
@@ -144,7 +144,7 @@ namespace ClubTreasury.Data.CashRegister
             }
         }
 
-        public async Task<IOperationResult> DeleteLogoAsync(int cashRegisterId, CancellationToken ct = default)
+        public async Task<Result> DeleteLogoAsync(int cashRegisterId, CancellationToken ct = default)
         {
             try
             {

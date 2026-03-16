@@ -17,7 +17,7 @@ public class AllocationServiceTests
 {
     private CashDataContext _context = null!;
     private ILogger<AllocationService> _logger = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private ICostCenterService _costCenterService = null!;
     private ICategoryService _categoryService = null!;
@@ -35,7 +35,7 @@ public class AllocationServiceTests
         _context = new CashDataContext(options);
         _contextDisposed = false;
         _logger = A.Fake<ILogger<AllocationService>>();
-        _operationResultFactory = A.Fake<IOperationResultFactory>();
+        _resultFactory = A.Fake<IResultFactory>();
         _localizer = A.Fake<IStringLocalizer<Translation>>();
         _costCenterService = A.Fake<ICostCenterService>();
         _categoryService = A.Fake<ICategoryService>();
@@ -53,7 +53,7 @@ public class AllocationServiceTests
         _sut = new AllocationService(
             _context,
             _logger,
-            _operationResultFactory,
+            _resultFactory,
             _localizer,
             _costCenterService,
             _categoryService,
@@ -159,12 +159,8 @@ public class AllocationServiceTests
         var (costCenter, category) = await CreateTestDataAsync();
         var allocation = new AllocationModel { CostCenterId = costCenter.Id, CategoryId = category.Id };
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Successfully added"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessAdded(A<string>._, A<object?>._))
+        var expectedResult = Result.Success("Successfully added");
+        A.CallTo(() => _resultFactory.SuccessAdded(A<string>._, A<object?>._))
             .Returns(expectedResult);
 
         // Act
@@ -187,12 +183,8 @@ public class AllocationServiceTests
 
         var newAllocation = new AllocationModel { CostCenterId = costCenter.Id, CategoryId = category.Id };
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Already exists"
-        };
-        A.CallTo(() => _operationResultFactory.AlreadyExists(A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Already exists"));
+        A.CallTo(() => _resultFactory.AlreadyExists(A<string>._))
             .Returns(expectedResult);
 
         // Act
@@ -200,7 +192,7 @@ public class AllocationServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
-        A.CallTo(() => _operationResultFactory.AlreadyExists(A<string>._))
+        A.CallTo(() => _resultFactory.AlreadyExists(A<string>._))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -208,12 +200,8 @@ public class AllocationServiceTests
     public async Task AddAllocationAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed to add"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToAdd(A<string>._, A<string?>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to add"));
+        A.CallTo(() => _resultFactory.FailedToAdd(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         await _context.DisposeAsync();
@@ -226,7 +214,7 @@ public class AllocationServiceTests
         await disposedContext.DisposeAsync();
 
         _sut = new AllocationService(
-            disposedContext, _logger, _operationResultFactory, _localizer,
+            disposedContext, _logger, _resultFactory, _localizer,
             _costCenterService, _categoryService, _itemDetailService);
 
         var allocation = new AllocationModel { CostCenterId = 1, CategoryId = 1 };
@@ -245,12 +233,8 @@ public class AllocationServiceTests
         var (_, category) = await CreateTestDataAsync();
         var allocation = new AllocationModel { CostCenterId = 0, CategoryId = category.Id };
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Dialog is empty"
-        };
-        A.CallTo(() => _operationResultFactory.DialogIsEmpty(A<string>._, A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Dialog is empty"));
+        A.CallTo(() => _resultFactory.DialogIsEmpty(A<string>._, A<string>._))
             .Returns(expectedResult);
 
         // Act
@@ -258,7 +242,7 @@ public class AllocationServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
-        A.CallTo(() => _operationResultFactory.DialogIsEmpty(A<string>._, A<string>._))
+        A.CallTo(() => _resultFactory.DialogIsEmpty(A<string>._, A<string>._))
             .MustHaveHappenedOnceExactly();
         var addedAllocation = await _context.Allocations.FirstOrDefaultAsync();
         addedAllocation.Should().BeNull();
@@ -271,12 +255,8 @@ public class AllocationServiceTests
         var (costCenter, _) = await CreateTestDataAsync();
         var allocation = new AllocationModel { CostCenterId = costCenter.Id, CategoryId = 0 };
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Dialog is empty"
-        };
-        A.CallTo(() => _operationResultFactory.DialogIsEmpty(A<string>._, A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Dialog is empty"));
+        A.CallTo(() => _resultFactory.DialogIsEmpty(A<string>._, A<string>._))
             .Returns(expectedResult);
 
         // Act
@@ -284,7 +264,7 @@ public class AllocationServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
-        A.CallTo(() => _operationResultFactory.DialogIsEmpty(A<string>._, A<string>._))
+        A.CallTo(() => _resultFactory.DialogIsEmpty(A<string>._, A<string>._))
             .MustHaveHappenedOnceExactly();
         var addedAllocation = await _context.Allocations.FirstOrDefaultAsync();
         addedAllocation.Should().BeNull();
@@ -307,12 +287,8 @@ public class AllocationServiceTests
         await _context.Allocations.AddAsync(allocation);
         await _context.SaveChangesAsync();
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Successfully updated"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessUpdated(A<string>._, A<object?>._))
+        var expectedResult = Result.Success("Successfully updated");
+        A.CallTo(() => _resultFactory.SuccessUpdated(A<string>._, A<object?>._))
             .Returns(expectedResult);
 
         var updatedAllocation = new AllocationModel
@@ -339,12 +315,8 @@ public class AllocationServiceTests
         // Arrange
         var (costCenter, category) = await CreateTestDataAsync();
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Not found"
-        };
-        A.CallTo(() => _operationResultFactory.NotFound(A<string>._, A<object>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Not found"));
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, A<object>._))
             .Returns(expectedResult);
 
         var allocation = new AllocationModel
@@ -361,7 +333,7 @@ public class AllocationServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
-        A.CallTo(() => _operationResultFactory.NotFound(A<string>._, 999))
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, 999))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -369,12 +341,8 @@ public class AllocationServiceTests
     public async Task UpdateAllocationAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed to update"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToUpdate(A<string>._, A<string?>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to update"));
+        A.CallTo(() => _resultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         await _context.DisposeAsync();
@@ -387,7 +355,7 @@ public class AllocationServiceTests
         await disposedContext.DisposeAsync();
 
         _sut = new AllocationService(
-            disposedContext, _logger, _operationResultFactory, _localizer,
+            disposedContext, _logger, _resultFactory, _localizer,
             _costCenterService, _categoryService, _itemDetailService);
 
         var allocation = new AllocationModel
@@ -420,12 +388,8 @@ public class AllocationServiceTests
         await _context.SaveChangesAsync();
         var id = allocation.Id;
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Successfully deleted"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessDeleted(A<string>._, A<object?>._))
+        var expectedResult = Result.Success("Successfully deleted");
+        A.CallTo(() => _resultFactory.SuccessDeleted(A<string>._, A<object?>._))
             .Returns(expectedResult);
 
         // Act
@@ -441,12 +405,8 @@ public class AllocationServiceTests
     public async Task DeleteAllocationAsync_WhenAllocationDoesNotExist_ShouldReturnNotFound()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Not found"
-        };
-        A.CallTo(() => _operationResultFactory.NotFound(A<string>._, A<object>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Not found"));
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, A<object>._))
             .Returns(expectedResult);
 
         // Act
@@ -454,7 +414,7 @@ public class AllocationServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
-        A.CallTo(() => _operationResultFactory.NotFound(A<string>._, 999))
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, 999))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -462,12 +422,8 @@ public class AllocationServiceTests
     public async Task DeleteAllocationAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed to delete"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToDelete(A<string>._, A<string?>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to delete"));
+        A.CallTo(() => _resultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         await _context.DisposeAsync();
@@ -480,7 +436,7 @@ public class AllocationServiceTests
         await disposedContext.DisposeAsync();
 
         _sut = new AllocationService(
-            disposedContext, _logger, _operationResultFactory, _localizer,
+            disposedContext, _logger, _resultFactory, _localizer,
             _costCenterService, _categoryService, _itemDetailService);
 
         // Act
@@ -576,7 +532,7 @@ public class AllocationServiceTests
                 _context.CostCenters.Add(cc);
                 _context.SaveChanges();
             })
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
         A.CallTo(() => _categoryService.GetCategoryByNameAsync("Existing Category", A<CancellationToken>._))
             .Returns(category);
 
@@ -609,7 +565,7 @@ public class AllocationServiceTests
                 _context.Categories.Add(cat);
                 _context.SaveChanges();
             })
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         // Act
         var result = await _sut.GetOrCreateAllocationAsync("Existing Cost Center", "New Category");
@@ -644,7 +600,7 @@ public class AllocationServiceTests
                 _context.ItemDetails.Add(item);
                 _context.SaveChanges();
             })
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         // Act
         var result = await _sut.GetOrCreateAllocationAsync("Cost Center", "Category", "New Item Detail");

@@ -5,7 +5,7 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.Person
 {
     public class PersonService(CashDataContext context, ILogger<PersonService> logger,
-        IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : IPersonService
+        IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory) : IPersonService
     {
         private string EntityName => localizer["Person"];
         public async Task<List<PersonModel>> GetAllPersonsAsync(CancellationToken ct = default)
@@ -24,7 +24,7 @@ namespace ClubTreasury.Data.Person
             return await context.Persons.FirstOrDefaultAsync(ct);
         }
 
-        public async Task<IOperationResult> AddPersonAsync(PersonModel personModel, CancellationToken ct = default)
+        public async Task<Result> AddPersonAsync(PersonModel personModel, CancellationToken ct = default)
         {
             try
             {
@@ -40,7 +40,7 @@ namespace ClubTreasury.Data.Person
             }
         }
 
-        public async Task<IOperationResult> UpdatePersonAsync(PersonModel personModel, CancellationToken ct = default)
+        public async Task<Result> UpdatePersonAsync(PersonModel personModel, CancellationToken ct = default)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace ClubTreasury.Data.Person
             }
         }
 
-        public async Task<IOperationResult> DeletePersonAsync(int id, CancellationToken ct = default)
+        public async Task<Result> DeletePersonAsync(int id, CancellationToken ct = default)
         {
             try
             {

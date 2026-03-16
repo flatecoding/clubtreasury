@@ -5,7 +5,7 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.CostCenter
 {
     public class CostCenterService(CashDataContext context, ILogger<CostCenterService> logger,
-        IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : ICostCenterService
+        IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory) : ICostCenterService
     {
         private string EntityName => localizer["CostCenter"];
 
@@ -31,7 +31,7 @@ namespace ClubTreasury.Data.CostCenter
             return await  context.CostCenters.FirstOrDefaultAsync(c => c.CostUnitName == name, ct);
         }
 
-        public async Task<IOperationResult> AddCostCenterAsync(CostCenterModel costCenter, CancellationToken ct = default)
+        public async Task<Result> AddCostCenterAsync(CostCenterModel costCenter, CancellationToken ct = default)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace ClubTreasury.Data.CostCenter
             }
         }
 
-        public async Task<IOperationResult> UpdateCostCenterAsync(CostCenterModel costCenter, CancellationToken ct = default)
+        public async Task<Result> UpdateCostCenterAsync(CostCenterModel costCenter, CancellationToken ct = default)
         {
             try
             {
@@ -63,7 +63,7 @@ namespace ClubTreasury.Data.CostCenter
             }
         }
 
-        public async Task<IOperationResult> DeleteCostCenterAsync(int id, CancellationToken ct = default)
+        public async Task<Result> DeleteCostCenterAsync(int id, CancellationToken ct = default)
         {
             try
             {

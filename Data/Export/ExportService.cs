@@ -16,7 +16,7 @@ public class ExportService(
     ICsvBudgetWriter csvWriter,
     IExcelBudgetWriter excelWriter,
     IPdfTransactionRenderer transactionPdfRenderer,
-    IOperationResultFactory operationResultFactory,
+    IResultFactory operationResultFactory,
     IStringLocalizer<Resources.Translation> localizer,
     IExportPathProvider exportPathProvider,
     ICashRegisterService cashRegisterService
@@ -35,7 +35,7 @@ public class ExportService(
         return Path.Combine(_exportPath, sanitized);
     }
 
-    public async Task<IOperationResult> ExportTransactionsToCsv(
+    public async Task<Result> ExportTransactionsToCsv(
         DateTime begin, DateTime end, string filename, int cashRegisterId, CancellationToken ct = default)
     {
         try
@@ -73,7 +73,7 @@ public class ExportService(
         }
     }
 
-    public async Task<IOperationResult> ExportTransactionsToPdf(
+    public async Task<Result> ExportTransactionsToPdf(
         DateTime begin, DateTime end, string filename, int cashRegisterId, string cashRegisterName, CancellationToken cancellationToken)
     {
         try
@@ -101,7 +101,7 @@ public class ExportService(
         }
     }
 
-    public async Task<IOperationResult> ExportBudgetToCsv(
+    public async Task<Result> ExportBudgetToCsv(
         DateTime begin, DateTime end, string filename, int cashRegisterId, CancellationToken ct = default)
     {
         try
@@ -124,7 +124,7 @@ public class ExportService(
         }
     }
 
-    public async Task<IOperationResult> ExportBudgetToExcel(
+    public async Task<Result> ExportBudgetToExcel(
         DateTime begin, DateTime end, string filename, int cashRegisterId, CancellationToken ct = default)
     {
         try
@@ -153,7 +153,7 @@ public class ExportService(
         var filename = $"Budget_{begin:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
         var result = await ExportBudgetToExcel(begin, end, filename, cashRegisterId, ct);
 
-        if (result.Status != OperationResultStatus.Success)
+        if (result.IsFailure)
             return Array.Empty<byte>();
 
         var filePath = GetSafeFilePath(filename);

@@ -15,7 +15,7 @@ public interface IAllocationService
         string categoryName,
         string? itemDetailName = null,
         CancellationToken ct = default);
-    Task<IOperationResult> AddAllocationAsync(AllocationModel allocation, CancellationToken ct = default);
-    Task<IOperationResult> UpdateAllocationAsync(AllocationModel updatedAllocation, CancellationToken ct = default);
-    Task<IOperationResult> DeleteAllocationAsync(int id, CancellationToken ct = default);
+    Task<Result> AddAllocationAsync(AllocationModel allocation, CancellationToken ct = default);
+    Task<Result> UpdateAllocationAsync(AllocationModel updatedAllocation, CancellationToken ct = default);
+    Task<Result> DeleteAllocationAsync(int id, CancellationToken ct = default);
 }

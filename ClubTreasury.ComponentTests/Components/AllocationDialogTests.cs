@@ -24,7 +24,7 @@ public class AllocationDialogTests : BunitContext
     private IItemDetailService _itemDetailService = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private INotificationService _notificationService = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
 
     [SetUp]
     public void SetUp()
@@ -35,7 +35,7 @@ public class AllocationDialogTests : BunitContext
         Services.AddSingleton(_itemDetailService = A.Fake<IItemDetailService>());
         Services.AddSingleton(_localizer = A.Fake<IStringLocalizer<Translation>>());
         Services.AddSingleton(_notificationService = A.Fake<INotificationService>());
-        Services.AddSingleton(_operationResultFactory = A.Fake<IOperationResultFactory>());
+        Services.AddSingleton(_resultFactory = A.Fake<IResultFactory>());
 
         A.CallTo(() => _localizer[A<string>._])
             .ReturnsLazily((string key) => new LocalizedString(key, key));
@@ -99,12 +99,8 @@ public class AllocationDialogTests : BunitContext
     [Test]
     public void Cancel_ClosesDialog()
     {
-        var canceledResult = new OperationResult
-        {
-            Status = OperationResultStatus.Canceled,
-            Message = "Canceled"
-        };
-        A.CallTo(() => _operationResultFactory.Canceled()).Returns(canceledResult);
+        var canceledResult = Result.Failure(Error.Canceled with { Message = "Canceled" });
+        A.CallTo(() => _resultFactory.Canceled()).Returns(canceledResult);
 
         var cut = RenderDialog();
 
@@ -121,7 +117,7 @@ public class AllocationDialogTests : BunitContext
         var allocation = new AllocationModel { Id = 1, CostCenterId = 1, CategoryId = 1 };
         A.CallTo(() => _allocationService.GetAllocationsByIdAsync(1)).Returns(allocation);
         A.CallTo(() => _allocationService.UpdateAllocationAsync(A<AllocationModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog(allocationId: 1);
 
@@ -137,11 +133,7 @@ public class AllocationDialogTests : BunitContext
     public async Task SaveInEditMode_ShowsNotificationOnFailure()
     {
         var allocation = new AllocationModel { Id = 1, CostCenterId = 1, CategoryId = 1 };
-        var failResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Update failed"
-        };
+        var failResult = Result.Failure(new Error("Test.Error", "Update failed"));
         A.CallTo(() => _allocationService.GetAllocationsByIdAsync(1)).Returns(allocation);
         A.CallTo(() => _allocationService.UpdateAllocationAsync(A<AllocationModel>._))
             .Returns(failResult);
@@ -152,7 +144,7 @@ public class AllocationDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _notificationService.ShowOperationResultAsync(failResult)).MustHaveHappened();
+        A.CallTo(() => _notificationService.ShowResultAsync(failResult)).MustHaveHappened();
     }
 
     [Test]
@@ -232,7 +224,7 @@ public class AllocationDialogTests : BunitContext
         var allocation = new AllocationModel { Id = 1, CostCenterId = 1, CategoryId = 1 };
         A.CallTo(() => _allocationService.GetAllocationsByIdAsync(1)).Returns(allocation);
         A.CallTo(() => _allocationService.UpdateAllocationAsync(A<AllocationModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog(allocationId: 1);
 

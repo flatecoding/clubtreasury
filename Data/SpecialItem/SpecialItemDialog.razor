@@ -6,7 +6,7 @@
 @inject ISpecialItemService SpecialItemService
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 @inject SpecialItemValidator SpecialItemValidator
 
 <MudDialog>
@@ -71,11 +71,11 @@
             ? await SpecialItemService.UpdateSpecialPositionAsync(_specialItemModel)
             : await SpecialItemService.AddSpecialPositionAsync(_specialItemModel);
 
-        if (result.Status is OperationResultStatus.Success)
+        if (result.IsSuccess)
             MudDialog.Close(DialogResult.Ok(result));
         else
-            await NotificationService.ShowOperationResultAsync(result);
+            await NotificationService.ShowResultAsync(result);
     }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
 }

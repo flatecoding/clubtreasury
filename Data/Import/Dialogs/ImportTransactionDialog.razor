@@ -7,7 +7,7 @@
 @inject ICashRegisterService CashRegisterService
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ImportTransactionDialog> Logger
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 
 <MudDialog>
     <TitleContent>
@@ -100,7 +100,7 @@
             var allowedTypes = new[] { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.oasis.opendocument.spreadsheet" };
             if (!allowedTypes.Contains(_file.ContentType, StringComparer.OrdinalIgnoreCase))
             {
-                MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["InvalidFileFormat"])));
+                MudDialog.Close(DialogResult.Ok(ResultFactory.ImportFailed(Localizer["InvalidFileFormat"])));
                 return;
             }
 
@@ -111,7 +111,7 @@
         catch (Exception ex)
         {
             Logger.LogCritical(ex, "An exception occurred while importing transactions: {FileName}", _file?.Name);
-            MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["Exception"])));
+            MudDialog.Close(DialogResult.Ok(ResultFactory.ImportFailed(Localizer["Exception"])));
         }
         finally
         {
@@ -119,5 +119,5 @@
         }
     }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
 }

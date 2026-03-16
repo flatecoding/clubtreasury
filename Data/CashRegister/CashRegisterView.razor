@@ -3,7 +3,6 @@
 @using Microsoft.Extensions.Localization
 @using ClubTreasury.Data.DialogService
 @using ClubTreasury.Data.Notification
-@using ClubTreasury.Data.OperationResult
 @inject ICashRegisterService CashRegisterService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
@@ -120,7 +119,7 @@
             null,
             new DialogOptions() { MaxWidth = MaxWidth.Small });
     
-        if (result?.Status == OperationResultStatus.Success)
+        if (result is { IsSuccess: true })
         {
             await UpdateView();
         }
@@ -134,7 +133,7 @@
             new DialogParameters { ["CashRegisterId"] = cashRegisterId },
             new DialogOptions() { MaxWidth = MaxWidth.Small });
     
-        if (result?.Status == OperationResultStatus.Success)
+        if (result is { IsSuccess: true })
         {
             await UpdateView();
         }

@@ -5,7 +5,7 @@
 @inject IImportCostCenterService ImportCostCenterService
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ImportCostCenterDialog> Logger
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 
 <MudDialog>
     <DialogContent>
@@ -54,7 +54,7 @@
             if (!string.Equals(_file.ContentType, "text/plain", StringComparison.OrdinalIgnoreCase)
                 && !_file.Name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
             {
-                MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["InvalidFileFormat"])));
+                MudDialog.Close(DialogResult.Ok(ResultFactory.ImportFailed(Localizer["InvalidFileFormat"])));
                 return;
             }
 
@@ -65,7 +65,7 @@
         catch (Exception ex)
         {
             Logger.LogCritical(ex, "An error occured during import of file: '{FileName}':", _file?.Name);
-            MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["Exception"])));
+            MudDialog.Close(DialogResult.Ok(ResultFactory.ImportFailed(Localizer["Exception"])));
         }
         finally
         {
@@ -73,5 +73,5 @@
         }
     }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
 }

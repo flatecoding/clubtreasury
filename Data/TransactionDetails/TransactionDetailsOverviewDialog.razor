@@ -86,7 +86,7 @@
         var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDetailsDialog>(NotificationService,
             Localizer["AddEntry"], parameters);
 
-        if (result?.Status is OperationResultStatus.Success)
+        if (result?.IsSuccess is true)
             await LoadTransactionDetails();
     }
 
@@ -101,7 +101,7 @@
         var result = await DialogService.ShowDialogWithNotificationAsync<TransactionDetailsDialog>(NotificationService,
             Localizer["Edit"], parameters);
 
-        if (result?.Status is OperationResultStatus.Success)
+        if (result?.IsSuccess is true)
             await LoadTransactionDetails();
     }
 

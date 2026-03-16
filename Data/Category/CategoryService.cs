@@ -5,7 +5,7 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.Category
 {
     public class CategoryService(CashDataContext context, ILogger<CategoryService> logger,
-    IOperationResultFactory operationResultFactory,
+    IResultFactory operationResultFactory,
         IStringLocalizer<Translation> localizer): ICategoryService
     {
         private string EntityName => localizer["Category"];
@@ -46,7 +46,7 @@ namespace ClubTreasury.Data.Category
             return categories;
         }
 
-        public async Task<IOperationResult> AddCategoryAsync(CategoryModel category, CancellationToken ct = default)
+        public async Task<Result> AddCategoryAsync(CategoryModel category, CancellationToken ct = default)
         {
             try
             {
@@ -65,7 +65,7 @@ namespace ClubTreasury.Data.Category
 
         }
 
-        public async Task<IOperationResult> UpdateCategoryAsync(CategoryModel category, CancellationToken ct = default)
+        public async Task<Result> UpdateCategoryAsync(CategoryModel category, CancellationToken ct = default)
         {
             try
             {
@@ -82,7 +82,7 @@ namespace ClubTreasury.Data.Category
             }
         }
 
-        public async Task<IOperationResult> DeleteCategoryAsync(int id, CancellationToken ct = default)
+        public async Task<Result> DeleteCategoryAsync(int id, CancellationToken ct = default)
         {
             try
             {

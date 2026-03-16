@@ -2,7 +2,6 @@
 @using Microsoft.Extensions.Localization
 @using ClubTreasury.Data.DialogService
 @using ClubTreasury.Data.Notification
-@using ClubTreasury.Data.OperationResult
 @inject ICostCenterService CostCenterService
 @inject IDialogService DialogService
 @inject INotificationService NotificationService
@@ -101,7 +100,7 @@
     private async Task ShowAddCostUnitDialog()
     {
         var result = await DialogService.ShowDialogWithNotificationAsync<CostCenterDialog>(NotificationService);
-        if (result?.Status is OperationResultStatus.Success)
+        if (result is { IsSuccess: true })
         {
             await UpdateView();    
         }
@@ -112,7 +111,7 @@
         var result = await DialogService.ShowDialogWithNotificationAsync<CostCenterDialog>(NotificationService,
             $"{Localizer["Edit"]}", 
             new DialogParameters { ["CostCenterId"] = costUnitId });
-        if (result?.Status is OperationResultStatus.Success)
+        if (result is { IsSuccess: true })
         {
             await UpdateView();
         }
