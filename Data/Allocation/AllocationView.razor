@@ -1,11 +1,10 @@
 @page "/allocations"
-@using Microsoft.Extensions.Localization
-@using ClubTreasury.Data.DialogService
-@using ClubTreasury.Data.Notification
+@using ClubTreasury.Components.View
+@using ClubTreasury.Data.OperationResult
+
+@inherits CrudViewBase<AllocationModel, AllocationDialog>
+
 @inject IAllocationService AllocationService
-@inject IDialogService DialogService
-@inject INotificationService NotificationService
-@inject IStringLocalizer<Translation> Localizer
 
 <MudGrid Spacing="0">
     <MudItem xs="12">
@@ -13,10 +12,9 @@
             @Localizer["AllocationPlural"]
         </MudText>
     </MudItem>
-
     <MudItem xs="12" md="10" lg="6">
         <MudPaper Elevation="0">
-            <MudTable Items="@_allAllocations"
+            <MudTable Items="@AllEntries"
                       Dense="true"
                       Hover="true"
                       Bordered="false"
@@ -27,10 +25,10 @@
                     <MudIconButton Variant="Variant.Filled"
                                Icon="@Icons.Material.Filled.Add"
                                Color="Color.Primary"
-                               OnClick="@ShowAddAllocationDialog">
+                               OnClick="@ShowAddDialog">
                     </MudIconButton>
                     <MudSpacer />
-                    <MudTextField @bind-Value="_searchTerm"
+                    <MudTextField @bind-Value="SearchTerm"
                                   Placeholder="Search"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Search"
@@ -62,15 +60,12 @@
                             @Localizer["ItemDetail"]
                         </MudTableSortLabel>
                     </MudTh>
-
                     <MudTh>@Localizer["Actions"]</MudTh>
                 </HeaderContent>
-
                 <RowTemplate>
                     <MudTd DataLabel="@Localizer["Id"]">
                         @context.Id
                     </MudTd>
-
                     <MudTd DataLabel="@Localizer["CostCenter"]">
                         @context.CostCenter.CostUnitName
                     </MudTd>
@@ -84,11 +79,11 @@
                         <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                        Color="Color.Info"
                                        aria-label="edit"
-                                       OnClick="@(() => ShowEditAllocationDialog(context.Id))" />
+                                       OnClick="@(() => ShowEditDialog(context.Id))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
                                        aria-label="delete"
-                                       OnClick="@(() => ShowDeleteAllocationDialog(context))" />
+                                       OnClick="@(() => ShowDeleteDialog(context))" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -100,73 +95,25 @@
 </MudGrid>
 
 @code {
-    private IEnumerable<AllocationModel>? _allAllocations;
-    private string _searchTerm = string.Empty;
+    protected override string EntityIdParameterName => "AllocationId";
+    protected override string EntityLocalizedName => Localizer["Allocation"];
+    protected override int GetEntityId(AllocationModel entity) => entity.Id;
+    protected override Task<List<AllocationModel>> LoadAllAsync() => AllocationService.GetAllAllocationsAsync();
+    protected override Task<Result> DeleteEntityAsync(int id) => AllocationService.DeleteAllocationAsync(id);
 
-    protected override async Task OnInitializedAsync()
+    protected override string GetEntityDisplayName(AllocationModel entity) =>
+        $"{entity.CostCenter.CostUnitName} - {entity.Category.Name} - {entity.ItemDetail?.CostDetails}";
+
+    protected override bool MatchesFilter(AllocationModel? element, string searchTerm)
     {
-        await UpdateAllocations();
-    }
-
-    private async Task UpdateAllocations()
-    {
-        _allAllocations = await AllocationService.GetAllAllocationsAsync();
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private bool FilterFunc(AllocationModel? allocation) => MatchesFilter(allocation, _searchTerm);
-
-    private static bool MatchesFilter(AllocationModel? allocation, string searchTerm)
-    {
-        if (allocation == null)
+        if (element == null)
             return false;
-
         if (string.IsNullOrWhiteSpace(searchTerm))
             return true;
 
         var term = searchTerm.Trim().ToLowerInvariant();
-
-        var matchesCostCenter = allocation.CostCenter.CostUnitName.ToLowerInvariant().Contains(term);
-        var matchesCategory = allocation.Category.Name.ToLowerInvariant().Contains(term);
-        var matchesItemDetail = allocation.ItemDetail != null && allocation.ItemDetail.CostDetails.ToLowerInvariant().Contains(term);
-
-        return matchesCostCenter || matchesCategory || matchesItemDetail;
-    }
-
-    private async Task ShowAddAllocationDialog()
-    {
-        var result = await DialogService.ShowDialogWithNotificationAsync<AllocationDialog>(
-            NotificationService);
-    
-        if (result is { IsSuccess: true })
-        {
-            await UpdateAllocations();
-        }
-    }
-
-    private async Task ShowEditAllocationDialog(int allocationId)
-    {
-        var parameters = new DialogParameters { ["AllocationId"] = allocationId };
-    
-        var result = await DialogService.ShowDialogWithNotificationAsync<AllocationDialog>(
-            NotificationService,
-            $"{Localizer["Edit"]} ",
-            parameters);
-    
-        if (result is { IsSuccess: true })
-        {
-            await UpdateAllocations();
-        }
-    }
-
-    private async Task ShowDeleteAllocationDialog(AllocationModel allocation)
-    {
-        await DialogService.ShowConfirmDeleteDialogAsync(
-            NotificationService,
-            entityName: Localizer["Allocation"].Value,
-            itemName: $"{allocation.CostCenter.CostUnitName} - {allocation.Category.Name} - {allocation.ItemDetail?.CostDetails}",
-            onConfirm: () => AllocationService.DeleteAllocationAsync(allocation.Id),
-            onSuccess: UpdateAllocations,
-            deleteTitle: Localizer["Delete"]);
+        return element.CostCenter.CostUnitName.ToLowerInvariant().Contains(term)
+               || element.Category.Name.ToLowerInvariant().Contains(term)
+               || (element.ItemDetail != null && element.ItemDetail.CostDetails.ToLowerInvariant().Contains(term));
     }
 }
