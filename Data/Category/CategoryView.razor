@@ -94,8 +94,6 @@
 
         searchTerm = searchTerm.ToLowerInvariant();
 
-        return element.Allocations.Any(a =>
-            a.ItemDetail != null &&
-            a.ItemDetail.CostDetails.ToLower().Contains(searchTerm)) || element.Name.ToLower().Contains(searchTerm);
+        return element.Name.ToLower().Contains(searchTerm);
     }
 }

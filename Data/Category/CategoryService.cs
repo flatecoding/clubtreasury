@@ -13,20 +13,12 @@ namespace ClubTreasury.Data.Category
         public async Task<List<CategoryModel>> GetAllCategoriesAsync(CancellationToken ct = default)
         {
             return await context.Categories
-                .Include(b => b.Allocations)
-                    .ThenInclude(a => a.CostCenter)
-                .Include(b => b.Allocations)
-                    .ThenInclude(a => a.ItemDetail)
                 .ToListAsync(ct);
         }
 
         public async Task<CategoryModel?> GetCategoryByIdAsync(int id, CancellationToken ct = default)
         {
             return await context.Categories
-                .Include(b => b.Allocations)
-                    .ThenInclude(a => a.CostCenter)
-                .Include(b => b.Allocations)
-                    .ThenInclude(a => a.ItemDetail)
                 .FirstOrDefaultAsync(b => b.Id == id, ct);
         }
 
