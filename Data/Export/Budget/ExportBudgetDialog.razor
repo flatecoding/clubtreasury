@@ -1,7 +1,9 @@
 @page "/export-budget-dialog"
+@using FluentValidation
 @using Microsoft.Extensions.Localization
 @using MudExtensions
 @using ClubTreasury.Data.Export
+@using ClubTreasury.Data.Notification
 @using ClubTreasury.Data.OperationResult
 @using ClubTreasury.Data.CashRegister
 @inject IExportService ExportService
@@ -9,10 +11,12 @@
 @inject IResultFactory ResultFactory
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ExportBudgetDialog> Logger
+@inject ExportModelValidator ExportModelValidator
+@inject INotificationService NotificationService
 
 <MudDialog>
     <DialogContent>
-        <MudForm Model="@_model" @ref="_form">
+        <MudForm Model="@_model" @ref="_form" Validation="@(ExportModelValidator.ValidateValue)" ValidationDelay="0">
             <MudGrid Spacing="2">
                 <MudItem xs="12">
                     <MudSelect T="CashRegisterModel"
@@ -100,8 +104,7 @@
 
     private async Task ExportCsv()
     {
-        await _form.Validate();
-        if (!_form.IsValid)
+        if (!await ValidateFormAsync())
             return;
 
         _isExportingCsv = true;
@@ -128,8 +131,7 @@
 
     private async Task ExportXlsx()
     {
-        await _form.Validate();
-        if (!_form.IsValid)
+        if (!await ValidateFormAsync())
             return;
 
         _isExportingXlsx = true;
@@ -152,6 +154,29 @@
         {
             _isExportingXlsx = false;
         }
+    }
+
+    private async Task<bool> ValidateFormAsync()
+    {
+        await _form.Validate();
+        var dateErrors = GetDateRangeErrors();
+        if (_form.IsValid && dateErrors is null)
+            return true;
+
+        if (dateErrors is not null)
+            await NotificationService.ShowResultAsync(dateErrors);
+        return false;
+    }
+
+    private Result? GetDateRangeErrors()
+    {
+        var result = ExportModelValidator.Validate(
+            _model,
+            options => options.IncludeProperties(x => x.DateRange));
+
+        return result.IsValid
+            ? null
+            : ResultFactory.DateRangeInvalid(result.ToString());
     }
 
     private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
