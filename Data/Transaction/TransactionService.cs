@@ -199,7 +199,7 @@ public class TransactionService(
         }
     }
 
-    public async Task<IEnumerable<TransactionModel>> GetTransactionsForExport(DateTime begin, DateTime end, int cashRegisterId, CancellationToken ct = default)
+    public async Task<IEnumerable<TransactionModel>> GetTransactionsForExportAsync(DateTime begin, DateTime end, int cashRegisterId, CancellationToken ct = default)
     {
         return await context.Transactions
             .AsNoTracking()
@@ -218,7 +218,7 @@ public class TransactionService(
             .ToListAsync(ct);
     }
 
-    public async Task<IEnumerable<TransactionModel>> GetTransactionsForBudgetExport(
+    public async Task<IEnumerable<TransactionModel>> GetTransactionsForBudgetExportAsync(
         DateTime begin,
         DateTime end,
         int cashRegisterId,
@@ -239,7 +239,7 @@ public class TransactionService(
             .ToListAsync(ct);
     }
 
-    public async Task<PagedResult<TransactionModel>> GetTransactionsPaged(
+    public async Task<PagedResult<TransactionModel>> GetTransactionsPagedAsync(
         PagedRequest request,
         CancellationToken cancellationToken)
     {

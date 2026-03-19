@@ -78,7 +78,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _cashRegisters = await CashRegisterService.GetAllCashRegisters();
+        _cashRegisters = await CashRegisterService.GetAllCashRegistersAsync();
         _selectedCashRegister = _cashRegisters.FirstOrDefault();
     }
 
@@ -105,7 +105,7 @@
             }
 
             await using var stream = _file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-            var result = await ImportBookingJournalService.ImportTransactions(stream, _file.Name, _selectedCashRegister.Id);
+            var result = await ImportBookingJournalService.ImportTransactionsAsync(stream, _file.Name, _selectedCashRegister.Id);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)

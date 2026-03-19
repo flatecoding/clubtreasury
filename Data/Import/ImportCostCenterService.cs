@@ -11,7 +11,7 @@ public class ImportCostCenterService(
     IResultFactory operationResultFactory)
     : IImportCostCenterService
 {
-    public async Task<Result> ImportCostCentersAndPositions(
+    public async Task<Result> ImportCostCentersAndPositionsAsync(
         Stream? fileStream,
         string fileName,
         CancellationToken ct = default)

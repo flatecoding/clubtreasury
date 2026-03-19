@@ -39,7 +39,7 @@
 
     protected override int? EntityId => SpecialItemId;
     protected override Func<object, string, Task<IEnumerable<string>>> ValidateValue => SpecialItemValidator.ValidateValue;
-    protected override Task<SpecialItemModel?> LoadEntityAsync(int id) => SpecialItemService.GetSpecialPositionById(id);
+    protected override Task<SpecialItemModel?> LoadEntityAsync(int id) => SpecialItemService.GetSpecialPositionByIdAsync(id);
     protected override Task<Result> AddEntityAsync(SpecialItemModel model) => SpecialItemService.AddSpecialPositionAsync(model);
     protected override Task<Result> UpdateEntityAsync(SpecialItemModel model) => SpecialItemService.UpdateSpecialPositionAsync(model);
 }

@@ -88,7 +88,7 @@
     protected override string EntityLocalizedName => Localizer["CashRegister"];
     protected override int GetEntityId(CashRegisterModel entity) => entity.Id;
     protected override string GetEntityDisplayName(CashRegisterModel entity) => entity.Name;
-    protected override Task<List<CashRegisterModel>> LoadAllAsync() => CashRegisterService.GetAllCashRegisters();
+    protected override Task<List<CashRegisterModel>> LoadAllAsync() => CashRegisterService.GetAllCashRegistersAsync();
     protected override Task<Result> DeleteEntityAsync(int id) => CashRegisterService.DeleteCashRegisterAsync(id);
     protected override DialogOptions? CustomDialogOptions => new() { MaxWidth = MaxWidth.Small };
 

@@ -55,7 +55,7 @@ public class SpecialItemServiceTests
     public async Task GetAllSpecialItems_WhenNoSpecialItemsExist_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _sut.GetAllSpecialItems();
+        var result = await _sut.GetAllSpecialItemsAsync();
 
         // Assert
         result.Should().NotBeNull();
@@ -76,7 +76,7 @@ public class SpecialItemServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetAllSpecialItems();
+        var result = await _sut.GetAllSpecialItemsAsync();
 
         // Assert
         result.Should().HaveCount(3);
@@ -96,7 +96,7 @@ public class SpecialItemServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetSpecialPositionById(specialItem.Id);
+        var result = await _sut.GetSpecialPositionByIdAsync(specialItem.Id);
 
         // Assert
         result.Should().NotBeNull();
@@ -107,7 +107,7 @@ public class SpecialItemServiceTests
     public async Task GetSpecialPositionById_WhenSpecialItemDoesNotExist_ShouldReturnNull()
     {
         // Act
-        var result = await _sut.GetSpecialPositionById(999);
+        var result = await _sut.GetSpecialPositionByIdAsync(999);
 
         // Assert
         result.Should().BeNull();

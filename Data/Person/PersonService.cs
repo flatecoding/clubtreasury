@@ -14,12 +14,12 @@ namespace ClubTreasury.Data.Person
                 .ToListAsync(ct);
         }
 
-        public async Task<PersonModel?> GetPersonById(int id, CancellationToken ct = default)
+        public async Task<PersonModel?> GetPersonByIdAsync(int id, CancellationToken ct = default)
         {
             return await context.Persons.FindAsync([id], ct);
         }
 
-        public async Task<PersonModel?> GetFirstEntry(CancellationToken ct = default)
+        public async Task<PersonModel?> GetFirstEntryAsync(CancellationToken ct = default)
         {
             return await context.Persons.FirstOrDefaultAsync(ct);
         }

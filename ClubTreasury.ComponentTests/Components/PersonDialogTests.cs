@@ -65,11 +65,11 @@ public class PersonDialogTests : BunitContext
     public void EditMode_LoadsPersonAndShowsSaveButton()
     {
         var person = new PersonModel { Id = 1, Name = "John Doe" };
-        A.CallTo(() => _personService.GetPersonById(1)).Returns(person);
+        A.CallTo(() => _personService.GetPersonByIdAsync(1)).Returns(person);
 
         var cut = RenderDialog(personId: 1);
 
-        A.CallTo(() => _personService.GetPersonById(1)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _personService.GetPersonByIdAsync(1)).MustHaveHappenedOnceExactly();
         cut.Markup.Should().Contain("Save");
     }
 
@@ -92,7 +92,7 @@ public class PersonDialogTests : BunitContext
     public async Task SaveInEditMode_CallsUpdateOnSuccess()
     {
         var person = new PersonModel { Id = 1, Name = "John Doe" };
-        A.CallTo(() => _personService.GetPersonById(1)).Returns(person);
+        A.CallTo(() => _personService.GetPersonByIdAsync(1)).Returns(person);
         A.CallTo(() => _personService.UpdatePersonAsync(A<PersonModel>._))
             .Returns(Result.Success());
 
@@ -111,7 +111,7 @@ public class PersonDialogTests : BunitContext
     {
         var person = new PersonModel { Id = 1, Name = "John Doe" };
         var failResult = Result.Failure(new Error("Test.Error", "Update failed"));
-        A.CallTo(() => _personService.GetPersonById(1)).Returns(person);
+        A.CallTo(() => _personService.GetPersonByIdAsync(1)).Returns(person);
         A.CallTo(() => _personService.UpdatePersonAsync(A<PersonModel>._))
             .Returns(failResult);
 
@@ -128,7 +128,7 @@ public class PersonDialogTests : BunitContext
     public void EditMode_InputContainsLoadedValue()
     {
         var person = new PersonModel { Id = 1, Name = "John Doe" };
-        A.CallTo(() => _personService.GetPersonById(1)).Returns(person);
+        A.CallTo(() => _personService.GetPersonByIdAsync(1)).Returns(person);
 
         var cut = RenderDialog(personId: 1);
 
@@ -173,7 +173,7 @@ public class PersonDialogTests : BunitContext
     public async Task SaveOnSuccess_ClosesDialog()
     {
         var person = new PersonModel { Id = 1, Name = "John Doe" };
-        A.CallTo(() => _personService.GetPersonById(1)).Returns(person);
+        A.CallTo(() => _personService.GetPersonByIdAsync(1)).Returns(person);
         A.CallTo(() => _personService.UpdatePersonAsync(A<PersonModel>._))
             .Returns(Result.Success());
 

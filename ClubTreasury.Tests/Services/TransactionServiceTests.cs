@@ -744,7 +744,7 @@ public class TransactionServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetTransactionsForExport(
+        var result = await _sut.GetTransactionsForExportAsync(
             new DateTime(2024, 1, 1),
             new DateTime(2024, 1, 31),
             cashRegister.Id);
@@ -771,7 +771,7 @@ public class TransactionServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetTransactionsForExport(
+        var result = await _sut.GetTransactionsForExportAsync(
             new DateTime(2024, 1, 1),
             new DateTime(2024, 1, 31),
             cashRegister.Id);
@@ -798,7 +798,7 @@ public class TransactionServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetTransactionsForBudgetExport(
+        var result = await _sut.GetTransactionsForBudgetExportAsync(
             new DateTime(2024, 1, 1),
             new DateTime(2024, 1, 31),
             cashRegister.Id);

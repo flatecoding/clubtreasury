@@ -19,9 +19,9 @@ public class TransactionFormService(
 {
     public async Task<TransactionReferenceData> LoadReferenceDataAsync(CancellationToken ct = default)
     {
-        var cashRegisters = await cashRegisterService.GetAllCashRegisters(ct);
+        var cashRegisters = await cashRegisterService.GetAllCashRegistersAsync(ct);
         var costCenters = await costCenterService.GetAllCostCentersAsync(ct);
-        var specialItems = await specialItemService.GetAllSpecialItems(ct);
+        var specialItems = await specialItemService.GetAllSpecialItemsAsync(ct);
 
         return new TransactionReferenceData(cashRegisters, costCenters, specialItems);
     }

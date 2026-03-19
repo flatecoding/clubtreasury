@@ -91,7 +91,7 @@
             return;
         }
 
-        _cashRegisterModel = await CashRegisterService.GetCashRegisterById(CashRegisterId!.Value) ?? new CashRegisterModel();
+        _cashRegisterModel = await CashRegisterService.GetCashRegisterByIdAsync(CashRegisterId!.Value) ?? new CashRegisterModel();
         await LoadExistingLogoAsync(CashRegisterId.Value);
     }
 
@@ -117,8 +117,8 @@
             return;
 
         var result = _isEditMode
-            ? await CashRegisterService.UpdateCashRegister(_cashRegisterModel)
-            : await CashRegisterService.AddCashRegister(_cashRegisterModel);
+            ? await CashRegisterService.UpdateCashRegisterAsync(_cashRegisterModel)
+            : await CashRegisterService.AddCashRegisterAsync(_cashRegisterModel);
 
         if (!result.IsSuccess)
         {
