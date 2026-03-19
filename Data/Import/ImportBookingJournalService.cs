@@ -27,7 +27,7 @@ public class ImportBookingJournalService(
     private const int CostCenterCategoryCell = 6;
     private const string DefaultCategoryName = "Undefined";
     private const char DocumentNumberPrefix = 'B';
-    public async Task<Result> ImportTransactions(Stream? fileStream, string fileName, int cashRegisterId, CancellationToken ct = default)
+    public async Task<Result> ImportTransactionsAsync(Stream? fileStream, string fileName, int cashRegisterId, CancellationToken ct = default)
     {
         if (fileStream == null)
         {
@@ -49,7 +49,7 @@ public class ImportBookingJournalService(
                 return validationResult.ErrorResult!;
             }
 
-            var cashRegister = await cashRegisterService.GetCashRegisterById(cashRegisterId, ct);
+            var cashRegister = await cashRegisterService.GetCashRegisterByIdAsync(cashRegisterId, ct);
             if (cashRegister == null)
             {
                 logger.LogError("Cash register with ID {CashRegisterId} not found.", cashRegisterId);

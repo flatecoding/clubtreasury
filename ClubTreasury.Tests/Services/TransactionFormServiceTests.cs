@@ -53,9 +53,9 @@ public class TransactionFormServiceTests
         var costCenters = new List<CostCenterModel> { new() { Id = 1, CostUnitName = "Admin" } };
         var specialItems = new List<SpecialItemModel> { new() { Id = 1, Name = "Donation" } };
 
-        A.CallTo(() => _cashRegisterService.GetAllCashRegisters(A<CancellationToken>._)).Returns(cashRegisters);
+        A.CallTo(() => _cashRegisterService.GetAllCashRegistersAsync(A<CancellationToken>._)).Returns(cashRegisters);
         A.CallTo(() => _costCenterService.GetAllCostCentersAsync(A<CancellationToken>._)).Returns(costCenters);
-        A.CallTo(() => _specialItemService.GetAllSpecialItems(A<CancellationToken>._)).Returns(specialItems);
+        A.CallTo(() => _specialItemService.GetAllSpecialItemsAsync(A<CancellationToken>._)).Returns(specialItems);
 
         var result = await _sut.LoadReferenceDataAsync();
 

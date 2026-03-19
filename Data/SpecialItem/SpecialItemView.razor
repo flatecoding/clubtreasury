@@ -88,7 +88,7 @@
     protected override string EntityLocalizedName => Localizer["SpecialPosition"];
     protected override int GetEntityId(SpecialItemModel entity) => entity.Id;
     protected override string GetEntityDisplayName(SpecialItemModel entity) => entity.Name;
-    protected override Task<List<SpecialItemModel>> LoadAllAsync() => SpecialItemService.GetAllSpecialItems();
+    protected override Task<List<SpecialItemModel>> LoadAllAsync() => SpecialItemService.GetAllSpecialItemsAsync();
     protected override Task<Result> DeleteEntityAsync(int id) => SpecialItemService.DeleteSpecialPositionAsync(id);
 
     protected override bool MatchesFilter(SpecialItemModel? element, string searchTerm)

@@ -4,5 +4,5 @@ namespace ClubTreasury.Data.Import;
 
 public interface IImportCostCenterService
 {
-    Task<Result> ImportCostCentersAndPositions(Stream? fileStream, string fileName, CancellationToken ct = default);
+    Task<Result> ImportCostCentersAndPositionsAsync(Stream? fileStream, string fileName, CancellationToken ct = default);
 }

@@ -96,7 +96,7 @@ public class PersonServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetPersonById(person.Id);
+        var result = await _sut.GetPersonByIdAsync(person.Id);
 
         // Assert
         result.Should().NotBeNull();
@@ -107,7 +107,7 @@ public class PersonServiceTests
     public async Task GetPersonById_WhenPersonDoesNotExist_ShouldReturnNull()
     {
         // Act
-        var result = await _sut.GetPersonById(999);
+        var result = await _sut.GetPersonByIdAsync(999);
 
         // Assert
         result.Should().BeNull();
@@ -130,7 +130,7 @@ public class PersonServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetFirstEntry();
+        var result = await _sut.GetFirstEntryAsync();
 
         // Assert
         result.Should().NotBeNull();
@@ -141,7 +141,7 @@ public class PersonServiceTests
     public async Task GetFirstEntry_WhenNoPersonsExist_ShouldReturnNull()
     {
         // Act
-        var result = await _sut.GetFirstEntry();
+        var result = await _sut.GetFirstEntryAsync();
 
         // Assert
         result.Should().BeNull();

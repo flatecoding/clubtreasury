@@ -13,14 +13,14 @@ namespace ClubTreasury.Data.CashRegister
     {
         private string EntityName => localizer["CashRegister"];
 
-        public async Task<List<CashRegisterModel>> GetAllCashRegisters(CancellationToken ct = default)
+        public async Task<List<CashRegisterModel>> GetAllCashRegistersAsync(CancellationToken ct = default)
         {
             return await context.CashRegisters
                 .Include(t => t.Transactions)
                 .ToListAsync(ct);
         }
 
-        public async Task<CashRegisterModel?> GetCashRegisterById(int id, CancellationToken ct = default)
+        public async Task<CashRegisterModel?> GetCashRegisterByIdAsync(int id, CancellationToken ct = default)
         {
             var cashRegister = await context.CashRegisters.FindAsync([id], ct);
             if (cashRegister is not null)
@@ -46,7 +46,7 @@ namespace ClubTreasury.Data.CashRegister
             return null;
         }
 
-        public async Task<Result> AddCashRegister(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
+        public async Task<Result> AddCashRegisterAsync(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace ClubTreasury.Data.CashRegister
             }
         }
 
-        public async Task<Result> UpdateCashRegister(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
+        public async Task<Result> UpdateCashRegisterAsync(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
         {
             try
             {

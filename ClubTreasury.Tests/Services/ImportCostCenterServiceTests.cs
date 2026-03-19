@@ -57,7 +57,7 @@ public class ImportCostCenterServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(null, "test.txt");
+        var result = await _sut.ImportCostCentersAndPositionsAsync(null, "test.txt");
 
         // Assert
         result.Should().Be(expectedResult);
@@ -87,7 +87,7 @@ public class ImportCostCenterServiceTests
             .Returns(new AllocationModel());
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -119,7 +119,7 @@ public class ImportCostCenterServiceTests
             .Returns(new AllocationModel());
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -150,7 +150,7 @@ public class ImportCostCenterServiceTests
             .Returns(new AllocationModel());
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -172,7 +172,7 @@ public class ImportCostCenterServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -198,7 +198,7 @@ public class ImportCostCenterServiceTests
             .Returns(new AllocationModel());
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -224,7 +224,7 @@ public class ImportCostCenterServiceTests
             .Returns(new AllocationModel());
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -250,7 +250,7 @@ public class ImportCostCenterServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);

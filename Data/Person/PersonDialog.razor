@@ -39,7 +39,7 @@
 
     protected override int? EntityId => PersonId;
     protected override Func<object, string, Task<IEnumerable<string>>> ValidateValue => PersonValidator.ValidateValue;
-    protected override Task<PersonModel?> LoadEntityAsync(int id) => PersonService.GetPersonById(id);
+    protected override Task<PersonModel?> LoadEntityAsync(int id) => PersonService.GetPersonByIdAsync(id);
     protected override Task<Result> AddEntityAsync(PersonModel model) => PersonService.AddPersonAsync(model);
     protected override Task<Result> UpdateEntityAsync(PersonModel model) => PersonService.UpdatePersonAsync(model);
 }

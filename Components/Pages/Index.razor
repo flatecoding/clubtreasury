@@ -103,7 +103,7 @@
 
         UserPrefService.PropertyChanged += OnUserPrefChanged;
 
-        _allRegisters = (await CashRegisterService.GetAllCashRegisters()).ToList();
+        _allRegisters = (await CashRegisterService.GetAllCashRegistersAsync()).ToList();
 
         foreach (var register in _allRegisters)
         {
@@ -217,14 +217,14 @@
 
     private async Task<double> CalculateStartingBalanceAsync(int registerId, DateTime fiscalYearStart)
     {
-        var priorTransactions = await TransactionService.GetTransactionsForExport(
+        var priorTransactions = await TransactionService.GetTransactionsForExportAsync(
             DateTime.MinValue, fiscalYearStart.AddDays(-1), registerId);
         return (double)priorTransactions.Sum(t => t.AccountMovement);
     }
 
     private async Task<List<TransactionModel>> GetOrderedTransactionsAsync(int registerId, DateTime from, DateTime to)
     {
-        return (await TransactionService.GetTransactionsForExport(from, to, registerId))
+        return (await TransactionService.GetTransactionsForExportAsync(from, to, registerId))
             .OrderBy(t => t.Date)
             .ToList();
     }

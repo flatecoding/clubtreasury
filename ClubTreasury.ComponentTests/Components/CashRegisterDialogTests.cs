@@ -67,12 +67,12 @@ public class CashRegisterDialogTests : BunitContext
     public void EditMode_LoadsCashRegisterAndShowsSaveButton()
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1)).Returns(cashRegister);
         A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
 
         var cut = RenderDialog(cashRegisterId: 1);
 
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1)).MustHaveHappenedOnceExactly();
         cut.Markup.Should().Contain("Save");
     }
 
@@ -81,7 +81,7 @@ public class CashRegisterDialogTests : BunitContext
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
         var logoData = new byte[] { 1, 2, 3 };
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1)).Returns(cashRegister);
         A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns((logoData, "image/png"));
 
         var cut = RenderDialog(cashRegisterId: 1);
@@ -109,9 +109,9 @@ public class CashRegisterDialogTests : BunitContext
     public async Task SaveInEditMode_CallsUpdateOnSuccess()
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1)).Returns(cashRegister);
         A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
-        A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
+        A.CallTo(() => _cashRegisterService.UpdateCashRegisterAsync(A<CashRegisterModel>._))
             .Returns(Result.Success());
 
         var cut = RenderDialog(cashRegisterId: 1);
@@ -120,7 +120,7 @@ public class CashRegisterDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
+        A.CallTo(() => _cashRegisterService.UpdateCashRegisterAsync(A<CashRegisterModel>._))
             .MustHaveHappened();
     }
 
@@ -129,9 +129,9 @@ public class CashRegisterDialogTests : BunitContext
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
         var failResult = Result.Failure(new Error("Test.Error", "Update failed"));
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1)).Returns(cashRegister);
         A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
-        A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
+        A.CallTo(() => _cashRegisterService.UpdateCashRegisterAsync(A<CashRegisterModel>._))
             .Returns(failResult);
 
         var cut = RenderDialog(cashRegisterId: 1);
@@ -148,9 +148,9 @@ public class CashRegisterDialogTests : BunitContext
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
         var logoData = new byte[] { 1, 2, 3 };
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1)).Returns(cashRegister);
         A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns((logoData, "image/png"));
-        A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
+        A.CallTo(() => _cashRegisterService.UpdateCashRegisterAsync(A<CashRegisterModel>._))
             .Returns(Result.Success());
 
         var cut = RenderDialog(cashRegisterId: 1);

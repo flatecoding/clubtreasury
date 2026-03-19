@@ -87,7 +87,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _cashRegisters = await CashRegisterService.GetAllCashRegisters();
+        _cashRegisters = await CashRegisterService.GetAllCashRegistersAsync();
         _selectedCashRegister = _cashRegisters.FirstOrDefault();
         _model.DateRange = new DateRange(_selectedCashRegister?.GetFiscalYearStart() ?? DateTime.Today, DateTime.Now);
     }
@@ -111,7 +111,7 @@
             var end = _model.DateRange.End!.Value.Date;
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
 
-            var result = await ExportService.ExportBudgetToCsv(start, end, filename, _selectedCashRegister!.Id);
+            var result = await ExportService.ExportBudgetToCsvAsync(start, end, filename, _selectedCashRegister!.Id);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
@@ -139,7 +139,7 @@
             var end = _model.DateRange.End!.Value.Date;
             var fileName = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
 
-            var result = await ExportService.ExportBudgetToExcel(start, end, fileName, _selectedCashRegister!.Id);
+            var result = await ExportService.ExportBudgetToExcelAsync(start, end, fileName, _selectedCashRegister!.Id);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)

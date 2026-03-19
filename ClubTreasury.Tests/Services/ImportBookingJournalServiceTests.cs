@@ -101,7 +101,7 @@ public class ImportBookingJournalServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(null, "test.xlsx", 1);
+        var result = await _sut.ImportTransactionsAsync(null, "test.xlsx", 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -152,7 +152,7 @@ public class ImportBookingJournalServiceTests
             .Returns(addResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, fileName, 1);
+        var result = await _sut.ImportTransactionsAsync(stream, fileName, 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -185,7 +185,7 @@ public class ImportBookingJournalServiceTests
             ws.Cells[1, 7].Value = "Marketing/Advertising";
         });
 
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1))
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1))
             .Returns((CashRegisterModel?)null);
 
         var expectedResult = Result.Failure(new Error("Test.Error", "Not found"));
@@ -193,7 +193,7 @@ public class ImportBookingJournalServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, "bookings.xlsx", 1);
+        var result = await _sut.ImportTransactionsAsync(stream, "bookings.xlsx", 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -243,7 +243,7 @@ public class ImportBookingJournalServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, fileName, 1);
+        var result = await _sut.ImportTransactionsAsync(stream, fileName, 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -287,7 +287,7 @@ public class ImportBookingJournalServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, "bookings.xlsx", 1);
+        var result = await _sut.ImportTransactionsAsync(stream, "bookings.xlsx", 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -304,7 +304,7 @@ public class ImportBookingJournalServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, "empty.xlsx", 1);
+        var result = await _sut.ImportTransactionsAsync(stream, "empty.xlsx", 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -326,7 +326,7 @@ public class ImportBookingJournalServiceTests
             ws.Cells[1, 7].Value = "Marketing/Advertising";
         });
 
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1))
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1))
             .Throws(new Exception("Database error"));
 
         var expectedResult = Result.Failure(new Error("Test.Error", "An error occurred"));
@@ -334,7 +334,7 @@ public class ImportBookingJournalServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, "bookings.xlsx", 1);
+        var result = await _sut.ImportTransactionsAsync(stream, "bookings.xlsx", 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -384,7 +384,7 @@ public class ImportBookingJournalServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, fileName, 1);
+        var result = await _sut.ImportTransactionsAsync(stream, fileName, 1);
 
         // Assert
         result.Should().Be(expectedResult);

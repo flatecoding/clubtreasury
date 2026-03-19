@@ -92,7 +92,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _cashRegisters = await CashRegisterService.GetAllCashRegisters();
+        _cashRegisters = await CashRegisterService.GetAllCashRegistersAsync();
         _selectedCashRegister = _cashRegisters.FirstOrDefault();
         _model.DateRange = new DateRange(_selectedCashRegister?.GetFiscalYearStart() ?? DateTime.Today, DateTime.Now);
     }
@@ -115,7 +115,7 @@
             var end = _model.DateRange.End!.Value.Date;
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
 
-            var result = await ExportService.ExportTransactionsToCsv(start, end, filename, _selectedCashRegister!.Id);
+            var result = await ExportService.ExportTransactionsToCsvAsync(start, end, filename, _selectedCashRegister!.Id);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
@@ -143,7 +143,7 @@
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
 
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(CExportTimeOut));
-            var result = await ExportService.ExportTransactionsToPdf(start, end, filename, _selectedCashRegister!.Id, _selectedCashRegister.Name, cts.Token);
+            var result = await ExportService.ExportTransactionsToPdfAsync(start, end, filename, _selectedCashRegister!.Id, _selectedCashRegister.Name, cts.Token);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (OperationCanceledException)

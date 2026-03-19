@@ -55,7 +55,7 @@ public class CashRegisterServiceTests
     public async Task GetAllCashRegisters_WhenNoCashRegistersExist_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _sut.GetAllCashRegisters();
+        var result = await _sut.GetAllCashRegistersAsync();
 
         // Assert
         result.Should().NotBeNull();
@@ -76,7 +76,7 @@ public class CashRegisterServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetAllCashRegisters();
+        var result = await _sut.GetAllCashRegistersAsync();
 
         // Assert
         result.Should().HaveCount(3);
@@ -96,7 +96,7 @@ public class CashRegisterServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetCashRegisterById(cashRegister.Id);
+        var result = await _sut.GetCashRegisterByIdAsync(cashRegister.Id);
 
         // Assert
         result.Should().NotBeNull();
@@ -107,7 +107,7 @@ public class CashRegisterServiceTests
     public async Task GetCashRegisterById_WhenCashRegisterDoesNotExist_ShouldReturnNull()
     {
         // Act
-        var result = await _sut.GetCashRegisterById(999);
+        var result = await _sut.GetCashRegisterByIdAsync(999);
 
         // Assert
         result.Should().BeNull();
@@ -161,7 +161,7 @@ public class CashRegisterServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.AddCashRegister(cashRegister);
+        var result = await _sut.AddCashRegisterAsync(cashRegister);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -195,7 +195,7 @@ public class CashRegisterServiceTests
         var cashRegister = new CashRegisterModel { Name = "New Register" };
 
         // Act
-        var result = await _sut.AddCashRegister(cashRegister);
+        var result = await _sut.AddCashRegisterAsync(cashRegister);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -220,7 +220,7 @@ public class CashRegisterServiceTests
         cashRegister.Name = "Updated Name";
 
         // Act
-        var result = await _sut.UpdateCashRegister(cashRegister);
+        var result = await _sut.UpdateCashRegisterAsync(cashRegister);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -251,7 +251,7 @@ public class CashRegisterServiceTests
         var cashRegister = new CashRegisterModel { Name = "Test" };
 
         // Act
-        var result = await _sut.UpdateCashRegister(cashRegister);
+        var result = await _sut.UpdateCashRegisterAsync(cashRegister);
 
         // Assert
         result.Should().Be(expectedResult);

@@ -8,14 +8,14 @@ namespace ClubTreasury.Data.SpecialItem
         IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory) : ISpecialItemService
     {
         private string EntityName => localizer["SpecialPosition"];
-        public async Task<List<SpecialItemModel>> GetAllSpecialItems(CancellationToken ct = default)
+        public async Task<List<SpecialItemModel>> GetAllSpecialItemsAsync(CancellationToken ct = default)
         {
             return await context.SpecialItems
                 .Include(s => s.Transactions)
                 .ToListAsync(ct);
         }
 
-        public async Task<SpecialItemModel?> GetSpecialPositionById(int id, CancellationToken ct = default)
+        public async Task<SpecialItemModel?> GetSpecialPositionByIdAsync(int id, CancellationToken ct = default)
         {
             return await context.SpecialItems
                 .Include(s => s.Transactions)

@@ -335,7 +335,7 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         await GetDbContext().SaveChangesAsync();
 
         // Act
-        var result = await _transactionService.GetTransactionsForExport(
+        var result = await _transactionService.GetTransactionsForExportAsync(
             new DateTime(2024, 1, 1),
             new DateTime(2024, 2, 28),
             cashRegister.Id);

@@ -309,7 +309,7 @@
             PersonId = _personId
         };
 
-        var result = await TransactionService.GetTransactionsPaged(request, cancellationToken);
+        var result = await TransactionService.GetTransactionsPagedAsync(request, cancellationToken);
         return new TableData<TransactionModel?> { Items = result.Items, TotalItems = result.TotalItems };
     }
 }

@@ -59,7 +59,7 @@
             }
 
             await using var stream = _file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
-            var result = await ImportCostCenterService.ImportCostCentersAndPositions(stream, _file.Name);
+            var result = await ImportCostCenterService.ImportCostCentersAndPositionsAsync(stream, _file.Name);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
