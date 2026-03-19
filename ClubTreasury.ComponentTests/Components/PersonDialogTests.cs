@@ -18,7 +18,7 @@ public class PersonDialogTests : BunitContext
     private IPersonService _personService = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private INotificationService _notificationService = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
 
     [SetUp]
     public void SetUp()
@@ -26,7 +26,7 @@ public class PersonDialogTests : BunitContext
         Services.AddSingleton(_personService = A.Fake<IPersonService>());
         Services.AddSingleton(_localizer = A.Fake<IStringLocalizer<Translation>>());
         Services.AddSingleton(_notificationService = A.Fake<INotificationService>());
-        Services.AddSingleton(_operationResultFactory = A.Fake<IOperationResultFactory>());
+        Services.AddSingleton(_resultFactory = A.Fake<IResultFactory>());
 
         A.CallTo(() => _localizer[A<string>._])
             .ReturnsLazily((string key) => new LocalizedString(key, key));
@@ -65,23 +65,19 @@ public class PersonDialogTests : BunitContext
     public void EditMode_LoadsPersonAndShowsSaveButton()
     {
         var person = new PersonModel { Id = 1, Name = "John Doe" };
-        A.CallTo(() => _personService.GetPersonById(1)).Returns(person);
+        A.CallTo(() => _personService.GetPersonByIdAsync(1)).Returns(person);
 
         var cut = RenderDialog(personId: 1);
 
-        A.CallTo(() => _personService.GetPersonById(1)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _personService.GetPersonByIdAsync(1)).MustHaveHappenedOnceExactly();
         cut.Markup.Should().Contain("Save");
     }
 
     [Test]
     public void Cancel_ClosesDialog()
     {
-        var canceledResult = new OperationResult
-        {
-            Status = OperationResultStatus.Canceled,
-            Message = "Canceled"
-        };
-        A.CallTo(() => _operationResultFactory.Canceled()).Returns(canceledResult);
+        var canceledResult = Result.Failure(Error.Canceled with { Message = "Canceled" });
+        A.CallTo(() => _resultFactory.Canceled()).Returns(canceledResult);
 
         var cut = RenderDialog();
 
@@ -96,9 +92,9 @@ public class PersonDialogTests : BunitContext
     public async Task SaveInEditMode_CallsUpdateOnSuccess()
     {
         var person = new PersonModel { Id = 1, Name = "John Doe" };
-        A.CallTo(() => _personService.GetPersonById(1)).Returns(person);
+        A.CallTo(() => _personService.GetPersonByIdAsync(1)).Returns(person);
         A.CallTo(() => _personService.UpdatePersonAsync(A<PersonModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog(personId: 1);
 
@@ -114,12 +110,8 @@ public class PersonDialogTests : BunitContext
     public async Task SaveInEditMode_ShowsNotificationOnFailure()
     {
         var person = new PersonModel { Id = 1, Name = "John Doe" };
-        var failResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Update failed"
-        };
-        A.CallTo(() => _personService.GetPersonById(1)).Returns(person);
+        var failResult = Result.Failure(new Error("Test.Error", "Update failed"));
+        A.CallTo(() => _personService.GetPersonByIdAsync(1)).Returns(person);
         A.CallTo(() => _personService.UpdatePersonAsync(A<PersonModel>._))
             .Returns(failResult);
 
@@ -129,14 +121,14 @@ public class PersonDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _notificationService.ShowOperationResultAsync(failResult)).MustHaveHappened();
+        A.CallTo(() => _notificationService.ShowResultAsync(failResult)).MustHaveHappened();
     }
 
     [Test]
     public void EditMode_InputContainsLoadedValue()
     {
         var person = new PersonModel { Id = 1, Name = "John Doe" };
-        A.CallTo(() => _personService.GetPersonById(1)).Returns(person);
+        A.CallTo(() => _personService.GetPersonByIdAsync(1)).Returns(person);
 
         var cut = RenderDialog(personId: 1);
 
@@ -161,7 +153,7 @@ public class PersonDialogTests : BunitContext
     public async Task AddMode_CallsAddOnSuccess()
     {
         A.CallTo(() => _personService.AddPersonAsync(A<PersonModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog();
 
@@ -181,9 +173,9 @@ public class PersonDialogTests : BunitContext
     public async Task SaveOnSuccess_ClosesDialog()
     {
         var person = new PersonModel { Id = 1, Name = "John Doe" };
-        A.CallTo(() => _personService.GetPersonById(1)).Returns(person);
+        A.CallTo(() => _personService.GetPersonByIdAsync(1)).Returns(person);
         A.CallTo(() => _personService.UpdatePersonAsync(A<PersonModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog(personId: 1);
 

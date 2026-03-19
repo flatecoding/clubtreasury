@@ -18,7 +18,7 @@ public class SpecialItemDialogTests : BunitContext
     private ISpecialItemService _specialItemService = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private INotificationService _notificationService = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
 
     [SetUp]
     public void SetUp()
@@ -26,7 +26,7 @@ public class SpecialItemDialogTests : BunitContext
         Services.AddSingleton(_specialItemService = A.Fake<ISpecialItemService>());
         Services.AddSingleton(_localizer = A.Fake<IStringLocalizer<Translation>>());
         Services.AddSingleton(_notificationService = A.Fake<INotificationService>());
-        Services.AddSingleton(_operationResultFactory = A.Fake<IOperationResultFactory>());
+        Services.AddSingleton(_resultFactory = A.Fake<IResultFactory>());
 
         A.CallTo(() => _localizer[A<string>._])
             .ReturnsLazily((string key) => new LocalizedString(key, key));
@@ -65,23 +65,19 @@ public class SpecialItemDialogTests : BunitContext
     public void EditMode_LoadsSpecialItemAndShowsSaveButton()
     {
         var specialItem = new SpecialItemModel { Id = 1, Name = "Donation" };
-        A.CallTo(() => _specialItemService.GetSpecialPositionById(1)).Returns(specialItem);
+        A.CallTo(() => _specialItemService.GetSpecialPositionByIdAsync(1)).Returns(specialItem);
 
         var cut = RenderDialog(specialItemId: 1);
 
-        A.CallTo(() => _specialItemService.GetSpecialPositionById(1)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _specialItemService.GetSpecialPositionByIdAsync(1)).MustHaveHappenedOnceExactly();
         cut.Markup.Should().Contain("Save");
     }
 
     [Test]
     public void Cancel_ClosesDialog()
     {
-        var canceledResult = new OperationResult
-        {
-            Status = OperationResultStatus.Canceled,
-            Message = "Canceled"
-        };
-        A.CallTo(() => _operationResultFactory.Canceled()).Returns(canceledResult);
+        var canceledResult = Result.Failure(Error.Canceled with { Message = "Canceled" });
+        A.CallTo(() => _resultFactory.Canceled()).Returns(canceledResult);
 
         var cut = RenderDialog();
 
@@ -96,9 +92,9 @@ public class SpecialItemDialogTests : BunitContext
     public async Task SaveInEditMode_CallsUpdateOnSuccess()
     {
         var specialItem = new SpecialItemModel { Id = 1, Name = "Donation" };
-        A.CallTo(() => _specialItemService.GetSpecialPositionById(1)).Returns(specialItem);
+        A.CallTo(() => _specialItemService.GetSpecialPositionByIdAsync(1)).Returns(specialItem);
         A.CallTo(() => _specialItemService.UpdateSpecialPositionAsync(A<SpecialItemModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog(specialItemId: 1);
 
@@ -114,12 +110,8 @@ public class SpecialItemDialogTests : BunitContext
     public async Task SaveInEditMode_ShowsNotificationOnFailure()
     {
         var specialItem = new SpecialItemModel { Id = 1, Name = "Donation" };
-        var failResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Update failed"
-        };
-        A.CallTo(() => _specialItemService.GetSpecialPositionById(1)).Returns(specialItem);
+        var failResult = Result.Failure(new Error("Test.Error", "Update failed"));
+        A.CallTo(() => _specialItemService.GetSpecialPositionByIdAsync(1)).Returns(specialItem);
         A.CallTo(() => _specialItemService.UpdateSpecialPositionAsync(A<SpecialItemModel>._))
             .Returns(failResult);
 
@@ -129,14 +121,14 @@ public class SpecialItemDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _notificationService.ShowOperationResultAsync(failResult)).MustHaveHappened();
+        A.CallTo(() => _notificationService.ShowResultAsync(failResult)).MustHaveHappened();
     }
 
     [Test]
     public void EditMode_InputContainsLoadedValue()
     {
         var specialItem = new SpecialItemModel { Id = 1, Name = "Donation" };
-        A.CallTo(() => _specialItemService.GetSpecialPositionById(1)).Returns(specialItem);
+        A.CallTo(() => _specialItemService.GetSpecialPositionByIdAsync(1)).Returns(specialItem);
 
         var cut = RenderDialog(specialItemId: 1);
 
@@ -161,7 +153,7 @@ public class SpecialItemDialogTests : BunitContext
     public async Task AddMode_CallsAddOnSuccess()
     {
         A.CallTo(() => _specialItemService.AddSpecialPositionAsync(A<SpecialItemModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog();
 
@@ -181,9 +173,9 @@ public class SpecialItemDialogTests : BunitContext
     public async Task SaveOnSuccess_ClosesDialog()
     {
         var specialItem = new SpecialItemModel { Id = 1, Name = "Donation" };
-        A.CallTo(() => _specialItemService.GetSpecialPositionById(1)).Returns(specialItem);
+        A.CallTo(() => _specialItemService.GetSpecialPositionByIdAsync(1)).Returns(specialItem);
         A.CallTo(() => _specialItemService.UpdateSpecialPositionAsync(A<SpecialItemModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog(specialItemId: 1);
 

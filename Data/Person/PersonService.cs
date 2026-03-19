@@ -5,7 +5,7 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.Person
 {
     public class PersonService(CashDataContext context, ILogger<PersonService> logger,
-        IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : IPersonService
+        IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory) : IPersonService
     {
         private string EntityName => localizer["Person"];
         public async Task<List<PersonModel>> GetAllPersonsAsync(CancellationToken ct = default)
@@ -14,17 +14,17 @@ namespace ClubTreasury.Data.Person
                 .ToListAsync(ct);
         }
 
-        public async Task<PersonModel?> GetPersonById(int id, CancellationToken ct = default)
+        public async Task<PersonModel?> GetPersonByIdAsync(int id, CancellationToken ct = default)
         {
             return await context.Persons.FindAsync([id], ct);
         }
 
-        public async Task<PersonModel?> GetFirstEntry(CancellationToken ct = default)
+        public async Task<PersonModel?> GetFirstEntryAsync(CancellationToken ct = default)
         {
             return await context.Persons.FirstOrDefaultAsync(ct);
         }
 
-        public async Task<IOperationResult> AddPersonAsync(PersonModel personModel, CancellationToken ct = default)
+        public async Task<Result> AddPersonAsync(PersonModel personModel, CancellationToken ct = default)
         {
             try
             {
@@ -35,12 +35,12 @@ namespace ClubTreasury.Data.Person
             }
             catch (Exception ex)
             {
-                logger.LogCritical(EntityName, ex);
+                logger.LogError(ex, "An error occurred while adding person: {PersonName}", personModel.Name);
                 return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
         }
 
-        public async Task<IOperationResult> UpdatePersonAsync(PersonModel personModel, CancellationToken ct = default)
+        public async Task<Result> UpdatePersonAsync(PersonModel personModel, CancellationToken ct = default)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace ClubTreasury.Data.Person
             }
         }
 
-        public async Task<IOperationResult> DeletePersonAsync(int id, CancellationToken ct = default)
+        public async Task<Result> DeletePersonAsync(int id, CancellationToken ct = default)
         {
             try
             {
@@ -73,7 +73,7 @@ namespace ClubTreasury.Data.Person
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "An error occurred while deleting person");
+                logger.LogError(ex, "An error occurred while deleting person");
                 return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }

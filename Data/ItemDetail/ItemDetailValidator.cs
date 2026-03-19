@@ -1,9 +1,10 @@
 using FluentValidation;
 using Microsoft.Extensions.Localization;
+using ClubTreasury.Data.Validation;
 
 namespace ClubTreasury.Data.ItemDetail;
 
-public class ItemDetailValidator : AbstractValidator<ItemDetailModel>
+public class ItemDetailValidator : BaseValidator<ItemDetailModel>
 {
     public ItemDetailValidator(IStringLocalizer<Translation> localizer)
     {
@@ -12,11 +13,4 @@ public class ItemDetailValidator : AbstractValidator<ItemDetailModel>
         RuleFor(c => c.CostDetails).MaximumLength(1000)
             .WithMessage(localizer["DetailDescriptionMaxLength"]);
     }
-
-    public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>
-    {
-        var result = await ValidateAsync(ValidationContext<ItemDetailModel>.CreateWithOptions((ItemDetailModel)model, 
-            x => x.IncludeProperties(propertyName)));
-        return result.IsValid ? [] : result.Errors.Select(e => e.ErrorMessage);
-    };
 }

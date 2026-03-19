@@ -22,12 +22,12 @@ public class ExportServiceTests
     private ICsvBudgetWriter _csvWriter = null!;
     private IExcelBudgetWriter _excelWriter = null!;
     private IPdfTransactionRenderer _pdfRenderer = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
     private IStringLocalizer<Resources.Translation> _localizer = null!;
     private ExportService _sut = null!;
     private string _testExportPath = null!;
     private IExportPathProvider _exportPathProvider = null!;
-    private ICashRegisterService _cashRegisterService = null!;
+    private ICashRegisterLogoService _cashRegisterLogoService = null!;
 
     [SetUp]
     public void SetUp()
@@ -38,10 +38,10 @@ public class ExportServiceTests
         _csvWriter = A.Fake<ICsvBudgetWriter>();
         _excelWriter = A.Fake<IExcelBudgetWriter>();
         _pdfRenderer = A.Fake<IPdfTransactionRenderer>();
-        _operationResultFactory = A.Fake<IOperationResultFactory>();
+        _resultFactory = A.Fake<IResultFactory>();
         _localizer = A.Fake<IStringLocalizer<Resources.Translation>>();
         _exportPathProvider = A.Fake<IExportPathProvider>();
-        _cashRegisterService = A.Fake<ICashRegisterService>();
+        _cashRegisterLogoService = A.Fake<ICashRegisterLogoService>();
 
         _testExportPath = Path.Combine(Path.GetTempPath(), $"ExportTest_{Guid.NewGuid()}");
         Directory.CreateDirectory(_testExportPath);
@@ -60,10 +60,10 @@ public class ExportServiceTests
             _csvWriter,
             _excelWriter,
             _pdfRenderer,
-            _operationResultFactory,
+            _resultFactory,
             _localizer,
             _exportPathProvider,
-            _cashRegisterService);
+            _cashRegisterLogoService);
     }
 
     [TearDown]
@@ -91,20 +91,16 @@ public class ExportServiceTests
             new() { Documentnumber = 2, Description = "Test 2", Sum = 200m, AccountMovement = 200m }
         };
 
-        A.CallTo(() => _transactionService.GetTransactionsForExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForExportAsync(begin, end, 1))
             .Returns(transactions);
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Export successful"
-        };
+        var expectedResult = Result.Success("Export successful");
 
-        A.CallTo(() => _operationResultFactory.ExportSuccessful(filename))
+        A.CallTo(() => _resultFactory.ExportSuccessful(filename))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportTransactionsToCsv(begin, end, filename, 1);
+        var result = await _sut.ExportTransactionsToCsvAsync(begin, end, filename, 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -125,19 +121,15 @@ public class ExportServiceTests
         var begin = new DateTime(2024, 1, 1);
         var end = new DateTime(2024, 1, 31);
 
-        A.CallTo(() => _transactionService.GetTransactionsForExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForExportAsync(begin, end, 1))
             .Returns(new List<TransactionModel>());
 
-        var failed = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "No data available"
-        };
+        var failed = Result.Failure(new Error("Test.Error", "No data available"));
 
-        A.CallTo(() => _operationResultFactory.ExportFailed(A<string>._))
+        A.CallTo(() => _resultFactory.ExportFailed(A<string>._))
             .Returns(failed);
 
-        var result = await _sut.ExportTransactionsToCsv(begin, end, "empty.csv", 1);
+        var result = await _sut.ExportTransactionsToCsvAsync(begin, end, "empty.csv", 1);
 
         result.Should().Be(failed);
     }
@@ -150,19 +142,15 @@ public class ExportServiceTests
         var end = new DateTime(2024, 1, 31);
         var filename = "error_export.csv";
 
-        A.CallTo(() => _transactionService.GetTransactionsForExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForExportAsync(begin, end, 1))
             .Throws(new Exception("Database error"));
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "An error occurred"
-        };
-        A.CallTo(() => _operationResultFactory.ExportFailed(A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "An error occurred"));
+        A.CallTo(() => _resultFactory.ExportFailed(A<string>._))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportTransactionsToCsv(begin, end, filename, 1);
+        var result = await _sut.ExportTransactionsToCsvAsync(begin, end, filename, 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -186,19 +174,15 @@ public class ExportServiceTests
             new() { Documentnumber = 1, Description = "Test" }
         };
 
-        A.CallTo(() => _transactionService.GetTransactionsForExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForExportAsync(begin, end, 1))
             .Returns(transactions);
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Export successful"
-        };
-        A.CallTo(() => _operationResultFactory.ExportSuccessful(filename))
+        var expectedResult = Result.Success("Export successful");
+        A.CallTo(() => _resultFactory.ExportSuccessful(filename))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportTransactionsToPdf(begin, end, filename, 1, "Test Register", cancellationToken);
+        var result = await _sut.ExportTransactionsToPdfAsync(begin, end, filename, 1, "Test Register", cancellationToken);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -216,23 +200,19 @@ public class ExportServiceTests
         var filename = "canceled_export.pdf";
         var cancellationToken = new CancellationToken(canceled: true);
 
-        A.CallTo(() => _transactionService.GetTransactionsForBudgetExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForBudgetExportAsync(begin, end, 1))
             .Returns(new List<TransactionModel>());
 
         A.CallTo(() => _pdfRenderer.RenderTransactionPdfExportAsync(
                 A<IEnumerable<TransactionModel>>._, begin, end, A<string>._, A<string>._, A<byte[]?>._, A<string?>._, cancellationToken))
             .Throws(new OperationCanceledException());
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Canceled,
-            Message = "Canceled"
-        };
-        A.CallTo(() => _operationResultFactory.Canceled())
+        var expectedResult = Result.Failure(Error.Canceled with { Message = "Canceled" });
+        A.CallTo(() => _resultFactory.Canceled())
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportTransactionsToPdf(begin, end, filename, 1, "Test Register", cancellationToken);
+        var result = await _sut.ExportTransactionsToPdfAsync(begin, end, filename, 1, "Test Register", cancellationToken);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -247,19 +227,15 @@ public class ExportServiceTests
         var filename = "error_export.pdf";
         var cancellationToken = CancellationToken.None;
 
-        A.CallTo(() => _transactionService.GetTransactionsForExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForExportAsync(begin, end, 1))
             .Throws(new Exception("Render error"));
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "An error occurred"
-        };
-        A.CallTo(() => _operationResultFactory.ExportFailed(A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "An error occurred"));
+        A.CallTo(() => _resultFactory.ExportFailed(A<string>._))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportTransactionsToPdf(begin, end, filename, 1, "Test Register", cancellationToken);
+        var result = await _sut.ExportTransactionsToPdfAsync(begin, end, filename, 1, "Test Register", cancellationToken);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -284,23 +260,19 @@ public class ExportServiceTests
         var flatEntries = new List<BudgetFlatEntryDto>();
         var grouped = new List<BudgetGroupedDto>();
 
-        A.CallTo(() => _transactionService.GetTransactionsForBudgetExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForBudgetExportAsync(begin, end, 1))
             .Returns(transactions);
         A.CallTo(() => _budgetMapper.BuildFlatEntries(transactions))
             .Returns(flatEntries);
         A.CallTo(() => _budgetMapper.BuildBudgetHierarchy(flatEntries))
             .Returns(grouped);
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Export successful"
-        };
-        A.CallTo(() => _operationResultFactory.ExportSuccessful(filename))
+        var expectedResult = Result.Success("Export successful");
+        A.CallTo(() => _resultFactory.ExportSuccessful(filename))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportBudgetToCsv(begin, end, filename, 1);
+        var result = await _sut.ExportBudgetToCsvAsync(begin, end, filename, 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -316,19 +288,15 @@ public class ExportServiceTests
         var end = new DateTime(2024, 1, 31);
         var filename = "error_budget.csv";
 
-        A.CallTo(() => _transactionService.GetTransactionsForBudgetExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForBudgetExportAsync(begin, end, 1))
             .Throws(new Exception("Database error"));
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Database error"
-        };
-        A.CallTo(() => _operationResultFactory.ExportFailed(A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Database error"));
+        A.CallTo(() => _resultFactory.ExportFailed(A<string>._))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportBudgetToCsv(begin, end, filename, 1);
+        var result = await _sut.ExportBudgetToCsvAsync(begin, end, filename, 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -353,23 +321,19 @@ public class ExportServiceTests
         var flatEntries = new List<BudgetFlatEntryDto>();
         var grouped = new List<BudgetGroupedDto>();
 
-        A.CallTo(() => _transactionService.GetTransactionsForBudgetExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForBudgetExportAsync(begin, end, 1))
             .Returns(transactions);
         A.CallTo(() => _budgetMapper.BuildFlatEntries(transactions))
             .Returns(flatEntries);
         A.CallTo(() => _budgetMapper.BuildBudgetHierarchy(flatEntries))
             .Returns(grouped);
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Export successful"
-        };
-        A.CallTo(() => _operationResultFactory.ExportSuccessful(filename))
+        var expectedResult = Result.Success("Export successful");
+        A.CallTo(() => _resultFactory.ExportSuccessful(filename))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportBudgetToExcel(begin, end, filename, 1);
+        var result = await _sut.ExportBudgetToExcelAsync(begin, end, filename, 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -385,19 +349,15 @@ public class ExportServiceTests
         var end = new DateTime(2024, 1, 31);
         var filename = "error_budget.xlsx";
 
-        A.CallTo(() => _transactionService.GetTransactionsForBudgetExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForBudgetExportAsync(begin, end, 1))
             .Throws(new Exception("Database error"));
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Database error"
-        };
-        A.CallTo(() => _operationResultFactory.ExportFailed(A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Database error"));
+        A.CallTo(() => _resultFactory.ExportFailed(A<string>._))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportBudgetToExcel(begin, end, filename, 1);
+        var result = await _sut.ExportBudgetToExcelAsync(begin, end, filename, 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -418,7 +378,7 @@ public class ExportServiceTests
         var flatEntries = new List<BudgetFlatEntryDto>();
         var grouped = new List<BudgetGroupedDto>();
 
-        A.CallTo(() => _transactionService.GetTransactionsForBudgetExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForBudgetExportAsync(begin, end, 1))
             .Returns(transactions);
 
         A.CallTo(() => _budgetMapper.BuildFlatEntries(transactions))
@@ -427,12 +387,9 @@ public class ExportServiceTests
         A.CallTo(() => _budgetMapper.BuildBudgetHierarchy(flatEntries))
             .Returns(grouped);
 
-        var success = new OperationResult
-        {
-            Status = OperationResultStatus.Success
-        };
+        var success = Result.Success();
 
-        A.CallTo(() => _operationResultFactory.ExportSuccessful(A<string>._))
+        A.CallTo(() => _resultFactory.ExportSuccessful(A<string>._))
             .Returns(success);
 
         var expectedBytes = new byte[] { 0x50, 0x4B, 0x03, 0x04 };
@@ -445,7 +402,7 @@ public class ExportServiceTests
             });
 
         // Act
-        var result = await _sut.ExportBudgetToExcelBytes(begin, end, 1);
+        var result = await _sut.ExportBudgetToExcelBytesAsync(begin, end, 1);
 
         // Assert
         result.Should().BeEquivalentTo(expectedBytes);
@@ -457,18 +414,15 @@ public class ExportServiceTests
         var begin = new DateTime(2024, 1, 1);
         var end = new DateTime(2024, 1, 31);
 
-        A.CallTo(() => _transactionService.GetTransactionsForBudgetExport(begin, end, 1))
+        A.CallTo(() => _transactionService.GetTransactionsForBudgetExportAsync(begin, end, 1))
             .Throws(new Exception("Error"));
 
-        var failed = new OperationResult
-        {
-            Status = OperationResultStatus.Failed
-        };
+        var failed = Result.Failure(new Error("Test.Error", "Failed"));
 
-        A.CallTo(() => _operationResultFactory.ExportFailed(A<string>._))
+        A.CallTo(() => _resultFactory.ExportFailed(A<string>._))
             .Returns(failed);
 
-        var result = await _sut.ExportBudgetToExcelBytes(begin, end, 1);
+        var result = await _sut.ExportBudgetToExcelBytesAsync(begin, end, 1);
 
         result.Should().BeEmpty();
     }

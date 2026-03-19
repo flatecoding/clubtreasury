@@ -22,16 +22,10 @@ namespace ClubTreasury.ComponentTests.Components;
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
 public class TransactionDialogTests : BunitContext
 {
-    private ITransactionService _transactionService = null!;
-    private ICostCenterService _costCenterService = null!;
-    private ICategoryService _categoryService = null!;
-    private IItemDetailService _itemDetailService = null!;
-    private ICashRegisterService _cashRegisterService = null!;
-    private ISpecialItemService _specialItemService = null!;
+    private ITransactionFormService _formService = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private INotificationService _notificationService = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
-    private IAllocationService _allocationService = null!;
+    private IResultFactory _resultFactory = null!;
 
     private List<CashRegisterModel> _cashRegisters = null!;
     private List<CostCenterModel> _costCenters = null!;
@@ -40,22 +34,14 @@ public class TransactionDialogTests : BunitContext
     [SetUp]
     public void SetUp()
     {
-        Services.AddSingleton(_transactionService = A.Fake<ITransactionService>());
-        Services.AddSingleton(_costCenterService = A.Fake<ICostCenterService>());
-        Services.AddSingleton(_categoryService = A.Fake<ICategoryService>());
-        Services.AddSingleton(_itemDetailService = A.Fake<IItemDetailService>());
-        Services.AddSingleton(_cashRegisterService = A.Fake<ICashRegisterService>());
-        Services.AddSingleton(_specialItemService = A.Fake<ISpecialItemService>());
+        Services.AddSingleton(_formService = A.Fake<ITransactionFormService>());
         Services.AddSingleton(_localizer = A.Fake<IStringLocalizer<Translation>>());
         Services.AddSingleton(_notificationService = A.Fake<INotificationService>());
-        Services.AddSingleton(_operationResultFactory = A.Fake<IOperationResultFactory>());
-        Services.AddSingleton(_allocationService = A.Fake<IAllocationService>());
+        Services.AddSingleton(_resultFactory = A.Fake<IResultFactory>());
 
-        // Localizer returns key as value for any lookup
         A.CallTo(() => _localizer[A<string>._])
             .ReturnsLazily((string key) => new LocalizedString(key, key));
 
-        // Reference data
         _cashRegisters =
         [
             new CashRegisterModel { Id = 1, Name = "Main Register" },
@@ -64,9 +50,8 @@ public class TransactionDialogTests : BunitContext
         _costCenters = [new CostCenterModel { Id = 1, CostUnitName = "Admin" }];
         _specialItems = [new SpecialItemModel { Id = 1, Name = "Donation" }];
 
-        A.CallTo(() => _cashRegisterService.GetAllCashRegisters()).Returns(_cashRegisters);
-        A.CallTo(() => _costCenterService.GetAllCostCentersAsync()).Returns(_costCenters);
-        A.CallTo(() => _specialItemService.GetAllSpecialItems()).Returns(_specialItems);
+        A.CallTo(() => _formService.LoadReferenceDataAsync(A<CancellationToken>._))
+            .Returns(new TransactionReferenceData(_cashRegisters, _costCenters, _specialItems));
 
         Services.AddSingleton(new TransactionValidator(_localizer));
         Services.AddMudServices();
@@ -94,11 +79,9 @@ public class TransactionDialogTests : BunitContext
     {
         var cut = RenderDialog();
 
-        A.CallTo(() => _cashRegisterService.GetAllCashRegisters()).MustHaveHappenedOnceExactly();
-        A.CallTo(() => _costCenterService.GetAllCostCentersAsync()).MustHaveHappenedOnceExactly();
-        A.CallTo(() => _specialItemService.GetAllSpecialItems()).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _formService.LoadReferenceDataAsync(A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
 
-        // Should contain the action button with AddEntry text
         cut.Markup.Should().Contain("AddEntry");
     }
 
@@ -130,43 +113,38 @@ public class TransactionDialogTests : BunitContext
             SpecialItem = null
         };
 
-        A.CallTo(() => _transactionService.GetTransactionByIdAsync(42)).Returns(transaction);
-        A.CallTo(() => _categoryService.GetCategoriesByCostCenterIdAsync(1))
+        A.CallTo(() => _formService.LoadTransactionAsync(42, A<CancellationToken>._))
+            .Returns(transaction);
+        A.CallTo(() => _formService.GetCategoriesForCostCenterAsync(1, A<CancellationToken>._))
             .Returns(new List<CategoryModel> { category });
-        A.CallTo(() => _itemDetailService.GetItemDetailByCategoryIdAsync(10))
+        A.CallTo(() => _formService.GetItemDetailsForCategoryAsync(10, A<CancellationToken>._))
             .Returns(new List<ItemDetailModel>());
 
         var cut = RenderDialog(transactionId: 42);
 
-        A.CallTo(() => _transactionService.GetTransactionByIdAsync(42)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _formService.LoadTransactionAsync(42, A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
 
-        // Should show Save button in edit mode
         cut.Markup.Should().Contain("Save");
     }
 
     [Test]
     public void Cancel_ClosesDialog()
     {
-        var canceledResult = new OperationResult
-        {
-            Status = OperationResultStatus.Canceled,
-            Message = "Canceled"
-        };
-        A.CallTo(() => _operationResultFactory.Canceled()).Returns(canceledResult);
+        var canceledResult = Result.Failure(Error.Canceled with { Message = "Canceled" });
+        A.CallTo(() => _resultFactory.Canceled()).Returns(canceledResult);
 
         var cut = RenderDialog();
 
-        // Find and click the Cancel button
         var cancelButton = cut.FindAll("button")
             .First(b => b.TextContent.Contains("Cancel"));
         cancelButton.Click();
 
-        // After cancel, dialog content should be removed from cut
         cut.Markup.Should().NotContain("Cancel");
     }
 
     [Test]
-    public async Task SaveInEditMode_CallsUpdateOnSuccess()
+    public async Task SaveInEditMode_CallsFormServiceSave()
     {
         var costCenter = new CostCenterModel { Id = 1, CostUnitName = "Admin" };
         var category = new CategoryModel { Id = 10, Name = "Fees" };
@@ -193,24 +171,24 @@ public class TransactionDialogTests : BunitContext
             SpecialItem = null
         };
 
-        A.CallTo(() => _transactionService.GetTransactionByIdAsync(42)).Returns(transaction);
-        A.CallTo(() => _categoryService.GetCategoriesByCostCenterIdAsync(1))
+        A.CallTo(() => _formService.LoadTransactionAsync(42, A<CancellationToken>._))
+            .Returns(transaction);
+        A.CallTo(() => _formService.GetCategoriesForCostCenterAsync(1, A<CancellationToken>._))
             .Returns(new List<CategoryModel> { category });
-        A.CallTo(() => _itemDetailService.GetItemDetailByCategoryIdAsync(10))
+        A.CallTo(() => _formService.GetItemDetailsForCategoryAsync(10, A<CancellationToken>._))
             .Returns(new List<ItemDetailModel>());
-        A.CallTo(() => _allocationService.GetOrCreateAllocationAsync("Admin", "Fees", null))
-            .Returns(allocation);
-        A.CallTo(() => _transactionService.UpdateTransactionAsync(A<TransactionModel>._, A<CancellationToken>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+        A.CallTo(() => _formService.SaveTransactionAsync(
+                A<TransactionModel>._, A<TransactionFormSelections>._, true, A<CancellationToken>._))
+            .Returns(Result.Success());
 
         var cut = RenderDialog(transactionId: 42);
 
-        // Click the Save button
         var saveButton = cut.FindAll("button")
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _transactionService.UpdateTransactionAsync(A<TransactionModel>._, A<CancellationToken>._))
+        A.CallTo(() => _formService.SaveTransactionAsync(
+                A<TransactionModel>._, A<TransactionFormSelections>._, true, A<CancellationToken>._))
             .MustHaveHappened();
     }
 
@@ -242,20 +220,16 @@ public class TransactionDialogTests : BunitContext
             SpecialItem = null
         };
 
-        var failResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Update failed"
-        };
+        var failResult = Result.Failure(new Error("Test.Error", "Update failed"));
 
-        A.CallTo(() => _transactionService.GetTransactionByIdAsync(42)).Returns(transaction);
-        A.CallTo(() => _categoryService.GetCategoriesByCostCenterIdAsync(1))
+        A.CallTo(() => _formService.LoadTransactionAsync(42, A<CancellationToken>._))
+            .Returns(transaction);
+        A.CallTo(() => _formService.GetCategoriesForCostCenterAsync(1, A<CancellationToken>._))
             .Returns(new List<CategoryModel> { category });
-        A.CallTo(() => _itemDetailService.GetItemDetailByCategoryIdAsync(10))
+        A.CallTo(() => _formService.GetItemDetailsForCategoryAsync(10, A<CancellationToken>._))
             .Returns([]);
-        A.CallTo(() => _allocationService.GetOrCreateAllocationAsync("Admin", "Fees", null))
-            .Returns(allocation);
-        A.CallTo(() => _transactionService.UpdateTransactionAsync(A<TransactionModel>._, A<CancellationToken>._))
+        A.CallTo(() => _formService.SaveTransactionAsync(
+                A<TransactionModel>._, A<TransactionFormSelections>._, true, A<CancellationToken>._))
             .Returns(failResult);
 
         var cut = RenderDialog(transactionId: 42);
@@ -264,22 +238,15 @@ public class TransactionDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _notificationService.ShowOperationResultAsync(failResult)).MustHaveHappened();
+        A.CallTo(() => _notificationService.ShowResultAsync(failResult)).MustHaveHappened();
     }
 
     [Test]
-    public void CashRegisterChange_CallsGetLatestDocumentNumberWithRegisterId()
+    public void CashRegisterChange_CallsGetNextDocumentNumber()
     {
-        A.CallTo(() => _transactionService.GetLatestDocumentNumberAsync(2)).Returns(10);
-
         RenderDialog();
 
-        // In add mode with no selection, GetLatestDocumentNumberAsync should not be called
-        A.CallTo(() => _transactionService.GetLatestDocumentNumberAsync(A<int>._))
+        A.CallTo(() => _formService.GetNextDocumentNumberAsync(A<int>._, A<CancellationToken>._))
             .MustNotHaveHappened();
-
-        // The critical fix verified: OnCashRegisterChangedAsync calls
-        //   TransactionService.GetLatestDocumentNumberAsync(_selectedCashRegisterModel.Id)
-        // ensuring per-register document number lookup (was previously global).
     }
 }

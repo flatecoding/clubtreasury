@@ -1,6 +1,6 @@
 @inject IStringLocalizer<Translation> Localizer
 @inject ICultureService CultureService
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 @using Microsoft.Extensions.Localization
 @using ClubTreasury.Data.Culture
 @using ClubTreasury.Data.OperationResult
@@ -49,5 +49,5 @@
         MudDialog.Close(DialogResult.Ok(true));
     }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
 }

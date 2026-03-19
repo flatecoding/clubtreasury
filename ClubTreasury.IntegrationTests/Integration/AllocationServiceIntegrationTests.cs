@@ -98,7 +98,7 @@ public class AllocationServiceIntegrationTests : IntegrationTestBase
             CategoryId = category.Id
         };
         var firstResult = await _allocationService.AddAllocationAsync(firstAllocation);
-        firstResult.Status.Should().Be(OperationResultStatus.Success);
+        firstResult.IsSuccess.Should().BeTrue();
 
         // Act
         var duplicateAllocation = new AllocationModel
@@ -109,7 +109,7 @@ public class AllocationServiceIntegrationTests : IntegrationTestBase
         var duplicateResult = await _allocationService.AddAllocationAsync(duplicateAllocation);
 
         // Assert
-        duplicateResult.Status.Should().Be(OperationResultStatus.Warning);
+        duplicateResult.IsFailure.Should().BeTrue();
     }
 
     [Test]
@@ -149,7 +149,7 @@ public class AllocationServiceIntegrationTests : IntegrationTestBase
         var result = await _allocationService.DeleteAllocationAsync(allocation.Id);
 
         // Assert - should fail due to FK constraint
-        result.Status.Should().Be(OperationResultStatus.Failed);
+        result.IsFailure.Should().BeTrue();
 
         var stillExists = await GetDbContext().Allocations.FindAsync(allocation.Id);
         stillExists.Should().NotBeNull();

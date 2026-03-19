@@ -15,10 +15,19 @@ public class ImportBookingJournalService(
     ICashRegisterService cashRegisterService,
     ILogger<ImportBookingJournalService> logger,
     IStringLocalizer<Translation> localizer,
-    IOperationResultFactory operationResultFactory)
+    IResultFactory operationResultFactory)
     : IImportBookingJournalService
 {
-    public async Task<IOperationResult> ImportTransactions(Stream? fileStream, string fileName, int cashRegisterId, CancellationToken ct = default)
+    private const int DateCell = 0;
+    private const int DocumentCell = 1;
+    private const int DescriptionCell = 2;
+    private const int SumIncomeCell = 3;
+    private const int SumOutcomeCell = 4;
+    private const int AccountMovementCell = 5;
+    private const int CostCenterCategoryCell = 6;
+    private const string DefaultCategoryName = "Undefined";
+    private const char DocumentNumberPrefix = 'B';
+    public async Task<Result> ImportTransactionsAsync(Stream? fileStream, string fileName, int cashRegisterId, CancellationToken ct = default)
     {
         if (fileStream == null)
         {
@@ -40,7 +49,7 @@ public class ImportBookingJournalService(
                 return validationResult.ErrorResult!;
             }
 
-            var cashRegister = await cashRegisterService.GetCashRegisterById(cashRegisterId, ct);
+            var cashRegister = await cashRegisterService.GetCashRegisterByIdAsync(cashRegisterId, ct);
             if (cashRegister == null)
             {
                 logger.LogError("Cash register with ID {CashRegisterId} not found.", cashRegisterId);
@@ -81,7 +90,7 @@ public class ImportBookingJournalService(
                     };
 
                     var addResult = await transactionService.AddTransactionAsync(transaction, ct);
-                    if (addResult.Status == OperationResultStatus.Failed)
+                    if (addResult.IsFailure)
                     {
                         logger.LogError(
                             "Failed to add transaction for document number: {DocumentNumber}",
@@ -146,30 +155,24 @@ public class ImportBookingJournalService(
     {
         try
         {
-            const int cDateCell = 0;
-            if (!DateTime.TryParse(row.ItemArray.ElementAtOrDefault(cDateCell)?.ToString(), out var datum))
+            if (!DateTime.TryParse(row.ItemArray.ElementAtOrDefault(DateCell)?.ToString(), out var datum))
             {
                 logger.LogWarning("Invalid date in row: {@RowData}", row.ItemArray);
                 return null;
             }
 
-            const int cDocumentCell = 1;
-            var documentRaw = row.ItemArray[cDocumentCell]?.ToString()?.TrimStart('B');
+            var documentRaw = row.ItemArray[DocumentCell]?.ToString()?.TrimStart(DocumentNumberPrefix);
             if (!int.TryParse(documentRaw, out var documentNumber))
             {
                 logger.LogWarning("Invalid document number in row: {@RowData}", row.ItemArray);
                 return null;
             }
 
-            const int cDescriptionCell = 2;
-            var description = row.ItemArray[cDescriptionCell]?.ToString();
+            var description = row.ItemArray[DescriptionCell]?.ToString();
 
-            const int cSumIncomeCell = 3;
-            const int cSumOutcomeCell = 4;
-
-            var sumStr = row.ItemArray[cSumIncomeCell]?.ToString()?.Trim();
+            var sumStr = row.ItemArray[SumIncomeCell]?.ToString()?.Trim();
             if (string.IsNullOrEmpty(sumStr))
-                sumStr = row.ItemArray[cSumOutcomeCell]?.ToString()?.Trim();
+                sumStr = row.ItemArray[SumOutcomeCell]?.ToString()?.Trim();
 
             if (!decimal.TryParse(sumStr, out var sumValue))
             {
@@ -178,15 +181,13 @@ public class ImportBookingJournalService(
             }
 
             var accountMovement = 0m;
-            const int cAccountMovementCell = 5;
-            if (row.ItemArray[cAccountMovementCell] != DBNull.Value &&
-                decimal.TryParse(row.ItemArray[5]?.ToString(), out var accMove))
+            if (row.ItemArray[AccountMovementCell] != DBNull.Value &&
+                decimal.TryParse(row.ItemArray[AccountMovementCell]?.ToString(), out var accMove))
             {
                 accountMovement = accMove;
             }
 
-            const int cCostCenterCategoryCell = 6;
-            var costCenterCategory = row.ItemArray[cCostCenterCategoryCell]?.ToString();
+            var costCenterCategory = row.ItemArray[CostCenterCategoryCell]?.ToString();
             var parts = costCenterCategory?.Split('/');
             if (parts != null && parts.Length != 0)
                 return new BookingJournalRowDto
@@ -197,7 +198,7 @@ public class ImportBookingJournalService(
                     Sum = sumValue,
                     AccountMovement = accountMovement,
                     CostCenterName = parts[0].Trim(),
-                    CategoryName = parts.Length >= 2 ? parts[1].Trim() : "Undefined"
+                    CategoryName = parts.Length >= 2 ? parts[1].Trim() : DefaultCategoryName
                 };
             logger.LogWarning("Missing cost center info in row: {@RowData}", row.ItemArray);
             return null;
@@ -299,5 +300,5 @@ public class ImportBookingJournalService(
 public record ValidationResult
 {
     public bool IsValid { get; init; }
-    public IOperationResult? ErrorResult { get; init; }
+    public Result? ErrorResult { get; init; }
 }

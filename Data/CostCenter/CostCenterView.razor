@@ -1,12 +1,10 @@
-﻿@page "/costCenters"
-@using Microsoft.Extensions.Localization
-@using ClubTreasury.Data.DialogService
-@using ClubTreasury.Data.Notification
+@page "/costCenters"
+@using ClubTreasury.Components.View
 @using ClubTreasury.Data.OperationResult
+
+@inherits CrudViewBase<CostCenterModel, CostCenterDialog>
+
 @inject ICostCenterService CostCenterService
-@inject IDialogService DialogService
-@inject INotificationService NotificationService
-@inject IStringLocalizer<Translation> Localizer
 
 <MudGrid Spacing="0">
     <MudItem xs="12">
@@ -16,26 +14,28 @@
     </MudItem>
     <MudItem xs="12" md="10" lg="4">
         <MudPaper Elevation="0">
-            <MudTable Items="@_allEntries" Dense="@Dense" Hover="@Hover" Bordered="@Bordered" Striped="@Striped" FixedHeader="true"
-                      @bind-SelectedItem="_selectedItem"
+            <MudTable Items="@AllEntries"
+                      Dense="true"
+                      Hover="true"
+                      Bordered="false"
+                      Striped="true"
+                      FixedHeader="true"
+                      @bind-SelectedItem="SelectedItem"
                       Filter="new Func<CostCenterModel, bool>(FilterFunc)"
                       SortLabel="Sort By">
                 <ToolBarContent>
-                    <MudIconButton
-                        Variant="Variant.Filled"
+                    <MudIconButton Variant="Variant.Filled"
                                Icon="@Icons.Material.Filled.Add"
                                Color="Color.Primary"
-                               OnClick="@(() => ShowAddCostUnitDialog())">
+                               OnClick="@ShowAddDialog">
                     </MudIconButton>
                     <MudSpacer/>
-                    <MudTextField
-                        @bind-Value="_searchTerm"
-                        Placeholder="Search"
-                        Adornment="Adornment.Start"
-                        AdornmentIcon="@Icons.Material.Filled.Search"
-                        IconSize="Size.Medium"
-                        Class="mt-0">
-                    </MudTextField>
+                    <MudTextField @bind-Value="SearchTerm"
+                                  Placeholder="Search"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium"
+                                  Class="mt-0" />
                 </ToolBarContent>
                 <HeaderContent>
                     <MudTh>
@@ -45,10 +45,10 @@
                         </MudTableSortLabel>
                     </MudTh>
                     <MudTh>
-                        <MudTableSortLabel 
+                        <MudTableSortLabel
                             SortBy="new Func<CostCenterModel, object>(x => x.CostUnitName)">
                             @Localizer["Name"]
-                            </MudTableSortLabel>
+                        </MudTableSortLabel>
                     </MudTh>
                     <MudTh>@Localizer["Actions"]</MudTh>
                 </HeaderContent>
@@ -56,10 +56,14 @@
                     <MudTd DataLabel="@Localizer["Id"].Value">@context.Id</MudTd>
                     <MudTd DataLabel="@Localizer["Name"].Value">@context.CostUnitName</MudTd>
                     <MudTd DataLabel="Actions">
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" aria-label="edit"
-                                       OnClick="@(() => ShowEditCostUnitDialog(context.Id))"/>
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" aria-label="delete"
-                                       OnClick="@(() => ShowDeleteCostUnitDialog(context))"></MudIconButton>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Info"
+                                       aria-label="edit"
+                                       OnClick="@(() => ShowEditDialog(context.Id))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       aria-label="delete"
+                                       OnClick="@(() => ShowDeleteDialog(context))" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -71,67 +75,20 @@
 </MudGrid>
 
 @code {
-    private IEnumerable<CostCenterModel>? _allEntries;
-    private const bool Dense = true;
-    private const bool Hover = true;
-    private const bool Striped = true;
-    private const bool Bordered = false;
-    private string _searchTerm = string.Empty;
-    private CostCenterModel _selectedItem = new();
+    protected override string EntityIdParameterName => "CostCenterId";
+    protected override string EntityLocalizedName => Localizer["CostCenter"];
+    protected override int GetEntityId(CostCenterModel entity) => entity.Id;
+    protected override string GetEntityDisplayName(CostCenterModel entity) => entity.CostUnitName;
+    protected override Task<List<CostCenterModel>> LoadAllAsync() => CostCenterService.GetAllCostCentersAsync();
+    protected override Task<Result> DeleteEntityAsync(int id) => CostCenterService.DeleteCostCenterAsync(id);
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        _allEntries = await CostCenterService.GetAllCostCentersAsync();
-    }
-
-    private bool FilterFunc(CostCenterModel element) => MatchesFilter(element, _searchTerm);
-
-    private static bool MatchesFilter(CostCenterModel? element, string searchTerm)
+    protected override bool MatchesFilter(CostCenterModel? element, string searchTerm)
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
             return true;
         if (element is null)
             return false;
 
-        var lowerString = searchTerm.ToLowerInvariant();
-        return element.CostUnitName.ToLower().Contains(lowerString);
-    }
-
-    private async Task ShowAddCostUnitDialog()
-    {
-        var result = await DialogService.ShowDialogWithNotificationAsync<CostCenterDialog>(NotificationService);
-        if (result?.Status is OperationResultStatus.Success)
-        {
-            await UpdateView();    
-        }
-    }
-
-    private async Task ShowEditCostUnitDialog(int costUnitId)
-    {
-        var result = await DialogService.ShowDialogWithNotificationAsync<CostCenterDialog>(NotificationService,
-            $"{Localizer["Edit"]}", 
-            new DialogParameters { ["CostCenterId"] = costUnitId });
-        if (result?.Status is OperationResultStatus.Success)
-        {
-            await UpdateView();
-        }
-    }
-
-    private async Task ShowDeleteCostUnitDialog(CostCenterModel costCenter)
-    {
-        await DialogService.ShowConfirmDeleteDialogAsync(
-            NotificationService,
-            entityName: Localizer["CostCenter"].Value,
-            itemName: $"{costCenter.CostUnitName}",
-            onConfirm: () => CostCenterService.DeleteCostCenterAsync(costCenter.Id),
-            onSuccess: UpdateView,
-            deleteTitle: Localizer["Delete"]);
-    }
-
-    private async Task UpdateView()
-    {
-        _allEntries = await CostCenterService.GetAllCostCentersAsync();
-        await InvokeAsync(StateHasChanged);
+        return element.CostUnitName.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant());
     }
 }

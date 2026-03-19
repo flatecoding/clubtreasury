@@ -19,7 +19,7 @@ public class ImportBookingJournalServiceTests
     private ICashRegisterService _cashRegisterService = null!;
     private ILogger<ImportBookingJournalService> _logger = null!;
     private IStringLocalizer<Translation> _localizer = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
     private ImportBookingJournalService _sut = null!;
 
     [SetUp]
@@ -30,7 +30,7 @@ public class ImportBookingJournalServiceTests
         _cashRegisterService = A.Fake<ICashRegisterService>();
         _logger = A.Fake<ILogger<ImportBookingJournalService>>();
         _localizer = A.Fake<IStringLocalizer<Translation>>();
-        _operationResultFactory = A.Fake<IOperationResultFactory>();
+        _resultFactory = A.Fake<IResultFactory>();
 
         SetupLocalizer();
 
@@ -40,7 +40,7 @@ public class ImportBookingJournalServiceTests
             _cashRegisterService,
             _logger,
             _localizer,
-            _operationResultFactory);
+            _resultFactory);
     }
 
     private void SetupLocalizer()
@@ -96,16 +96,12 @@ public class ImportBookingJournalServiceTests
     public async Task ImportTransactions_WhenFileStreamIsNull_ShouldReturnImportFailed()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "File stream error"
-        };
-        A.CallTo(() => _operationResultFactory.ImportFailed(A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "File stream error"));
+        A.CallTo(() => _resultFactory.ImportFailed(A<string>._))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(null, "test.xlsx", 1);
+        var result = await _sut.ImportTransactionsAsync(null, "test.xlsx", 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -138,16 +134,12 @@ public class ImportBookingJournalServiceTests
                 A<string>._, A<string>._, A<string?>._))
             .Returns(allocation);
 
-        var addResult = new OperationResult { Status = OperationResultStatus.Success };
+        var addResult = Result.Success();
         A.CallTo(() => _transactionService.AddTransactionAsync(A<TransactionModel>._, A<CancellationToken>._))
             .Returns(addResult);
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Import successful"
-        };
-        A.CallTo(() => _operationResultFactory.ImportSuccessful(fileName))
+        var expectedResult = Result.Success("Import successful");
+        A.CallTo(() => _resultFactory.ImportSuccessful(fileName))
             .Returns(expectedResult);
         
         TransactionModel? importedTransaction = null;
@@ -160,7 +152,7 @@ public class ImportBookingJournalServiceTests
             .Returns(addResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, fileName, 1);
+        var result = await _sut.ImportTransactionsAsync(stream, fileName, 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -193,19 +185,15 @@ public class ImportBookingJournalServiceTests
             ws.Cells[1, 7].Value = "Marketing/Advertising";
         });
 
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1))
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1))
             .Returns((CashRegisterModel?)null);
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Not found"
-        };
-        A.CallTo(() => _operationResultFactory.NotFound(A<string>._, A<object>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Not found"));
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, A<object>._))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, "bookings.xlsx", 1);
+        var result = await _sut.ImportTransactionsAsync(stream, "bookings.xlsx", 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -246,16 +234,16 @@ public class ImportBookingJournalServiceTests
                 A<string>._, A<string>._, A<string?>._))
             .Returns(allocation);
 
-        var addResult = new OperationResult { Status = OperationResultStatus.Success };
+        var addResult = Result.Success();
         A.CallTo(() => _transactionService.AddTransactionAsync(A<TransactionModel>._, A<CancellationToken>._))
             .Returns(addResult);
 
-        var expectedResult = new OperationResult { Status = OperationResultStatus.Success };
-        A.CallTo(() => _operationResultFactory.ImportSuccessful(fileName))
+        var expectedResult = Result.Success();
+        A.CallTo(() => _resultFactory.ImportSuccessful(fileName))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, fileName, 1);
+        var result = await _sut.ImportTransactionsAsync(stream, fileName, 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -290,20 +278,16 @@ public class ImportBookingJournalServiceTests
                 A<string>._, A<string>._, A<string?>._))
             .Returns(allocation);
 
-        var addResult = new OperationResult { Status = OperationResultStatus.Failed };
+        var addResult = Result.Failure(new Error("Test.Error", "Failed"));
         A.CallTo(() => _transactionService.AddTransactionAsync(A<TransactionModel>._, A<CancellationToken>._))
             .Returns(addResult);
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Import failed"
-        };
-        A.CallTo(() => _operationResultFactory.ImportFailed(A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Import failed"));
+        A.CallTo(() => _resultFactory.ImportFailed(A<string>._))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, "bookings.xlsx", 1);
+        var result = await _sut.ImportTransactionsAsync(stream, "bookings.xlsx", 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -315,16 +299,12 @@ public class ImportBookingJournalServiceTests
         // Arrange
         using var stream = CreateExcelStream(_ => { }); // Empty sheet
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "No data"
-        };
-        A.CallTo(() => _operationResultFactory.ImportFailed(A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "No data"));
+        A.CallTo(() => _resultFactory.ImportFailed(A<string>._))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, "empty.xlsx", 1);
+        var result = await _sut.ImportTransactionsAsync(stream, "empty.xlsx", 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -346,19 +326,15 @@ public class ImportBookingJournalServiceTests
             ws.Cells[1, 7].Value = "Marketing/Advertising";
         });
 
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1))
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1))
             .Throws(new Exception("Database error"));
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "An error occurred"
-        };
-        A.CallTo(() => _operationResultFactory.ImportFailed(A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "An error occurred"));
+        A.CallTo(() => _resultFactory.ImportFailed(A<string>._))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, "bookings.xlsx", 1);
+        var result = await _sut.ImportTransactionsAsync(stream, "bookings.xlsx", 1);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -399,16 +375,16 @@ public class ImportBookingJournalServiceTests
                 A<string>._, A<string>._, A<string?>._))
             .Returns(allocation);
 
-        var addResult = new OperationResult { Status = OperationResultStatus.Success };
+        var addResult = Result.Success();
         A.CallTo(() => _transactionService.AddTransactionAsync(A<TransactionModel>._, A<CancellationToken>._))
             .Returns(addResult);
 
-        var expectedResult = new OperationResult { Status = OperationResultStatus.Success };
-        A.CallTo(() => _operationResultFactory.ImportSuccessful(fileName))
+        var expectedResult = Result.Success();
+        A.CallTo(() => _resultFactory.ImportSuccessful(fileName))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportTransactions(stream, fileName, 1);
+        var result = await _sut.ImportTransactionsAsync(stream, fileName, 1);
 
         // Assert
         result.Should().Be(expectedResult);

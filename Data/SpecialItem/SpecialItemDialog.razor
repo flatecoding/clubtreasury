@@ -1,81 +1,45 @@
-@page "/specialitemdialog"
-@using Microsoft.Extensions.Localization
-@using ClubTreasury.Data.Notification
+@using ClubTreasury.Components.Dialog
 @using ClubTreasury.Data.OperationResult
 
+@inherits SimpleEntityDialogBase<SpecialItemModel>
+
 @inject ISpecialItemService SpecialItemService
-@inject IStringLocalizer<Translation> Localizer
-@inject INotificationService NotificationService
-@inject IOperationResultFactory OperationResultFactory
 @inject SpecialItemValidator SpecialItemValidator
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form"
-                 Model="_specialItemModel"
-                 Validation="SpecialItemValidator.ValidateValue"
+        <MudForm @ref="Form"
+                 Model="Model"
+                 Validation="ValidateValue"
                  ValidationDelay="0"
                  OnEnterPressed="@Save">
 
-            <MudTextField @bind-Value="_specialItemModel.Name"
+            <MudTextField @bind-Value="Model.Name"
                           Label="@Localizer["Name"]"
-                          For="@(() => _specialItemModel.Name)"
+                          For="@(() => Model.Name)"
                           Immediate="true" />
         </MudForm>
     </DialogContent>
 
     <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="@(async () => await Save())">
-            @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
+        <MudButton Color="Color.Primary"
+                   OnClick="@(async () => await Save())">
+            @(IsEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
-        <MudButton Color="Color.Secondary" OnClick="@Cancel">@Localizer["Cancel"]</MudButton>
+
+        <MudButton Color="Color.Secondary"
+                   OnClick="@Cancel">
+            @Localizer["Cancel"]
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [Parameter] public int? SpecialItemId { get; set; }
 
-    [CascadingParameter]
-    IMudDialogInstance MudDialog { get; set; } = null!;
-
-    private MudForm _form = new();
-    private SpecialItemModel _specialItemModel = new();
-    private bool _isEditMode;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _isEditMode = SpecialItemId.HasValue;
-        await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
-        await LoadSpecialItemAsync();
-    }
-
-    private async Task LoadSpecialItemAsync()
-    {
-        if (!_isEditMode)
-        {
-            _specialItemModel = new SpecialItemModel();
-            return;
-        }
-
-        _specialItemModel = await SpecialItemService.GetSpecialPositionById(SpecialItemId!.Value)
-                            ?? new SpecialItemModel();
-    }
-
-    private async Task Save()
-    {
-        await _form.Validate();
-        if (!_form.IsValid)
-            return;
-
-        var result = _isEditMode
-            ? await SpecialItemService.UpdateSpecialPositionAsync(_specialItemModel)
-            : await SpecialItemService.AddSpecialPositionAsync(_specialItemModel);
-
-        if (result.Status is OperationResultStatus.Success)
-            MudDialog.Close(DialogResult.Ok(result));
-        else
-            await NotificationService.ShowOperationResultAsync(result);
-    }
-
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    protected override int? EntityId => SpecialItemId;
+    protected override Func<object, string, Task<IEnumerable<string>>> ValidateValue => SpecialItemValidator.ValidateValue;
+    protected override Task<SpecialItemModel?> LoadEntityAsync(int id) => SpecialItemService.GetSpecialPositionByIdAsync(id);
+    protected override Task<Result> AddEntityAsync(SpecialItemModel model) => SpecialItemService.AddSpecialPositionAsync(model);
+    protected override Task<Result> UpdateEntityAsync(SpecialItemModel model) => SpecialItemService.UpdateSpecialPositionAsync(model);
 }

@@ -6,6 +6,7 @@
 @using ClubTreasury.Data.CashRegister
 @using ClubTreasury.Data.Transaction
 @inject ICashRegisterService CashRegisterService
+@inject ICashRegisterLogoService CashRegisterLogoService
 @inject ITransactionService TransactionService
 @using ClubTreasury.Data.ThemeSetting
 @inject IStringLocalizer<Translation> Localizer
@@ -102,11 +103,11 @@
 
         UserPrefService.PropertyChanged += OnUserPrefChanged;
 
-        _allRegisters = (await CashRegisterService.GetAllCashRegisters()).ToList();
+        _allRegisters = (await CashRegisterService.GetAllCashRegistersAsync()).ToList();
 
         foreach (var register in _allRegisters)
         {
-            var logo = await CashRegisterService.GetLogoAsync(register.Id);
+            var logo = await CashRegisterLogoService.GetLogoAsync(register.Id);
             if (logo is not null)
                 _logoDataUris[register.Id] = $"data:{logo.Value.ContentType};base64,{Convert.ToBase64String(logo.Value.Data)}";
         }
@@ -216,14 +217,14 @@
 
     private async Task<double> CalculateStartingBalanceAsync(int registerId, DateTime fiscalYearStart)
     {
-        var priorTransactions = await TransactionService.GetTransactionsForExport(
+        var priorTransactions = await TransactionService.GetTransactionsForExportAsync(
             DateTime.MinValue, fiscalYearStart.AddDays(-1), registerId);
         return (double)priorTransactions.Sum(t => t.AccountMovement);
     }
 
     private async Task<List<TransactionModel>> GetOrderedTransactionsAsync(int registerId, DateTime from, DateTime to)
     {
-        return (await TransactionService.GetTransactionsForExport(from, to, registerId))
+        return (await TransactionService.GetTransactionsForExportAsync(from, to, registerId))
             .OrderBy(t => t.Date)
             .ToList();
     }

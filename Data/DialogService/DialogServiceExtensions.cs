@@ -15,8 +15,8 @@ public static class DialogServiceExtensions
         BackdropClick = false,
         CloseButton = false
     };
-    
-    public static async Task<IOperationResult?> ShowDialogWithNotificationAsync<T>(
+
+    public static async Task<Result?> ShowDialogWithNotificationAsync<T>(
         this IDialogService dialogService,
         INotificationService notificationService,
         string title = "",
@@ -28,11 +28,11 @@ public static class DialogServiceExtensions
         var dialog = await dialogService.ShowAsync<T>(title, parameters, options: mergedOptions);
         var result = await dialog.Result;
 
-        if (result?.Data is not IOperationResult operationResult) return null;
-        await notificationService.ShowOperationResultAsync(operationResult);
+        if (result?.Data is not Result operationResult) return null;
+        await notificationService.ShowResultAsync(operationResult);
         return operationResult;
     }
-    
+
     public static async Task ShowConfirmDeleteDialogAsync(
         this IDialogService dialogService,
         INotificationService notificationService,
@@ -49,7 +49,7 @@ public static class DialogServiceExtensions
             ["ItemName"] = itemName,
             ["OnConfirm"] = EventCallback.Factory.Create(dialogService, onConfirm)
         };
-        
+
         var mergedOptions = MergeOptions(options);
 
         var result = await dialogService.ShowDialogWithNotificationAsync<ConfirmDeleteDialog>(
@@ -58,12 +58,12 @@ public static class DialogServiceExtensions
             parameters: parameters,
             options: mergedOptions);
 
-        if (result?.Status == OperationResultStatus.Success && onSuccess != null)
+        if (result is { IsSuccess: true } && onSuccess != null)
         {
             await onSuccess();
         }
     }
-    
+
     private static DialogOptions MergeOptions(DialogOptions? overrides)
     {
         if (overrides is null)

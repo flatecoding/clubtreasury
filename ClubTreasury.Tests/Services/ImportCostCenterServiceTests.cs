@@ -15,7 +15,7 @@ public class ImportCostCenterServiceTests
     private IAllocationService _allocationService = null!;
     private ILogger<ImportCostCenterService> _logger = null!;
     private IStringLocalizer<ClubTreasury.Resources.Translation> _localizer = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
     private ImportCostCenterService _sut = null!;
 
     [SetUp]
@@ -24,7 +24,7 @@ public class ImportCostCenterServiceTests
         _allocationService = A.Fake<IAllocationService>();
         _logger = A.Fake<ILogger<ImportCostCenterService>>();
         _localizer = A.Fake<IStringLocalizer<ClubTreasury.Resources.Translation>>();
-        _operationResultFactory = A.Fake<IOperationResultFactory>();
+        _resultFactory = A.Fake<IResultFactory>();
 
         A.CallTo(() => _localizer["FileStreamError"])
             .Returns(new LocalizedString("FileStreamError", "File stream error"));
@@ -37,7 +37,7 @@ public class ImportCostCenterServiceTests
             _allocationService,
             _logger,
             _localizer,
-            _operationResultFactory);
+            _resultFactory);
     }
 
     private static MemoryStream CreateFileStream(string content)
@@ -52,16 +52,12 @@ public class ImportCostCenterServiceTests
     public async Task ImportCostCentersAndPositions_WhenFileStreamIsNull_ShouldReturnImportFailed()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "File stream error"
-        };
-        A.CallTo(() => _operationResultFactory.ImportFailed(A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "File stream error"));
+        A.CallTo(() => _resultFactory.ImportFailed(A<string>._))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(null, "test.txt");
+        var result = await _sut.ImportCostCentersAndPositionsAsync(null, "test.txt");
 
         // Assert
         result.Should().Be(expectedResult);
@@ -82,12 +78,8 @@ public class ImportCostCenterServiceTests
         using var stream = CreateFileStream(fileContent);
         const string fileName = "costcenters.txt";
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Import successful"
-        };
-        A.CallTo(() => _operationResultFactory.ImportSuccessful(fileName))
+        var expectedResult = Result.Success("Import successful");
+        A.CallTo(() => _resultFactory.ImportSuccessful(fileName))
             .Returns(expectedResult);
 
         A.CallTo(() => _allocationService.GetOrCreateAllocationAsync(
@@ -95,7 +87,7 @@ public class ImportCostCenterServiceTests
             .Returns(new AllocationModel());
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -118,12 +110,8 @@ public class ImportCostCenterServiceTests
         using var stream = CreateFileStream(fileContent);
         const string fileName = "costcenters.txt";
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Import successful"
-        };
-        A.CallTo(() => _operationResultFactory.ImportSuccessful(fileName))
+        var expectedResult = Result.Success("Import successful");
+        A.CallTo(() => _resultFactory.ImportSuccessful(fileName))
             .Returns(expectedResult);
 
         A.CallTo(() => _allocationService.GetOrCreateAllocationAsync(
@@ -131,7 +119,7 @@ public class ImportCostCenterServiceTests
             .Returns(new AllocationModel());
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -153,12 +141,8 @@ public class ImportCostCenterServiceTests
         using var stream = CreateFileStream(fileContent);
         const string fileName = "costcenters.txt";
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Import successful"
-        };
-        A.CallTo(() => _operationResultFactory.ImportSuccessful(fileName))
+        var expectedResult = Result.Success("Import successful");
+        A.CallTo(() => _resultFactory.ImportSuccessful(fileName))
             .Returns(expectedResult);
 
         A.CallTo(() => _allocationService.GetOrCreateAllocationAsync(
@@ -166,7 +150,7 @@ public class ImportCostCenterServiceTests
             .Returns(new AllocationModel());
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -183,16 +167,12 @@ public class ImportCostCenterServiceTests
         using var stream = CreateFileStream(fileContent);
         const string fileName = "empty.txt";
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Import successful"
-        };
-        A.CallTo(() => _operationResultFactory.ImportSuccessful(fileName))
+        var expectedResult = Result.Success("Import successful");
+        A.CallTo(() => _resultFactory.ImportSuccessful(fileName))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -209,12 +189,8 @@ public class ImportCostCenterServiceTests
         using var stream = CreateFileStream(fileContent);
         const string fileName = "costcenters.txt";
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Import successful"
-        };
-        A.CallTo(() => _operationResultFactory.ImportSuccessful(fileName))
+        var expectedResult = Result.Success("Import successful");
+        A.CallTo(() => _resultFactory.ImportSuccessful(fileName))
             .Returns(expectedResult);
 
         A.CallTo(() => _allocationService.GetOrCreateAllocationAsync(
@@ -222,7 +198,7 @@ public class ImportCostCenterServiceTests
             .Returns(new AllocationModel());
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -239,12 +215,8 @@ public class ImportCostCenterServiceTests
         using var stream = CreateFileStream(fileContent);
         const string fileName = "costcenters.txt";
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Import successful"
-        };
-        A.CallTo(() => _operationResultFactory.ImportSuccessful(fileName))
+        var expectedResult = Result.Success("Import successful");
+        A.CallTo(() => _resultFactory.ImportSuccessful(fileName))
             .Returns(expectedResult);
 
         A.CallTo(() => _allocationService.GetOrCreateAllocationAsync(
@@ -252,7 +224,7 @@ public class ImportCostCenterServiceTests
             .Returns(new AllocationModel());
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -273,16 +245,12 @@ public class ImportCostCenterServiceTests
                 A<string>._, A<string>._, A<string?>._))
             .Throws(new Exception("Database error"));
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "An error occurred"
-        };
-        A.CallTo(() => _operationResultFactory.ImportFailed(A<string>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "An error occurred"));
+        A.CallTo(() => _resultFactory.ImportFailed(A<string>._))
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ImportCostCentersAndPositions(stream, fileName);
+        var result = await _sut.ImportCostCentersAndPositionsAsync(stream, fileName);
 
         // Assert
         result.Should().Be(expectedResult);

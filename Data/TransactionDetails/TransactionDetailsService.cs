@@ -5,36 +5,33 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.TransactionDetails;
 
 public class TransactionDetailsService(CashDataContext context, ILogger<TransactionDetailsService> logger,
-    IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory)
+    IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory)
     : ITransactionDetailsService
 {
     private string EntityName => localizer["TransactionDetails"];
     public async Task<List<TransactionDetailsModel>> GetAllTransactionDetailsAsync(CancellationToken ct = default)
     {
         return await context.TransactionDetails
-            .Include(st => st.Transaction)
-            .Include(st => st.Person)
+            .WithTransactionAndPerson()
             .ToListAsync(ct);
     }
 
     public async Task<TransactionDetailsModel?> GetTransactionDetailsByIdAsync(int id, CancellationToken ct = default)
     {
         return await context.TransactionDetails
-            .Include(st => st.Transaction)
-            .Include(st => st.Person)
+            .WithTransactionAndPerson()
             .FirstOrDefaultAsync(st => st.Id == id, ct);
     }
 
     public async Task<List<TransactionDetailsModel>> GetTransactionDetailsByTransactionIdAsync(int transactionId, CancellationToken ct = default)
     {
         return await context.TransactionDetails
-            .Include(st => st.Transaction)
-            .Include(st => st.Person)
+            .WithTransactionAndPerson()
             .Where(st => st.TransactionId == transactionId)
             .ToListAsync(ct);
     }
 
-    public async Task<IOperationResult> AddTransactionDetailsAsync(TransactionDetailsModel detailsModel, CancellationToken ct = default)
+    public async Task<Result> AddTransactionDetailsAsync(TransactionDetailsModel detailsModel, CancellationToken ct = default)
     {
         try
         {
@@ -48,13 +45,13 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
         }
         catch (Exception e)
         {
-            logger.LogCritical(EntityName, e);
+            logger.LogError(EntityName, e);
             return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
         }
 
     }
 
-    public async Task<IOperationResult> UpdateTransactionDetailsAsync(TransactionDetailsModel detailsModel, CancellationToken ct = default)
+    public async Task<Result> UpdateTransactionDetailsAsync(TransactionDetailsModel detailsModel, CancellationToken ct = default)
     {
         try
         {
@@ -67,12 +64,12 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
         }
         catch (Exception e)
         {
-            logger.LogCritical(EntityName, e);
+            logger.LogError(EntityName, e);
             return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
         }
     }
 
-    public async Task<IOperationResult> DeleteTransactionDetailsAsync(int id, CancellationToken ct = default)
+    public async Task<Result> DeleteTransactionDetailsAsync(int id, CancellationToken ct = default)
     {
         try
         {
@@ -90,12 +87,12 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
         }
         catch (DbUpdateException dbUpdateException)
         {
-            logger.LogCritical(dbUpdateException, "An exception occurred while deleting transaction with id: {Id}", id);
+            logger.LogError(dbUpdateException, "An exception occurred while deleting transaction with id: {Id}", id);
             return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
         catch (Exception ex)
         {
-            logger.LogCritical(ex, "An exception occurred while deleting transaction with id: {Id}", id);
+            logger.LogError(ex, "An exception occurred while deleting transaction with id: {Id}", id);
             return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
     }

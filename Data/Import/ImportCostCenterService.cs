@@ -8,10 +8,10 @@ public class ImportCostCenterService(
     IAllocationService allocationService,
     ILogger<ImportCostCenterService> logger,
     IStringLocalizer<Resources.Translation> localizer,
-    IOperationResultFactory operationResultFactory)
+    IResultFactory operationResultFactory)
     : IImportCostCenterService
 {
-    public async Task<IOperationResult> ImportCostCentersAndPositions(
+    public async Task<Result> ImportCostCentersAndPositionsAsync(
         Stream? fileStream,
         string fileName,
         CancellationToken ct = default)

@@ -7,20 +7,20 @@ namespace ClubTreasury.Data.CashRegister
     public class CashRegisterService(
         CashDataContext context,
         ILogger<CashRegisterService> logger,
-        IOperationResultFactory operationResultFactory,
+        IResultFactory operationResultFactory,
         IStringLocalizer<Translation> localizer)
         : ICashRegisterService
     {
         private string EntityName => localizer["CashRegister"];
 
-        public async Task<List<CashRegisterModel>> GetAllCashRegisters(CancellationToken ct = default)
+        public async Task<List<CashRegisterModel>> GetAllCashRegistersAsync(CancellationToken ct = default)
         {
             return await context.CashRegisters
                 .Include(t => t.Transactions)
                 .ToListAsync(ct);
         }
 
-        public async Task<CashRegisterModel?> GetCashRegisterById(int id, CancellationToken ct = default)
+        public async Task<CashRegisterModel?> GetCashRegisterByIdAsync(int id, CancellationToken ct = default)
         {
             var cashRegister = await context.CashRegisters.FindAsync([id], ct);
             if (cashRegister is not null)
@@ -46,7 +46,7 @@ namespace ClubTreasury.Data.CashRegister
             return null;
         }
 
-        public async Task<IOperationResult> AddCashRegister(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
+        public async Task<Result> AddCashRegisterAsync(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace ClubTreasury.Data.CashRegister
             }
         }
 
-        public async Task<IOperationResult> UpdateCashRegister(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
+        public async Task<Result> UpdateCashRegisterAsync(CashRegisterModel cashRegisterModel, CancellationToken ct = default)
         {
             try
             {
@@ -80,7 +80,7 @@ namespace ClubTreasury.Data.CashRegister
         }
 
 
-        public async Task<IOperationResult> DeleteCashRegisterAsync(int id, CancellationToken ct = default)
+        public async Task<Result> DeleteCashRegisterAsync(int id, CancellationToken ct = default)
         {
             try
             {
@@ -103,68 +103,5 @@ namespace ClubTreasury.Data.CashRegister
             }
         }
 
-        public async Task<(byte[] Data, string ContentType)?> GetLogoAsync(int cashRegisterId, CancellationToken ct = default)
-        {
-            var logo = await context.CashRegisterLogos
-                .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId, ct);
-            return logo is not null ? (logo.Data, logo.ContentType) : null;
-        }
-
-        public async Task<IOperationResult> UploadLogoAsync(int cashRegisterId, byte[] data, string contentType, CancellationToken ct = default)
-        {
-            try
-            {
-                var logo = await context.CashRegisterLogos
-                    .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId, ct);
-
-                if (logo is not null)
-                {
-                    logo.Data = data;
-                    logo.ContentType = contentType;
-                }
-                else
-                {
-                    logo = new CashRegisterLogoModel
-                    {
-                        CashRegisterId = cashRegisterId,
-                        Data = data,
-                        ContentType = contentType
-                    };
-                    context.CashRegisterLogos.Add(logo);
-                }
-
-                await context.SaveChangesAsync(ct);
-                logger.LogInformation("Logo uploaded for cash register {CashRegisterId}", cashRegisterId);
-                return operationResultFactory.SuccessUpdated(EntityName);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error uploading logo for cash register {CashRegisterId}", cashRegisterId);
-                return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
-            }
-        }
-
-        public async Task<IOperationResult> DeleteLogoAsync(int cashRegisterId, CancellationToken ct = default)
-        {
-            try
-            {
-                var logo = await context.CashRegisterLogos
-                    .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId, ct);
-
-                if (logo is not null)
-                {
-                    context.CashRegisterLogos.Remove(logo);
-                    await context.SaveChangesAsync(ct);
-                    logger.LogInformation("Logo deleted for cash register {CashRegisterId}", cashRegisterId);
-                }
-
-                return operationResultFactory.SuccessDeleted(EntityName);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error deleting logo for cash register {CashRegisterId}", cashRegisterId);
-                return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
-            }
-        }
     }
 }

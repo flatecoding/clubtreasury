@@ -3,7 +3,6 @@
 @using Microsoft.Extensions.Localization
 @using ClubTreasury.Data.DialogService
 @using ClubTreasury.Data.Notification
-@using ClubTreasury.Data.OperationResult
 @using ClubTreasury.Data.Transaction.Dialogs
 @using ClubTreasury.Data.TransactionDetails
 @inject ITransactionService TransactionService
@@ -226,7 +225,7 @@
             },
             new DialogOptions(){MaxWidth = MaxWidth.Large});
         
-        if(result?.Status is OperationResultStatus.Success)
+        if(result is { IsSuccess: true })
             await UpdateView();
         
     }
@@ -238,7 +237,7 @@
             null,
             new DialogOptions(){MaxWidth = MaxWidth.Small});
         
-        if(result?.Status is OperationResultStatus.Success)
+        if(result is { IsSuccess: true })
             await UpdateView();
     }
 
@@ -250,7 +249,7 @@
             new DialogParameters { ["TransactionId"] = transactionId },
             new DialogOptions(){MaxWidth = MaxWidth.Small});
         
-        if(result?.Status is OperationResultStatus.Success)
+        if(result is { IsSuccess: true })
             await UpdateView();
     }
     
@@ -293,12 +292,24 @@
     
     private async Task<TableData<TransactionModel?>> LoadServerData(TableState state, CancellationToken cancellationToken)
     {
-        var result = await TransactionService.GetTransactionsPaged(
-            state,
-            cancellationToken,
-            _dateRange,
-            _searchTerm,
-            _personId);
-        return new TableData<TransactionModel?> { Items = result.Items, TotalItems = result.TotalItems };  
+        var request = new PagedRequest
+        {
+            Page = state.Page,
+            PageSize = state.PageSize,
+            SortLabel = state.SortLabel,
+            SortDirection = state.SortDirection switch
+            {
+                MudBlazor.SortDirection.Ascending => SortDirection.Ascending,
+                MudBlazor.SortDirection.Descending => SortDirection.Descending,
+                _ => SortDirection.None
+            },
+            DateStart = _dateRange.Start,
+            DateEnd = _dateRange.End,
+            SearchText = _searchTerm,
+            PersonId = _personId
+        };
+
+        var result = await TransactionService.GetTransactionsPagedAsync(request, cancellationToken);
+        return new TableData<TransactionModel?> { Items = result.Items, TotalItems = result.TotalItems };
     }
 }

@@ -1,70 +1,45 @@
-@page "/persondialog"
-@using Microsoft.Extensions.Localization
-@using ClubTreasury.Data.Notification
+@using ClubTreasury.Components.Dialog
 @using ClubTreasury.Data.OperationResult
+
+@inherits SimpleEntityDialogBase<PersonModel>
+
 @inject IPersonService PersonService
-@inject IStringLocalizer<Translation> Localizer
-@inject INotificationService NotificationService
-@inject IOperationResultFactory OperationResultFactory
 @inject PersonValidator PersonValidator
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form" Model="_personModel" Validation="PersonValidator.ValidateValue" ValidationDelay="0" OnEnterPressed="@Save">
-            <MudTextField @bind-Value="_personModel.Name" Label="@Localizer["Name"]"
-                          For="@(() => _personModel.Name)" Immediate="true"/>
+        <MudForm @ref="Form"
+                 Model="Model"
+                 Validation="ValidateValue"
+                 ValidationDelay="0"
+                 OnEnterPressed="@Save">
+
+            <MudTextField @bind-Value="Model.Name"
+                          Label="@Localizer["Name"]"
+                          For="@(() => Model.Name)"
+                          Immediate="true" />
         </MudForm>
     </DialogContent>
+
     <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="@(async () => await Save())">
-            @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
+        <MudButton Color="Color.Primary"
+                   OnClick="@(async () => await Save())">
+            @(IsEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
-        <MudButton Color="Color.Secondary" OnClick="@Cancel">@Localizer["Cancel"]</MudButton>
+
+        <MudButton Color="Color.Secondary"
+                   OnClick="@Cancel">
+            @Localizer["Cancel"]
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [Parameter] public int? PersonId { get; set; }
 
-    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
-
-    private MudForm _form = new();
-    private PersonModel _personModel = new();
-    private bool _isEditMode;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _isEditMode = PersonId.HasValue;
-        await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
-        await LoadPersonAsync();
-    }
-
-    private async Task LoadPersonAsync()
-    {
-        if (!_isEditMode)
-        {
-            _personModel = new PersonModel();
-            return;
-        }
-
-        _personModel = await PersonService.GetPersonById(PersonId!.Value) ?? new PersonModel();
-    }
-
-    private async Task Save()
-    {
-        await _form.Validate();
-        if (!_form.IsValid)
-            return;
-
-        var result = _isEditMode
-            ? await PersonService.UpdatePersonAsync(_personModel)
-            : await PersonService.AddPersonAsync(_personModel);
-
-        if (result.Status is OperationResultStatus.Success)
-            MudDialog.Close(DialogResult.Ok(result));
-        else
-            await NotificationService.ShowOperationResultAsync(result);
-    }
-
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    protected override int? EntityId => PersonId;
+    protected override Func<object, string, Task<IEnumerable<string>>> ValidateValue => PersonValidator.ValidateValue;
+    protected override Task<PersonModel?> LoadEntityAsync(int id) => PersonService.GetPersonByIdAsync(id);
+    protected override Task<Result> AddEntityAsync(PersonModel model) => PersonService.AddPersonAsync(model);
+    protected override Task<Result> UpdateEntityAsync(PersonModel model) => PersonService.UpdatePersonAsync(model);
 }

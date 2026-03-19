@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using MudBlazor;
 using ClubTreasury.Data.Allocation;
 using ClubTreasury.Data.OperationResult;
 
@@ -11,20 +10,14 @@ public class TransactionService(
     IAllocationService allocationService,
     ILogger<TransactionService> logger,
     IStringLocalizer<Translation> localizer,
-    IOperationResultFactory operationResultFactory) : ITransactionService
+    IResultFactory operationResultFactory) : ITransactionService
 {
     private string EntityName => localizer["Transaction"];
     public async Task<TransactionModel?> GetTransactionByIdAsync(int id, CancellationToken ct = default)
     {
         return await context.Transactions
-            .Include(t => t.Allocation)
-            .ThenInclude(a => a.CostCenter)
-            .Include(t => t.Allocation)
-            .ThenInclude(a => a.Category)
-            .Include(t => t.Allocation)
-            .ThenInclude(a => a.ItemDetail)
-            .Include(t => t.TransactionDetails)
-            .ThenInclude(st => st.Person)
+            .WithAllocationDetails()
+            .WithTransactionDetailsAndPersons()
             .FirstOrDefaultAsync(x => x.Id == id, ct);
     }
 
@@ -50,7 +43,7 @@ public class TransactionService(
 
 
 
-    public async Task<IOperationResult> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default)
+    public async Task<Result> AddTransactionAsync(TransactionModel entry, CancellationToken ct = default)
     {
         try
         {
@@ -105,18 +98,18 @@ public class TransactionService(
         }
         catch (DbUpdateException dbEx)
         {
-            logger.LogCritical(dbEx, "An exception occurred while adding transaction: B{@DocumentNumber} " +
+            logger.LogError(dbEx, "An exception occurred while adding transaction: B{@DocumentNumber} " +
                                      "{@Description}", entry.Documentnumber, entry.Description);
             return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
         }
         catch (Exception ex)
         {
-            logger.LogCritical(ex, "An exception occurred while adding transaction");
+            logger.LogError(ex, "An exception occurred while adding transaction");
             return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
         }
     }
 
-    public async Task<IOperationResult> UpdateTransactionAsync(TransactionModel entry, CancellationToken ct = default)
+    public async Task<Result> UpdateTransactionAsync(TransactionModel entry, CancellationToken ct = default)
     {
         try
         {
@@ -161,25 +154,25 @@ public class TransactionService(
         }
         catch (DbUpdateException dbEx)
         {
-            logger.LogCritical(dbEx, "An exception occurred while updating transaction: {@DocumentNumber} " +
+            logger.LogError(dbEx, "An exception occurred while updating transaction: {@DocumentNumber} " +
                                      "{@Description}", entry.Documentnumber, entry.Description);
             return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
         }
         catch (Exception ex)
         {
-            logger.LogCritical(ex, "An exception occurred while updating transaction");
+            logger.LogError(ex, "An exception occurred while updating transaction");
             return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
         }
     }
 
-    public async Task<IOperationResult> DeleteTransactionAsync(int id, CancellationToken ct = default)
+    public async Task<Result> DeleteTransactionAsync(int id, CancellationToken ct = default)
     {
         try
         {
             var transaction = await context.Transactions.FindAsync([id], ct);
             if (transaction is null)
             {
-                logger.LogError("Transaction with id '{Id}' could not be found", id);
+                logger.LogWarning("Transaction with id '{Id}' could not be found", id);
                 return operationResultFactory.NotFound(
                     $"{EntityName} not found",
                     id);
@@ -196,17 +189,17 @@ public class TransactionService(
         }
         catch (DbUpdateException dbEx)
         {
-            logger.LogCritical(dbEx, "An exception occurred while deleting transaction with id: {Id}", id);
+            logger.LogError(dbEx, "An exception occurred while deleting transaction with id: {Id}", id);
             return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
         catch (Exception ex)
         {
-            logger.LogCritical(ex, "An exception occurred while deleting transaction with id: {Id}", id);
+            logger.LogError(ex, "An exception occurred while deleting transaction with id: {Id}", id);
             return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
         }
     }
 
-    public async Task<IEnumerable<TransactionModel>> GetTransactionsForExport(DateTime begin, DateTime end, int cashRegisterId, CancellationToken ct = default)
+    public async Task<IEnumerable<TransactionModel>> GetTransactionsForExportAsync(DateTime begin, DateTime end, int cashRegisterId, CancellationToken ct = default)
     {
         return await context.Transactions
             .AsNoTracking()
@@ -225,7 +218,7 @@ public class TransactionService(
             .ToListAsync(ct);
     }
 
-    public async Task<IEnumerable<TransactionModel>> GetTransactionsForBudgetExport(
+    public async Task<IEnumerable<TransactionModel>> GetTransactionsForBudgetExportAsync(
         DateTime begin,
         DateTime end,
         int cashRegisterId,
@@ -236,10 +229,8 @@ public class TransactionService(
 
         return await context.Transactions
             .AsSplitQuery()
-            .Include(t => t.Allocation).ThenInclude(a => a.CostCenter)
-            .Include(t => t.Allocation).ThenInclude(a => a.Category)
-            .Include(t => t.Allocation).ThenInclude(a => a.ItemDetail)
-            .Include(t => t.TransactionDetails).ThenInclude(st => st.Person)
+            .WithAllocationDetails()
+            .WithTransactionDetailsAndPersons()
             .Where(t => t.CashRegisterId == cashRegisterId &&
                         t.Date.HasValue &&
                         t.Date.Value >= beginDateOnly &&
@@ -248,82 +239,90 @@ public class TransactionService(
             .ToListAsync(ct);
     }
 
-    public async Task<TableData<TransactionModel>> GetTransactionsPaged(
-        TableState state,
-        CancellationToken cancellationToken,
-        DateRange? dateRange,
-        string? searchText,
-        int? personId)
+    public async Task<PagedResult<TransactionModel>> GetTransactionsPagedAsync(
+        PagedRequest request,
+        CancellationToken cancellationToken)
     {
         var baseQuery = context.Transactions.AsNoTracking();
-        if (dateRange?.Start is not null && dateRange.End is not null)
-        {
-            var start = DateOnly.FromDateTime(dateRange.Start.Value);
-            var end = DateOnly.FromDateTime(dateRange.End.Value);
 
-            baseQuery = baseQuery.Where(t => t.Date.HasValue &&
-                                             t.Date.Value >= start &&
-                                             t.Date.Value <= end);
+        baseQuery = ApplyFilters(baseQuery, request);
+
+        var totalItems = await baseQuery.CountAsync(cancellationToken);
+
+        var dataQuery = baseQuery.AsSplitQuery()
+            .WithAllocationDetails()
+            .WithTransactionDetailsAndPersons();
+
+        dataQuery = ApplySorting(dataQuery, request.SortLabel, request.SortDirection);
+
+        var items = await dataQuery
+            .Skip(request.Page * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PagedResult<TransactionModel>
+        {
+            TotalItems = totalItems,
+            Items = items
+        };
+    }
+
+    private static IQueryable<TransactionModel> ApplyFilters(IQueryable<TransactionModel> query, PagedRequest request)
+    {
+        if (request.DateStart is not null && request.DateEnd is not null)
+        {
+            var start = DateOnly.FromDateTime(request.DateStart.Value);
+            var end = DateOnly.FromDateTime(request.DateEnd.Value);
+
+            query = query.Where(t => t.Date.HasValue &&
+                                     t.Date.Value >= start &&
+                                     t.Date.Value <= end);
         }
 
-        if (!string.IsNullOrEmpty(searchText))
+        if (!string.IsNullOrEmpty(request.SearchText))
         {
-            var term = searchText.ToLower();
-            baseQuery = baseQuery.Where(t =>
+            var term = request.SearchText.ToLower();
+            query = query.Where(t =>
                 (t.Description != null && t.Description.ToLower().Contains(term)) ||
                 t.Documentnumber.ToString().Contains(term) ||
                 t.Allocation.CostCenter.CostUnitName.ToLower().Contains(term) ||
                 t.Allocation.Category.Name.ToLower().Contains(term) ||
                 (t.Allocation.ItemDetail != null &&
                  t.Allocation.ItemDetail.CostDetails.ToLower().Contains(term)) ||
-                t.TransactionDetails.Any(st =>
-                    st.Person != null &&
-                    st.Person.Name.ToLower().Contains(term)));
+                t.TransactionDetails.Any(td =>
+                    td.Person != null &&
+                    td.Person.Name.ToLower().Contains(term)));
         }
 
-        if (personId is not null)
+        if (request.PersonId is not null)
         {
-            baseQuery = baseQuery.Where(t =>
-                t.TransactionDetails.Any(st => st.PersonId == personId)
-            );
+            query = query.Where(t =>
+                t.TransactionDetails.Any(td => td.PersonId == request.PersonId));
         }
 
-        var totalItems = await baseQuery.CountAsync(cancellationToken);
+        return query;
+    }
 
-        IQueryable<TransactionModel> dataQuery = baseQuery.AsSplitQuery()
-            .Include(t => t.Allocation)
-                .ThenInclude(a => a.CostCenter)
-            .Include(t => t.Allocation)
-                .ThenInclude(a => a.Category)
-            .Include(t => t.Allocation)
-                .ThenInclude(a => a.ItemDetail)
-            .Include(t => t.TransactionDetails)
-                .ThenInclude(td => td.Person);
+    private static IQueryable<TransactionModel> ApplySorting(
+        IQueryable<TransactionModel> query, string? sortLabel, SortDirection direction)
+    {
+        if (direction == SortDirection.None || string.IsNullOrEmpty(sortLabel))
+            return query.OrderByDescending(x => x.Id);
 
-        dataQuery = state.SortLabel switch
+        var descending = direction == SortDirection.Descending;
+
+        return sortLabel switch
         {
-            "Date" => dataQuery.OrderByDirection(state.SortDirection, x => x.Date),
-            "DocumentNumber" => dataQuery.OrderByDirection(state.SortDirection, x => x.Documentnumber),
-            "Sum" => dataQuery.OrderByDirection(state.SortDirection, x => x.Sum),
-            "CostCenter" => dataQuery.OrderByDirection(state.SortDirection, x => x.Allocation.CostCenter.CostUnitName),
-            "Category" => dataQuery.OrderByDirection(state.SortDirection, x => x.Allocation.Category.Name),
-            "ItemDetail" => dataQuery.OrderByDirection(state.SortDirection, x =>
-                x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null),
-            _ => dataQuery.OrderByDescending(x => x.Id)
+            "Date" => descending ? query.OrderByDescending(x => x.Date) : query.OrderBy(x => x.Date),
+            "DocumentNumber" => descending ? query.OrderByDescending(x => x.Documentnumber) : query.OrderBy(x => x.Documentnumber),
+            "Sum" => descending ? query.OrderByDescending(x => x.Sum) : query.OrderBy(x => x.Sum),
+            "CostCenter" => descending ? query.OrderByDescending(x => x.Allocation.CostCenter.CostUnitName) : query.OrderBy(x => x.Allocation.CostCenter.CostUnitName),
+            "Category" => descending ? query.OrderByDescending(x => x.Allocation.Category.Name) : query.OrderBy(x => x.Allocation.Category.Name),
+            "ItemDetail" => descending
+                ? query.OrderByDescending(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null)
+                : query.OrderBy(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null),
+            _ => query.OrderByDescending(x => x.Id)
         };
-
-        var items = await dataQuery
-            .Skip(state.Page * state.PageSize)
-            .Take(state.PageSize)
-            .ToListAsync(cancellationToken);
-
-        var tableData = new TableData<TransactionModel>()
-        {
-            TotalItems = totalItems,
-            Items = items
-        };
-
-        return tableData;
     }
 
 }

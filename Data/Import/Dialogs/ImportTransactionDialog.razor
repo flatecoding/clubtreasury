@@ -7,7 +7,7 @@
 @inject ICashRegisterService CashRegisterService
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ImportTransactionDialog> Logger
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 
 <MudDialog>
     <TitleContent>
@@ -78,7 +78,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _cashRegisters = await CashRegisterService.GetAllCashRegisters();
+        _cashRegisters = await CashRegisterService.GetAllCashRegistersAsync();
         _selectedCashRegister = _cashRegisters.FirstOrDefault();
     }
 
@@ -100,18 +100,18 @@
             var allowedTypes = new[] { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.oasis.opendocument.spreadsheet" };
             if (!allowedTypes.Contains(_file.ContentType, StringComparer.OrdinalIgnoreCase))
             {
-                MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["InvalidFileFormat"])));
+                MudDialog.Close(DialogResult.Ok(ResultFactory.ImportFailed(Localizer["InvalidFileFormat"])));
                 return;
             }
 
-            await using var stream = _file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-            var result = await ImportBookingJournalService.ImportTransactions(stream, _file.Name, _selectedCashRegister.Id);
+            await using var stream = _file.OpenReadStream(maxAllowedSize: FileUploadLimits.ImportExcelMaxSize);
+            var result = await ImportBookingJournalService.ImportTransactionsAsync(stream, _file.Name, _selectedCashRegister.Id);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "An exception occurred while importing transactions: {FileName}", _file?.Name);
-            MudDialog.Close(DialogResult.Ok(OperationResultFactory.ImportFailed(Localizer["Exception"])));
+            Logger.LogError(ex, "An exception occurred while importing transactions: {FileName}", _file?.Name);
+            MudDialog.Close(DialogResult.Ok(ResultFactory.ImportFailed(Localizer["Exception"])));
         }
         finally
         {
@@ -119,5 +119,5 @@
         }
     }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
 }

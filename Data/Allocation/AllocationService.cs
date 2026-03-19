@@ -10,7 +10,7 @@ namespace ClubTreasury.Data.Allocation;
 public class AllocationService(
     CashDataContext context,
     ILogger<AllocationService> logger,
-    IOperationResultFactory operationResultFactory,
+    IResultFactory operationResultFactory,
     IStringLocalizer<Translation> localizer,
     ICostCenterService costCenterService,
     ICategoryService categoryService,
@@ -21,22 +21,18 @@ public class AllocationService(
     public async Task<AllocationModel?> GetAllocationsByIdAsync(int id, CancellationToken ct = default)
     {
         return await context.Allocations
-            .Include(a => a.CostCenter)
-            .Include(a => a.Category)
-            .Include(a => a.ItemDetail)
+            .WithAllComponents()
             .FirstOrDefaultAsync(a => a.Id == id, ct);
     }
 
     public async Task<List<AllocationModel>> GetAllAllocationsAsync(CancellationToken ct = default)
     {
         return await context.Allocations
-            .Include(a => a.CostCenter)
-            .Include(a => a.Category)
-            .Include(a => a.ItemDetail)
+            .WithAllComponents()
             .ToListAsync(ct);
     }
 
-    public async Task<IOperationResult> AddAllocationAsync(AllocationModel allocation, CancellationToken ct = default)
+    public async Task<Result> AddAllocationAsync(AllocationModel allocation, CancellationToken ct = default)
     {
         try
         {
@@ -79,7 +75,7 @@ public class AllocationService(
             a.ItemDetailId == allocation.ItemDetailId, ct);
     }
 
-    public async Task<IOperationResult> UpdateAllocationAsync(AllocationModel updatedAllocation, CancellationToken ct = default)
+    public async Task<Result> UpdateAllocationAsync(AllocationModel updatedAllocation, CancellationToken ct = default)
     {
         try
         {
@@ -118,7 +114,7 @@ public class AllocationService(
         }
     }
 
-    public async Task<IOperationResult> DeleteAllocationAsync(int id, CancellationToken ct = default)
+    public async Task<Result> DeleteAllocationAsync(int id, CancellationToken ct = default)
     {
         try
         {
