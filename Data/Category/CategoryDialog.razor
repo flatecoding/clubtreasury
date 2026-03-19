@@ -1,24 +1,22 @@
-@using Microsoft.Extensions.Localization
-@using ClubTreasury.Data.Notification
+@using ClubTreasury.Components.Dialog
 @using ClubTreasury.Data.OperationResult
 
+@inherits SimpleEntityDialogBase<CategoryModel>
+
 @inject ICategoryService CategoryService
-@inject IStringLocalizer<Translation> Localizer
-@inject INotificationService NotificationService
-@inject IOperationResultFactory OperationResultFactory
 @inject CategoryValidator CategoryValidator
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form"
-                 Model="_categoryModel"
-                 Validation="CategoryValidator.ValidateValue"
+        <MudForm @ref="Form"
+                 Model="Model"
+                 Validation="ValidateValue"
                  ValidationDelay="0"
                  OnEnterPressed="@Save">
 
-            <MudTextField @bind-Value="_categoryModel.Name"
+            <MudTextField @bind-Value="Model.Name"
                           Label="@Localizer["Category"]"
-                          For="@(() => _categoryModel.Name)"
+                          For="@(() => Model.Name)"
                           Immediate="true" />
         </MudForm>
     </DialogContent>
@@ -26,7 +24,7 @@
     <DialogActions>
         <MudButton Color="Color.Primary"
                    OnClick="@(async () => await Save())">
-            @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
+            @(IsEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
 
         <MudButton Color="Color.Secondary"
@@ -39,47 +37,9 @@
 @code {
     [Parameter] public int? CategoryId { get; set; }
 
-    [CascadingParameter]
-    private IMudDialogInstance MudDialog { get; set; } = null!;
-
-    private MudForm _form = new();
-    private CategoryModel _categoryModel = new();
-    private bool _isEditMode;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _isEditMode = CategoryId.HasValue;
-        await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
-        await LoadCategoryAsync();
-    }
-
-    private async Task LoadCategoryAsync()
-    {
-        if (!_isEditMode)
-        {
-            _categoryModel = new CategoryModel();
-            return;
-        }
-
-        _categoryModel = await CategoryService.GetCategoryByIdAsync(CategoryId!.Value)
-                         ?? new CategoryModel();
-    }
-
-    private async Task Save()
-    {
-        await _form.Validate();
-        if (!_form.IsValid)
-            return;
-
-        var result = _isEditMode
-            ? await CategoryService.UpdateCategoryAsync(_categoryModel)
-            : await CategoryService.AddCategoryAsync(_categoryModel);
-
-        if (result.Status is OperationResultStatus.Success)
-            MudDialog.Close(DialogResult.Ok(result));
-        else
-            await NotificationService.ShowOperationResultAsync(result);
-    }
-
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    protected override int? EntityId => CategoryId;
+    protected override Func<object, string, Task<IEnumerable<string>>> ValidateValue => CategoryValidator.ValidateValue;
+    protected override Task<CategoryModel?> LoadEntityAsync(int id) => CategoryService.GetCategoryByIdAsync(id);
+    protected override Task<Result> AddEntityAsync(CategoryModel model) => CategoryService.AddCategoryAsync(model);
+    protected override Task<Result> UpdateEntityAsync(CategoryModel model) => CategoryService.UpdateCategoryAsync(model);
 }

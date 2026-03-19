@@ -30,8 +30,10 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IItemDetailService, ItemDetailService>();
         services.AddScoped<ICostCenterService, CostCenterService>();
         services.AddScoped<ITransactionService, TransactionService>();
+        services.AddScoped<ITransactionFormService, TransactionFormService>();
         services.AddScoped<ISpecialItemService, SpecialItemService>();
         services.AddScoped<ICashRegisterService, CashRegisterService>();
+        services.AddScoped<ICashRegisterLogoService, CashRegisterLogoService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<INotificationService, NotificationService>();
@@ -45,7 +47,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IExcelBudgetWriter, ExcelBudgetWriter>();
         services.AddScoped<IPdfTransactionRenderer, PdfTransactionRenderer>();
         services.AddScoped<ICultureService, CultureService>();
-        services.AddScoped<IOperationResultFactory, OperationResultFactory>();
+        services.AddScoped<IResultFactory, ResultFactory>();
         services.AddSingleton<IExportPathProvider, ExportPathProvider>();
         services.AddHttpContextAccessor();
         services.AddScoped<UserPrefService>(sp =>

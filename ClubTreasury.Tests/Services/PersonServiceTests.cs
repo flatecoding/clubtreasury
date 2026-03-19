@@ -14,7 +14,7 @@ public class PersonServiceTests
 {
     private CashDataContext _context = null!;
     private ILogger<PersonService> _logger = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private PersonService _sut = null!;
     private bool _contextDisposed;
@@ -29,7 +29,7 @@ public class PersonServiceTests
         _context = new CashDataContext(options);
         _contextDisposed = false;
         _logger = A.Fake<ILogger<PersonService>>();
-        _operationResultFactory = A.Fake<IOperationResultFactory>();
+        _resultFactory = A.Fake<IResultFactory>();
         _localizer = A.Fake<IStringLocalizer<Translation>>();
 
         A.CallTo(() => _localizer["Person"])
@@ -37,7 +37,7 @@ public class PersonServiceTests
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
 
-        _sut = new PersonService(_context, _logger, _localizer, _operationResultFactory);
+        _sut = new PersonService(_context, _logger, _localizer, _resultFactory);
     }
 
     [TearDown]
@@ -96,7 +96,7 @@ public class PersonServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetPersonById(person.Id);
+        var result = await _sut.GetPersonByIdAsync(person.Id);
 
         // Assert
         result.Should().NotBeNull();
@@ -107,7 +107,7 @@ public class PersonServiceTests
     public async Task GetPersonById_WhenPersonDoesNotExist_ShouldReturnNull()
     {
         // Act
-        var result = await _sut.GetPersonById(999);
+        var result = await _sut.GetPersonByIdAsync(999);
 
         // Assert
         result.Should().BeNull();
@@ -130,7 +130,7 @@ public class PersonServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetFirstEntry();
+        var result = await _sut.GetFirstEntryAsync();
 
         // Assert
         result.Should().NotBeNull();
@@ -141,7 +141,7 @@ public class PersonServiceTests
     public async Task GetFirstEntry_WhenNoPersonsExist_ShouldReturnNull()
     {
         // Act
-        var result = await _sut.GetFirstEntry();
+        var result = await _sut.GetFirstEntryAsync();
 
         // Assert
         result.Should().BeNull();
@@ -156,12 +156,8 @@ public class PersonServiceTests
     {
         // Arrange
         var person = new PersonModel { Name = "New Person" };
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Successfully added"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessAdded(A<string>._, A<object?>._))
+        var expectedResult = Result.Success("Successfully added");
+        A.CallTo(() => _resultFactory.SuccessAdded(A<string>._, A<object?>._))
             .Returns(expectedResult);
 
         // Act
@@ -171,7 +167,7 @@ public class PersonServiceTests
         result.Should().Be(expectedResult);
         var addedPerson = await _context.Persons.FirstOrDefaultAsync(p => p.Name == "New Person");
         addedPerson.Should().NotBeNull();
-        A.CallTo(() => _operationResultFactory.SuccessAdded(
+        A.CallTo(() => _resultFactory.SuccessAdded(
             A<string>.That.Contains("New Person"),
             A<object?>._)).MustHaveHappenedOnceExactly();
     }
@@ -180,12 +176,8 @@ public class PersonServiceTests
     public async Task AddPersonAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed to add"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToAdd(A<string>._, A<string?>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to add"));
+        A.CallTo(() => _resultFactory.FailedToAdd(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         // Dispose context to simulate an error
@@ -198,7 +190,7 @@ public class PersonServiceTests
         var disposedContext = new CashDataContext(options);
         await disposedContext.DisposeAsync();
 
-        _sut = new PersonService(disposedContext, _logger, _localizer, _operationResultFactory);
+        _sut = new PersonService(disposedContext, _logger, _localizer, _resultFactory);
 
         var person = new PersonModel { Name = "New Person" };
 
@@ -221,12 +213,8 @@ public class PersonServiceTests
         await _context.Persons.AddAsync(person);
         await _context.SaveChangesAsync();
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Successfully updated"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessUpdated(A<string>._, A<object?>._))
+        var expectedResult = Result.Success("Successfully updated");
+        A.CallTo(() => _resultFactory.SuccessUpdated(A<string>._, A<object?>._))
             .Returns(expectedResult);
 
         person.Name = "Updated Name";
@@ -244,12 +232,8 @@ public class PersonServiceTests
     public async Task UpdatePersonAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed to update"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToUpdate(A<string>._, A<string?>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to update"));
+        A.CallTo(() => _resultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         // Dispose context to simulate error
@@ -262,7 +246,7 @@ public class PersonServiceTests
         var disposedContext = new CashDataContext(options);
         await disposedContext.DisposeAsync();
 
-        _sut = new PersonService(disposedContext, _logger, _localizer, _operationResultFactory);
+        _sut = new PersonService(disposedContext, _logger, _localizer, _resultFactory);
 
         var person = new PersonModel { Name = "Test" };
 
@@ -286,12 +270,8 @@ public class PersonServiceTests
         await _context.SaveChangesAsync();
         var id = person.Id;
 
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Successfully deleted"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessDeleted(A<string>._, A<object?>._))
+        var expectedResult = Result.Success("Successfully deleted");
+        A.CallTo(() => _resultFactory.SuccessDeleted(A<string>._, A<object?>._))
             .Returns(expectedResult);
 
         // Act
@@ -307,12 +287,8 @@ public class PersonServiceTests
     public async Task DeletePersonAsync_WhenPersonDoesNotExist_ShouldReturnNotFound()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Not found"
-        };
-        A.CallTo(() => _operationResultFactory.NotFound(A<string>._, A<object>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Not found"));
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, A<object>._))
             .Returns(expectedResult);
 
         // Act
@@ -320,7 +296,7 @@ public class PersonServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
-        A.CallTo(() => _operationResultFactory.NotFound(A<string>._, 999))
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, 999))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -328,12 +304,8 @@ public class PersonServiceTests
     public async Task DeletePersonAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
-        var expectedResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed to delete"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToDelete(A<string>._, A<string?>._))
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to delete"));
+        A.CallTo(() => _resultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
         // Dispose context to simulate error during delete
@@ -346,7 +318,7 @@ public class PersonServiceTests
         var disposedContext = new CashDataContext(options);
         await disposedContext.DisposeAsync();
 
-        _sut = new PersonService(disposedContext, _logger, _localizer, _operationResultFactory);
+        _sut = new PersonService(disposedContext, _logger, _localizer, _resultFactory);
 
         // Act
         var result = await _sut.DeletePersonAsync(1);

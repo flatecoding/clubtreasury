@@ -8,7 +8,7 @@
 @inject IPersonService PersonService
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 @inject TransactionDetailsValidator TransactionDetailsValidator
 
 <MudDialog>
@@ -105,13 +105,13 @@
             ? await TransactionDetailsService.UpdateTransactionDetailsAsync(_transactionDetailsModel)
             : await TransactionDetailsService.AddTransactionDetailsAsync(_transactionDetailsModel);
 
-        if (result.Status is OperationResultStatus.Success)
+        if (result.IsSuccess)
             MudDialog.Close(DialogResult.Ok(result));
         else
-            await NotificationService.ShowOperationResultAsync(result);
+            await NotificationService.ShowResultAsync(result);
     }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
 
     private string PersonIdToName(int? id)
         => id is null ? string.Empty : _persons.FirstOrDefault(p => p.Id == id.Value)?.Name ?? string.Empty;

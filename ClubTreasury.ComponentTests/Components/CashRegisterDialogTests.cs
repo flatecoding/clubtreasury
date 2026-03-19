@@ -16,17 +16,19 @@ namespace ClubTreasury.ComponentTests.Components;
 public class CashRegisterDialogTests : BunitContext
 {
     private ICashRegisterService _cashRegisterService = null!;
+    private ICashRegisterLogoService _cashRegisterLogoService = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private INotificationService _notificationService = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
 
     [SetUp]
     public void SetUp()
     {
         Services.AddSingleton(_cashRegisterService = A.Fake<ICashRegisterService>());
+        Services.AddSingleton(_cashRegisterLogoService = A.Fake<ICashRegisterLogoService>());
         Services.AddSingleton(_localizer = A.Fake<IStringLocalizer<Translation>>());
         Services.AddSingleton(_notificationService = A.Fake<INotificationService>());
-        Services.AddSingleton(_operationResultFactory = A.Fake<IOperationResultFactory>());
+        Services.AddSingleton(_resultFactory = A.Fake<IResultFactory>());
 
         A.CallTo(() => _localizer[A<string>._])
             .ReturnsLazily((string key) => new LocalizedString(key, key));
@@ -65,12 +67,12 @@ public class CashRegisterDialogTests : BunitContext
     public void EditMode_LoadsCashRegisterAndShowsSaveButton()
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
-        A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1)).Returns(cashRegister);
+        A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
 
         var cut = RenderDialog(cashRegisterId: 1);
 
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1)).MustHaveHappenedOnceExactly();
         cut.Markup.Should().Contain("Save");
     }
 
@@ -79,8 +81,8 @@ public class CashRegisterDialogTests : BunitContext
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
         var logoData = new byte[] { 1, 2, 3 };
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
-        A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns((logoData, "image/png"));
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1)).Returns(cashRegister);
+        A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns((logoData, "image/png"));
 
         var cut = RenderDialog(cashRegisterId: 1);
 
@@ -91,12 +93,8 @@ public class CashRegisterDialogTests : BunitContext
     [Test]
     public void Cancel_ClosesDialog()
     {
-        var canceledResult = new OperationResult
-        {
-            Status = OperationResultStatus.Canceled,
-            Message = "Canceled"
-        };
-        A.CallTo(() => _operationResultFactory.Canceled()).Returns(canceledResult);
+        var canceledResult = Result.Failure(Error.Canceled with { Message = "Canceled" });
+        A.CallTo(() => _resultFactory.Canceled()).Returns(canceledResult);
 
         var cut = RenderDialog();
 
@@ -111,10 +109,10 @@ public class CashRegisterDialogTests : BunitContext
     public async Task SaveInEditMode_CallsUpdateOnSuccess()
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
-        A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
-        A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1)).Returns(cashRegister);
+        A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
+        A.CallTo(() => _cashRegisterService.UpdateCashRegisterAsync(A<CashRegisterModel>._))
+            .Returns(Result.Success());
 
         var cut = RenderDialog(cashRegisterId: 1);
 
@@ -122,7 +120,7 @@ public class CashRegisterDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
+        A.CallTo(() => _cashRegisterService.UpdateCashRegisterAsync(A<CashRegisterModel>._))
             .MustHaveHappened();
     }
 
@@ -130,14 +128,10 @@ public class CashRegisterDialogTests : BunitContext
     public async Task SaveInEditMode_ShowsNotificationOnFailure()
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
-        var failResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Update failed"
-        };
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
-        A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
-        A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
+        var failResult = Result.Failure(new Error("Test.Error", "Update failed"));
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1)).Returns(cashRegister);
+        A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns(((byte[], string)?)null);
+        A.CallTo(() => _cashRegisterService.UpdateCashRegisterAsync(A<CashRegisterModel>._))
             .Returns(failResult);
 
         var cut = RenderDialog(cashRegisterId: 1);
@@ -146,7 +140,7 @@ public class CashRegisterDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _notificationService.ShowOperationResultAsync(failResult)).MustHaveHappened();
+        A.CallTo(() => _notificationService.ShowResultAsync(failResult)).MustHaveHappened();
     }
 
     [Test]
@@ -154,10 +148,10 @@ public class CashRegisterDialogTests : BunitContext
     {
         var cashRegister = new CashRegisterModel { Id = 1, Name = "Main", FiscalYearStartMonth = 7 };
         var logoData = new byte[] { 1, 2, 3 };
-        A.CallTo(() => _cashRegisterService.GetCashRegisterById(1)).Returns(cashRegister);
-        A.CallTo(() => _cashRegisterService.GetLogoAsync(1)).Returns((logoData, "image/png"));
-        A.CallTo(() => _cashRegisterService.UpdateCashRegister(A<CashRegisterModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+        A.CallTo(() => _cashRegisterService.GetCashRegisterByIdAsync(1)).Returns(cashRegister);
+        A.CallTo(() => _cashRegisterLogoService.GetLogoAsync(1)).Returns((logoData, "image/png"));
+        A.CallTo(() => _cashRegisterService.UpdateCashRegisterAsync(A<CashRegisterModel>._))
+            .Returns(Result.Success());
 
         var cut = RenderDialog(cashRegisterId: 1);
 
@@ -173,6 +167,6 @@ public class CashRegisterDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _cashRegisterService.DeleteLogoAsync(1)).MustHaveHappened();
+        A.CallTo(() => _cashRegisterLogoService.DeleteLogoAsync(1)).MustHaveHappened();
     }
 }

@@ -16,10 +16,10 @@ public class ExportService(
     ICsvBudgetWriter csvWriter,
     IExcelBudgetWriter excelWriter,
     IPdfTransactionRenderer transactionPdfRenderer,
-    IOperationResultFactory operationResultFactory,
+    IResultFactory operationResultFactory,
     IStringLocalizer<Resources.Translation> localizer,
     IExportPathProvider exportPathProvider,
-    ICashRegisterService cashRegisterService
+    ICashRegisterLogoService cashRegisterLogoService
 ) : IExportService
 {
     private const string CsvHeader =
@@ -35,7 +35,7 @@ public class ExportService(
         return Path.Combine(_exportPath, sanitized);
     }
 
-    public async Task<IOperationResult> ExportTransactionsToCsv(
+    public async Task<Result> ExportTransactionsToCsvAsync(
         DateTime begin, DateTime end, string filename, int cashRegisterId, CancellationToken ct = default)
     {
         try
@@ -43,7 +43,7 @@ public class ExportService(
             logger.LogInformation("Beginning export transactions to csv");
 
             var transactions =
-                await transactionService.GetTransactionsForExport(begin, end, cashRegisterId, ct);
+                await transactionService.GetTransactionsForExportAsync(begin, end, cashRegisterId, ct);
 
             var csv = new StringBuilder();
             foreach (var transaction in transactions.OrderBy(t => t.Documentnumber))
@@ -73,15 +73,15 @@ public class ExportService(
         }
     }
 
-    public async Task<IOperationResult> ExportTransactionsToPdf(
+    public async Task<Result> ExportTransactionsToPdfAsync(
         DateTime begin, DateTime end, string filename, int cashRegisterId, string cashRegisterName, CancellationToken cancellationToken)
     {
         try
         {
             var transactions =
-                await transactionService.GetTransactionsForExport(begin, end, cashRegisterId, cancellationToken);
+                await transactionService.GetTransactionsForExportAsync(begin, end, cashRegisterId, cancellationToken);
 
-            var logo = await cashRegisterService.GetLogoAsync(cashRegisterId, cancellationToken);
+            var logo = await cashRegisterLogoService.GetLogoAsync(cashRegisterId, cancellationToken);
             var filePath = GetSafeFilePath(filename);
 
             await transactionPdfRenderer.RenderTransactionPdfExportAsync(
@@ -101,13 +101,13 @@ public class ExportService(
         }
     }
 
-    public async Task<IOperationResult> ExportBudgetToCsv(
+    public async Task<Result> ExportBudgetToCsvAsync(
         DateTime begin, DateTime end, string filename, int cashRegisterId, CancellationToken ct = default)
     {
         try
         {
             var transactions =
-                await transactionService.GetTransactionsForBudgetExport(begin, end, cashRegisterId, ct);
+                await transactionService.GetTransactionsForBudgetExportAsync(begin, end, cashRegisterId, ct);
 
             var flat = budgetMapper.BuildFlatEntries(transactions);
             var grouped = budgetMapper.BuildBudgetHierarchy(flat);
@@ -124,13 +124,13 @@ public class ExportService(
         }
     }
 
-    public async Task<IOperationResult> ExportBudgetToExcel(
+    public async Task<Result> ExportBudgetToExcelAsync(
         DateTime begin, DateTime end, string filename, int cashRegisterId, CancellationToken ct = default)
     {
         try
         {
             var transactions =
-                await transactionService.GetTransactionsForBudgetExport(begin, end, cashRegisterId, ct);
+                await transactionService.GetTransactionsForBudgetExportAsync(begin, end, cashRegisterId, ct);
 
             var flat = budgetMapper.BuildFlatEntries(transactions);
             var grouped = budgetMapper.BuildBudgetHierarchy(flat);
@@ -147,13 +147,13 @@ public class ExportService(
         }
     }
 
-    public async Task<byte[]> ExportBudgetToExcelBytes(
+    public async Task<byte[]> ExportBudgetToExcelBytesAsync(
         DateTime begin, DateTime end, int cashRegisterId, CancellationToken ct = default)
     {
         var filename = $"Budget_{begin:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
-        var result = await ExportBudgetToExcel(begin, end, filename, cashRegisterId, ct);
+        var result = await ExportBudgetToExcelAsync(begin, end, filename, cashRegisterId, ct);
 
-        if (result.Status != OperationResultStatus.Success)
+        if (result.IsFailure)
             return Array.Empty<byte>();
 
         var filePath = GetSafeFilePath(filename);

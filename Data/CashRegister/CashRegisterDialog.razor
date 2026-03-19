@@ -4,9 +4,10 @@
 @using ClubTreasury.Data.Notification
 @using ClubTreasury.Data.OperationResult
 @inject ICashRegisterService CashRegisterService
+@inject ICashRegisterLogoService CashRegisterLogoService
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 @inject CashRegisterValidator CashRegisterValidator
 
 <MudDialog>
@@ -90,13 +91,13 @@
             return;
         }
 
-        _cashRegisterModel = await CashRegisterService.GetCashRegisterById(CashRegisterId!.Value) ?? new CashRegisterModel();
+        _cashRegisterModel = await CashRegisterService.GetCashRegisterByIdAsync(CashRegisterId!.Value) ?? new CashRegisterModel();
         await LoadExistingLogoAsync(CashRegisterId.Value);
     }
 
     private async Task LoadExistingLogoAsync(int cashRegisterId)
     {
-        var logo = await CashRegisterService.GetLogoAsync(cashRegisterId);
+        var logo = await CashRegisterLogoService.GetLogoAsync(cashRegisterId);
         if (logo is not null)
             _existingLogoDataUri = $"data:{logo.Value.ContentType};base64,{Convert.ToBase64String(logo.Value.Data)}";
     }
@@ -116,16 +117,16 @@
             return;
 
         var result = _isEditMode
-            ? await CashRegisterService.UpdateCashRegister(_cashRegisterModel)
-            : await CashRegisterService.AddCashRegister(_cashRegisterModel);
+            ? await CashRegisterService.UpdateCashRegisterAsync(_cashRegisterModel)
+            : await CashRegisterService.AddCashRegisterAsync(_cashRegisterModel);
 
-        if (result.Status is not OperationResultStatus.Success)
+        if (!result.IsSuccess)
         {
-            await NotificationService.ShowOperationResultAsync(result);
+            await NotificationService.ShowResultAsync(result);
             return;
         }
 
-        var cashRegisterId = _isEditMode ? _cashRegisterModel.Id : (int)(result.Data ?? 0);
+        var cashRegisterId = _cashRegisterModel.Id;
         await HandleLogoAsync(cashRegisterId);
         MudDialog.Close(DialogResult.Ok(result));
     }
@@ -134,16 +135,16 @@
     {
         if (_pendingFile is not null)
         {
-            await using var stream = _pendingFile.OpenReadStream(maxAllowedSize: 512 * 1024);
+            await using var stream = _pendingFile.OpenReadStream(maxAllowedSize: FileUploadLimits.LogoMaxSize);
             using var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
-            await CashRegisterService.UploadLogoAsync(cashRegisterId, ms.ToArray(), _pendingFile.ContentType);
+            await CashRegisterLogoService.UploadLogoAsync(cashRegisterId, ms.ToArray(), _pendingFile.ContentType);
         }
         else if (_logoRemoved)
         {
-            await CashRegisterService.DeleteLogoAsync(cashRegisterId);
+            await CashRegisterLogoService.DeleteLogoAsync(cashRegisterId);
         }
     }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
 }

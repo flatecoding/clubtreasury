@@ -8,7 +8,7 @@
 @using ClubTreasury.Data.CashRegister
 @inject IExportService ExportService
 @inject ICashRegisterService CashRegisterService
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ExportTransactionDialog> Logger
 @inject ExportModelValidator ExportModelValidator
@@ -92,7 +92,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _cashRegisters = await CashRegisterService.GetAllCashRegisters();
+        _cashRegisters = await CashRegisterService.GetAllCashRegistersAsync();
         _selectedCashRegister = _cashRegisters.FirstOrDefault();
         _model.DateRange = new DateRange(_selectedCashRegister?.GetFiscalYearStart() ?? DateTime.Today, DateTime.Now);
     }
@@ -115,14 +115,14 @@
             var end = _model.DateRange.End!.Value.Date;
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
 
-            var result = await ExportService.ExportTransactionsToCsv(start, end, filename, _selectedCashRegister!.Id);
+            var result = await ExportService.ExportTransactionsToCsvAsync(start, end, filename, _selectedCashRegister!.Id);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "Error occurred during export transactions to csv-file");
+            Logger.LogError(ex, "Error occurred during export transactions to csv-file");
             MudDialog.Close(DialogResult.Ok(
-                OperationResultFactory.ExportFailed(Localizer["Exception"])));
+                ResultFactory.ExportFailed(Localizer["Exception"])));
         }
         finally
         {
@@ -143,19 +143,19 @@
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf";
 
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(CExportTimeOut));
-            var result = await ExportService.ExportTransactionsToPdf(start, end, filename, _selectedCashRegister!.Id, _selectedCashRegister.Name, cts.Token);
+            var result = await ExportService.ExportTransactionsToPdfAsync(start, end, filename, _selectedCashRegister!.Id, _selectedCashRegister.Name, cts.Token);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (OperationCanceledException)
         {
             Logger.LogWarning("PDF export was canceled (timeout {TimeOut}s) → {Filename}", CExportTimeOut, _model.FileName);
-            MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+            MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "Error occurred during export transactions to pdf-file");
+            Logger.LogError(ex, "Error occurred during export transactions to pdf-file");
             MudDialog.Close(DialogResult.Ok(
-                OperationResultFactory.ExportFailed(Localizer["Exception"])));
+                ResultFactory.ExportFailed(Localizer["Exception"])));
         }
         finally
         {
@@ -171,11 +171,11 @@
             return true;
 
         if (dateErrors is not null)
-            await NotificationService.ShowOperationResultAsync(dateErrors);
+            await NotificationService.ShowResultAsync(dateErrors);
         return false;
     }
 
-    private IOperationResult? GetDateRangeErrors()
+    private Result? GetDateRangeErrors()
     {
         var result = ExportModelValidator.Validate(
             _model,
@@ -183,8 +183,8 @@
 
         return result.IsValid
             ? null
-            : OperationResultFactory.DateRangeInvalid(result.ToString());
+            : ResultFactory.DateRangeInvalid(result.ToString());
     }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
 }

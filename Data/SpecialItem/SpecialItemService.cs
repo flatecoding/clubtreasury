@@ -5,24 +5,24 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.SpecialItem
 {
     public class SpecialItemService(CashDataContext context, ILogger<SpecialItemService> logger,
-        IStringLocalizer<Translation> localizer, IOperationResultFactory operationResultFactory) : ISpecialItemService
+        IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory) : ISpecialItemService
     {
         private string EntityName => localizer["SpecialPosition"];
-        public async Task<List<SpecialItemModel>> GetAllSpecialItems(CancellationToken ct = default)
+        public async Task<List<SpecialItemModel>> GetAllSpecialItemsAsync(CancellationToken ct = default)
         {
             return await context.SpecialItems
                 .Include(s => s.Transactions)
                 .ToListAsync(ct);
         }
 
-        public async Task<SpecialItemModel?> GetSpecialPositionById(int id, CancellationToken ct = default)
+        public async Task<SpecialItemModel?> GetSpecialPositionByIdAsync(int id, CancellationToken ct = default)
         {
             return await context.SpecialItems
                 .Include(s => s.Transactions)
                 .FirstOrDefaultAsync(s => s.Id == id, ct);
         }
 
-        public async Task<IOperationResult> AddSpecialPositionAsync(SpecialItemModel specialPosition, CancellationToken ct = default)
+        public async Task<Result> AddSpecialPositionAsync(SpecialItemModel specialPosition, CancellationToken ct = default)
         {
             try
             {
@@ -36,12 +36,12 @@ namespace ClubTreasury.Data.SpecialItem
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "Failed to add SpecialItem");
+                logger.LogError(ex, "Failed to add SpecialItem");
                 return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
         }
 
-        public async Task<IOperationResult> UpdateSpecialPositionAsync(SpecialItemModel specialPosition, CancellationToken ct = default)
+        public async Task<Result> UpdateSpecialPositionAsync(SpecialItemModel specialPosition, CancellationToken ct = default)
         {
             try
             {
@@ -60,7 +60,7 @@ namespace ClubTreasury.Data.SpecialItem
             }
         }
 
-        public async Task<IOperationResult> DeleteSpecialPositionAsync(int id, CancellationToken ct = default)
+        public async Task<Result> DeleteSpecialPositionAsync(int id, CancellationToken ct = default)
         {
             try
             {
@@ -83,7 +83,7 @@ namespace ClubTreasury.Data.SpecialItem
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "Failed to delete SpecialItem");
+                logger.LogError(ex, "Failed to delete SpecialItem");
                 return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
             }
         }

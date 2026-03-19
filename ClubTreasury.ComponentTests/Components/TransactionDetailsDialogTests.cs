@@ -20,7 +20,7 @@ public class TransactionDetailsDialogTests : BunitContext
     private IPersonService _personService = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private INotificationService _notificationService = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
 
     private List<PersonModel> _persons = null!;
 
@@ -31,7 +31,7 @@ public class TransactionDetailsDialogTests : BunitContext
         Services.AddSingleton(_personService = A.Fake<IPersonService>());
         Services.AddSingleton(_localizer = A.Fake<IStringLocalizer<Translation>>());
         Services.AddSingleton(_notificationService = A.Fake<INotificationService>());
-        Services.AddSingleton(_operationResultFactory = A.Fake<IOperationResultFactory>());
+        Services.AddSingleton(_resultFactory = A.Fake<IResultFactory>());
 
         A.CallTo(() => _localizer[A<string>._])
             .ReturnsLazily((string key) => new LocalizedString(key, key));
@@ -111,12 +111,8 @@ public class TransactionDetailsDialogTests : BunitContext
     [Test]
     public void Cancel_ClosesDialog()
     {
-        var canceledResult = new OperationResult
-        {
-            Status = OperationResultStatus.Canceled,
-            Message = "Canceled"
-        };
-        A.CallTo(() => _operationResultFactory.Canceled()).Returns(canceledResult);
+        var canceledResult = Result.Failure(Error.Canceled with { Message = "Canceled" });
+        A.CallTo(() => _resultFactory.Canceled()).Returns(canceledResult);
 
         var cut = RenderDialog();
 
@@ -140,7 +136,7 @@ public class TransactionDetailsDialogTests : BunitContext
         };
         A.CallTo(() => _transactionDetailsService.GetTransactionDetailsByIdAsync(10)).Returns(details);
         A.CallTo(() => _transactionDetailsService.UpdateTransactionDetailsAsync(A<TransactionDetailsModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog(transactionDetailsId: 10);
 
@@ -163,11 +159,7 @@ public class TransactionDetailsDialogTests : BunitContext
             Description = "Test detail",
             Sum = 50m
         };
-        var failResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Update failed"
-        };
+        var failResult = Result.Failure(new Error("Test.Error", "Update failed"));
         A.CallTo(() => _transactionDetailsService.GetTransactionDetailsByIdAsync(10)).Returns(details);
         A.CallTo(() => _transactionDetailsService.UpdateTransactionDetailsAsync(A<TransactionDetailsModel>._))
             .Returns(failResult);
@@ -178,7 +170,7 @@ public class TransactionDetailsDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _notificationService.ShowOperationResultAsync(failResult)).MustHaveHappened();
+        A.CallTo(() => _notificationService.ShowResultAsync(failResult)).MustHaveHappened();
     }
 
     [Test]
@@ -243,7 +235,7 @@ public class TransactionDetailsDialogTests : BunitContext
         };
         A.CallTo(() => _transactionDetailsService.GetTransactionDetailsByIdAsync(10)).Returns(details);
         A.CallTo(() => _transactionDetailsService.UpdateTransactionDetailsAsync(A<TransactionDetailsModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog(transactionDetailsId: 10);
 

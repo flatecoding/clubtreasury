@@ -1,24 +1,22 @@
-@using Microsoft.Extensions.Localization
-@using ClubTreasury.Data.Notification
+@using ClubTreasury.Components.Dialog
 @using ClubTreasury.Data.OperationResult
 
+@inherits SimpleEntityDialogBase<CostCenterModel>
+
 @inject ICostCenterService CostCenterService
-@inject IStringLocalizer<Translation> Localizer
-@inject INotificationService NotificationService
-@inject IOperationResultFactory OperationResultFactory
 @inject CostCenterValidator CostCenterValidator
 
 <MudDialog>
     <DialogContent>
-        <MudForm @ref="_form"
-                 Model="_costCenterModel"
-                 Validation="CostCenterValidator.ValidateValue"
+        <MudForm @ref="Form"
+                 Model="Model"
+                 Validation="ValidateValue"
                  ValidationDelay="0"
                  OnEnterPressed="@Save">
 
-            <MudTextField @bind-Value="_costCenterModel.CostUnitName"
+            <MudTextField @bind-Value="Model.CostUnitName"
                           Label="@Localizer["CostCenter"]"
-                          For="@(() => _costCenterModel.CostUnitName)"
+                          For="@(() => Model.CostUnitName)"
                           Immediate="true" />
         </MudForm>
     </DialogContent>
@@ -26,7 +24,7 @@
     <DialogActions>
         <MudButton Color="Color.Primary"
                    OnClick="@(async () => await Save())">
-            @(_isEditMode ? Localizer["Save"] : Localizer["AddEntry"])
+            @(IsEditMode ? Localizer["Save"] : Localizer["AddEntry"])
         </MudButton>
 
         <MudButton Color="Color.Secondary"
@@ -39,47 +37,9 @@
 @code {
     [Parameter] public int? CostCenterId { get; set; }
 
-    [CascadingParameter]
-    private IMudDialogInstance MudDialog { get; set; } = null!;
-
-    private MudForm _form = new();
-    private CostCenterModel _costCenterModel = new();
-    private bool _isEditMode;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _isEditMode = CostCenterId.HasValue;
-        await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
-        await LoadCostCenterAsync();
-    }
-
-    private async Task LoadCostCenterAsync()
-    {
-        if (!_isEditMode)
-        {
-            _costCenterModel = new CostCenterModel();
-            return;
-        }
-
-        _costCenterModel = await CostCenterService.GetCostCenterByIdAsync(CostCenterId!.Value)
-                           ?? new CostCenterModel();
-    }
-
-    private async Task Save()
-    {
-        await _form.Validate();
-        if (!_form.IsValid)
-            return;
-
-        var result = _isEditMode
-            ? await CostCenterService.UpdateCostCenterAsync(_costCenterModel)
-            : await CostCenterService.AddCostCenterAsync(_costCenterModel);
-
-        if (result.Status is OperationResultStatus.Success)
-            MudDialog.Close(DialogResult.Ok(result));
-        else
-            await NotificationService.ShowOperationResultAsync(result);
-    }
-
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    protected override int? EntityId => CostCenterId;
+    protected override Func<object, string, Task<IEnumerable<string>>> ValidateValue => CostCenterValidator.ValidateValue;
+    protected override Task<CostCenterModel?> LoadEntityAsync(int id) => CostCenterService.GetCostCenterByIdAsync(id);
+    protected override Task<Result> AddEntityAsync(CostCenterModel model) => CostCenterService.AddCostCenterAsync(model);
+    protected override Task<Result> UpdateEntityAsync(CostCenterModel model) => CostCenterService.UpdateCostCenterAsync(model);
 }

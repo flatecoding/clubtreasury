@@ -18,7 +18,7 @@ public class CategoryDialogTests : BunitContext
     private ICategoryService _categoryService = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private INotificationService _notificationService = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
 
     [SetUp]
     public void SetUp()
@@ -26,7 +26,7 @@ public class CategoryDialogTests : BunitContext
         Services.AddSingleton(_categoryService = A.Fake<ICategoryService>());
         Services.AddSingleton(_localizer = A.Fake<IStringLocalizer<Translation>>());
         Services.AddSingleton(_notificationService = A.Fake<INotificationService>());
-        Services.AddSingleton(_operationResultFactory = A.Fake<IOperationResultFactory>());
+        Services.AddSingleton(_resultFactory = A.Fake<IResultFactory>());
 
         A.CallTo(() => _localizer[A<string>._])
             .ReturnsLazily((string key) => new LocalizedString(key, key));
@@ -76,12 +76,8 @@ public class CategoryDialogTests : BunitContext
     [Test]
     public void Cancel_ClosesDialog()
     {
-        var canceledResult = new OperationResult
-        {
-            Status = OperationResultStatus.Canceled,
-            Message = "Canceled"
-        };
-        A.CallTo(() => _operationResultFactory.Canceled()).Returns(canceledResult);
+        var canceledResult = Result.Failure(Error.Canceled with { Message = "Canceled" });
+        A.CallTo(() => _resultFactory.Canceled()).Returns(canceledResult);
 
         var cut = RenderDialog();
 
@@ -98,7 +94,7 @@ public class CategoryDialogTests : BunitContext
         var category = new CategoryModel { Id = 1, Name = "Fees" };
         A.CallTo(() => _categoryService.GetCategoryByIdAsync(1)).Returns(category);
         A.CallTo(() => _categoryService.UpdateCategoryAsync(A<CategoryModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog(categoryId: 1);
 
@@ -114,11 +110,7 @@ public class CategoryDialogTests : BunitContext
     public async Task SaveInEditMode_ShowsNotificationOnFailure()
     {
         var category = new CategoryModel { Id = 1, Name = "Fees" };
-        var failResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Update failed"
-        };
+        var failResult = Result.Failure(new Error("Test.Error", "Update failed"));
         A.CallTo(() => _categoryService.GetCategoryByIdAsync(1)).Returns(category);
         A.CallTo(() => _categoryService.UpdateCategoryAsync(A<CategoryModel>._))
             .Returns(failResult);
@@ -129,7 +121,7 @@ public class CategoryDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Save"));
         await cut.InvokeAsync(() => saveButton.Click());
 
-        A.CallTo(() => _notificationService.ShowOperationResultAsync(failResult)).MustHaveHappened();
+        A.CallTo(() => _notificationService.ShowResultAsync(failResult)).MustHaveHappened();
     }
 
     [Test]
@@ -161,7 +153,7 @@ public class CategoryDialogTests : BunitContext
     public async Task AddMode_CallsAddOnSuccess()
     {
         A.CallTo(() => _categoryService.AddCategoryAsync(A<CategoryModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog();
 
@@ -183,7 +175,7 @@ public class CategoryDialogTests : BunitContext
         var category = new CategoryModel { Id = 1, Name = "Fees" };
         A.CallTo(() => _categoryService.GetCategoryByIdAsync(1)).Returns(category);
         A.CallTo(() => _categoryService.UpdateCategoryAsync(A<CategoryModel>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+            .Returns(Result.Success());
 
         var cut = RenderDialog(categoryId: 1);
 

@@ -64,7 +64,7 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         var result = await _transactionService.AddTransactionAsync(transaction);
 
         // Assert
-        result.Status.Should().Be(OperationResultStatus.Success);
+        result.IsSuccess.Should().BeTrue();
 
         var savedTransaction = await GetDbContext().Transactions
             .Include(t => t.Allocation)
@@ -128,7 +128,7 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         var result = await _transactionService.UpdateTransactionAsync(loadedTransaction);
 
         // Assert
-        result.Status.Should().Be(OperationResultStatus.Success);
+        result.IsSuccess.Should().BeTrue();
 
         GetDbContext().ChangeTracker.Clear();
         var updatedTransaction = await GetDbContext().Transactions
@@ -178,7 +178,7 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         var result = await _transactionService.UpdateTransactionAsync(loadedTransaction);
 
         // Assert
-        result.Status.Should().Be(OperationResultStatus.Success);
+        result.IsSuccess.Should().BeTrue();
 
         GetDbContext().ChangeTracker.Clear();
         var updatedTransaction = await GetDbContext().Transactions.FirstAsync(t => t.Id == transaction.Id);
@@ -209,7 +209,7 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         var result = await _transactionService.DeleteTransactionAsync(transactionId);
 
         // Assert
-        result.Status.Should().Be(OperationResultStatus.Success);
+        result.IsSuccess.Should().BeTrue();
 
         var deletedTransaction = await GetDbContext().Transactions.FindAsync(transactionId);
         deletedTransaction.Should().BeNull();
@@ -248,9 +248,9 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         // Act
         var result = await _transactionService.AddTransactionAsync(duplicateTransaction);
 
-        // Assert - AlreadyExists returns Warning status per OperationResultFactory
-        result.Status.Should().Be(OperationResultStatus.Warning);
-        result.Status.Should().NotBe(OperationResultStatus.Success);
+        // Assert - AlreadyExists returns failure per ResultFactory
+        result.IsFailure.Should().BeTrue();
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Test]
@@ -291,7 +291,7 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         var result = await _transactionService.AddTransactionAsync(transactionInOtherRegister);
 
         // Assert
-        result.Status.Should().Be(OperationResultStatus.Success);
+        result.IsSuccess.Should().BeTrue();
     }
 
     [Test]
@@ -335,7 +335,7 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         await GetDbContext().SaveChangesAsync();
 
         // Act
-        var result = await _transactionService.GetTransactionsForExport(
+        var result = await _transactionService.GetTransactionsForExportAsync(
             new DateTime(2024, 1, 1),
             new DateTime(2024, 2, 28),
             cashRegister.Id);

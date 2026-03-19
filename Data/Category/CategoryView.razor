@@ -1,12 +1,10 @@
-﻿@page "/categories"
-@using Microsoft.Extensions.Localization
-@using ClubTreasury.Data.DialogService
-@using ClubTreasury.Data.Notification
+@page "/categories"
+@using ClubTreasury.Components.View
 @using ClubTreasury.Data.OperationResult
+
+@inherits CrudViewBase<CategoryModel, CategoryDialog>
+
 @inject ICategoryService CategoryService
-@inject IDialogService DialogService
-@inject INotificationService NotificationService
-@inject IStringLocalizer<Translation> Localizer
 
 <MudGrid Spacing="0">
     <MudItem xs="12">
@@ -16,23 +14,23 @@
     </MudItem>
     <MudItem xs="12" md="10" lg="4">
         <MudPaper Elevation="0">
-            <MudTable Items="@_allEntries"
-                      Dense="@Dense"
-                      Hover="@Hover"
-                      Bordered="@Bordered"
-                      Striped="@Striped"
+            <MudTable Items="@AllEntries"
+                      Dense="true"
+                      Hover="true"
+                      Bordered="false"
+                      Striped="true"
                       FixedHeader="true"
-                      @bind-SelectedItem="_selectedItem"
+                      @bind-SelectedItem="SelectedItem"
                       Filter="new Func<CategoryModel,bool>(FilterFunc)"
                       SortLabel="Sort By">
                 <ToolBarContent>
                     <MudIconButton Variant="Variant.Filled"
                                Icon="@Icons.Material.Filled.Add"
                                Color="Color.Primary"
-                               OnClick="@ShowAddCategoryDialog">
+                               OnClick="@ShowAddDialog">
                     </MudIconButton>
                     <MudSpacer/>
-                    <MudTextField @bind-Value="_searchTerm"
+                    <MudTextField @bind-Value="SearchTerm"
                                   Placeholder="Search"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Search"
@@ -65,11 +63,11 @@
                         <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                        Color="Color.Info"
                                        aria-label="edit"
-                                       OnClick="@(() => ShowEditCategoryDialog(context.Id))" />
+                                       OnClick="@(() => ShowEditDialog(context.Id))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
                                        aria-label="delete"
-                                       OnClick="@(() => ShowDeleteCategoryDialog(context))" />
+                                       OnClick="@(() => ShowDeleteDialog(context))" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -79,72 +77,23 @@
         </MudPaper>
     </MudItem>
 </MudGrid>
+
 @code {
-    private IEnumerable<CategoryModel>? _allEntries;
-    private const bool Dense = true;
-    private const bool Hover = true;
-    private const bool Striped = true;
-    private const bool Bordered = false;
-    private string _searchTerm = string.Empty;
-    private CategoryModel _selectedItem = new();
+    protected override string EntityIdParameterName => "CategoryId";
+    protected override string EntityLocalizedName => Localizer["Category"];
+    protected override int GetEntityId(CategoryModel entity) => entity.Id;
+    protected override string GetEntityDisplayName(CategoryModel entity) => entity.Name;
+    protected override Task<List<CategoryModel>> LoadAllAsync() => CategoryService.GetAllCategoriesAsync();
+    protected override Task<Result> DeleteEntityAsync(int id) => CategoryService.DeleteCategoryAsync(id);
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        _allEntries = await CategoryService.GetAllCategoriesAsync();
-    }
-
-    private bool FilterFunc(CategoryModel? element) => MatchesFilter(element, _searchTerm);
-
-    private static bool MatchesFilter(CategoryModel? element, string searchTerm)
+    protected override bool MatchesFilter(CategoryModel? element, string searchTerm)
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
             return true;
         if (element == null) return false;
 
         searchTerm = searchTerm.ToLowerInvariant();
-        
-        return element.Allocations.Any(a =>
-            a.ItemDetail != null &&
-            a.ItemDetail.CostDetails.ToLower().Contains(searchTerm)) || element.Name.ToLower().Contains(searchTerm);
-    }
 
-
-    private async Task ShowAddCategoryDialog()
-    {
-        var result = await DialogService.ShowDialogWithNotificationAsync<CategoryDialog>(NotificationService);
-        if (result?.Status is OperationResultStatus.Success)
-        {
-            await UpdateView();
-        }
-    }
-
-    private async Task ShowEditCategoryDialog(int categoryId)
-    {
-        var result = await DialogService.ShowDialogWithNotificationAsync<CategoryDialog>(NotificationService,
-            $"{Localizer["Edit"]}",
-            new DialogParameters(){["CategoryId"] = categoryId});
-
-        if (result?.Status is OperationResultStatus.Success)
-        {
-            await UpdateView();
-        }
-    }
-
-    private async Task ShowDeleteCategoryDialog(CategoryModel category)
-    {
-        await DialogService.ShowConfirmDeleteDialogAsync(
-            NotificationService,
-            entityName: Localizer["Category"].Value,
-            itemName: $"{category.Name}",
-            onConfirm: () => CategoryService.DeleteCategoryAsync(category.Id),
-            onSuccess: UpdateView,
-            deleteTitle: Localizer["Delete"]);
-    }
-    
-    private async Task UpdateView() 
-    {    
-        _allEntries = await CategoryService.GetAllCategoriesAsync();
-        await InvokeAsync(StateHasChanged);
+        return element.Name.ToLowerInvariant().Contains(searchTerm);
     }
 }

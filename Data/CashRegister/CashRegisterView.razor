@@ -1,13 +1,11 @@
-﻿@page "/cashregisters"
+@page "/cashregisters"
 @using System.Globalization
-@using Microsoft.Extensions.Localization
-@using ClubTreasury.Data.DialogService
-@using ClubTreasury.Data.Notification
+@using ClubTreasury.Components.View
 @using ClubTreasury.Data.OperationResult
+
+@inherits CrudViewBase<CashRegisterModel, CashRegisterDialog>
+
 @inject ICashRegisterService CashRegisterService
-@inject IDialogService DialogService
-@inject INotificationService NotificationService
-@inject IStringLocalizer<Translation> Localizer
 
 <MudGrid Spacing="0">
     <MudItem xs="12">
@@ -15,26 +13,25 @@
             @Localizer["CashRegister"]
         </MudText>
     </MudItem>
-
     <MudItem xs="12" md="10" lg="4">
         <MudPaper Elevation="0">
-            <MudTable Items="@_allEntries"
-                      Dense="@Dense"
-                      Hover="@Hover"
-                      Bordered="@Bordered"
-                      Striped="@Striped"
+            <MudTable Items="@AllEntries"
+                      Dense="true"
+                      Hover="true"
+                      Bordered="false"
+                      Striped="true"
                       FixedHeader="true"
-                      @bind-SelectedItem="_selectedItem"
+                      @bind-SelectedItem="SelectedItem"
                       Filter="new Func<CashRegisterModel,bool>(FilterFunc)"
                       SortLabel="Sort By">
                 <ToolBarContent>
                     <MudIconButton Variant="Variant.Filled"
                                Icon="@Icons.Material.Filled.Add"
                                Color="Color.Primary"
-                               OnClick="@ShowAddCashRegisterDialog">
+                               OnClick="@ShowAddDialog">
                     </MudIconButton>
                     <MudSpacer />
-                    <MudTextField @bind-Value="_searchTerm"
+                    <MudTextField @bind-Value="SearchTerm"
                                   Placeholder="Search"
                                   Adornment="Adornment.Start"
                                   AdornmentIcon="@Icons.Material.Filled.Search"
@@ -71,11 +68,11 @@
                         <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                        Color="Color.Info"
                                        aria-label="@Localizer["Edit"].Value"
-                                       OnClick="@(() => ShowEditCashRegisterDialog(context.Id))" />
+                                       OnClick="@(() => ShowEditDialog(context.Id))" />
                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                        Color="Color.Error"
                                        aria-label="@Localizer["Delete"].Value"
-                                       OnClick="@(() => ShowDeleteCashRegisterDialog(context))" />
+                                       OnClick="@(() => ShowDeleteDialog(context))" />
                     </MudTd>
                 </RowTemplate>
                 <PagerContent>
@@ -87,73 +84,20 @@
 </MudGrid>
 
 @code {
-    private IEnumerable<CashRegisterModel>? _allEntries;
-    private const bool Dense = true;
-    private const bool Hover = true;
-    private const bool Striped = true;
-    private const bool Bordered = false;
-    private string _searchTerm = string.Empty;
-    private CashRegisterModel _selectedItem = new();
+    protected override string EntityIdParameterName => "CashRegisterId";
+    protected override string EntityLocalizedName => Localizer["CashRegister"];
+    protected override int GetEntityId(CashRegisterModel entity) => entity.Id;
+    protected override string GetEntityDisplayName(CashRegisterModel entity) => entity.Name;
+    protected override Task<List<CashRegisterModel>> LoadAllAsync() => CashRegisterService.GetAllCashRegistersAsync();
+    protected override Task<Result> DeleteEntityAsync(int id) => CashRegisterService.DeleteCashRegisterAsync(id);
+    protected override DialogOptions? CustomDialogOptions => new() { MaxWidth = MaxWidth.Small };
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        _allEntries = await CashRegisterService.GetAllCashRegisters();
-    }
-
-    private bool FilterFunc(CashRegisterModel? element) => MatchesFilter(element, _searchTerm);
-
-    private static bool MatchesFilter(CashRegisterModel? element, string searchTerm)
+    protected override bool MatchesFilter(CashRegisterModel? element, string searchTerm)
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
             return true;
         if (element is null)
             return false;
-        return !string.IsNullOrWhiteSpace(searchTerm) && element.Name.ToLower().Contains(searchTerm.ToLowerInvariant());
-    }
-
-    private async Task ShowAddCashRegisterDialog()
-    {
-       var result = await DialogService.ShowDialogWithNotificationAsync<CashRegisterDialog>(
-            NotificationService,
-            $"{Localizer["AddEntry"]}",
-            null,
-            new DialogOptions() { MaxWidth = MaxWidth.Small });
-    
-        if (result?.Status == OperationResultStatus.Success)
-        {
-            await UpdateView();
-        }
-    }
-    
-    private async Task ShowEditCashRegisterDialog(int cashRegisterId)
-    {
-        var result = await DialogService.ShowDialogWithNotificationAsync<CashRegisterDialog>(
-            NotificationService,
-            $"{Localizer["Edit"]} ",
-            new DialogParameters { ["CashRegisterId"] = cashRegisterId },
-            new DialogOptions() { MaxWidth = MaxWidth.Small });
-    
-        if (result?.Status == OperationResultStatus.Success)
-        {
-            await UpdateView();
-        }
-    }
-    
-    private async Task UpdateView()
-    {
-        _allEntries = await CashRegisterService.GetAllCashRegisters();
-        await InvokeAsync(StateHasChanged);
-    }
-    
-    private async Task ShowDeleteCashRegisterDialog(CashRegisterModel cashRegister)
-    {
-        await DialogService.ShowConfirmDeleteDialogAsync(
-            NotificationService,
-            entityName: Localizer["CashRegister"].Value,
-            itemName: $"{cashRegister.Name}",
-            onConfirm: () => CashRegisterService.DeleteCashRegisterAsync(cashRegister.Id),
-            onSuccess: UpdateView,
-            deleteTitle: Localizer["Delete"]);
+        return element.Name.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant());
     }
 }

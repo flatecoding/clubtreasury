@@ -17,13 +17,13 @@ namespace ClubTreasury.ComponentTests.Components;
 public class ConfirmDeleteDialogTests : BunitContext
 {
     private IStringLocalizer<Translation> _localizer = null!;
-    private IOperationResultFactory _operationResultFactory = null!;
+    private IResultFactory _resultFactory = null!;
 
     [SetUp]
     public void SetUp()
     {
         Services.AddSingleton(_localizer = A.Fake<IStringLocalizer<Translation>>());
-        Services.AddSingleton(_operationResultFactory = A.Fake<IOperationResultFactory>());
+        Services.AddSingleton(_resultFactory = A.Fake<IResultFactory>());
         Services.AddSingleton(A.Fake<ILogger<ConfirmDeleteDialog>>());
 
         A.CallTo(() => _localizer[A<string>._])
@@ -68,12 +68,8 @@ public class ConfirmDeleteDialogTests : BunitContext
     [Test]
     public void Cancel_ClosesDialogWithCanceledResult()
     {
-        var canceledResult = new OperationResult
-        {
-            Status = OperationResultStatus.Canceled,
-            Message = "Canceled"
-        };
-        A.CallTo(() => _operationResultFactory.Canceled()).Returns(canceledResult);
+        var canceledResult = Result.Failure(Error.Canceled with { Message = "Canceled" });
+        A.CallTo(() => _resultFactory.Canceled()).Returns(canceledResult);
 
         var cut = RenderDialog();
 
@@ -89,12 +85,8 @@ public class ConfirmDeleteDialogTests : BunitContext
     {
         var confirmCalled = false;
         var onConfirm = EventCallback.Factory.Create(this, () => confirmCalled = true);
-        var successResult = new OperationResult
-        {
-            Status = OperationResultStatus.Success,
-            Message = "Deleted"
-        };
-        A.CallTo(() => _operationResultFactory.SuccessDeleted(A<string>._)).Returns(successResult);
+        var successResult = Result.Success("Deleted");
+        A.CallTo(() => _resultFactory.SuccessDeleted(A<string>._)).Returns(successResult);
 
         var cut = RenderDialog(onConfirm: onConfirm);
 
@@ -110,12 +102,8 @@ public class ConfirmDeleteDialogTests : BunitContext
     {
         var onConfirm = EventCallback.Factory.Create(this,
             () => throw new InvalidOperationException("DB error"));
-        var failResult = new OperationResult
-        {
-            Status = OperationResultStatus.Failed,
-            Message = "Failed"
-        };
-        A.CallTo(() => _operationResultFactory.FailedToDelete(A<string>._)).Returns(failResult);
+        var failResult = Result.Failure(new Error("Test.Error", "Failed"));
+        A.CallTo(() => _resultFactory.FailedToDelete(A<string>._)).Returns(failResult);
 
         var cut = RenderDialog(onConfirm: onConfirm);
 
@@ -123,7 +111,7 @@ public class ConfirmDeleteDialogTests : BunitContext
             .First(b => b.TextContent.Contains("Delete"));
         await cut.InvokeAsync(() => deleteButton.Click());
 
-        A.CallTo(() => _operationResultFactory.FailedToDelete(A<string>._)).MustHaveHappened();
+        A.CallTo(() => _resultFactory.FailedToDelete(A<string>._)).MustHaveHappened();
     }
 
     [Test]
@@ -141,8 +129,8 @@ public class ConfirmDeleteDialogTests : BunitContext
     {
         var confirmCalled = false;
         var onConfirm = EventCallback.Factory.Create(this, () => confirmCalled = true);
-        A.CallTo(() => _operationResultFactory.Canceled())
-            .Returns(new OperationResult { Status = OperationResultStatus.Canceled });
+        A.CallTo(() => _resultFactory.Canceled())
+            .Returns(Result.Failure(Error.Canceled));
 
         var cut = RenderDialog(onConfirm: onConfirm);
 
@@ -157,8 +145,8 @@ public class ConfirmDeleteDialogTests : BunitContext
     public async Task Confirm_ClosesDialog()
     {
         var onConfirm = EventCallback.Factory.Create(this, () => { });
-        A.CallTo(() => _operationResultFactory.SuccessDeleted(A<string>._))
-            .Returns(new OperationResult { Status = OperationResultStatus.Success });
+        A.CallTo(() => _resultFactory.SuccessDeleted(A<string>._))
+            .Returns(Result.Success());
 
         var cut = RenderDialog(onConfirm: onConfirm);
 

@@ -1,18 +1,22 @@
 @page "/export-budget-dialog"
+@using FluentValidation
 @using Microsoft.Extensions.Localization
 @using MudExtensions
 @using ClubTreasury.Data.Export
+@using ClubTreasury.Data.Notification
 @using ClubTreasury.Data.OperationResult
 @using ClubTreasury.Data.CashRegister
 @inject IExportService ExportService
 @inject ICashRegisterService CashRegisterService
-@inject IOperationResultFactory OperationResultFactory
+@inject IResultFactory ResultFactory
 @inject IStringLocalizer<Translation> Localizer
 @inject ILogger<ExportBudgetDialog> Logger
+@inject ExportModelValidator ExportModelValidator
+@inject INotificationService NotificationService
 
 <MudDialog>
     <DialogContent>
-        <MudForm Model="@_model" @ref="_form">
+        <MudForm Model="@_model" @ref="_form" Validation="@(ExportModelValidator.ValidateValue)" ValidationDelay="0">
             <MudGrid Spacing="2">
                 <MudItem xs="12">
                     <MudSelect T="CashRegisterModel"
@@ -87,7 +91,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _cashRegisters = await CashRegisterService.GetAllCashRegisters();
+        _cashRegisters = await CashRegisterService.GetAllCashRegistersAsync();
         _selectedCashRegister = _cashRegisters.FirstOrDefault();
         _model.DateRange = new DateRange(_selectedCashRegister?.GetFiscalYearStart() ?? DateTime.Today, DateTime.Now);
     }
@@ -100,8 +104,7 @@
 
     private async Task ExportCsv()
     {
-        await _form.Validate();
-        if (!_form.IsValid)
+        if (!await ValidateFormAsync())
             return;
 
         _isExportingCsv = true;
@@ -111,14 +114,14 @@
             var end = _model.DateRange.End!.Value.Date;
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
 
-            var result = await ExportService.ExportBudgetToCsv(start, end, filename, _selectedCashRegister!.Id);
+            var result = await ExportService.ExportBudgetToCsvAsync(start, end, filename, _selectedCashRegister!.Id);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "Unexpected error during export");
+            Logger.LogError(ex, "Unexpected error during export");
             MudDialog.Close(DialogResult.Ok(
-                OperationResultFactory.ExportFailed(Localizer["Exception"])));
+                ResultFactory.ExportFailed(Localizer["Exception"])));
         }
         finally
         {
@@ -128,8 +131,7 @@
 
     private async Task ExportXlsx()
     {
-        await _form.Validate();
-        if (!_form.IsValid)
+        if (!await ValidateFormAsync())
             return;
 
         _isExportingXlsx = true;
@@ -139,14 +141,14 @@
             var end = _model.DateRange.End!.Value.Date;
             var fileName = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
 
-            var result = await ExportService.ExportBudgetToExcel(start, end, fileName, _selectedCashRegister!.Id);
+            var result = await ExportService.ExportBudgetToExcelAsync(start, end, fileName, _selectedCashRegister!.Id);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
         {
-            Logger.LogCritical(ex, "Error occurred during export!");
+            Logger.LogError(ex, "Error occurred during export!");
             MudDialog.Close(DialogResult.Ok(
-                OperationResultFactory.ExportFailed(Localizer["Exception"])));
+                ResultFactory.ExportFailed(Localizer["Exception"])));
         }
         finally
         {
@@ -154,5 +156,28 @@
         }
     }
 
-    private void Cancel() => MudDialog.Close(DialogResult.Ok(OperationResultFactory.Canceled()));
+    private async Task<bool> ValidateFormAsync()
+    {
+        await _form.Validate();
+        var dateErrors = GetDateRangeErrors();
+        if (_form.IsValid && dateErrors is null)
+            return true;
+
+        if (dateErrors is not null)
+            await NotificationService.ShowResultAsync(dateErrors);
+        return false;
+    }
+
+    private Result? GetDateRangeErrors()
+    {
+        var result = ExportModelValidator.Validate(
+            _model,
+            options => options.IncludeProperties(x => x.DateRange));
+
+        return result.IsValid
+            ? null
+            : ResultFactory.DateRangeInvalid(result.ToString());
+    }
+
+    private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
 }

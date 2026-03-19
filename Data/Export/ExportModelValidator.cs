@@ -1,9 +1,10 @@
 using FluentValidation;
 using Microsoft.Extensions.Localization;
+using ClubTreasury.Data.Validation;
 
 namespace ClubTreasury.Data.Export;
 
-public class ExportModelValidator : AbstractValidator<ExportModel>
+public class ExportModelValidator : BaseValidator<ExportModel>
 {
     public ExportModelValidator(IStringLocalizer<Translation> localizer)
     {
@@ -20,11 +21,4 @@ public class ExportModelValidator : AbstractValidator<ExportModel>
             .Must(dateRange => dateRange!.Start!.Value.Date <= dateRange.End!.Value.Date)
             .WithMessage(localizer["DateRangeError"]);
     }
-    
-    public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>
-    {
-        var result = await ValidateAsync(ValidationContext<ExportModel>.CreateWithOptions((ExportModel)model, 
-            x => x.IncludeProperties(propertyName)));
-        return result.IsValid ? [] : result.Errors.Select(e => e.ErrorMessage);
-    };
 }
