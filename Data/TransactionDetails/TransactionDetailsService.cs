@@ -12,24 +12,21 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
     public async Task<List<TransactionDetailsModel>> GetAllTransactionDetailsAsync(CancellationToken ct = default)
     {
         return await context.TransactionDetails
-            .Include(st => st.Transaction)
-            .Include(st => st.Person)
+            .WithTransactionAndPerson()
             .ToListAsync(ct);
     }
 
     public async Task<TransactionDetailsModel?> GetTransactionDetailsByIdAsync(int id, CancellationToken ct = default)
     {
         return await context.TransactionDetails
-            .Include(st => st.Transaction)
-            .Include(st => st.Person)
+            .WithTransactionAndPerson()
             .FirstOrDefaultAsync(st => st.Id == id, ct);
     }
 
     public async Task<List<TransactionDetailsModel>> GetTransactionDetailsByTransactionIdAsync(int transactionId, CancellationToken ct = default)
     {
         return await context.TransactionDetails
-            .Include(st => st.Transaction)
-            .Include(st => st.Person)
+            .WithTransactionAndPerson()
             .Where(st => st.TransactionId == transactionId)
             .ToListAsync(ct);
     }
