@@ -12,8 +12,6 @@ namespace ClubTreasury.Data.CostCenter
         public async Task<List<CostCenterModel>> GetAllCostCentersAsync(CancellationToken ct = default)
         {
             return await context.CostCenters
-                .Include(c => c.Allocations).ThenInclude(a => a.Category)
-                .Include(c => c.Allocations).ThenInclude(a => a.ItemDetail)
                 .OrderBy(c => c.Id)
                 .ToListAsync(ct);
         }
@@ -21,8 +19,6 @@ namespace ClubTreasury.Data.CostCenter
         public async Task<CostCenterModel?> GetCostCenterByIdAsync(int id, CancellationToken ct = default)
         {
             return await context.CostCenters
-                .Include(c => c.Allocations).ThenInclude(a => a.Category)
-                .Include(c => c.Allocations).ThenInclude(a => a.ItemDetail)
                 .FirstOrDefaultAsync(c => c.Id == id, ct);
         }
 

@@ -12,10 +12,6 @@ namespace ClubTreasury.Data.ItemDetail
         public async Task<List<ItemDetailModel>> GetAllItemDetailsAsync(CancellationToken ct = default)
         {
             return await context.ItemDetails
-                .Include(ud => ud.Allocations)
-                .ThenInclude(a => a.Category)
-                .Include(ud => ud.Allocations)
-                .ThenInclude(a => a.CostCenter)
                 .OrderByDescending(c => c.Id)
                 .ToListAsync(ct);
         }
@@ -23,10 +19,6 @@ namespace ClubTreasury.Data.ItemDetail
         public async Task<ItemDetailModel?> GetItemDetailByIdAsync(int id, CancellationToken ct = default)
         {
             return await context.ItemDetails
-                .Include(ud => ud.Allocations)
-                .ThenInclude(a => a.Category)
-                .Include(ud => ud.Allocations)
-                .ThenInclude(a => a.CostCenter)
                 .FirstOrDefaultAsync(x => x.Id == id, ct);
         }
 
