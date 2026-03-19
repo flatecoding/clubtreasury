@@ -135,7 +135,7 @@
     {
         if (_pendingFile is not null)
         {
-            await using var stream = _pendingFile.OpenReadStream(maxAllowedSize: 512 * 1024);
+            await using var stream = _pendingFile.OpenReadStream(maxAllowedSize: FileUploadLimits.LogoMaxSize);
             using var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
             await CashRegisterLogoService.UploadLogoAsync(cashRegisterId, ms.ToArray(), _pendingFile.ContentType);

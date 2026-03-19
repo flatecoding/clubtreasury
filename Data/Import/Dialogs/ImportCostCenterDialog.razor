@@ -58,7 +58,7 @@
                 return;
             }
 
-            await using var stream = _file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+            await using var stream = _file.OpenReadStream(maxAllowedSize: FileUploadLimits.ImportTextMaxSize);
             var result = await ImportCostCenterService.ImportCostCentersAndPositionsAsync(stream, _file.Name);
             MudDialog.Close(DialogResult.Ok(result));
         }
