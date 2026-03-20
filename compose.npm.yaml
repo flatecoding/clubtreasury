@@ -38,7 +38,9 @@ services:
       Logging__LogLevel__Default: "Information"
       Logging__LogLevel__Microsoft.EntityFrameworkCore: "Information"
       ASPNETCORE_ENVIRONMENT: "Production"
-      DbPassword: #Secret POSTGRES_PASSWORD
+      DbName: #Must match POSTGRES_DB
+      DbUser: #Must match POSTGRES_USER
+      DbPassword: #Must match POSTGRES_PASSWORD
       ADMIN_USERNAME: admin
       ADMIN_EMAIL: admin@admin.de
       ADMIN_PASSWORD: #another secret pw for first user
