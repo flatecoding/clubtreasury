@@ -6,6 +6,17 @@ and manage all financial data in a structured and transparent way.
 
 ---
 
+## 📑 Table of Contents
+
+- [Features](#-features)
+- [Technical Details](#️-technical-details)
+- [License Information for External Libraries](#-license-information-for-external-libraries)
+- [Installation & Setup](#-installation--setup)
+  - [Docker (Recommended)](#docker-recommended)
+  - [Development Setup](#development-setup)
+
+---
+
 ## ✨ Features
 
 - **Income & Expense Management**  
