@@ -63,11 +63,28 @@ More information can be found in:
 
 ## 📦 Installation & Setup
 
+### Docker (Recommended)
+
+For a full installation guide using Docker, see the [Installation Documentation](docs/index.md).
+
+### Development Setup
+
+**Prerequisites:** A local PostgreSQL installation is required. The configured database user must have permissions to create databases.
+
 1. Clone the repository
 2. Open in Visual Studio / Rider
 3. Restore NuGet packages
-4. Configure **PostgreSQL connection**
-    - via *appsettings.json* or *User Secrets*
-5. (Optional) Apply database migrations
+4. Configure database credentials via **User Secrets**:
    ```bash
-   dotnet ef database update
+   dotnet user-secrets set "DbName" "ClubCash"
+   dotnet user-secrets set "DbUser" "dev"
+   dotnet user-secrets set "DbPassword" "YourPassword"
+   ```
+5. Configure the initial admin user via **User Secrets**:
+   ```bash
+   dotnet user-secrets set "ADMIN_USERNAME" "admin"
+   dotnet user-secrets set "ADMIN_EMAIL" "admin@admin.de"
+   dotnet user-secrets set "ADMIN_PASSWORD" "YourAdminPassword"
+   ```
+   The admin user is created automatically on first startup when no users exist.
+6. Run the application — database migrations are applied automatically on startup
