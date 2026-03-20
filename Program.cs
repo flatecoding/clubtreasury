@@ -141,6 +141,14 @@ using (var scope = app.Services.CreateScope())
         var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
         var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
 
+        if (app.Environment.IsDevelopment())
+        {
+            var configuration = app.Configuration;
+            adminUser ??= configuration["ADMIN_USERNAME"];
+            adminEmail ??= configuration["ADMIN_EMAIL"];
+            adminPassword ??= configuration["ADMIN_PASSWORD"];
+        }
+
         if (!string.IsNullOrWhiteSpace(adminUser) &&
             !string.IsNullOrWhiteSpace(adminEmail) &&
             !string.IsNullOrWhiteSpace(adminPassword))
