@@ -25,6 +25,8 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
             {
                 ["ConnectionStrings:DefaultConnection"] = _dbContainer.GetConnectionString(),
                 ["ConnectionStrings:ProductionConnection"] = _dbContainer.GetConnectionString(),
+                ["DbName"] = "notused",
+                ["DbUser"] = "notused",
                 ["DbPassword"] = "notused"
             });
         });

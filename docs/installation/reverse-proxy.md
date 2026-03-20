@@ -58,6 +58,8 @@ services:
       Logging__LogLevel__Default: "Information"
       Logging__LogLevel__Microsoft.EntityFrameworkCore: "Information"
       ASPNETCORE_ENVIRONMENT: "Production"
+      DbName: ClubCash
+      DbUser: YourDbUser
       DbPassword: YourSecureDbPassword
       ADMIN_USERNAME: admin
       ADMIN_EMAIL: admin@admin.de
@@ -76,13 +78,17 @@ networks:
     external: true
 ```
 
-## Step 2: Configure Passwords
+## Step 2: Configure Credentials
 
 Edit the `compose.npm.yaml` and set the following values:
 
 | Variable | Description |
 |---|---|
+| `POSTGRES_DB` | Name of the PostgreSQL database |
+| `POSTGRES_USER` | Username for the PostgreSQL database |
 | `POSTGRES_PASSWORD` | Password for the PostgreSQL database |
+| `DbName` | Must match `POSTGRES_DB` |
+| `DbUser` | Must match `POSTGRES_USER` |
 | `DbPassword` | Must match `POSTGRES_PASSWORD` |
 | `ADMIN_USERNAME` | Username for the initial admin account |
 | `ADMIN_EMAIL` | Email for the initial admin account |

@@ -26,12 +26,15 @@ builder.Services.AddDbContext<CashDataContext>(options =>
 {
     var configuration = builder.Configuration;
 
-    // Passwort aus Docker-Secret oder Dev-UserSecrets holen
     var dbPassword = Environment.GetEnvironmentVariable("DbPassword");
+    var dbUser = Environment.GetEnvironmentVariable("DbUser");
+    var dbName = Environment.GetEnvironmentVariable("DbName");
 
     if (builder.Environment.IsDevelopment())
     {
         dbPassword ??= configuration["DbPassword"];
+        dbUser ??= configuration["DbUser"];
+        dbName ??= configuration["DbName"];
     }
 
     var connectionString = configuration.GetConnectionString(
@@ -44,7 +47,16 @@ builder.Services.AddDbContext<CashDataContext>(options =>
     if (string.IsNullOrWhiteSpace(dbPassword))
         throw new Exception("Db password not found in environment or secrets");
 
-    connectionString = connectionString.Replace("{DbPassword}", dbPassword);
+    if (string.IsNullOrWhiteSpace(dbUser))
+        throw new Exception("Db user not found in environment or secrets");
+
+    if (string.IsNullOrWhiteSpace(dbName))
+        throw new Exception("Db name not found in environment or secrets");
+
+    connectionString = connectionString
+        .Replace("{DbName}", dbName)
+        .Replace("{DbUser}", dbUser)
+        .Replace("{DbPassword}", dbPassword);
 
     options.UseNpgsql(connectionString);
 });
