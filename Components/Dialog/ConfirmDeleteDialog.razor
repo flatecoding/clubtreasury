@@ -22,7 +22,7 @@
 
     [Parameter] public string EntityName { get; set; } = string.Empty;
     [Parameter] public string ItemName { get; set; } = string.Empty;
-    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public Func<Task<Result>>? OnConfirm { get; set; }
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
@@ -47,12 +47,20 @@
     {
         try
         {
-            if (OnConfirm.HasDelegate)
-                await OnConfirm.InvokeAsync();
-            Logger.LogInformation("An entity was deleted: '{EntityName}', Item: '{ItemName}'", EntityName, ItemName);
+            if (OnConfirm == null)
+                return;
 
-            MudDialog.Close(DialogResult.Ok(
-                ResultFactory.SuccessDeleted($"{EntityName}: '{ItemName}'")));
+            var result = await OnConfirm();
+            if (result.IsSuccess)
+            {
+                Logger.LogInformation("An entity was deleted: '{EntityName}', Item: '{ItemName}'", EntityName, ItemName);
+            }
+            else
+            {
+                Logger.LogWarning("Failed to delete entity: '{EntityName}', Item: '{ItemName}'", EntityName, ItemName);
+            }
+
+            MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
         {

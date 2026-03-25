@@ -125,6 +125,13 @@ public class AllocationService(
                 return operationResultFactory.NotFound(EntityName, id);
             }
 
+            var hasTransactions = await context.Transactions.AnyAsync(t => t.AllocationId == id, ct);
+            if (hasTransactions)
+            {
+                logger.LogWarning("Cannot delete allocation Id {AllocationId} because it is referenced by transactions.", id);
+                return operationResultFactory.FailedToDelete(EntityName, localizer["ReferencedByTransactions"]);
+            }
+
             context.Allocations.Remove(allocation);
             await context.SaveChangesAsync(ct);
 
