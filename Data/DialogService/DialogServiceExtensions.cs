@@ -38,7 +38,7 @@ public static class DialogServiceExtensions
         INotificationService notificationService,
         string entityName,
         string itemName,
-        Func<Task> onConfirm,
+        Func<Task<Result>> onConfirm,
         Func<Task>? onSuccess = null,
         string deleteTitle = "Delete",
         DialogOptions? options = null)
@@ -47,7 +47,7 @@ public static class DialogServiceExtensions
         {
             ["EntityName"] = entityName,
             ["ItemName"] = itemName,
-            ["OnConfirm"] = EventCallback.Factory.Create(dialogService, onConfirm)
+            ["OnConfirm"] = onConfirm
         };
 
         var mergedOptions = MergeOptions(options);

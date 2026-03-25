@@ -1,7 +1,6 @@
 using Bunit;
 using FakeItEasy;
 using AwesomeAssertions;
-using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -37,7 +36,7 @@ public class ConfirmDeleteDialogTests : BunitContext
     private IRenderedComponent<MudDialogProvider> RenderDialog(
         string entityName = "CostCenter",
         string itemName = "Admin",
-        EventCallback? onConfirm = null)
+        Func<Task<Result>>? onConfirm = null)
     {
         var cut = Render<MudDialogProvider>();
         var dialogService = Services.GetRequiredService<IDialogService>();
@@ -47,8 +46,8 @@ public class ConfirmDeleteDialogTests : BunitContext
             { x => x.EntityName, entityName },
             { x => x.ItemName, itemName }
         };
-        if (onConfirm.HasValue)
-            parameters.Add(x => x.OnConfirm, onConfirm.Value);
+        if (onConfirm != null)
+            parameters.Add(x => x.OnConfirm, onConfirm);
 
         cut.InvokeAsync(() =>
             dialogService.ShowAsync<ConfirmDeleteDialog>("Dialog", parameters));
@@ -84,9 +83,8 @@ public class ConfirmDeleteDialogTests : BunitContext
     public async Task Confirm_InvokesOnConfirmCallbackAndClosesDialog()
     {
         var confirmCalled = false;
-        var onConfirm = EventCallback.Factory.Create(this, () => confirmCalled = true);
         var successResult = Result.Success("Deleted");
-        A.CallTo(() => _resultFactory.SuccessDeleted(A<string>._)).Returns(successResult);
+        Func<Task<Result>> onConfirm = () => { confirmCalled = true; return Task.FromResult(successResult); };
 
         var cut = RenderDialog(onConfirm: onConfirm);
 
@@ -100,8 +98,7 @@ public class ConfirmDeleteDialogTests : BunitContext
     [Test]
     public async Task Confirm_WhenCallbackThrows_ClosesWithFailedResult()
     {
-        var onConfirm = EventCallback.Factory.Create(this,
-            () => throw new InvalidOperationException("DB error"));
+        Func<Task<Result>> onConfirm = () => throw new InvalidOperationException("DB error");
         var failResult = Result.Failure(new Error("Test.Error", "Failed"));
         A.CallTo(() => _resultFactory.FailedToDelete(A<string>._)).Returns(failResult);
 
@@ -128,7 +125,7 @@ public class ConfirmDeleteDialogTests : BunitContext
     public void Cancel_DoesNotInvokeOnConfirmCallback()
     {
         var confirmCalled = false;
-        var onConfirm = EventCallback.Factory.Create(this, () => confirmCalled = true);
+        Func<Task<Result>> onConfirm = () => { confirmCalled = true; return Task.FromResult(Result.Success()); };
         A.CallTo(() => _resultFactory.Canceled())
             .Returns(Result.Failure(Error.Canceled));
 
@@ -144,9 +141,8 @@ public class ConfirmDeleteDialogTests : BunitContext
     [Test]
     public async Task Confirm_ClosesDialog()
     {
-        var onConfirm = EventCallback.Factory.Create(this, () => { });
-        A.CallTo(() => _resultFactory.SuccessDeleted(A<string>._))
-            .Returns(Result.Success());
+        var successResult = Result.Success();
+        Func<Task<Result>> onConfirm = () => Task.FromResult(successResult);
 
         var cut = RenderDialog(onConfirm: onConfirm);
 
