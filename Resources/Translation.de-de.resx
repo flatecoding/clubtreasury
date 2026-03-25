@@ -431,6 +431,9 @@
     <data name="AlreadyExists" xml:space="preserve">
         <value>existiert bereits</value>
     </data>
+    <data name="ReferencedByTransactions" xml:space="preserve">
+        <value>Wird noch von Buchungen referenziert</value>
+    </data>
     <data name="TransactionDetails" xml:space="preserve">
         <value>Buchungsdetails</value>
     </data>

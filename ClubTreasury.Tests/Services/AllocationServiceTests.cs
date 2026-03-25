@@ -8,7 +8,9 @@ using ClubTreasury.Data.Allocation;
 using ClubTreasury.Data.Category;
 using ClubTreasury.Data.CostCenter;
 using ClubTreasury.Data.ItemDetail;
+using ClubTreasury.Data.CashRegister;
 using ClubTreasury.Data.OperationResult;
+using ClubTreasury.Data.Transaction;
 
 namespace ClubTreasury.Tests.Services;
 
@@ -399,6 +401,43 @@ public class AllocationServiceTests
         result.Should().Be(expectedResult);
         var deletedAllocation = await _context.Allocations.FindAsync(id);
         deletedAllocation.Should().BeNull();
+    }
+
+    [Test]
+    public async Task DeleteAllocationAsync_WhenReferencedByTransactions_ShouldReturnFailure()
+    {
+        // Arrange
+        var (costCenter, category) = await CreateTestDataAsync();
+        var allocation = new AllocationModel { CostCenterId = costCenter.Id, CategoryId = category.Id };
+        await _context.Allocations.AddAsync(allocation);
+
+        var cashRegister = new CashRegisterModel { Name = "Test" };
+        await _context.CashRegisters.AddAsync(cashRegister);
+        await _context.SaveChangesAsync();
+
+        var transaction = new TransactionModel
+        {
+            Date = new DateOnly(2026, 1, 1),
+            Documentnumber = 1,
+            AllocationId = allocation.Id,
+            CashRegisterId = cashRegister.Id
+        };
+        await _context.Transactions.AddAsync(transaction);
+        await _context.SaveChangesAsync();
+
+        var expectedResult = Result.Failure(new Error("Test.Error", "Failed to delete"));
+        A.CallTo(() => _resultFactory.FailedToDelete(A<string>._, A<string?>._))
+            .Returns(expectedResult);
+
+        // Act
+        var result = await _sut.DeleteAllocationAsync(allocation.Id);
+
+        // Assert
+        result.Should().Be(expectedResult);
+        A.CallTo(() => _resultFactory.FailedToDelete(A<string>._, A<string?>._))
+            .MustHaveHappenedOnceExactly();
+        var existing = await _context.Allocations.FindAsync(allocation.Id);
+        existing.Should().NotBeNull();
     }
 
     [Test]

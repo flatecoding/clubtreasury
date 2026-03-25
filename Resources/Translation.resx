@@ -434,6 +434,10 @@
         <value />
         <comment>AlreadyExists</comment>
     </data>
+    <data name="ReferencedByTransactions" xml:space="preserve">
+        <value />
+        <comment>ReferencedByTransactions</comment>
+    </data>
     <data name="TransactionDetails" xml:space="preserve">
         <value />
         <comment>TransactionDetails</comment>
