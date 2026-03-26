@@ -92,23 +92,32 @@ public class AllocationService(
 
             await context.SaveChangesAsync(ct);
 
+            await context.Entry(existing).Reference(a => a.CostCenter).LoadAsync(ct);
+            await context.Entry(existing).Reference(a => a.Category).LoadAsync(ct);
+            await context.Entry(existing).Reference(a => a.ItemDetail).LoadAsync(ct);
+
             logger.LogInformation(
                 "Updated allocation Id {AllocationId}. CostCenter: {CostCenter}, Category: {Category}, ItemDetail: {ItemDetail}",
-                updatedAllocation.Id,
-                updatedAllocation.CostCenter.CostUnitName,
-                updatedAllocation.Category.Name,
-                updatedAllocation.ItemDetail?.CostDetails ?? "null");
+                existing.Id,
+                existing.CostCenter.CostUnitName,
+                existing.Category.Name,
+                existing.ItemDetail?.CostDetails ?? "null");
 
-            return operationResultFactory.SuccessUpdated(EntityName, updatedAllocation.Id);
+            return operationResultFactory.SuccessUpdated(EntityName, existing.Id);
+        }
+        catch (DbUpdateException dbEx)
+        {
+            logger.LogError(dbEx,
+                "Failed to update allocation Id {AllocationId}",
+                updatedAllocation.Id);
+
+            return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Failed to update allocation Id {AllocationId}. CostCenter: {CostCenter}, Category: {Category}, ItemDetail: {ItemDetail}",
-                updatedAllocation.Id,
-                updatedAllocation.CostCenter.CostUnitName,
-                updatedAllocation.Category.Name,
-                updatedAllocation.ItemDetail?.CostDetails ?? "null");
+                "Failed to update allocation Id {AllocationId}",
+                updatedAllocation.Id);
 
             return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
         }
