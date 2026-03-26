@@ -434,6 +434,9 @@
     <data name="ReferencedByTransactions" xml:space="preserve">
         <value>Wird noch von Buchungen referenziert</value>
     </data>
+    <data name="ReferencedByAllocations" xml:space="preserve">
+        <value>Wird noch von Zuordnungen referenziert</value>
+    </data>
     <data name="TransactionDetails" xml:space="preserve">
         <value>Buchungsdetails</value>
     </data>

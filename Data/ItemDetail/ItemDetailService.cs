@@ -76,6 +76,14 @@ namespace ClubTreasury.Data.ItemDetail
                     logger.LogWarning("ItemDetail with Id {ItemDetailId} not found", id);
                     return operationResultFactory.NotFound(EntityName, id);
                 }
+
+                var hasAllocations = await context.Allocations.AnyAsync(a => a.ItemDetailId == id, ct);
+                if (hasAllocations)
+                {
+                    logger.LogWarning("Cannot delete item detail Id {ItemDetailId} because it is referenced by allocations.", id);
+                    return operationResultFactory.FailedToDelete(EntityName, localizer["ReferencedByAllocations"]);
+                }
+
                 context.ItemDetails.Remove(itemDetail);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("ItemDetail deleted: {@ItemDetail}", itemDetail.CostDetails);
