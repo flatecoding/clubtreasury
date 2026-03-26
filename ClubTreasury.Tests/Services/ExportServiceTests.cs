@@ -23,7 +23,7 @@ public class ExportServiceTests
     private IExcelBudgetWriter _excelWriter = null!;
     private IPdfTransactionRenderer _pdfRenderer = null!;
     private IResultFactory _resultFactory = null!;
-    private IStringLocalizer<Resources.Translation> _localizer = null!;
+    private IStringLocalizer<Translation> _localizer = null!;
     private ExportService _sut = null!;
     private string _testExportPath = null!;
     private IExportPathProvider _exportPathProvider = null!;
@@ -39,7 +39,7 @@ public class ExportServiceTests
         _excelWriter = A.Fake<IExcelBudgetWriter>();
         _pdfRenderer = A.Fake<IPdfTransactionRenderer>();
         _resultFactory = A.Fake<IResultFactory>();
-        _localizer = A.Fake<IStringLocalizer<Resources.Translation>>();
+        _localizer = A.Fake<IStringLocalizer<Translation>>();
         _exportPathProvider = A.Fake<IExportPathProvider>();
         _cashRegisterLogoService = A.Fake<ICashRegisterLogoService>();
 

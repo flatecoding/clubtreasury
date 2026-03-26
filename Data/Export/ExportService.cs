@@ -17,7 +17,7 @@ public class ExportService(
     IExcelBudgetWriter excelWriter,
     IPdfTransactionRenderer transactionPdfRenderer,
     IResultFactory operationResultFactory,
-    IStringLocalizer<Resources.Translation> localizer,
+    IStringLocalizer<Translation> localizer,
     IExportPathProvider exportPathProvider,
     ICashRegisterLogoService cashRegisterLogoService
 ) : IExportService
