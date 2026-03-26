@@ -52,6 +52,14 @@ public class ExportServiceTests
             .Returns(new LocalizedString("NoData", "No data available"));
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
+        A.CallTo(() => _localizer["DocumentNumberShort"])
+            .Returns(new LocalizedString("DocumentNumberShort", "Doc.No."));
+        A.CallTo(() => _localizer["Description"])
+            .Returns(new LocalizedString("Description", "Description"));
+        A.CallTo(() => _localizer["Sum"])
+            .Returns(new LocalizedString("Sum", "Sum"));
+        A.CallTo(() => _localizer["Account"])
+            .Returns(new LocalizedString("Account", "Account"));
 
         _sut = new ExportService(
             _transactionService,
@@ -110,7 +118,7 @@ public class ExportServiceTests
 
         var lines = await File.ReadAllLinesAsync(filePath);
         lines.Should().HaveCount(3);
-        lines[0].Should().Be("Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung");
+        lines[0].Should().Be("Doc.No.;Description;Sum;Account");
         lines[1].Should().Be("1;Test 1;100;100");
         lines[2].Should().Be("2;Test 2;200;200");
     }

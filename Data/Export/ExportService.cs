@@ -22,8 +22,8 @@ public class ExportService(
     ICashRegisterLogoService cashRegisterLogoService
 ) : IExportService
 {
-    private const string CsvHeader =
-        "Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung";
+    private string CsvHeader =>
+        $"{localizer["DocumentNumberShort"]};{localizer["Description"]};{localizer["Sum"]};{localizer["Account"]}";
 
     private readonly string _exportPath = exportPathProvider.ExportPath;
 
