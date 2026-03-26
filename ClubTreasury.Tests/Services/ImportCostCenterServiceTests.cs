@@ -14,7 +14,7 @@ public class ImportCostCenterServiceTests
 {
     private IAllocationService _allocationService = null!;
     private ILogger<ImportCostCenterService> _logger = null!;
-    private IStringLocalizer<ClubTreasury.Resources.Translation> _localizer = null!;
+    private IStringLocalizer<Translation> _localizer = null!;
     private IResultFactory _resultFactory = null!;
     private ImportCostCenterService _sut = null!;
 
@@ -23,7 +23,7 @@ public class ImportCostCenterServiceTests
     {
         _allocationService = A.Fake<IAllocationService>();
         _logger = A.Fake<ILogger<ImportCostCenterService>>();
-        _localizer = A.Fake<IStringLocalizer<ClubTreasury.Resources.Translation>>();
+        _localizer = A.Fake<IStringLocalizer<Translation>>();
         _resultFactory = A.Fake<IResultFactory>();
 
         A.CallTo(() => _localizer["FileStreamError"])

@@ -28,19 +28,11 @@
 
     private string _deleteQuestion = string.Empty;
 
-    protected override async void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            Logger.LogInformation("Open delete dialog for: {EntityName}; {ItemName}", EntityName, ItemName);
-            _deleteQuestion = Localizer["DeleteQuestion"];
-            await MudDialog.SetTitleAsync($"{Localizer["Delete"]}: {EntityName}");
-            StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "An exception occurred while deleting entity: {EntityName}", EntityName);
-        }
+        Logger.LogInformation("Open delete dialog for: {EntityName}; {ItemName}", EntityName, ItemName);
+        _deleteQuestion = Localizer["DeleteQuestion"];
+        await MudDialog.SetTitleAsync($"{Localizer["Delete"]}: {EntityName}");
     }
 
     private async Task Confirm()

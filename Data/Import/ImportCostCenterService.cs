@@ -7,7 +7,7 @@ namespace ClubTreasury.Data.Import;
 public class ImportCostCenterService(
     IAllocationService allocationService,
     ILogger<ImportCostCenterService> logger,
-    IStringLocalizer<Resources.Translation> localizer,
+    IStringLocalizer<Translation> localizer,
     IResultFactory operationResultFactory)
     : IImportCostCenterService
 {
