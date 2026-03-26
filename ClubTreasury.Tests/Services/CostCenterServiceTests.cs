@@ -184,6 +184,30 @@ public class CostCenterServiceTests
     }
 
     [Test]
+    public async Task AddCostCenterAsync_WhenNameAlreadyExists_ShouldReturnAlreadyExists()
+    {
+        // Arrange
+        var existing = new CostCenterModel { CostUnitName = "Spielbetrieb" };
+        await _context.CostCenters.AddAsync(existing);
+        await _context.SaveChangesAsync();
+
+        var duplicate = new CostCenterModel { CostUnitName = "Spielbetrieb" };
+        var expectedResult = Result.Failure(new Error("Entity.AlreadyExists", "Already exists"));
+        A.CallTo(() => _resultFactory.AlreadyExists(A<string>._, A<string?>._))
+            .Returns(expectedResult);
+
+        // Act
+        var result = await _sut.AddCostCenterAsync(duplicate);
+
+        // Assert
+        result.Should().Be(expectedResult);
+        A.CallTo(() => _resultFactory.AlreadyExists(A<string>._, A<string>.That.Contains("Spielbetrieb")))
+            .MustHaveHappenedOnceExactly();
+        var count = await _context.CostCenters.CountAsync(c => c.CostUnitName == "Spielbetrieb");
+        count.Should().Be(1);
+    }
+
+    [Test]
     public async Task AddCostCenterAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange

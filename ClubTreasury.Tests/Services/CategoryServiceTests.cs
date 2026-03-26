@@ -234,6 +234,30 @@ public class CategoryServiceTests
     }
 
     [Test]
+    public async Task AddCategoryAsync_WhenNameAlreadyExists_ShouldReturnAlreadyExists()
+    {
+        // Arrange
+        var existing = new CategoryModel { Name = "SSB" };
+        await _context.Categories.AddAsync(existing);
+        await _context.SaveChangesAsync();
+
+        var duplicate = new CategoryModel { Name = "SSB" };
+        var expectedResult = Result.Failure(new Error("Entity.AlreadyExists", "Already exists"));
+        A.CallTo(() => _resultFactory.AlreadyExists(A<string>._, A<string?>._))
+            .Returns(expectedResult);
+
+        // Act
+        var result = await _sut.AddCategoryAsync(duplicate);
+
+        // Assert
+        result.Should().Be(expectedResult);
+        A.CallTo(() => _resultFactory.AlreadyExists(A<string>._, A<string>.That.Contains("SSB")))
+            .MustHaveHappenedOnceExactly();
+        var count = await _context.Categories.CountAsync(c => c.Name == "SSB");
+        count.Should().Be(1);
+    }
+
+    [Test]
     public async Task AddCategoryAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
