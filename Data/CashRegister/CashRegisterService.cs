@@ -16,8 +16,15 @@ namespace ClubTreasury.Data.CashRegister
         public async Task<List<CashRegisterModel>> GetAllCashRegistersAsync(CancellationToken ct = default)
         {
             return await context.CashRegisters
-                .Include(t => t.Transactions)
                 .ToListAsync(ct);
+        }
+
+        public async Task<Dictionary<int, decimal>> GetCashRegisterBalancesAsync(CancellationToken ct = default)
+        {
+            return await context.Transactions
+                .GroupBy(t => t.CashRegisterId)
+                .Select(g => new { CashRegisterId = g.Key, Balance = g.Sum(t => t.AccountMovement) })
+                .ToDictionaryAsync(x => x.CashRegisterId, x => x.Balance, ct);
         }
 
         public async Task<CashRegisterModel?> GetCashRegisterByIdAsync(int id, CancellationToken ct = default)

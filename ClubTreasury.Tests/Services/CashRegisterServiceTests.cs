@@ -85,6 +85,90 @@ public class CashRegisterServiceTests
 
     #endregion
 
+    #region GetCashRegisterBalancesAsync Tests
+
+    [Test]
+    public async Task GetCashRegisterBalancesAsync_WhenNoTransactions_ShouldReturnEmptyDictionary()
+    {
+        // Arrange
+        await _context.CashRegisters.AddAsync(new CashRegisterModel { Name = "Empty Register" });
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetCashRegisterBalancesAsync();
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Test]
+    public async Task GetCashRegisterBalancesAsync_ShouldReturnCorrectSumPerRegister()
+    {
+        // Arrange
+        var register1 = new CashRegisterModel { Name = "Register 1" };
+        var register2 = new CashRegisterModel { Name = "Register 2" };
+        await _context.CashRegisters.AddRangeAsync(register1, register2);
+
+        var allocation = new Data.Allocation.AllocationModel { CostCenterId = 1, CategoryId = 1 };
+        await _context.Allocations.AddAsync(allocation);
+        await _context.SaveChangesAsync();
+
+        await _context.Transactions.AddRangeAsync(
+            new Data.Transaction.TransactionModel
+            {
+                CashRegisterId = register1.Id, AllocationId = allocation.Id,
+                Documentnumber = 1, Sum = 100m, AccountMovement = 100m
+            },
+            new Data.Transaction.TransactionModel
+            {
+                CashRegisterId = register1.Id, AllocationId = allocation.Id,
+                Documentnumber = 2, Sum = 50m, AccountMovement = -50m
+            },
+            new Data.Transaction.TransactionModel
+            {
+                CashRegisterId = register2.Id, AllocationId = allocation.Id,
+                Documentnumber = 1, Sum = 200m, AccountMovement = 200m
+            });
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetCashRegisterBalancesAsync();
+
+        // Assert
+        result.Should().HaveCount(2);
+        result[register1.Id].Should().Be(50m);
+        result[register2.Id].Should().Be(200m);
+    }
+
+    [Test]
+    public async Task GetCashRegisterBalancesAsync_ShouldNotIncludeRegistersWithoutTransactions()
+    {
+        // Arrange
+        var registerWithTx = new CashRegisterModel { Name = "With Transactions" };
+        var registerEmpty = new CashRegisterModel { Name = "Empty" };
+        await _context.CashRegisters.AddRangeAsync(registerWithTx, registerEmpty);
+
+        var allocation = new Data.Allocation.AllocationModel { CostCenterId = 1, CategoryId = 1 };
+        await _context.Allocations.AddAsync(allocation);
+        await _context.SaveChangesAsync();
+
+        await _context.Transactions.AddAsync(new Data.Transaction.TransactionModel
+        {
+            CashRegisterId = registerWithTx.Id, AllocationId = allocation.Id,
+            Documentnumber = 1, Sum = 100m, AccountMovement = 100m
+        });
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetCashRegisterBalancesAsync();
+
+        // Assert
+        result.Should().ContainKey(registerWithTx.Id);
+        result.Should().NotContainKey(registerEmpty.Id);
+    }
+
+    #endregion
+
     #region GetCashRegisterById Tests
 
     [Test]
