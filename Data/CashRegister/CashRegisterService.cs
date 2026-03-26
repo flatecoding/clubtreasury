@@ -91,6 +91,13 @@ namespace ClubTreasury.Data.CashRegister
                     return operationResultFactory.NotFound(EntityName, id);
                 }
 
+                var hasTransactions = await context.Transactions.AnyAsync(t => t.CashRegisterId == id, ct);
+                if (hasTransactions)
+                {
+                    logger.LogWarning("Cannot delete cash register Id {CashRegisterId} because it is referenced by transactions.", id);
+                    return operationResultFactory.FailedToDelete(EntityName, localizer["ReferencedByTransactions"]);
+                }
+
                 context.CashRegisters.Remove(cashRegister);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Cash register deleted: {@CashRegister}", cashRegister.Name);

@@ -84,6 +84,14 @@ namespace ClubTreasury.Data.Category
                     logger.LogError("Category not found");
                     return operationResultFactory.NotFound(EntityName, $"Id: '{id}' not found");
                 }
+
+                var hasAllocations = await context.Allocations.AnyAsync(a => a.CategoryId == id, ct);
+                if (hasAllocations)
+                {
+                    logger.LogWarning("Cannot delete category Id {CategoryId} because it is referenced by allocations.", id);
+                    return operationResultFactory.FailedToDelete(EntityName, localizer["ReferencedByAllocations"]);
+                }
+
                 context.Categories.Remove(category);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Category deleted: {@unit}", category.Name);
