@@ -91,6 +91,20 @@ namespace ClubTreasury.Data.CashRegister
                     return operationResultFactory.NotFound(EntityName, id);
                 }
 
+                var transactions = await context.Transactions
+                    .Include(t => t.TransactionDetails)
+                    .Where(t => t.CashRegisterId == id)
+                    .ToListAsync(ct);
+
+                if (transactions.Count > 0)
+                {
+                    context.TransactionDetails.RemoveRange(transactions.SelectMany(t => t.TransactionDetails));
+                    context.Transactions.RemoveRange(transactions);
+                    logger.LogInformation(
+                        "Deleting {Count} transactions for cash register {CashRegisterId}",
+                        transactions.Count, id);
+                }
+
                 context.CashRegisters.Remove(cashRegister);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Cash register deleted: {@CashRegister}", cashRegister.Name);

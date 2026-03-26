@@ -435,6 +435,9 @@
     <data name="ReferencedByTransactions" xml:space="preserve">
         <value>Is still referenced by transactions</value>
     </data>
+    <data name="ReferencedByAllocations" xml:space="preserve">
+        <value>Is still referenced by allocations</value>
+    </data>
     <data name="TransactionDetails" xml:space="preserve">
         <value>Transaction details</value>
     </data>

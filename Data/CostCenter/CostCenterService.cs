@@ -69,6 +69,14 @@ namespace ClubTreasury.Data.CostCenter
                     logger.LogError("Cost center Id '{ID}' not found", id);
                     return operationResultFactory.NotFound(EntityName, $"Id: '{id}' not found");
                 }
+
+                var hasAllocations = await context.Allocations.AnyAsync(a => a.CostCenterId == id, ct);
+                if (hasAllocations)
+                {
+                    logger.LogWarning("Cannot delete cost center Id {CostCenterId} because it is referenced by allocations.", id);
+                    return operationResultFactory.FailedToDelete(EntityName, localizer["ReferencedByAllocations"]);
+                }
+
                 context.CostCenters.Remove(costUnit);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Cost center deleted: {@costUnit}", costUnit.CostUnitName);
