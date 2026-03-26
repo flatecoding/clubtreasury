@@ -336,6 +336,30 @@ public class TransactionDetailsServiceTests
     }
 
     [Test]
+    public async Task UpdateTransactionDetailsAsync_WhenDetailDoesNotExist_ShouldReturnNotFound()
+    {
+        // Arrange
+        var expectedResult = Result.Failure(new Error("Entity.NotFound", "Not found"));
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, A<object>._))
+            .Returns(expectedResult);
+
+        var detail = new TransactionDetailsModel
+        {
+            TransactionId = 1,
+            Description = "NonExistent",
+            Sum = 10.00m
+        };
+
+        // Act
+        var result = await _sut.UpdateTransactionDetailsAsync(detail);
+
+        // Assert
+        result.Should().Be(expectedResult);
+        A.CallTo(() => _resultFactory.NotFound(A<string>._, 0))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Test]
     public async Task UpdateTransactionDetailsAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange
