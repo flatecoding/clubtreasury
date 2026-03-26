@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +12,8 @@ using ClubTreasury.Components.Account;
 using ClubTreasury.Data;
 using ClubTreasury.Data.Source;
 using ClubTreasury.Infrastructure.DependencyInjection;
+
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())

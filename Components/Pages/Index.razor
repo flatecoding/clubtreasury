@@ -40,7 +40,7 @@
                                 <div>
                                     <MudText Typo="Typo.body2" Class="mud-text-secondary">@Localizer["AccountBalance"]</MudText>
                                     <MudText Typo="Typo.h5" Color="MudBlazor.Color.Success" Class="mt-1">
-                                        @register.CurrentBalance.ToString("C", CultureInfo.CurrentCulture)
+                                        @(_balances.GetValueOrDefault(registerId).ToString("C", CultureInfo.CurrentCulture))
                                     </MudText>
                                 </div>
                             </div>
@@ -91,6 +91,7 @@
     private readonly Dictionary<int, List<ChartDataPoint>> _chartDataByRegister = new();
     private readonly Dictionary<int, ApexChart<ChartDataPoint>> _charts = new();
     private readonly Dictionary<int, string> _logoDataUris = new();
+    private Dictionary<int, decimal> _balances = new();
     private ApexChartOptions<ChartDataPoint> _chartOptions = new();
     private int _activeRegisterId;
 
@@ -104,6 +105,7 @@
         UserPrefService.PropertyChanged += OnUserPrefChanged;
 
         _allRegisters = (await CashRegisterService.GetAllCashRegistersAsync()).ToList();
+        _balances = await CashRegisterService.GetCashRegisterBalancesAsync();
 
         foreach (var register in _allRegisters)
         {
