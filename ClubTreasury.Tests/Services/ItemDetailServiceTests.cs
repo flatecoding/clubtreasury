@@ -237,6 +237,30 @@ public class ItemDetailServiceTests
     }
 
     [Test]
+    public async Task AddItemDetailAsync_WhenNameAlreadyExists_ShouldReturnAlreadyExists()
+    {
+        // Arrange
+        var existing = new ItemDetailModel { CostDetails = "Hallennutzung" };
+        await _context.ItemDetails.AddAsync(existing);
+        await _context.SaveChangesAsync();
+
+        var duplicate = new ItemDetailModel { CostDetails = "Hallennutzung" };
+        var expectedResult = Result.Failure(new Error("Entity.AlreadyExists", "Already exists"));
+        A.CallTo(() => _resultFactory.AlreadyExists(A<string>._, A<string?>._))
+            .Returns(expectedResult);
+
+        // Act
+        var result = await _sut.AddItemDetailAsync(duplicate);
+
+        // Assert
+        result.Should().Be(expectedResult);
+        A.CallTo(() => _resultFactory.AlreadyExists(A<string>._, A<string>.That.Contains("Hallennutzung")))
+            .MustHaveHappenedOnceExactly();
+        var count = await _context.ItemDetails.CountAsync(i => i.CostDetails == "Hallennutzung");
+        count.Should().Be(1);
+    }
+
+    [Test]
     public async Task AddItemDetailAsync_WhenExceptionOccurs_ShouldReturnFailure()
     {
         // Arrange

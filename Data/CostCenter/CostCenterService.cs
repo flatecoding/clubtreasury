@@ -31,6 +31,13 @@ namespace ClubTreasury.Data.CostCenter
         {
             try
             {
+                var existing = await GetCostCenterByNameAsync(costCenter.CostUnitName, ct);
+                if (existing != null)
+                {
+                    logger.LogWarning("Cost center with name '{Name}' already exists (Id: {Id})", existing.CostUnitName, existing.Id);
+                    return operationResultFactory.AlreadyExists(EntityName, $"'{costCenter.CostUnitName}'");
+                }
+
                 await context.CostCenters.AddAsync(costCenter, ct);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Cost center added: {@costCenter}", costCenter.CostUnitName);

@@ -38,6 +38,13 @@ namespace ClubTreasury.Data.ItemDetail
         {
             try
             {
+                var existing = await GetItemDetailByNameAsync(itemDetail.CostDetails, ct);
+                if (existing != null)
+                {
+                    logger.LogWarning("ItemDetail with name '{Name}' already exists (Id: {Id})", existing.CostDetails, existing.Id);
+                    return operationResultFactory.AlreadyExists(EntityName, $"'{itemDetail.CostDetails}'");
+                }
+
                 await context.ItemDetails.AddAsync(itemDetail, ct);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("ItemDetail added: {@ItemDetail}", itemDetail.CostDetails);
