@@ -57,6 +57,7 @@ public class ImportBookingJournalService(
             }
 
             var importCounter = 0;
+            var failedDocNumbers = new List<int>();
             var existingDocNumbers = await transactionService.GetAllDocumentNumbersAsync(cashRegisterId, ct);
 
             foreach (var row in parsedRows)
@@ -107,9 +108,19 @@ public class ImportBookingJournalService(
                 }
                 catch (Exception rowEx)
                 {
-                    logger.LogError(rowEx, "Error processing row: {@Row}", row);
-                    //skip row, continue with next line
+                    logger.LogError(rowEx, "Error processing row with document number {DocumentNumber}", row.DocumentNumber);
+                    failedDocNumbers.Add(row.DocumentNumber);
                 }
+            }
+
+            if (failedDocNumbers.Count > 0)
+            {
+                logger.LogWarning(
+                    "Import completed with {FailedCount} failed rows. Failed document numbers: {FailedDocNumbers}",
+                    failedDocNumbers.Count, string.Join(", ", failedDocNumbers));
+
+                return operationResultFactory.ImportFailed(
+                    $"{localizer["RowsFailedDuringImport"]}: {string.Join(", ", failedDocNumbers)}");
             }
 
             logger.LogInformation(
