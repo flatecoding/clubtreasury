@@ -469,6 +469,10 @@
         <value>Import fehlgeschlagen</value>
         <comment>ImportFailed</comment>
     </data>
+    <data name="RowsFailedDuringImport" xml:space="preserve">
+        <value>Einige Zeilen konnten nicht importiert werden. Fehlgeschlagene Belegnummern</value>
+        <comment>RowsFailedDuringImport</comment>
+    </data>
     <data name="FileStreamError" xml:space="preserve">
         <value>Datenstream ist leer</value>
         <comment>FileStreamError</comment>

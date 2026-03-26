@@ -470,6 +470,10 @@
         <value>Import failed</value>
         <comment>ImportFailed</comment>
     </data>
+    <data name="RowsFailedDuringImport" xml:space="preserve">
+        <value>Some rows failed during import. Failed document numbers</value>
+        <comment>RowsFailedDuringImport</comment>
+    </data>
     <data name="FileStreamError" xml:space="preserve">
         <value>File stream is empty</value>
         <comment>FileStreamError</comment>

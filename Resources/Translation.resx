@@ -474,6 +474,10 @@
         <value />
         <comment>ImportFailed</comment>
     </data>
+    <data name="RowsFailedDuringImport" xml:space="preserve">
+        <value />
+        <comment>RowsFailedDuringImport</comment>
+    </data>
     <data name="FileStreamError" xml:space="preserve">
         <value />
         <comment>FileStreamError</comment>
