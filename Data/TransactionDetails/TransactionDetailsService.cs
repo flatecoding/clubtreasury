@@ -45,7 +45,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
         }
         catch (Exception e)
         {
-            logger.LogError(EntityName, e);
+            logger.LogError(e, "Failed to add transaction details");
             return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
         }
 
@@ -55,16 +55,27 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
     {
         try
         {
-            context.TransactionDetails.Update(detailsModel);
+            var existing = await context.TransactionDetails.FindAsync([detailsModel.Id], ct);
+            if (existing is null)
+            {
+                logger.LogWarning("Transaction details with Id {Id} not found", detailsModel.Id);
+                return operationResultFactory.NotFound(EntityName, detailsModel.Id);
+            }
+
+            existing.Description = detailsModel.Description;
+            existing.Sum = detailsModel.Sum;
+            existing.PersonId = detailsModel.PersonId;
+            existing.DocumentNumber = detailsModel.DocumentNumber;
+
             await context.SaveChangesAsync(ct);
-            logger.LogInformation("Transaction details updated: {@DetailsModelDescription}, Sum: {@SUm}" +
+            logger.LogInformation("Transaction details updated: {@DetailsModelDescription}, Sum: {@Sum}" +
                                   " Name: {@Name}" ,
-                detailsModel.Description, decimal.Round(detailsModel.Sum, 2),  detailsModel.Person?.Name ?? "null");
-            return operationResultFactory.SuccessUpdated($"{EntityName}: '{detailsModel.Description}'", detailsModel);
+                existing.Description, decimal.Round(existing.Sum, 2), detailsModel.Person?.Name ?? "null");
+            return operationResultFactory.SuccessUpdated($"{EntityName}: '{existing.Description}'", existing.Id);
         }
         catch (Exception e)
         {
-            logger.LogError(EntityName, e);
+            logger.LogError(e, "Failed to update transaction details with Id {Id}", detailsModel.Id);
             return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
         }
     }
