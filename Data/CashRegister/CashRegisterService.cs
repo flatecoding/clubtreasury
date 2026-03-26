@@ -91,11 +91,18 @@ namespace ClubTreasury.Data.CashRegister
                     return operationResultFactory.NotFound(EntityName, id);
                 }
 
-                var hasTransactions = await context.Transactions.AnyAsync(t => t.CashRegisterId == id, ct);
-                if (hasTransactions)
+                var transactions = await context.Transactions
+                    .Include(t => t.TransactionDetails)
+                    .Where(t => t.CashRegisterId == id)
+                    .ToListAsync(ct);
+
+                if (transactions.Count > 0)
                 {
-                    logger.LogWarning("Cannot delete cash register Id {CashRegisterId} because it is referenced by transactions.", id);
-                    return operationResultFactory.FailedToDelete(EntityName, localizer["ReferencedByTransactions"]);
+                    context.TransactionDetails.RemoveRange(transactions.SelectMany(t => t.TransactionDetails));
+                    context.Transactions.RemoveRange(transactions);
+                    logger.LogInformation(
+                        "Deleting {Count} transactions for cash register {CashRegisterId}",
+                        transactions.Count, id);
                 }
 
                 context.CashRegisters.Remove(cashRegister);
