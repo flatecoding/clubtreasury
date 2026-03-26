@@ -42,6 +42,13 @@ namespace ClubTreasury.Data.Category
         {
             try
             {
+                var existing = await GetCategoryByNameAsync(category.Name, ct);
+                if (existing != null)
+                {
+                    logger.LogWarning("Category with name '{Name}' already exists (Id: {Id})", existing.Name, existing.Id);
+                    return operationResultFactory.AlreadyExists(EntityName, $"'{category.Name}'");
+                }
+
                 context.Categories.Add(category);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Category added: {@unit}", category.Name);
