@@ -1,5 +1,4 @@
 using System.Data;
-using System.Text;
 using ExcelDataReader;
 using Microsoft.Extensions.Localization;
 using ClubTreasury.Data.Allocation;
@@ -147,7 +146,6 @@ public class ImportBookingJournalService(
         await fileStream.CopyToAsync(memoryStream);
         memoryStream.Position = 0;
 
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         using var reader = ExcelReaderFactory.CreateReader(memoryStream);
         var result = reader.AsDataSet();
         var dataTable = result.Tables["Bookings"];

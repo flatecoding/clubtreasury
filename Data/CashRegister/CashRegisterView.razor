@@ -62,7 +62,7 @@
                         @context.Name
                     </MudTd>
                     <MudTd DataLabel="@Localizer["CurrentBalance"].Value">
-                        @context.CurrentBalance.ToString("C", CultureInfo.CurrentCulture)
+                        @(_balances.GetValueOrDefault(context.Id).ToString("C", CultureInfo.CurrentCulture))
                     </MudTd>
                     <MudTd DataLabel="Actions">
                         <MudIconButton Icon="@Icons.Material.Filled.Edit"
@@ -84,11 +84,19 @@
 </MudGrid>
 
 @code {
+    private Dictionary<int, decimal> _balances = new();
+
     protected override string EntityIdParameterName => "CashRegisterId";
     protected override string EntityLocalizedName => Localizer["CashRegister"];
     protected override int GetEntityId(CashRegisterModel entity) => entity.Id;
     protected override string GetEntityDisplayName(CashRegisterModel entity) => entity.Name;
-    protected override Task<List<CashRegisterModel>> LoadAllAsync() => CashRegisterService.GetAllCashRegistersAsync();
+
+    protected override async Task<List<CashRegisterModel>> LoadAllAsync()
+    {
+        _balances = await CashRegisterService.GetCashRegisterBalancesAsync();
+        return await CashRegisterService.GetAllCashRegistersAsync();
+    }
+
     protected override Task<Result> DeleteEntityAsync(int id) => CashRegisterService.DeleteCashRegisterAsync(id);
     protected override DialogOptions? CustomDialogOptions => new() { MaxWidth = MaxWidth.Small };
 
