@@ -23,7 +23,7 @@ public class ExportServiceTests
     private IExcelBudgetWriter _excelWriter = null!;
     private IPdfTransactionRenderer _pdfRenderer = null!;
     private IResultFactory _resultFactory = null!;
-    private IStringLocalizer<Resources.Translation> _localizer = null!;
+    private IStringLocalizer<Translation> _localizer = null!;
     private ExportService _sut = null!;
     private string _testExportPath = null!;
     private IExportPathProvider _exportPathProvider = null!;
@@ -39,7 +39,7 @@ public class ExportServiceTests
         _excelWriter = A.Fake<IExcelBudgetWriter>();
         _pdfRenderer = A.Fake<IPdfTransactionRenderer>();
         _resultFactory = A.Fake<IResultFactory>();
-        _localizer = A.Fake<IStringLocalizer<Resources.Translation>>();
+        _localizer = A.Fake<IStringLocalizer<Translation>>();
         _exportPathProvider = A.Fake<IExportPathProvider>();
         _cashRegisterLogoService = A.Fake<ICashRegisterLogoService>();
 
@@ -52,6 +52,14 @@ public class ExportServiceTests
             .Returns(new LocalizedString("NoData", "No data available"));
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
+        A.CallTo(() => _localizer["DocumentNumberShort"])
+            .Returns(new LocalizedString("DocumentNumberShort", "Doc.No."));
+        A.CallTo(() => _localizer["Description"])
+            .Returns(new LocalizedString("Description", "Description"));
+        A.CallTo(() => _localizer["Sum"])
+            .Returns(new LocalizedString("Sum", "Sum"));
+        A.CallTo(() => _localizer["Account"])
+            .Returns(new LocalizedString("Account", "Account"));
 
         _sut = new ExportService(
             _transactionService,
@@ -110,7 +118,7 @@ public class ExportServiceTests
 
         var lines = await File.ReadAllLinesAsync(filePath);
         lines.Should().HaveCount(3);
-        lines[0].Should().Be("Belegnr.;Beschreibung;Rechnungsbetrag;Kontobewegung");
+        lines[0].Should().Be("Doc.No.;Description;Sum;Account");
         lines[1].Should().Be("1;Test 1;100;100");
         lines[2].Should().Be("2;Test 2;200;200");
     }
