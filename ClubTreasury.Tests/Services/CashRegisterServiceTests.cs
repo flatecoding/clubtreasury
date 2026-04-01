@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using ClubTreasury.Data;
 using ClubTreasury.Data.CashRegister;
 using ClubTreasury.Data.OperationResult;
+using ClubTreasury.Data.Person;
 
 namespace ClubTreasury.Tests.Services;
 
@@ -165,6 +166,58 @@ public class CashRegisterServiceTests
         // Assert
         result.Should().ContainKey(registerWithTx.Id);
         result.Should().NotContainKey(registerEmpty.Id);
+    }
+
+    #endregion
+
+    #region GetCashRegisterWithTreasurerAsync Tests
+
+    [Test]
+    public async Task GetCashRegisterWithTreasurer_WhenExists_ShouldReturnWithTreasurer()
+    {
+        // Arrange
+        var person = new PersonModel { Name = "John Doe" };
+        await _context.Persons.AddAsync(person);
+        await _context.SaveChangesAsync();
+
+        var cashRegister = new CashRegisterModel { Name = "Test Register", TreasurerId = person.Id };
+        await _context.CashRegisters.AddAsync(cashRegister);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetCashRegisterWithTreasurerAsync(cashRegister.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Name.Should().Be("Test Register");
+        result.Treasurer.Should().NotBeNull();
+        result.Treasurer!.Name.Should().Be("John Doe");
+    }
+
+    [Test]
+    public async Task GetCashRegisterWithTreasurer_WhenNoTreasurer_ShouldReturnWithNullTreasurer()
+    {
+        // Arrange
+        var cashRegister = new CashRegisterModel { Name = "No Treasurer Register" };
+        await _context.CashRegisters.AddAsync(cashRegister);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetCashRegisterWithTreasurerAsync(cashRegister.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Treasurer.Should().BeNull();
+    }
+
+    [Test]
+    public async Task GetCashRegisterWithTreasurer_WhenNotFound_ShouldReturnNull()
+    {
+        // Act
+        var result = await _sut.GetCashRegisterWithTreasurerAsync(999);
+
+        // Assert
+        result.Should().BeNull();
     }
 
     #endregion

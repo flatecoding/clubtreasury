@@ -77,6 +77,12 @@ namespace ClubTreasury.Data
                 .IsUnique();
 
             modelBuilder.Entity<CashRegisterModel>()
+                .HasOne(cr => cr.Treasurer)
+                .WithMany()
+                .HasForeignKey(cr => cr.TreasurerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CashRegisterModel>()
                 .HasOne(cr => cr.Logo)
                 .WithOne(l => l.CashRegister)
                 .HasForeignKey<CashRegisterLogoModel>(l => l.CashRegisterId)
