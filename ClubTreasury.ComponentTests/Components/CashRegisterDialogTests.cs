@@ -8,6 +8,7 @@ using MudBlazor.Services;
 using ClubTreasury.Data.CashRegister;
 using ClubTreasury.Data.Notification;
 using ClubTreasury.Data.OperationResult;
+using ClubTreasury.Data.Person;
 
 namespace ClubTreasury.ComponentTests.Components;
 
@@ -17,6 +18,7 @@ public class CashRegisterDialogTests : BunitContext
 {
     private ICashRegisterService _cashRegisterService = null!;
     private ICashRegisterLogoService _cashRegisterLogoService = null!;
+    private IPersonService _personService = null!;
     private IStringLocalizer<Translation> _localizer = null!;
     private INotificationService _notificationService = null!;
     private IResultFactory _resultFactory = null!;
@@ -26,9 +28,17 @@ public class CashRegisterDialogTests : BunitContext
     {
         Services.AddSingleton(_cashRegisterService = A.Fake<ICashRegisterService>());
         Services.AddSingleton(_cashRegisterLogoService = A.Fake<ICashRegisterLogoService>());
+        Services.AddSingleton(_personService = A.Fake<IPersonService>());
         Services.AddSingleton(_localizer = A.Fake<IStringLocalizer<Translation>>());
         Services.AddSingleton(_notificationService = A.Fake<INotificationService>());
         Services.AddSingleton(_resultFactory = A.Fake<IResultFactory>());
+
+        A.CallTo(() => _personService.GetAllPersonsAsync(A<CancellationToken>._))
+            .Returns(new List<PersonModel>
+            {
+                new() { Id = 1, Name = "John Doe" },
+                new() { Id = 2, Name = "Jane Smith" }
+            });
 
         A.CallTo(() => _localizer[A<string>._])
             .ReturnsLazily((string key) => new LocalizedString(key, key));

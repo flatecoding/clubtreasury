@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ClubTreasury.Data.Person;
 using ClubTreasury.Data.Transaction;
 
 namespace ClubTreasury.Data.CashRegister
@@ -12,6 +13,8 @@ namespace ClubTreasury.Data.CashRegister
         public string Name { get; set; } = string.Empty;
         [Range(1, 12)]
         public int FiscalYearStartMonth { get; set; } = 7;
+        public int? TreasurerId { get; set; }
+        public PersonModel? Treasurer { get; set; }
         [NotMapped]
         public decimal CurrentBalance => Transactions?.Sum(t => t.AccountMovement) ?? 0m;
         public ICollection<TransactionModel> Transactions { get; init; } = new List<TransactionModel>();

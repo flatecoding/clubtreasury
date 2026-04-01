@@ -40,6 +40,22 @@ namespace ClubTreasury.Data.CashRegister
             return null;
         }
 
+        public async Task<CashRegisterModel?> GetCashRegisterWithTreasurerAsync(int id, CancellationToken ct = default)
+        {
+            var cashRegister = await context.CashRegisters
+                .Include(cr => cr.Treasurer)
+                .FirstOrDefaultAsync(cr => cr.Id == id, ct);
+
+            if (cashRegister is not null)
+            {
+                logger.LogInformation("Cash register with treasurer found: {@CashRegister}", cashRegister.Name);
+                return cashRegister;
+            }
+
+            logger.LogError("Cash register not found with id '{CashRegisterId}'", id);
+            return null;
+        }
+
         public async Task<CashRegisterModel?> GetFirstCashRegisterAsync(CancellationToken ct = default)
         {
             var cashRegister = await context.CashRegisters.FirstOrDefaultAsync(ct);
