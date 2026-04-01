@@ -8,57 +8,58 @@ using ClubTreasury.Data.Transaction;
 
 namespace ClubTreasury.Data.Export.Transaction;
 
-public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStringLocalizer<Translation> localizer) : IPdfTransactionRenderer
+public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStringLocalizer<Translation> localizer) 
+    : IPdfTransactionRenderer
 {
     private const string HeaderBackgroundColor = "#DDEBF7";
     private const int DateColumnWidth = 80;
     private const int DocumentNumberColumnWidth = 60;
     private const int SumColumnWidth = 70;
     private const int AccountColumnWidth = 70;
-    public async Task RenderTransactionPdfExportAsync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end,
-        string filePath, string cashRegisterName, byte[]? logoData, string? logoContentType, CancellationToken cancellationToken)
+    public async Task RenderTransactionPdfExportAsync(IEnumerable<TransactionModel> transactions, 
+                                                       PdfRenderOptions options, CancellationToken ct = default)
     {
         try
         {
-            logger.LogInformation("Rendering Transactions PDF → {File}", filePath);
-            var directory = Path.GetDirectoryName(filePath);
+            logger.LogInformation("Rendering Transactions PDF → {File}", options.FilePath);
+            var directory = Path.GetDirectoryName(options.FilePath);
             if (!Directory.Exists(directory))
             {
-                logger.LogError("Directory does not exist: {Directory}", Path.GetDirectoryName(filePath));
+                logger.LogError("Directory does not exist: {Directory}", Path.GetDirectoryName(options.FilePath));
                 throw new DirectoryNotFoundException($"Directory does not exist: {directory}");
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
+            ct.ThrowIfCancellationRequested();
 
             await Task.Run(() =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                RenderPdfSync(transactions, begin, end, filePath, cashRegisterName, logoData, logoContentType);
-            }, cancellationToken);
-            
-            if (!File.Exists(filePath) || new FileInfo(filePath).Length == 0)
+                ct.ThrowIfCancellationRequested();
+                RenderPdfSync(transactions, options);
+            }, ct);
+
+            if (!File.Exists(options.FilePath) || new FileInfo(options.FilePath).Length == 0)
             {
-                throw new IOException($"PDF creation failed: {filePath} is empty or does not exist");
+                throw new IOException($"PDF creation failed: {options.FilePath} is empty or does not exist");
             }
-            
-            logger.LogInformation("PDF created → {File}", filePath);
+
+            logger.LogInformation("PDF created → {File}", options.FilePath);
         }
         catch (OperationCanceledException)
         {
-            logger.LogWarning("PDF rendering canceled → {File}", filePath);
+            logger.LogWarning("PDF rendering canceled → {File}", options.FilePath);
             throw;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error occured while rendering pdf-file: {File}", filePath);
+            logger.LogError(ex, "Error occured while rendering pdf-file: {File}", options.FilePath);
             throw;
         }
     }
 
-    private void RenderPdfSync(IEnumerable<TransactionModel> transactions, DateTime begin, DateTime end, string filePath, string cashRegisterName, byte[]? logoData, string? logoContentType)
+    private void RenderPdfSync(IEnumerable<TransactionModel> transactions, PdfRenderOptions options)
     {
         var ordered = transactions.OrderBy(t => t.Documentnumber).ToList();
-        using var fs = new FileStream(filePath, FileMode.Create);
+        using var fs = new FileStream(options.FilePath, FileMode.Create);
         Document.Create(container =>
             container.Page(page =>
             {
@@ -66,8 +67,8 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                 page.Size(PageSizes.A4);
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(10).FontColor(Colors.Black));
-                page.Header().Element(lContainer => ComposeHeader(lContainer, begin, end, cashRegisterName, logoData, logoContentType));
-                page.Content().Element(c => ComposeContent(c, ordered, begin, end));
+                page.Header().Element(lContainer => ComposeHeader(lContainer, options));
+                page.Content().Element(c => ComposeContent(c, ordered, options));
                 page.Footer()
                     .AlignCenter()
                     .Text(x =>
@@ -93,30 +94,32 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
             .PaddingHorizontal(2);
     }
 
-    private void ComposeHeader(IContainer container, DateTime begin, DateTime end, string cashRegisterName, byte[]? logoData, string? logoContentType)
+    private void ComposeHeader(IContainer container, PdfRenderOptions options)
     {
-        var isSvg = logoContentType?.Contains("svg", StringComparison.OrdinalIgnoreCase) == true;
+        var isSvg = options.LogoContentType?.Contains("svg", StringComparison.OrdinalIgnoreCase) == true;
 
         container.Row(row =>
         {
-            if (logoData != null) RenderLogo(row.ConstantItem(100).AlignRight().Height(70), logoData, isSvg);
+            if (options.LogoData != null) RenderLogo(row.ConstantItem(100).AlignRight().Height(70), 
+                                                      options.LogoData, isSvg);
             row.RelativeItem()
                 .AlignMiddle()
                 .Column(column =>
                 {
                     column.Item()
-                        .Text(localizer["CashBook"] + " " + cashRegisterName)
+                        .Text(localizer["CashBook"] + " " + options.CashRegisterName)
                         .FontSize(20)
                         .Bold()
                         .AlignCenter();
                     column.Item()
-                        .Text($"{begin.ToString("d", CultureInfo.CurrentUICulture)} - " +
-                              $"{end.ToString("d", CultureInfo.CurrentUICulture)}")
+                        .Text($"{options.Begin.ToString("d", CultureInfo.CurrentUICulture)} - " +
+                              $"{options.End.ToString("d", CultureInfo.CurrentUICulture)}")
                         .AlignCenter();
                     column.Item().Height(5);
 
                 });
-            if (logoData != null) RenderLogo(row.ConstantItem(100).AlignLeft().Height(70), logoData, isSvg);
+            if (options.LogoData != null) RenderLogo(row.ConstantItem(100).AlignLeft().Height(70), 
+                                                      options.LogoData, isSvg);
         });
     }
 
@@ -130,7 +133,8 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
 
     private static string InlineSvgStyles(string svg)
     {
-        var styleMatch = Regex.Match(svg, @"<style[^>]*>\s*(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?\s*</style>", RegexOptions.Singleline);
+        var styleMatch = Regex.Match(svg, @"<style[^>]*>\s*(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?\s*</style>", 
+                                      RegexOptions.Singleline);
         if (!styleMatch.Success)
             return svg;
 
@@ -156,63 +160,84 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
         result = Regex.Replace(result, @"<style[^>]*>.*?</style>", "", RegexOptions.Singleline);
         return result;
     }
-    
-    private void ComposeContent(IContainer container, List<TransactionModel> ordered, DateTime begin, DateTime end)
+
+    private void ComposeContent(IContainer container, List<TransactionModel> ordered, PdfRenderOptions request)
     {
-        var headerStyle = TextStyle.Default.SemiBold();
         var culture = CultureInfo.CurrentUICulture;
 
         container.PaddingTop(5, Unit.Millimetre).Column(col =>
         {
-            col.Item().Table(table =>
+            ComposeTransactionTable(col, ordered, culture);
+            ComposeSummaryTotals(col, ordered, culture);
+            ComposeSignatureLines(col, request, culture);
+        });
+    }
+
+    private void ComposeTransactionTable(ColumnDescriptor col, List<TransactionModel> ordered, CultureInfo culture)
+    {
+        var headerStyle = TextStyle.Default.SemiBold();
+
+        col.Item().Table(table =>
+        {
+            table.ColumnsDefinition(columns =>
             {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.ConstantColumn(DateColumnWidth);
-                    columns.ConstantColumn(DocumentNumberColumnWidth);
-                    columns.RelativeColumn();
-                    columns.ConstantColumn(SumColumnWidth);
-                    columns.ConstantColumn(AccountColumnWidth);
-                });
-
-                table.Header(header =>
-                {
-                    header.Cell().Element(CellHeaderStyle).Text($"{localizer["Date"]}").Style(headerStyle).AlignCenter();
-                    header.Cell().Element(CellHeaderStyle).Text($"{localizer["DocumentNumberShort"]}").Style(headerStyle).AlignCenter();
-                    header.Cell().Element(CellHeaderStyle).Text($"{localizer["Description"]}").Style(headerStyle);
-                    header.Cell().Element(CellHeaderStyle).Text($"{localizer["Sum"]}").Style(headerStyle).AlignCenter();
-                    header.Cell().Element(CellHeaderStyle).Text($"{localizer["Account"]}").Style(headerStyle).AlignCenter();
-
-                    IContainer CellHeaderStyle(IContainer containerHeader)
-                        => DefaultCellStyle(containerHeader, HeaderBackgroundColor);
-                });
-
-                var index = 0;
-                foreach (var t in ordered)
-                {
-                    var background = GetRowBackgroundColor(index);
-
-                    table.Cell().Element(c => DefaultCellStyle(c, background)).Text(t.Date.ToString()).AlignCenter();
-                    table.Cell().Element(c => DefaultCellStyle(c, background)).Text($"B{t.Documentnumber}").AlignCenter();
-                    table.Cell().Element(c => DefaultCellStyle(c, background)).Text(t.Description);
-
-                    table.Cell().Element(c => DefaultCellStyle(c, background))
-                        .Text(t.Sum.ToString("C2", culture))
-                        .AlignRight();
-
-                    var textColor = t.AccountMovement >= 0 ? Colors.Green.Darken2 : Colors.Red.Darken2;
-
-                    table.Cell().Element(c => DefaultCellStyle(c, background))
-                        .Text(t.AccountMovement.ToString("C2", culture))
-                        .Style(TextStyle.Default.FontColor(textColor))
-                        .AlignRight();
-
-                    index++;
-                }
+                columns.ConstantColumn(DateColumnWidth);
+                columns.ConstantColumn(DocumentNumberColumnWidth);
+                columns.RelativeColumn();
+                columns.ConstantColumn(SumColumnWidth);
+                columns.ConstantColumn(AccountColumnWidth);
             });
-        
-        var totalIncome = ordered.Where(x => x.AccountMovement > 0).Sum(x => x.AccountMovement);
-        var totalExpense = ordered.Where(x => x.AccountMovement < 0).Sum(x => x.AccountMovement);
+
+            table.Header(header =>
+            {
+                header.Cell().Element(CellHeaderStyle).Text($"{localizer["Date"]}")
+                    .Style(headerStyle).AlignCenter();
+                header.Cell().Element(CellHeaderStyle).Text($"{localizer["DocumentNumberShort"]}")
+                    .Style(headerStyle).AlignCenter();
+                header.Cell().Element(CellHeaderStyle).Text($"{localizer["Description"]}")
+                    .Style(headerStyle);
+                header.Cell().Element(CellHeaderStyle).Text($"{localizer["Sum"]}")
+                    .Style(headerStyle).AlignCenter();
+                header.Cell().Element(CellHeaderStyle).Text($"{localizer["Account"]}")
+                    .Style(headerStyle).AlignCenter();
+
+                IContainer CellHeaderStyle(IContainer containerHeader)
+                    => DefaultCellStyle(containerHeader, HeaderBackgroundColor);
+            });
+
+            var index = 0;
+            foreach (var t in ordered)
+            {
+                var background = GetRowBackgroundColor(index);
+
+                table.Cell().Element(c => DefaultCellStyle(c, background)).Text(t.Date.ToString())
+                    .AlignCenter();
+                table.Cell().Element(c => DefaultCellStyle(c, background)).Text($"B{t.Documentnumber}")
+                    .AlignCenter();
+                table.Cell().Element(c => DefaultCellStyle(c, background)).Text(t.Description);
+
+                table.Cell().Element(c => DefaultCellStyle(c, background))
+                    .Text(t.Sum.ToString("C2", culture))
+                    .AlignRight();
+
+                var textColor = t.AccountMovement >= 0 ? Colors.Green.Darken2 : Colors.Red.Darken2;
+
+                table.Cell().Element(c => DefaultCellStyle(c, background))
+                    .Text(t.AccountMovement.ToString("C2", culture))
+                    .Style(TextStyle.Default.FontColor(textColor))
+                    .AlignRight();
+
+                index++;
+            }
+        });
+    }
+
+    private void ComposeSummaryTotals(ColumnDescriptor col, List<TransactionModel> ordered, CultureInfo culture)
+    {
+        var totalIncome = ordered.Where(x => x.AccountMovement > 0)
+                                        .Sum(x => x.AccountMovement);
+        var totalExpense = ordered.Where(x => x.AccountMovement < 0)
+                                         .Sum(x => x.AccountMovement);
         var balance = ordered.Sum(x => x.AccountMovement);
 
         col.Item().PaddingTop(10).Row(row =>
@@ -238,24 +263,38 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                     .AlignRight();
             });
         });
-        
+    }
+
+    private void ComposeSignatureLines(ColumnDescriptor col, PdfRenderOptions request, CultureInfo culture)
+    {
         col.Item().Row(row =>
         {
-            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} {begin.ToString("d", culture)}:");
+            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} " +
+                                                         $"{request.Begin.ToString("d", culture)}:");
             row.ConstantItem(100).AlignBottom().LineHorizontal(1)
                 .LineColor(Colors.Grey.Lighten1);
         });
 
         col.Item().PaddingTop(10).Row(row =>
         {
-            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} {end.ToString("d", culture)}:");
+            row.ConstantItem(100).AlignMiddle().Text($"{localizer["AccountBalance"]} " +
+                                                         $"{request.End.ToString("d", culture)}:");
             row.ConstantItem(100).AlignBottom().LineHorizontal(1)
                 .LineColor(Colors.Grey.Lighten1);
         });
-    });
+
+        col.Item().PaddingTop(10).Row(row =>
+        {
+            row.ConstantItem(100).AlignMiddle().Text($"{localizer["ClubTreasurer"]}:");
+            row.ConstantItem(100).AlignBottom().Column(c =>
+            {
+                c.Item().Text(request.TreasurerName ?? string.Empty).AlignCenter();
+                c.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten1);
+            });
+        });
     }
-    
-    
+
+
     private static string GetRowBackgroundColor(int rowIndex)
     {
         return rowIndex % 2 == 0
