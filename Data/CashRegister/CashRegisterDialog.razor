@@ -3,7 +3,9 @@
 @using Microsoft.Extensions.Localization
 @using ClubTreasury.Data.Notification
 @using ClubTreasury.Data.OperationResult
+@using ClubTreasury.Data.Person
 @inject ICashRegisterService CashRegisterService
+@inject IPersonService PersonService
 @inject ICashRegisterLogoService CashRegisterLogoService
 @inject IStringLocalizer<Translation> Localizer
 @inject INotificationService NotificationService
@@ -24,6 +26,15 @@
                     <MudSelectItem T="int" Value="@month">
                         @DateTimeFormatInfo.CurrentInfo.GetMonthName(month)
                     </MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="int?" Label="@Localizer["Treasurer"]" @bind-Value="_cashRegisterModel.TreasurerId"
+                       Clearable="true"
+                       ToStringFunc="@TreasurerIdToName">
+                @foreach (var p in _persons)
+                {
+                    <MudSelectItem T="int?" Value="@p.Id">@p.Name</MudSelectItem>
                 }
             </MudSelect>
         </MudForm>
@@ -73,12 +84,14 @@
     private string? _existingLogoDataUri;
     private IBrowserFile? _pendingFile;
     private bool _logoRemoved;
+    private IEnumerable<PersonModel> _persons = [];
 
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
         _isEditMode = CashRegisterId.HasValue;
+        _persons = await PersonService.GetAllPersonsAsync();
         await MudDialog.SetTitleAsync(_isEditMode ? Localizer["Edit"] : Localizer["AddEntry"]);
         await LoadCashRegisterAsync();
     }
@@ -147,4 +160,7 @@
     }
 
     private void Cancel() => MudDialog.Close(DialogResult.Ok(ResultFactory.Canceled()));
+
+    private string TreasurerIdToName(int? id)
+        => id is null ? string.Empty : _persons.FirstOrDefault(p => p.Id == id.Value)?.Name ?? string.Empty;
 }

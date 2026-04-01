@@ -1151,4 +1151,12 @@
         <value>Import in</value>
         <comment>ImportIn</comment>
     </data>
+    <data name="Treasurer" xml:space="preserve">
+        <value>Treasurer</value>
+        <comment>Treasurer</comment>
+    </data>
+    <data name="ClubTreasurer" xml:space="preserve">
+        <value>Club Treasurer</value>
+        <comment>ClubTreasurer</comment>
+    </data>
 </root>

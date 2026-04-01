@@ -114,7 +114,8 @@
             var end = _model.DateRange.End!.Value.Date;
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
 
-            var result = await ExportService.ExportBudgetToCsvAsync(start, end, filename, _selectedCashRegister!.Id);
+            var options = new ExportOptions(start, end, filename, _selectedCashRegister!.Id);
+            var result = await ExportService.ExportBudgetToCsvAsync(options);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
@@ -141,7 +142,8 @@
             var end = _model.DateRange.End!.Value.Date;
             var fileName = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
 
-            var result = await ExportService.ExportBudgetToExcelAsync(start, end, fileName, _selectedCashRegister!.Id);
+            var options = new ExportOptions(start, end, fileName, _selectedCashRegister!.Id);
+            var result = await ExportService.ExportBudgetToExcelAsync(options);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
