@@ -292,7 +292,7 @@
     
     private async Task<TableData<TransactionModel?>> LoadServerData(TableState state, CancellationToken cancellationToken)
     {
-        var request = new PagedRequest
+        var requestOptions = new PagedRequestOptions
         {
             Page = state.Page,
             PageSize = state.PageSize,
@@ -309,7 +309,7 @@
             PersonId = _personId
         };
 
-        var result = await TransactionService.GetTransactionsPagedAsync(request, cancellationToken);
+        var result = await TransactionService.GetTransactionsPagedAsync(requestOptions, cancellationToken);
         return new TableData<TransactionModel?> { Items = result.Items, TotalItems = result.TotalItems };
     }
 }

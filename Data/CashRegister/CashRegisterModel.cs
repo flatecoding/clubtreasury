@@ -23,8 +23,8 @@ namespace ClubTreasury.Data.CashRegister
         public DateTime GetFiscalYearStart()
         {
             return DateTime.Today.Month < FiscalYearStartMonth
-                ? new DateTime(DateTime.Today.Year - 1, FiscalYearStartMonth, 1)
-                : new DateTime(DateTime.Today.Year, FiscalYearStartMonth, 1);
+                ? new DateTime(DateTime.Today.Year - 1, FiscalYearStartMonth, 1, 0, 0, 0, DateTimeKind.Local)
+                : new DateTime(DateTime.Today.Year, FiscalYearStartMonth, 1, 0, 0, 0, DateTimeKind.Local);
         }
     }
 }

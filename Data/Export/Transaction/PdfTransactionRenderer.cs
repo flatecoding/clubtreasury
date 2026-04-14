@@ -96,7 +96,8 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
 
     private void ComposeHeader(IContainer container, PdfRenderOptions options)
     {
-        var isSvg = options.LogoContentType?.Contains("svg", StringComparison.OrdinalIgnoreCase) == true;
+        var isSvg = options.LogoContentType is not null
+                    && options.LogoContentType.Contains("svg", StringComparison.OrdinalIgnoreCase);
 
         container.Row(row =>
         {

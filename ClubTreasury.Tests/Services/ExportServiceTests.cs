@@ -17,7 +17,6 @@ namespace ClubTreasury.Tests.Services;
 public class ExportServiceTests
 {
     private ITransactionService _transactionService = null!;
-    private ILogger<ExportService> _logger = null!;
     private IBudgetMapper _budgetMapper = null!;
     private ICsvBudgetWriter _csvWriter = null!;
     private IExcelBudgetWriter _excelWriter = null!;
@@ -33,7 +32,6 @@ public class ExportServiceTests
     public void SetUp()
     {
         _transactionService = A.Fake<ITransactionService>();
-        _logger = A.Fake<ILogger<ExportService>>();
         _budgetMapper = A.Fake<IBudgetMapper>();
         _csvWriter = A.Fake<ICsvBudgetWriter>();
         _excelWriter = A.Fake<IExcelBudgetWriter>();
@@ -61,17 +59,25 @@ public class ExportServiceTests
         A.CallTo(() => _localizer["Account"])
             .Returns(new LocalizedString("Account", "Account"));
 
-        _sut = new ExportService(
+        var transactionExporter = new TransactionExporter(
             _transactionService,
-            _logger,
+            _pdfRenderer,
+            _cashRegisterLogoService,
+            _resultFactory,
+            _localizer,
+            A.Fake<ILogger<TransactionExporter>>(),
+            _exportPathProvider);
+
+        var budgetExporter = new BudgetExporter(
+            _transactionService,
             _budgetMapper,
             _csvWriter,
             _excelWriter,
-            _pdfRenderer,
             _resultFactory,
-            _localizer,
-            _exportPathProvider,
-            _cashRegisterLogoService);
+            A.Fake<ILogger<BudgetExporter>>(),
+            _exportPathProvider);
+
+        _sut = new ExportService(transactionExporter, budgetExporter);
     }
 
     [TearDown]

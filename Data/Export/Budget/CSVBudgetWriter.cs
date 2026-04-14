@@ -10,13 +10,11 @@ public class CsvBudgetWriter(IStringLocalizer<Translation> localizer) : ICsvBudg
     {
         var sb = new StringBuilder();
 
-        var csvHeader = string.Join(";",new[]
-        {
+        var csvHeader = string.Join(";",
             localizer["CostCenter"].Value,
             localizer["Category"].Value,
             localizer["DetailOrPerson"].Value,
-            localizer["Sum"].Value,
-        });
+            localizer["Sum"].Value);
         sb.AppendLine(csvHeader);
 
         foreach (var line in BudgetLineBuilder.EnumerateBudgetLines(grouped))

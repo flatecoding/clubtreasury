@@ -25,64 +25,64 @@ namespace ClubTreasury.Data
         public DbSet<AllocationModel> Allocations { get; set; }
         public DbSet<CashRegisterLogoModel> CashRegisterLogos { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(builder);
             
-            modelBuilder.Entity<AllocationModel>()
+            builder.Entity<AllocationModel>()
                 .HasOne(a => a.CostCenter)
                 .WithMany(c => c.Allocations)
                 .HasForeignKey(a => a.CostCenterId)
                 .OnDelete(DeleteBehavior.Restrict);
             
-            modelBuilder.Entity<AllocationModel>()
+            builder.Entity<AllocationModel>()
                 .HasOne(a => a.Category)
                 .WithMany(b => b.Allocations)
                 .HasForeignKey(a => a.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
             
-            modelBuilder.Entity<AllocationModel>()
+            builder.Entity<AllocationModel>()
                 .HasOne(a => a.ItemDetail)
                 .WithMany(ud => ud.Allocations)
                 .HasForeignKey(a => a.ItemDetailId)
                 .OnDelete(DeleteBehavior.Restrict);
             
-            modelBuilder.Entity<TransactionDetailsModel>()
+            builder.Entity<TransactionDetailsModel>()
                 .HasOne(st => st.Person)
                 .WithMany()
                 .HasForeignKey(st => st.PersonId)
                 .OnDelete(DeleteBehavior.Restrict);
             
-            modelBuilder.Entity<TransactionModel>()
+            builder.Entity<TransactionModel>()
                 .HasIndex(t => new { t.Documentnumber, t.CashRegisterId })
                 .IsUnique();
             
-            modelBuilder.Entity<TransactionModel>()
+            builder.Entity<TransactionModel>()
                 .Property(t => t.Sum)
                 .HasColumnType("decimal(10,2)");
 
-            modelBuilder.Entity<TransactionModel>()
+            builder.Entity<TransactionModel>()
                 .Property(t => t.AccountMovement)
                 .HasColumnType("decimal(10,2)");
 
-            modelBuilder.Entity<TransactionModel>()
+            builder.Entity<TransactionModel>()
                 .HasOne(t => t.Allocation)
                 .WithMany(a => a.Transactions)
                 .HasForeignKey(t => t.AllocationId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
             
-            modelBuilder.Entity<AllocationModel>()
+            builder.Entity<AllocationModel>()
                 .HasIndex(a => new { a.CostCenterId, a.CategoryId, a.ItemDetailId })
                 .IsUnique();
 
-            modelBuilder.Entity<CashRegisterModel>()
+            builder.Entity<CashRegisterModel>()
                 .HasOne(cr => cr.Treasurer)
                 .WithMany()
                 .HasForeignKey(cr => cr.TreasurerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<CashRegisterModel>()
+            builder.Entity<CashRegisterModel>()
                 .HasOne(cr => cr.Logo)
                 .WithOne(l => l.CashRegister)
                 .HasForeignKey<CashRegisterLogoModel>(l => l.CashRegisterId)

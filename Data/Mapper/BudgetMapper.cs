@@ -55,9 +55,9 @@ public class BudgetMapper(ILogger<BudgetMapper> logger) : IBudgetMapper
             return flat;
 
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            logger.LogError(e.Message);
+            logger.LogError(ex, ex.Message);
             throw;
         }
     }
