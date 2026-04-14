@@ -1,6 +1,6 @@
 const browserSupportsPasskeys =
     navigator.credentials !== undefined &&
-    window.PublicKeyCredential !== undefined;
+    globalThis.PublicKeyCredential !== undefined;
 
 function base64urlToBuffer(base64url) {
     const base64 = base64url.replaceAll('-', '+').replaceAll('_', '/');
