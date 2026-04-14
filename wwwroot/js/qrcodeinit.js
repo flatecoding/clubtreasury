@@ -1,9 +1,9 @@
 function initQrCode() {
-    var el = document.getElementById('qrCodeData');
-    var qrEl = document.getElementById('qrCode');
+    const el = document.getElementById('qrCodeData');
+    const qrEl = document.getElementById('qrCode');
     if (el && qrEl && !qrEl.hasChildNodes()) {
         new QRCode(qrEl, {
-            text: el.getAttribute('data-url'),
+            text: el.dataset.url,
             width: 200,
             height: 200
         });

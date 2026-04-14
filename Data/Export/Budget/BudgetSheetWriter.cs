@@ -81,7 +81,7 @@ internal class BudgetSheetWriter(IStringLocalizer<Translation> localizer)
         ws.Cells[row, 1].Style.Font.Size = CostCenterFontSize;
 
         ws.Cells[row, 3].Value = (double)cc.SumCostCenter;
-        ws.Cells[row, 3].Style.Numberformat.Format = "#,##0.00 €";
+        ws.Cells[row, 3].Style.Numberformat.Format = BudgetExportFormats.CurrencyFormat;
 
         using (var range = ws.Cells[row, 1, row, 3])
         {
@@ -102,7 +102,7 @@ internal class BudgetSheetWriter(IStringLocalizer<Translation> localizer)
         ws.Cells[row, 1].Style.Indent = 1;
 
         ws.Cells[row, 3].Value = (double)cat.SumCategories;
-        ws.Cells[row, 3].Style.Numberformat.Format = "#,##0.00 €";
+        ws.Cells[row, 3].Style.Numberformat.Format = BudgetExportFormats.CurrencyFormat;
 
         using (var range = ws.Cells[row, 1, row, 3])
         {
@@ -140,7 +140,7 @@ internal class BudgetSheetWriter(IStringLocalizer<Translation> localizer)
             }
 
             ws.Cells[row, 3].Value = (double)item.SumItemDetails;
-            ws.Cells[row, 3].Style.Numberformat.Format = "#,##0.00 €";
+            ws.Cells[row, 3].Style.Numberformat.Format = BudgetExportFormats.CurrencyFormat;
 
             row++;
         }
@@ -151,7 +151,7 @@ internal class BudgetSheetWriter(IStringLocalizer<Translation> localizer)
             ws.Cells[row, 2].Style.Font.Italic = true;
 
             ws.Cells[row, 3].Value = (double)p.SumPerson;
-            ws.Cells[row, 3].Style.Numberformat.Format = "#,##0.00 €";
+            ws.Cells[row, 3].Style.Numberformat.Format = BudgetExportFormats.CurrencyFormat;
 
             ws.Cells[row, 2].Style.Indent = 2;
 

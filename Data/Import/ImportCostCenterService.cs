@@ -46,9 +46,9 @@ public class ImportCostCenterService(
 
             return operationResultFactory.ImportSuccessful(fileName);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException operationCanceledException)
         {
-            logger.LogWarning("Import of cost centers was canceled");
+            logger.LogWarning(operationCanceledException, "Import of cost centers was canceled");
             return operationResultFactory.Canceled();
         }
         catch (Exception ex)

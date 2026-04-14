@@ -4,6 +4,8 @@ namespace ClubTreasury.Data.ThemeSetting;
 
 public static class CustomTheme
 {
+    private const string White = "#FFFFFF";
+
     public static readonly MudTheme ClubTreasuryTheme = new()
     {
         PaletteLight = new PaletteLight()
@@ -11,11 +13,11 @@ public static class CustomTheme
             Primary = "#2277bb",           
             Secondary = "#C62828",         
             AppbarBackground = "#0c3f6e",  
-            AppbarText = "#FFFFFF",        
-            DrawerBackground = "#FFFFFF", 
+            AppbarText = White,        
+            DrawerBackground = White, 
             DrawerText = "#333333", 
             Background = "#F5F5F5",        
-            Surface = "#FFFFFF",           
+            Surface = White,           
             TextPrimary = "#333333",       
             TextSecondary = "#666666",
         },
@@ -27,16 +29,16 @@ public static class CustomTheme
             Tertiary = "#62A0EA",          
             
             AppbarBackground = "#242424",  
-            AppbarText = "#FFFFFF",        
+            AppbarText = White,        
             
             DrawerBackground = "#303030",  
-            DrawerText = "#FFFFFF",        
+            DrawerText = White,        
             
             Background = "#242424",        
             BackgroundGray = "#303030",    
             Surface = "#303030",           
             
-            TextPrimary = "#FFFFFF",
+            TextPrimary = White,
             TextSecondary = "#C0C0C0",
             TextDisabled = "#6E6E6E",
             

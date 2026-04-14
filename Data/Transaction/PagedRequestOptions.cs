@@ -1,6 +1,6 @@
 namespace ClubTreasury.Data.Transaction;
 
-public record PagedRequest
+public record PagedRequestOptions
 {
     public int Page { get; init; }
     public int PageSize { get; init; }

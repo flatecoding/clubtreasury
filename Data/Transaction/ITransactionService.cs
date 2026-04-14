@@ -15,6 +15,6 @@ public interface ITransactionService
     Task<int> GetLatestDocumentNumberAsync(int registerId, CancellationToken ct = default);
 
     Task<PagedResult<TransactionModel>> GetTransactionsPagedAsync(
-        PagedRequest options,
+        PagedRequestOptions options,
         CancellationToken cancellationToken);
 }

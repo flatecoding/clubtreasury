@@ -80,7 +80,7 @@ internal class BudgetChartSheetWriter(IStringLocalizer<Translation> localizer)
         {
             ws.Cells[row, 1].Value = item.Name;
             ws.Cells[row, 2].Value = (double)item.Amount;
-            ws.Cells[row, 2].Style.Numberformat.Format = "#,##0.00 €";
+            ws.Cells[row, 2].Style.Numberformat.Format = BudgetExportFormats.CurrencyFormat;
             ws.Cells[row, 3].Value = totalAmount > 0 ? (double)(item.Amount / totalAmount) : 0d;
             ws.Cells[row, 3].Style.Numberformat.Format = "0.00%";
             row++;
@@ -116,7 +116,7 @@ internal class BudgetChartSheetWriter(IStringLocalizer<Translation> localizer)
         {
             ws.Cells[row, colOffset].Value = item.Name;
             ws.Cells[row, colOffset + 1].Value = (double)item.Amount;
-            ws.Cells[row, colOffset + 1].Style.Numberformat.Format = "#,##0.00 €";
+            ws.Cells[row, colOffset + 1].Style.Numberformat.Format = BudgetExportFormats.CurrencyFormat;
             ws.Cells[row, colOffset + 2].Value = (double)(item.Amount / totalAmount);
             ws.Cells[row, colOffset + 2].Style.Numberformat.Format = "0.00%";
             row++;
