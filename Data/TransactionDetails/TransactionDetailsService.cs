@@ -9,6 +9,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
     : ITransactionDetailsService
 {
     private string EntityName => localizer["TransactionDetails"];
+    private const string ExceptionKey = "Exception";
     public async Task<List<TransactionDetailsModel>> GetAllTransactionDetailsAsync(CancellationToken ct = default)
     {
         return await context.TransactionDetails
@@ -46,7 +47,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
         catch (Exception e)
         {
             logger.LogError(e, "Failed to add transaction details");
-            return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToAdd(EntityName, localizer[ExceptionKey]);
         }
 
     }
@@ -76,7 +77,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
         catch (Exception e)
         {
             logger.LogError(e, "Failed to update transaction details with Id {Id}", detailsModel.Id);
-            return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToUpdate(EntityName, localizer[ExceptionKey]);
         }
     }
 
@@ -99,12 +100,12 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
         catch (DbUpdateException dbUpdateException)
         {
             logger.LogError(dbUpdateException, "An exception occurred while deleting transaction with id: {Id}", id);
-            return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToDelete(EntityName, localizer[ExceptionKey]);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An exception occurred while deleting transaction with id: {Id}", id);
-            return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToDelete(EntityName, localizer[ExceptionKey]);
         }
     }
 }

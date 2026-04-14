@@ -1,4 +1,5 @@
 using System.Data;
+using System.Globalization;
 using ExcelDataReader;
 using Microsoft.Extensions.Localization;
 using ClubTreasury.Data.Allocation;
@@ -61,55 +62,9 @@ public class ImportBookingJournalService(
 
             foreach (var row in parsedRows)
             {
-                try
-                {
-                    ct.ThrowIfCancellationRequested();
-
-                    if (existingDocNumbers.Contains(row.DocumentNumber))
-                    {
-                        logger.LogInformation(
-                            "Skipping duplicate document number: {DocumentNumber}",
-                            row.DocumentNumber);
-                        continue;
-                    }
-
-                    var allocation = await allocationService.GetOrCreateAllocationAsync(
-                        row.CostCenterName,
-                        row.CategoryName,
-                        ct: ct);
-
-                    var transaction = new TransactionModel
-                    {
-                        CashRegisterId = cashRegisterId,
-                        Date = row.Date,
-                        Documentnumber = row.DocumentNumber,
-                        Description = row.Description,
-                        Sum = row.Sum,
-                        AccountMovement = row.AccountMovement,
-                        AllocationId = allocation.Id
-                    };
-
-                    var addResult = await transactionService.AddTransactionAsync(transaction, ct);
-                    if (addResult.IsFailure)
-                    {
-                        logger.LogError(
-                            "Failed to add transaction for document number: {DocumentNumber}",
-                            row.DocumentNumber);
-                        return operationResultFactory.ImportFailed(
-                            $"{localizer["DocumentNumberError"]}: '{row.DocumentNumber}'");
-                    }
-                    existingDocNumbers.Add(row.DocumentNumber);
-                    importCounter++;
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (Exception rowEx)
-                {
-                    logger.LogError(rowEx, "Error processing row with document number {DocumentNumber}", row.DocumentNumber);
-                    failedDocNumbers.Add(row.DocumentNumber);
-                }
+                var (added, fatal) = await ProcessRowAsync(row, cashRegisterId, existingDocNumbers, failedDocNumbers, ct);
+                if (fatal is not null) return fatal;
+                if (added) importCounter++;
             }
 
             if (failedDocNumbers.Count > 0)
@@ -128,15 +83,75 @@ public class ImportBookingJournalService(
 
             return operationResultFactory.ImportSuccessful(fileName);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException operationCanceledException)
         {
-            logger.LogWarning("Import of booking journal was canceled");
+            logger.LogWarning(operationCanceledException, "Import of booking journal was canceled");
             return operationResultFactory.Canceled();
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An error occurred during import");
             return operationResultFactory.ImportFailed(localizer["Exception"]);
+        }
+    }
+
+    private async Task<(bool Added, Result? Fatal)> ProcessRowAsync(
+        BookingJournalRowDto row,
+        int cashRegisterId,
+        HashSet<int> existingDocNumbers,
+        List<int> failedDocNumbers,
+        CancellationToken ct)
+    {
+        try
+        {
+            ct.ThrowIfCancellationRequested();
+
+            if (existingDocNumbers.Contains(row.DocumentNumber))
+            {
+                logger.LogInformation(
+                    "Skipping duplicate document number: {DocumentNumber}",
+                    row.DocumentNumber);
+                return (false, null);
+            }
+
+            var allocation = await allocationService.GetOrCreateAllocationAsync(
+                row.CostCenterName,
+                row.CategoryName,
+                ct: ct);
+
+            var transaction = new TransactionModel
+            {
+                CashRegisterId = cashRegisterId,
+                Date = row.Date,
+                Documentnumber = row.DocumentNumber,
+                Description = row.Description,
+                Sum = row.Sum,
+                AccountMovement = row.AccountMovement,
+                AllocationId = allocation.Id
+            };
+
+            var addResult = await transactionService.AddTransactionAsync(transaction, ct);
+            if (addResult.IsFailure)
+            {
+                logger.LogError(
+                    "Failed to add transaction for document number: {DocumentNumber}",
+                    row.DocumentNumber);
+                return (false, operationResultFactory.ImportFailed(
+                    $"{localizer["DocumentNumberError"]}: '{row.DocumentNumber}'"));
+            }
+
+            existingDocNumbers.Add(row.DocumentNumber);
+            return (true, null);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception rowEx)
+        {
+            logger.LogError(rowEx, "Error processing row with document number {DocumentNumber}", row.DocumentNumber);
+            failedDocNumbers.Add(row.DocumentNumber);
+            return (false, null);
         }
     }
 
@@ -164,14 +179,18 @@ public class ImportBookingJournalService(
     {
         try
         {
-            if (!DateTime.TryParse(row.ItemArray.ElementAtOrDefault(DateCell)?.ToString(), out var datum))
+            if (!DateTime.TryParse(
+                    row.ItemArray.ElementAtOrDefault(DateCell)?.ToString(),
+                    CultureInfo.CurrentCulture,
+                    DateTimeStyles.None,
+                    out var datum))
             {
                 logger.LogWarning("Invalid date in row: {@RowData}", row.ItemArray);
                 return null;
             }
 
             var documentRaw = row.ItemArray[DocumentCell]?.ToString()?.TrimStart(DocumentNumberPrefix);
-            if (!int.TryParse(documentRaw, out var documentNumber))
+            if (!int.TryParse(documentRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var documentNumber))
             {
                 logger.LogWarning("Invalid document number in row: {@RowData}", row.ItemArray);
                 return null;
@@ -183,7 +202,7 @@ public class ImportBookingJournalService(
             if (string.IsNullOrEmpty(sumStr))
                 sumStr = row.ItemArray[SumOutcomeCell]?.ToString()?.Trim();
 
-            if (!decimal.TryParse(sumStr, out var sumValue))
+            if (!decimal.TryParse(sumStr, NumberStyles.Number, CultureInfo.CurrentCulture, out var sumValue))
             {
                 logger.LogWarning("Invalid sum in row: {@RowData}", row.ItemArray);
                 return null;
@@ -191,7 +210,7 @@ public class ImportBookingJournalService(
 
             var accountMovement = 0m;
             if (row.ItemArray[AccountMovementCell] != DBNull.Value &&
-                decimal.TryParse(row.ItemArray[AccountMovementCell]?.ToString(), out var accMove))
+                decimal.TryParse(row.ItemArray[AccountMovementCell]?.ToString(), NumberStyles.Number, CultureInfo.CurrentCulture, out var accMove))
             {
                 accountMovement = accMove;
             }
@@ -235,32 +254,9 @@ public class ImportBookingJournalService(
 
         for (var i = 0; i < rows.Count; i++)
         {
-            var row = rows[i];
-            var rowNumber = i + 1;
-
-            if (row.Date == default)
-                return Invalid(rowNumber, localizer["DateMissing"]);
-
-            if (row.Date > DateOnly.FromDateTime(DateTime.Today))
-                return Invalid(rowNumber, localizer["DateInFuture"]);
-
-            if (row.DocumentNumber <= 0)
-                return Invalid(rowNumber, localizer["InvalidDocumentNumber"]);
-
-            if (row.Sum <= 0)
-                return Invalid(rowNumber, localizer["InvalidSum"]);
-
-            if (row.AccountMovement == 0)
-                return Invalid(rowNumber, localizer["InvalidAccountMovement"]);
-
-            if (Math.Abs(row.AccountMovement) != row.Sum)
-                return Invalid(rowNumber, localizer["SumAccountMismatch"]);
-
-            if (string.IsNullOrWhiteSpace(row.CostCenterName))
-                return Invalid(rowNumber, localizer["CostCenterMissing"]);
-
-            if (string.IsNullOrWhiteSpace(row.CategoryName))
-                return Invalid(rowNumber, localizer["CategoryMissing"]);
+            var errorKey = GetRowValidationErrorKey(rows[i]);
+            if (errorKey != null)
+                return Invalid(i + 1, localizer[errorKey]);
         }
 
         var duplicate = rows
@@ -287,6 +283,19 @@ public class ImportBookingJournalService(
         {
             IsValid = true
         });
+    }
+
+    private static string? GetRowValidationErrorKey(BookingJournalRowDto row)
+    {
+        if (row.Date == default) return "DateMissing";
+        if (row.Date > DateOnly.FromDateTime(DateTime.Today)) return "DateInFuture";
+        if (row.DocumentNumber <= 0) return "InvalidDocumentNumber";
+        if (row.Sum <= 0) return "InvalidSum";
+        if (row.AccountMovement == 0) return "InvalidAccountMovement";
+        if (Math.Abs(row.AccountMovement) != row.Sum) return "SumAccountMismatch";
+        if (string.IsNullOrWhiteSpace(row.CostCenterName)) return "CostCenterMissing";
+        if (string.IsNullOrWhiteSpace(row.CategoryName)) return "CategoryMissing";
+        return null;
     }
 
     private Task<ValidationResult> Invalid(

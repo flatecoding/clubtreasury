@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using ClubTreasury.Data.Allocation;
@@ -12,6 +13,7 @@ public class TransactionService(
     IStringLocalizer<Translation> localizer,
     IResultFactory operationResultFactory) : ITransactionService
 {
+    private const string ExceptionKey = "Exception";
     private string EntityName => localizer["Transaction"];
     public async Task<TransactionModel?> GetTransactionByIdAsync(int id, CancellationToken ct = default)
     {
@@ -100,12 +102,12 @@ public class TransactionService(
         {
             logger.LogError(dbEx, "An exception occurred while adding transaction: B{@DocumentNumber} " +
                                      "{@Description}", entry.Documentnumber, entry.Description);
-            return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToAdd(EntityName, localizer[ExceptionKey]);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An exception occurred while adding transaction");
-            return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToAdd(EntityName, localizer[ExceptionKey]);
         }
     }
 
@@ -156,12 +158,12 @@ public class TransactionService(
         {
             logger.LogError(dbEx, "An exception occurred while updating transaction: {@DocumentNumber} " +
                                      "{@Description}", entry.Documentnumber, entry.Description);
-            return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToUpdate(EntityName, localizer[ExceptionKey]);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An exception occurred while updating transaction");
-            return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToUpdate(EntityName, localizer[ExceptionKey]);
         }
     }
 
@@ -190,12 +192,12 @@ public class TransactionService(
         catch (DbUpdateException dbEx)
         {
             logger.LogError(dbEx, "An exception occurred while deleting transaction with id: {Id}", id);
-            return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToDelete(EntityName, localizer[ExceptionKey]);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An exception occurred while deleting transaction with id: {Id}", id);
-            return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToDelete(EntityName, localizer[ExceptionKey]);
         }
     }
 
@@ -240,12 +242,12 @@ public class TransactionService(
     }
 
     public async Task<PagedResult<TransactionModel>> GetTransactionsPagedAsync(
-        PagedRequest request,
+        PagedRequestOptions requestOptions,
         CancellationToken cancellationToken)
     {
         var baseQuery = context.Transactions.AsNoTracking();
 
-        baseQuery = ApplyFilters(baseQuery, request);
+        baseQuery = ApplyFilters(baseQuery, requestOptions);
 
         var totalItems = await baseQuery.CountAsync(cancellationToken);
 
@@ -253,11 +255,11 @@ public class TransactionService(
             .WithAllocationDetails()
             .WithTransactionDetailsAndPersons();
 
-        dataQuery = ApplySorting(dataQuery, request.SortLabel, request.SortDirection);
+        dataQuery = ApplySorting(dataQuery, requestOptions.SortLabel, requestOptions.SortDirection);
 
         var items = await dataQuery
-            .Skip(request.Page * request.PageSize)
-            .Take(request.PageSize)
+            .Skip(requestOptions.Page * requestOptions.PageSize)
+            .Take(requestOptions.PageSize)
             .ToListAsync(cancellationToken);
 
         return new PagedResult<TransactionModel>
@@ -267,21 +269,21 @@ public class TransactionService(
         };
     }
 
-    private static IQueryable<TransactionModel> ApplyFilters(IQueryable<TransactionModel> query, PagedRequest request)
+    private static IQueryable<TransactionModel> ApplyFilters(IQueryable<TransactionModel> query, PagedRequestOptions requestOptions)
     {
-        if (request.DateStart is not null && request.DateEnd is not null)
+        if (requestOptions.DateStart is not null && requestOptions.DateEnd is not null)
         {
-            var start = DateOnly.FromDateTime(request.DateStart.Value);
-            var end = DateOnly.FromDateTime(request.DateEnd.Value);
+            var start = DateOnly.FromDateTime(requestOptions.DateStart.Value);
+            var end = DateOnly.FromDateTime(requestOptions.DateEnd.Value);
 
             query = query.Where(t => t.Date.HasValue &&
                                      t.Date.Value >= start &&
                                      t.Date.Value <= end);
         }
 
-        if (!string.IsNullOrEmpty(request.SearchText))
+        if (!string.IsNullOrEmpty(requestOptions.SearchText))
         {
-            var term = request.SearchText.ToLower();
+            var term = requestOptions.SearchText.ToLower();
             query = query.Where(t =>
                 (t.Description != null && t.Description.ToLower().Contains(term)) ||
                 t.Documentnumber.ToString().Contains(term) ||
@@ -294,10 +296,10 @@ public class TransactionService(
                     td.Person.Name.ToLower().Contains(term)));
         }
 
-        if (request.PersonId is not null)
+        if (requestOptions.PersonId is not null)
         {
             query = query.Where(t =>
-                t.TransactionDetails.Any(td => td.PersonId == request.PersonId));
+                t.TransactionDetails.Any(td => td.PersonId == requestOptions.PersonId));
         }
 
         return query;
@@ -313,16 +315,22 @@ public class TransactionService(
 
         return sortLabel switch
         {
-            "Date" => descending ? query.OrderByDescending(x => x.Date) : query.OrderBy(x => x.Date),
-            "DocumentNumber" => descending ? query.OrderByDescending(x => x.Documentnumber) : query.OrderBy(x => x.Documentnumber),
-            "Sum" => descending ? query.OrderByDescending(x => x.Sum) : query.OrderBy(x => x.Sum),
-            "CostCenter" => descending ? query.OrderByDescending(x => x.Allocation.CostCenter.CostUnitName) : query.OrderBy(x => x.Allocation.CostCenter.CostUnitName),
-            "Category" => descending ? query.OrderByDescending(x => x.Allocation.Category.Name) : query.OrderBy(x => x.Allocation.Category.Name),
-            "ItemDetail" => descending
-                ? query.OrderByDescending(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null)
-                : query.OrderBy(x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null),
+            "Date" => Order(query, x => x.Date, descending),
+            "DocumentNumber" => Order(query, x => x.Documentnumber, descending),
+            "Sum" => Order(query, x => x.Sum, descending),
+            "CostCenter" => Order(query, x => x.Allocation.CostCenter.CostUnitName, descending),
+            "Category" => Order(query, x => x.Allocation.Category.Name, descending),
+            "ItemDetail" => Order(query, x => x.Allocation.ItemDetail != null ? x.Allocation.ItemDetail.CostDetails : null, descending),
             _ => query.OrderByDescending(x => x.Id)
         };
+    }
+
+    private static IOrderedQueryable<TransactionModel> Order<TKey>(
+        IQueryable<TransactionModel> query,
+        Expression<Func<TransactionModel, TKey>> keySelector,
+        bool descending)
+    {
+        return descending ? query.OrderByDescending(keySelector) : query.OrderBy(keySelector);
     }
 
 }

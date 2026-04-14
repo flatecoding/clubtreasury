@@ -27,10 +27,10 @@ namespace ClubTreasury.Data.Category
             return await  context.Categories.FirstOrDefaultAsync(b => b.Name == name, ct);
         }
 
-        public async Task<IEnumerable<CategoryModel>> GetCategoriesByCostCenterIdAsync(int costUnitId, CancellationToken ct = default)
+        public async Task<IEnumerable<CategoryModel>> GetCategoriesByCostCenterIdAsync(int costCenterId, CancellationToken ct = default)
         {
             var categories = await context.Categories
-                .Where(b => b.Allocations.Any(a => a.CostCenterId == costUnitId))
+                .Where(b => b.Allocations.Any(a => a.CostCenterId == costCenterId))
                 .OrderBy(c => c.Name)
                 .ToListAsync(ct);
             if (categories.Count == 0) return new List<CategoryModel>();

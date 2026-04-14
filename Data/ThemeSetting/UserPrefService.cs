@@ -106,7 +106,8 @@ public sealed class UserPrefService : INotifyPropertyChanged
             }
             catch (TaskCanceledException)
             {
-                // Can be ignored
+                // Can be ignoredShowConfirmDialog
+                
             }
             catch (Exception ex)
             {
@@ -118,7 +119,7 @@ public sealed class UserPrefService : INotifyPropertyChanged
 
 public static class TaskExtensions
 {
-    public static async void CatchAndLog(this ValueTask task, ILogger logger)
+    public static async Task CatchAndLog(this ValueTask task, ILogger logger)
     {
         try
         {
