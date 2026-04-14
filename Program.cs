@@ -12,6 +12,7 @@ using ClubTreasury.Components.Account;
 using ClubTreasury.Data;
 using ClubTreasury.Data.Source;
 using ClubTreasury.Infrastructure.DependencyInjection;
+using ClubTreasury.Infrastructure.Startup;
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -25,44 +26,7 @@ QuestPDF.Settings.License = LicenseType.Community;
 ExcelPackage.License.SetNonCommercialOrganization("TTC Hagen e.V.");
 
 // Add services to the container.
-builder.Services.AddDbContext<CashDataContext>(options =>
-{
-    var configuration = builder.Configuration;
-
-    var dbPassword = Environment.GetEnvironmentVariable("DbPassword");
-    var dbUser = Environment.GetEnvironmentVariable("DbUser");
-    var dbName = Environment.GetEnvironmentVariable("DbName");
-
-    if (builder.Environment.IsDevelopment())
-    {
-        dbPassword ??= configuration["DbPassword"];
-        dbUser ??= configuration["DbUser"];
-        dbName ??= configuration["DbName"];
-    }
-
-    var connectionString = configuration.GetConnectionString(
-        builder.Environment.IsDevelopment() ? "DefaultConnection" : "ProductionConnection"
-    );
-
-    if (string.IsNullOrWhiteSpace(connectionString))
-        throw new InvalidOperationException("Connection string missing");
-
-    if (string.IsNullOrWhiteSpace(dbPassword))
-        throw new Exception("Db password not found in environment or secrets");
-
-    if (string.IsNullOrWhiteSpace(dbUser))
-        throw new Exception("Db user not found in environment or secrets");
-
-    if (string.IsNullOrWhiteSpace(dbName))
-        throw new Exception("Db name not found in environment or secrets");
-
-    connectionString = connectionString
-        .Replace("{DbName}", dbName)
-        .Replace("{DbUser}", dbUser)
-        .Replace("{DbPassword}", dbPassword);
-
-    options.UseNpgsql(connectionString);
-});
+builder.Services.AddCashDataContext(builder.Environment, builder.Configuration);
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -112,72 +76,7 @@ builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
 var app = builder.Build();
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<CashDataContext>();
-    try
-    {
-        var pending = db.Database.GetPendingMigrations().ToList();
-
-        if (pending.Count != 0)
-        {
-            Log.Information("Found {Count} pending migrations: {Migrations}", pending.Count, string.Join(", ", pending));
-            db.Database.Migrate();
-            Log.Information("Database migrated successfully");
-        }
-        else
-        {
-            Log.Information("No pending migrations. Database is up-to-date.");
-        }
-    }
-    catch (Exception ex)
-    {
-        Log.Error(ex, "Database migration failed!");
-        throw;
-    }
-
-    // Seed initial admin user from environment variables if no users exist
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    if (!userManager.Users.Any())
-    {
-        var adminUser = Environment.GetEnvironmentVariable("ADMIN_USERNAME");
-        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
-        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
-
-        if (app.Environment.IsDevelopment())
-        {
-            var configuration = app.Configuration;
-            adminUser ??= configuration["ADMIN_USERNAME"];
-            adminEmail ??= configuration["ADMIN_EMAIL"];
-            adminPassword ??= configuration["ADMIN_PASSWORD"];
-        }
-
-        if (!string.IsNullOrWhiteSpace(adminUser) &&
-            !string.IsNullOrWhiteSpace(adminEmail) &&
-            !string.IsNullOrWhiteSpace(adminPassword))
-        {
-            var user = new ApplicationUser();
-            await userManager.SetUserNameAsync(user, adminUser);
-            await userManager.SetEmailAsync(user, adminEmail);
-            var result = await userManager.CreateAsync(user, adminPassword);
-
-            if (result.Succeeded)
-            {
-                Log.Information("Initial admin user '{AdminUser}' created successfully", adminUser);
-            }
-            else
-            {
-                Log.Error("Failed to create initial admin user: {Errors}",
-                    string.Join(", ", result.Errors.Select(e => e.Description)));
-            }
-        }
-        else
-        {
-            Log.Warning("No users exist and ADMIN_USERNAME, ADMIN_EMAIL, or ADMIN_PASSWORD environment variables are not set. " +
-                         "Set these variables to create an initial admin user.");
-        }
-    }
-}
+await app.MigrateAndSeedAdminAsync();
 
 
 app.UseSerilogRequestLogging();

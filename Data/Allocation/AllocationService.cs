@@ -16,6 +16,7 @@ public class AllocationService(
     ICategoryService categoryService,
     IItemDetailService itemDetailService) : IAllocationService
 {
+    private const string ExceptionKey = "Exception";
     private string EntityName => localizer["Allocation"];
 
     public async Task<AllocationModel?> GetAllocationsByIdAsync(int id, CancellationToken ct = default)
@@ -63,7 +64,7 @@ public class AllocationService(
                 "Failed to add allocation: CostCenter: {CostCenterId}, Category: {CategoryId}, ItemDetail: {ItemDetailId}",
                 allocation.CostCenterId, allocation.CategoryId, allocation.ItemDetailId);
 
-            return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToAdd(EntityName, localizer[ExceptionKey]);
         }
     }
 
@@ -111,7 +112,7 @@ public class AllocationService(
                 "Failed to update allocation Id {AllocationId}",
                 updatedAllocation.Id);
 
-            return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToUpdate(EntityName, localizer[ExceptionKey]);
         }
         catch (Exception ex)
         {
@@ -119,7 +120,7 @@ public class AllocationService(
                 "Failed to update allocation Id {AllocationId}",
                 updatedAllocation.Id);
 
-            return operationResultFactory.FailedToUpdate(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToUpdate(EntityName, localizer[ExceptionKey]);
         }
     }
 
@@ -159,7 +160,7 @@ public class AllocationService(
                 "Failed to delete allocation Id {AllocationId}.",
                 id);
 
-            return operationResultFactory.FailedToDelete(EntityName, localizer["Exception"]);
+            return operationResultFactory.FailedToDelete(EntityName, localizer[ExceptionKey]);
         }
     }
 

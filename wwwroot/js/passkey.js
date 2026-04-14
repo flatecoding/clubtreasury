@@ -1,21 +1,21 @@
 const browserSupportsPasskeys =
-    typeof navigator.credentials !== 'undefined' &&
-    typeof window.PublicKeyCredential !== 'undefined';
+    navigator.credentials !== undefined &&
+    window.PublicKeyCredential !== undefined;
 
 function base64urlToBuffer(base64url) {
-    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    const base64 = base64url.replaceAll('-', '+').replaceAll('_', '/');
     const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
     const binary = atob(padded);
     const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.codePointAt(i);
     return bytes.buffer;
 }
 
 function bufferToBase64url(buffer) {
     const bytes = new Uint8Array(buffer);
     let str = '';
-    for (const b of bytes) str += String.fromCharCode(b);
-    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    for (const b of bytes) str += String.fromCodePoint(b);
+    return btoa(str).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
 }
 
 function parseCreationOptions(json) {

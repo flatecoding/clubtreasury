@@ -40,8 +40,7 @@ public static class DialogServiceExtensions
         string itemName,
         Func<Task<Result>> onConfirm,
         Func<Task>? onSuccess = null,
-        string deleteTitle = "Delete",
-        DialogOptions? options = null)
+        string deleteTitle = "Delete")
     {
         var parameters = new DialogParameters
         {
@@ -50,13 +49,11 @@ public static class DialogServiceExtensions
             ["OnConfirm"] = onConfirm
         };
 
-        var mergedOptions = MergeOptions(options);
-
         var result = await dialogService.ShowDialogWithNotificationAsync<ConfirmDeleteDialog>(
             notificationService,
             title: deleteTitle,
             parameters: parameters,
-            options: mergedOptions);
+            options: DefaultDialogOptions);
 
         if (result is { IsSuccess: true } && onSuccess != null)
         {

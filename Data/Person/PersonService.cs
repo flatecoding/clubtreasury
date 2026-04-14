@@ -24,30 +24,30 @@ namespace ClubTreasury.Data.Person
             return await context.Persons.FirstOrDefaultAsync(ct);
         }
 
-        public async Task<Result> AddPersonAsync(PersonModel personModel, CancellationToken ct = default)
+        public async Task<Result> AddPersonAsync(PersonModel peson, CancellationToken ct = default)
         {
             try
             {
-                await context.Persons.AddAsync(personModel, ct);
+                await context.Persons.AddAsync(peson, ct);
                 await context.SaveChangesAsync(ct);
-                logger.LogInformation("Person added: {@PersonModel}", personModel);
-                return operationResultFactory.SuccessAdded($"{EntityName}: '{personModel.Name}'", personModel.Id);
+                logger.LogInformation("Person added: {@PersonModel}", peson);
+                return operationResultFactory.SuccessAdded($"{EntityName}: '{peson.Name}'", peson.Id);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred while adding person: {PersonName}", personModel.Name);
+                logger.LogError(ex, "An error occurred while adding person: {PersonName}", peson.Name);
                 return operationResultFactory.FailedToAdd(EntityName, localizer["Exception"]);
             }
         }
 
-        public async Task<Result> UpdatePersonAsync(PersonModel personModel, CancellationToken ct = default)
+        public async Task<Result> UpdatePersonAsync(PersonModel person, CancellationToken ct = default)
         {
             try
             {
-                context.Persons.Update(personModel);
+                context.Persons.Update(person);
                 await context.SaveChangesAsync(ct);
-                logger.LogInformation("Person updated: {@PersonModel}", personModel);
-                return operationResultFactory.SuccessUpdated($"{EntityName}: '{personModel.Name}'", personModel);
+                logger.LogInformation("Person updated: {@PersonModel}", person);
+                return operationResultFactory.SuccessUpdated($"{EntityName}: '{person.Name}'", person);
             }
             catch (Exception ex)
             {

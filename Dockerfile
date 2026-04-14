@@ -6,11 +6,11 @@ COPY ["ClubTreasury.csproj", "./"]
 RUN dotnet restore "ClubTreasury.csproj"
 
 COPY . .
-RUN dotnet build "ClubTreasury.csproj" -c $BUILD_CONFIGURATION -o /app/build -v minimal
+RUN dotnet build "ClubTreasury.csproj" -c "$BUILD_CONFIGURATION" -o /app/build -v minimal
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "ClubTreasury.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "ClubTreasury.csproj" -c "$BUILD_CONFIGURATION" -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 USER root
