@@ -242,12 +242,12 @@ public class TransactionService(
     }
 
     public async Task<PagedResult<TransactionModel>> GetTransactionsPagedAsync(
-        PagedRequestOptions requestOptions,
+        PagedRequestOptions options,
         CancellationToken cancellationToken)
     {
         var baseQuery = context.Transactions.AsNoTracking();
 
-        baseQuery = ApplyFilters(baseQuery, requestOptions);
+        baseQuery = ApplyFilters(baseQuery, options);
 
         var totalItems = await baseQuery.CountAsync(cancellationToken);
 
@@ -255,11 +255,11 @@ public class TransactionService(
             .WithAllocationDetails()
             .WithTransactionDetailsAndPersons();
 
-        dataQuery = ApplySorting(dataQuery, requestOptions.SortLabel, requestOptions.SortDirection);
+        dataQuery = ApplySorting(dataQuery, options.SortLabel, options.SortDirection);
 
         var items = await dataQuery
-            .Skip(requestOptions.Page * requestOptions.PageSize)
-            .Take(requestOptions.PageSize)
+            .Skip(options.Page * options.PageSize)
+            .Take(options.PageSize)
             .ToListAsync(cancellationToken);
 
         return new PagedResult<TransactionModel>
