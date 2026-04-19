@@ -67,7 +67,7 @@ public class PdfTransactionRenderer(ILogger<PdfTransactionRenderer> logger, IStr
                 page.Size(PageSizes.A4);
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(10).FontColor(Colors.Black));
-                page.Header().Element(lContainer => ComposeHeader(lContainer, options));
+                page.Header().ShowOnce().Element(lContainer => ComposeHeader(lContainer, options));
                 page.Content().Element(c => ComposeContent(c, ordered, options));
                 page.Footer()
                     .AlignCenter()
