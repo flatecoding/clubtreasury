@@ -10,11 +10,17 @@ public static class DatabaseRegistration
         IHostEnvironment environment,
         IConfiguration configuration)
     {
-        services.AddDbContext<CashDataContext>(options =>
+        services.AddDbContextFactory<CashDataContext>(options =>
         {
             var connectionString = BuildConnectionString(environment, configuration);
             options.UseNpgsql(connectionString);
         });
+
+        // ASP.NET Core Identity resolves CashDataContext directly, so it still needs a scoped
+        // registration. Bridge it through the factory so both share the same configuration.
+        services.AddScoped<CashDataContext>(serviceProvider =>
+            serviceProvider.GetRequiredService<IDbContextFactory<CashDataContext>>().CreateDbContext());
+
         return services;
     }
 

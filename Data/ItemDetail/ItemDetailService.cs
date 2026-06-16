@@ -4,13 +4,14 @@ using ClubTreasury.Data.OperationResult;
 
 namespace ClubTreasury.Data.ItemDetail
 {
-    public class ItemDetailService(CashDataContext context, ILogger<ItemDetailService> logger,
+    public class ItemDetailService(IDbContextFactory<CashDataContext> contextFactory, ILogger<ItemDetailService> logger,
         IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory) : IItemDetailService
     {
         private string EntityName => localizer["ItemDetail"];
 
         public async Task<List<ItemDetailModel>> GetAllItemDetailsAsync(CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.ItemDetails
                 .OrderByDescending(c => c.Id)
                 .ToListAsync(ct);
@@ -18,17 +19,20 @@ namespace ClubTreasury.Data.ItemDetail
 
         public async Task<ItemDetailModel?> GetItemDetailByIdAsync(int id, CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.ItemDetails
                 .FirstOrDefaultAsync(x => x.Id == id, ct);
         }
 
         public async Task<ItemDetailModel?> GetItemDetailByNameAsync(string name, CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await  context.ItemDetails.FirstOrDefaultAsync(i => i.CostDetails == name, ct);
         }
 
         public async Task<List<ItemDetailModel>> GetItemDetailByCategoryIdAsync(int categoryId, CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.ItemDetails
                 .Where(u => u.Allocations.Any(a => a.CategoryId == categoryId))
                 .ToListAsync(ct);
@@ -45,6 +49,7 @@ namespace ClubTreasury.Data.ItemDetail
                     return operationResultFactory.AlreadyExists(EntityName, $"'{itemDetail.CostDetails}'");
                 }
 
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 await context.ItemDetails.AddAsync(itemDetail, ct);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("ItemDetail added: {@ItemDetail}", itemDetail.CostDetails);
@@ -61,6 +66,7 @@ namespace ClubTreasury.Data.ItemDetail
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 context.ItemDetails.Update(itemDetail);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("ItemDetail updated: {@ItemDetail}", itemDetail.CostDetails);
@@ -77,6 +83,7 @@ namespace ClubTreasury.Data.ItemDetail
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 var itemDetail = await context.ItemDetails.FindAsync([id], ct);
                 if (itemDetail == null)
                 {

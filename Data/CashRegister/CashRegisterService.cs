@@ -5,7 +5,7 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.CashRegister
 {
     public class CashRegisterService(
-        CashDataContext context,
+        IDbContextFactory<CashDataContext> contextFactory,
         ILogger<CashRegisterService> logger,
         IResultFactory operationResultFactory,
         IStringLocalizer<Translation> localizer)
@@ -15,12 +15,14 @@ namespace ClubTreasury.Data.CashRegister
 
         public async Task<List<CashRegisterModel>> GetAllCashRegistersAsync(CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.CashRegisters
                 .ToListAsync(ct);
         }
 
         public async Task<Dictionary<int, decimal>> GetCashRegisterBalancesAsync(CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.Transactions
                 .GroupBy(t => t.CashRegisterId)
                 .Select(g => new { CashRegisterId = g.Key, Balance = g.Sum(t => t.AccountMovement) })
@@ -29,6 +31,7 @@ namespace ClubTreasury.Data.CashRegister
 
         public async Task<CashRegisterModel?> GetCashRegisterByIdAsync(int id, CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             var cashRegister = await context.CashRegisters.FindAsync([id], ct);
             if (cashRegister is not null)
             {
@@ -42,6 +45,7 @@ namespace ClubTreasury.Data.CashRegister
 
         public async Task<CashRegisterModel?> GetCashRegisterWithTreasurerAsync(int id, CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             var cashRegister = await context.CashRegisters
                 .Include(cr => cr.Treasurer)
                 .FirstOrDefaultAsync(cr => cr.Id == id, ct);
@@ -58,6 +62,7 @@ namespace ClubTreasury.Data.CashRegister
 
         public async Task<CashRegisterModel?> GetFirstCashRegisterAsync(CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             var cashRegister = await context.CashRegisters.FirstOrDefaultAsync(ct);
             if (cashRegister is not null)
             {
@@ -73,6 +78,7 @@ namespace ClubTreasury.Data.CashRegister
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 await context.CashRegisters.AddAsync(cashRegisterModel, ct);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Cash register added: {@CashRegister}", cashRegisterModel.Name);
@@ -89,6 +95,7 @@ namespace ClubTreasury.Data.CashRegister
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 context.CashRegisters.Update(cashRegisterModel);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Cash register updated: {@CashRegister}", cashRegisterModel.Name);
@@ -107,6 +114,7 @@ namespace ClubTreasury.Data.CashRegister
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 var cashRegister = await context.CashRegisters.FindAsync([id], ct);
                 if (cashRegister is null)
                 {

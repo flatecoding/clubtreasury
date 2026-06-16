@@ -33,20 +33,23 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
 
         builder.ConfigureServices(services =>
         {
-            // Remove the existing DbContext registration
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<CashDataContext>));
+            // Replace the application's context factory (which targets the production connection)
+            // with one bound to the test container, keeping the scoped bridge Identity relies on.
+            var descriptors = services
+                .Where(d => d.ServiceType == typeof(IDbContextFactory<CashDataContext>)
+                            || d.ServiceType == typeof(DbContextOptions<CashDataContext>)
+                            || d.ServiceType == typeof(CashDataContext))
+                .ToList();
 
-            if (descriptor != null)
+            foreach (var descriptor in descriptors)
             {
                 services.Remove(descriptor);
             }
 
-            // Add DbContext using the container's connection string
-            services.AddDbContext<CashDataContext>(options =>
-            {
-                options.UseNpgsql(_dbContainer.GetConnectionString());
-            });
+            services.AddDbContextFactory<CashDataContext>(options =>
+                options.UseNpgsql(_dbContainer.GetConnectionString()));
+            services.AddScoped<CashDataContext>(serviceProvider =>
+                serviceProvider.GetRequiredService<IDbContextFactory<CashDataContext>>().CreateDbContext());
         });
 
         builder.UseEnvironment("Development");
