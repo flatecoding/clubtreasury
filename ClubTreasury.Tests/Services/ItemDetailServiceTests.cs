@@ -15,6 +15,7 @@ namespace ClubTreasury.Tests.Services;
 [TestFixture]
 public class ItemDetailServiceTests
 {
+    private DbContextOptions<CashDataContext> _options = null!;
     private CashDataContext _context = null!;
     private ILogger<ItemDetailService> _logger = null!;
     private IResultFactory _resultFactory = null!;
@@ -25,11 +26,11 @@ public class ItemDetailServiceTests
     [SetUp]
     public void SetUp()
     {
-        var options = new DbContextOptionsBuilder<CashDataContext>()
+        _options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        _context = new CashDataContext(options);
+        _context = new CashDataContext(_options);
         _contextDisposed = false;
         _logger = A.Fake<ILogger<ItemDetailService>>();
         _resultFactory = A.Fake<IResultFactory>();
@@ -40,7 +41,7 @@ public class ItemDetailServiceTests
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
 
-        _sut = new ItemDetailService(_context, _logger, _localizer, _resultFactory);
+        _sut = new ItemDetailService(new TestDbContextFactory(_options), _logger, _localizer, _resultFactory);
     }
 
     [TearDown]
@@ -268,16 +269,7 @@ public class ItemDetailServiceTests
         A.CallTo(() => _resultFactory.FailedToAdd(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new ItemDetailService(disposedContext, _logger, _localizer, _resultFactory);
+        _sut = new ItemDetailService(new TestDbContextFactory(_options, disposed: true), _logger, _localizer, _resultFactory);
 
         var itemDetail = new ItemDetailModel { CostDetails = "New Item" };
 
@@ -323,16 +315,7 @@ public class ItemDetailServiceTests
         A.CallTo(() => _resultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new ItemDetailService(disposedContext, _logger, _localizer, _resultFactory);
+        _sut = new ItemDetailService(new TestDbContextFactory(_options, disposed: true), _logger, _localizer, _resultFactory);
 
         var itemDetail = new ItemDetailModel { CostDetails = "Test" };
 
@@ -365,6 +348,7 @@ public class ItemDetailServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
+        _context.ChangeTracker.Clear();
         var deletedItem = await _context.ItemDetails.FindAsync(id);
         deletedItem.Should().BeNull();
     }
@@ -394,16 +378,7 @@ public class ItemDetailServiceTests
         A.CallTo(() => _resultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new ItemDetailService(disposedContext, _logger, _localizer, _resultFactory);
+        _sut = new ItemDetailService(new TestDbContextFactory(_options, disposed: true), _logger, _localizer, _resultFactory);
 
         // Act
         var result = await _sut.DeleteItemDetailAsync(1);

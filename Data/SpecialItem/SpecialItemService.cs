@@ -4,12 +4,13 @@ using ClubTreasury.Data.OperationResult;
 
 namespace ClubTreasury.Data.SpecialItem
 {
-    public class SpecialItemService(CashDataContext context, ILogger<SpecialItemService> logger,
+    public class SpecialItemService(IDbContextFactory<CashDataContext> contextFactory, ILogger<SpecialItemService> logger,
         IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory) : ISpecialItemService
     {
         private string EntityName => localizer["SpecialPosition"];
         public async Task<List<SpecialItemModel>> GetAllSpecialItemsAsync(CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.SpecialItems
                 .Include(s => s.Transactions)
                 .ToListAsync(ct);
@@ -17,6 +18,7 @@ namespace ClubTreasury.Data.SpecialItem
 
         public async Task<SpecialItemModel?> GetSpecialPositionByIdAsync(int id, CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.SpecialItems
                 .Include(s => s.Transactions)
                 .FirstOrDefaultAsync(s => s.Id == id, ct);
@@ -26,6 +28,7 @@ namespace ClubTreasury.Data.SpecialItem
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 await context.SpecialItems.AddAsync(specialPosition, ct);
                 await context.SaveChangesAsync(ct);
 
@@ -45,6 +48,7 @@ namespace ClubTreasury.Data.SpecialItem
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 context.SpecialItems.Update(specialPosition);
                 await context.SaveChangesAsync(ct);
 
@@ -64,6 +68,7 @@ namespace ClubTreasury.Data.SpecialItem
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 var entity = await context.SpecialItems.FindAsync([id], ct);
                 if (entity is null)
                 {

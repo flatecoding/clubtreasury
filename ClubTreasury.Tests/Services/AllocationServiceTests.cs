@@ -17,6 +17,7 @@ namespace ClubTreasury.Tests.Services;
 [TestFixture]
 public class AllocationServiceTests
 {
+    private DbContextOptions<CashDataContext> _options = null!;
     private CashDataContext _context = null!;
     private ILogger<AllocationService> _logger = null!;
     private IResultFactory _resultFactory = null!;
@@ -30,11 +31,11 @@ public class AllocationServiceTests
     [SetUp]
     public void SetUp()
     {
-        var options = new DbContextOptionsBuilder<CashDataContext>()
+        _options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        _context = new CashDataContext(options);
+        _context = new CashDataContext(_options);
         _contextDisposed = false;
         _logger = A.Fake<ILogger<AllocationService>>();
         _resultFactory = A.Fake<IResultFactory>();
@@ -53,7 +54,7 @@ public class AllocationServiceTests
             .Returns(new LocalizedString("Category", "Category"));
 
         _sut = new AllocationService(
-            _context,
+            new TestDbContextFactory(_options),
             _logger,
             _resultFactory,
             _localizer,
@@ -206,17 +207,8 @@ public class AllocationServiceTests
         A.CallTo(() => _resultFactory.FailedToAdd(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
         _sut = new AllocationService(
-            disposedContext, _logger, _resultFactory, _localizer,
+            new TestDbContextFactory(_options, disposed: true), _logger, _resultFactory, _localizer,
             _costCenterService, _categoryService, _itemDetailService);
 
         var allocation = new AllocationModel { CostCenterId = 1, CategoryId = 1 };
@@ -307,6 +299,7 @@ public class AllocationServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
+        _context.ChangeTracker.Clear();
         var updated = await _context.Allocations.FindAsync(allocation.Id);
         updated!.CategoryId.Should().Be(newCategory.Id);
     }
@@ -347,17 +340,8 @@ public class AllocationServiceTests
         A.CallTo(() => _resultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
         _sut = new AllocationService(
-            disposedContext, _logger, _resultFactory, _localizer,
+            new TestDbContextFactory(_options, disposed: true), _logger, _resultFactory, _localizer,
             _costCenterService, _categoryService, _itemDetailService);
 
         var allocation = new AllocationModel
@@ -399,6 +383,7 @@ public class AllocationServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
+        _context.ChangeTracker.Clear();
         var deletedAllocation = await _context.Allocations.FindAsync(id);
         deletedAllocation.Should().BeNull();
     }
@@ -465,17 +450,8 @@ public class AllocationServiceTests
         A.CallTo(() => _resultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
         _sut = new AllocationService(
-            disposedContext, _logger, _resultFactory, _localizer,
+            new TestDbContextFactory(_options, disposed: true), _logger, _resultFactory, _localizer,
             _costCenterService, _categoryService, _itemDetailService);
 
         // Act

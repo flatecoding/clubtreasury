@@ -4,13 +4,14 @@ using ClubTreasury.Data.OperationResult;
 
 namespace ClubTreasury.Data.CostCenter
 {
-    public class CostCenterService(CashDataContext context, ILogger<CostCenterService> logger,
+    public class CostCenterService(IDbContextFactory<CashDataContext> contextFactory, ILogger<CostCenterService> logger,
         IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory) : ICostCenterService
     {
         private string EntityName => localizer["CostCenter"];
 
         public async Task<List<CostCenterModel>> GetAllCostCentersAsync(CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.CostCenters
                 .OrderBy(c => c.Id)
                 .ToListAsync(ct);
@@ -18,12 +19,14 @@ namespace ClubTreasury.Data.CostCenter
 
         public async Task<CostCenterModel?> GetCostCenterByIdAsync(int id, CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.CostCenters
                 .FirstOrDefaultAsync(c => c.Id == id, ct);
         }
 
         public async Task<CostCenterModel?> GetCostCenterByNameAsync(string name, CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await  context.CostCenters.FirstOrDefaultAsync(c => c.CostUnitName == name, ct);
         }
 
@@ -38,6 +41,7 @@ namespace ClubTreasury.Data.CostCenter
                     return operationResultFactory.AlreadyExists(EntityName, $"'{costCenter.CostUnitName}'");
                 }
 
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 await context.CostCenters.AddAsync(costCenter, ct);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Cost center added: {@costCenter}", costCenter.CostUnitName);
@@ -54,6 +58,7 @@ namespace ClubTreasury.Data.CostCenter
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 context.CostCenters.Update(costCenter);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Cost center updated: {@costCenter}", costCenter.CostUnitName);
@@ -70,6 +75,7 @@ namespace ClubTreasury.Data.CostCenter
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 var costUnit = await context.CostCenters.FindAsync([id], ct);
                 if (costUnit == null)
                 {

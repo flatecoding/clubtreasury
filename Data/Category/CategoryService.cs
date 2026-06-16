@@ -4,7 +4,7 @@ using ClubTreasury.Data.OperationResult;
 
 namespace ClubTreasury.Data.Category
 {
-    public class CategoryService(CashDataContext context, ILogger<CategoryService> logger,
+    public class CategoryService(IDbContextFactory<CashDataContext> contextFactory, ILogger<CategoryService> logger,
     IResultFactory operationResultFactory,
         IStringLocalizer<Translation> localizer): ICategoryService
     {
@@ -12,23 +12,27 @@ namespace ClubTreasury.Data.Category
 
         public async Task<List<CategoryModel>> GetAllCategoriesAsync(CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.Categories
                 .ToListAsync(ct);
         }
 
         public async Task<CategoryModel?> GetCategoryByIdAsync(int id, CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.Categories
                 .FirstOrDefaultAsync(b => b.Id == id, ct);
         }
 
         public async Task<CategoryModel?> GetCategoryByNameAsync(string name, CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await  context.Categories.FirstOrDefaultAsync(b => b.Name == name, ct);
         }
 
         public async Task<IEnumerable<CategoryModel>> GetCategoriesByCostCenterIdAsync(int costCenterId, CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             var categories = await context.Categories
                 .Where(b => b.Allocations.Any(a => a.CostCenterId == costCenterId))
                 .OrderBy(c => c.Name)
@@ -49,6 +53,7 @@ namespace ClubTreasury.Data.Category
                     return operationResultFactory.AlreadyExists(EntityName, $"'{category.Name}'");
                 }
 
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 context.Categories.Add(category);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Category added: {@unit}", category.Name);
@@ -68,6 +73,7 @@ namespace ClubTreasury.Data.Category
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 context.Categories.Update(category);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Category updated: {@unit}", category.Name);
@@ -85,6 +91,7 @@ namespace ClubTreasury.Data.Category
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 var category = await context.Categories.FindAsync([id], ct);
                 if (category == null)
                 {
