@@ -12,6 +12,7 @@
 
                 <MudTextField @bind-Value="SearchText"
                               Label="@Localizer["Search"]"
+                              Immediate="true"
                               Adornment="Adornment.Start"
                               AdornmentIcon="@Icons.Material.Filled.Search" />
 
@@ -55,7 +56,7 @@
     {
         MudDialog.Close(DialogResult.Ok(new TransactionFilterValues
         {
-            DateRange = DateRange,
+            DateRange = DateRangeSanitizer.Sanitize(DateRange),
             SearchText = SearchText,
             PersonId = SelectedPersonId
         }));
