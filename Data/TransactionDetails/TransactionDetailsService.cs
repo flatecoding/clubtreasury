@@ -4,7 +4,7 @@ using ClubTreasury.Data.OperationResult;
 
 namespace ClubTreasury.Data.TransactionDetails;
 
-public class TransactionDetailsService(CashDataContext context, ILogger<TransactionDetailsService> logger,
+public class TransactionDetailsService(IDbContextFactory<CashDataContext> contextFactory, ILogger<TransactionDetailsService> logger,
     IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory)
     : ITransactionDetailsService
 {
@@ -12,6 +12,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
     private const string ExceptionKey = "Exception";
     public async Task<List<TransactionDetailsModel>> GetAllTransactionDetailsAsync(CancellationToken ct = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         return await context.TransactionDetails
             .WithTransactionAndPerson()
             .ToListAsync(ct);
@@ -19,6 +20,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
 
     public async Task<TransactionDetailsModel?> GetTransactionDetailsByIdAsync(int id, CancellationToken ct = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         return await context.TransactionDetails
             .WithTransactionAndPerson()
             .FirstOrDefaultAsync(st => st.Id == id, ct);
@@ -26,6 +28,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
 
     public async Task<List<TransactionDetailsModel>> GetTransactionDetailsByTransactionIdAsync(int transactionId, CancellationToken ct = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         return await context.TransactionDetails
             .WithTransactionAndPerson()
             .Where(st => st.TransactionId == transactionId)
@@ -36,6 +39,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
     {
         try
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             context.TransactionDetails.Add(detailsModel);
             await context.SaveChangesAsync(ct);
             logger.LogInformation("Transaction details added: {@DetailsModelDescription}, Sum: {@Sum}" +
@@ -56,6 +60,7 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
     {
         try
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             var existing = await context.TransactionDetails.FindAsync([detailsModel.Id], ct);
             if (existing is null)
             {
@@ -85,7 +90,10 @@ public class TransactionDetailsService(CashDataContext context, ILogger<Transact
     {
         try
         {
-            var existing = await GetTransactionDetailsByIdAsync(id, ct);
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
+            var existing = await context.TransactionDetails
+                .WithTransactionAndPerson()
+                .FirstOrDefaultAsync(st => st.Id == id, ct);
             if (existing is null)
             {
                 logger.LogError("Transaction details not found with id: {Id}", id);

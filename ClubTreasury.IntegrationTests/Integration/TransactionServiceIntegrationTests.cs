@@ -211,6 +211,7 @@ public class TransactionServiceIntegrationTests : IntegrationTestBase
         // Assert
         result.IsSuccess.Should().BeTrue();
 
+        GetDbContext().ChangeTracker.Clear();
         var deletedTransaction = await GetDbContext().Transactions.FindAsync(transactionId);
         deletedTransaction.Should().BeNull();
     }

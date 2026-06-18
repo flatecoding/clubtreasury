@@ -18,6 +18,7 @@ namespace ClubTreasury.Tests.Services;
 [TestFixture]
 public class TransactionDetailsServiceTests
 {
+    private DbContextOptions<CashDataContext> _options = null!;
     private CashDataContext _context = null!;
     private ILogger<TransactionDetailsService> _logger = null!;
     private IResultFactory _resultFactory = null!;
@@ -28,11 +29,11 @@ public class TransactionDetailsServiceTests
     [SetUp]
     public void SetUp()
     {
-        var options = new DbContextOptionsBuilder<CashDataContext>()
+        _options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        _context = new CashDataContext(options);
+        _context = new CashDataContext(_options);
         _contextDisposed = false;
         _logger = A.Fake<ILogger<TransactionDetailsService>>();
         _resultFactory = A.Fake<IResultFactory>();
@@ -43,7 +44,7 @@ public class TransactionDetailsServiceTests
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
 
-        _sut = new TransactionDetailsService(_context, _logger, _localizer, _resultFactory);
+        _sut = new TransactionDetailsService(new TestDbContextFactory(_options), _logger, _localizer, _resultFactory);
     }
 
     [TearDown]
@@ -275,16 +276,7 @@ public class TransactionDetailsServiceTests
         A.CallTo(() => _resultFactory.FailedToAdd(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new TransactionDetailsService(disposedContext, _logger, _localizer, _resultFactory);
+        _sut = new TransactionDetailsService(new TestDbContextFactory(_options, disposed: true), _logger, _localizer, _resultFactory);
 
         var detail = new TransactionDetailsModel
         {
@@ -367,16 +359,7 @@ public class TransactionDetailsServiceTests
         A.CallTo(() => _resultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new TransactionDetailsService(disposedContext, _logger, _localizer, _resultFactory);
+        _sut = new TransactionDetailsService(new TestDbContextFactory(_options, disposed: true), _logger, _localizer, _resultFactory);
 
         var detail = new TransactionDetailsModel
         {
@@ -420,6 +403,7 @@ public class TransactionDetailsServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
+        _context.ChangeTracker.Clear();
         var deletedDetail = await _context.TransactionDetails.FindAsync(id);
         deletedDetail.Should().BeNull();
     }
@@ -459,16 +443,7 @@ public class TransactionDetailsServiceTests
         A.CallTo(() => _resultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new TransactionDetailsService(disposedContext, _logger, _localizer, _resultFactory);
+        _sut = new TransactionDetailsService(new TestDbContextFactory(_options, disposed: true), _logger, _localizer, _resultFactory);
 
         // Act
         var result = await _sut.DeleteTransactionDetailsAsync(1);

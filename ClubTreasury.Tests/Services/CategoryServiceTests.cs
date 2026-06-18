@@ -14,6 +14,7 @@ namespace ClubTreasury.Tests.Services;
 [TestFixture]
 public class CategoryServiceTests
 {
+    private DbContextOptions<CashDataContext> _options = null!;
     private CashDataContext _context = null!;
     private ILogger<CategoryService> _logger = null!;
     private IResultFactory _resultFactory = null!;
@@ -24,11 +25,11 @@ public class CategoryServiceTests
     [SetUp]
     public void SetUp()
     {
-        var options = new DbContextOptionsBuilder<CashDataContext>()
+        _options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        _context = new CashDataContext(options);
+        _context = new CashDataContext(_options);
         _contextDisposed = false;
         _logger = A.Fake<ILogger<CategoryService>>();
         _resultFactory = A.Fake<IResultFactory>();
@@ -39,7 +40,7 @@ public class CategoryServiceTests
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
 
-        _sut = new CategoryService(_context, _logger, _resultFactory, _localizer);
+        _sut = new CategoryService(new TestDbContextFactory(_options), _logger, _resultFactory, _localizer);
     }
 
     [TearDown]
@@ -266,16 +267,7 @@ public class CategoryServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate an error
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new CategoryService(disposedContext, _logger, _resultFactory, _localizer);
+        _sut = new CategoryService(new TestDbContextFactory(_options, disposed: true), _logger, _resultFactory, _localizer);
 
         var category = new CategoryModel { Name = "New Category" };
 
@@ -321,16 +313,7 @@ public class CategoryServiceTests
         A.CallTo(() => _resultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new CategoryService(disposedContext, _logger, _resultFactory, _localizer);
+        _sut = new CategoryService(new TestDbContextFactory(_options, disposed: true), _logger, _resultFactory, _localizer);
 
         var category = new CategoryModel { Name = "Test" };
 
@@ -363,6 +346,7 @@ public class CategoryServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
+        _context.ChangeTracker.Clear();
         var deletedCategory = await _context.Categories.FindAsync(id);
         deletedCategory.Should().BeNull();
     }
@@ -393,16 +377,7 @@ public class CategoryServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate error during delete
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new CategoryService(disposedContext, _logger, _resultFactory, _localizer);
+        _sut = new CategoryService(new TestDbContextFactory(_options, disposed: true), _logger, _resultFactory, _localizer);
 
         // Act
         var result = await _sut.DeleteCategoryAsync(1);

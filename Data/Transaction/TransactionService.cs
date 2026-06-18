@@ -7,7 +7,7 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.Transaction;
 
 public class TransactionService(
-    CashDataContext context,
+    IDbContextFactory<CashDataContext> contextFactory,
     IAllocationService allocationService,
     ILogger<TransactionService> logger,
     IStringLocalizer<Translation> localizer,
@@ -17,6 +17,7 @@ public class TransactionService(
     private string EntityName => localizer["Transaction"];
     public async Task<TransactionModel?> GetTransactionByIdAsync(int id, CancellationToken ct = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         return await context.Transactions
             .WithAllocationDetails()
             .WithTransactionDetailsAndPersons()
@@ -25,6 +26,7 @@ public class TransactionService(
 
     public async Task<HashSet<int>> GetAllDocumentNumbersAsync(int registerId, CancellationToken ct = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         return
         [
             ..await context.Transactions.Where(t => t.CashRegisterId == registerId)
@@ -35,6 +37,7 @@ public class TransactionService(
 
     public async Task<int> GetLatestDocumentNumberAsync(int registerId, CancellationToken ct = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         return await context.Transactions
             .Where(t => t.CashRegisterId == registerId && t.Date.HasValue)
             .OrderByDescending(t => t.Date)
@@ -49,6 +52,7 @@ public class TransactionService(
     {
         try
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             if (!await context.CashRegisters
                         .AnyAsync(cr => cr.Id == entry.CashRegisterId, ct))
                 {
@@ -115,6 +119,7 @@ public class TransactionService(
     {
         try
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             var existing = await context.Transactions
                 .Include(t => t.Allocation)
                 .FirstOrDefaultAsync(t => t.Id == entry.Id, ct);
@@ -135,7 +140,8 @@ public class TransactionService(
                     $"{localizer["DocumentNumber"]} '{entry.Documentnumber}'");
             }
 
-            var allocation = await allocationService.GetRequiredAllocationAsync(entry.AllocationId, ct);
+            // Validates the allocation exists; the FK below performs the actual reassignment.
+            await allocationService.GetRequiredAllocationAsync(entry.AllocationId, ct);
 
             existing.Description     = entry.Description;
             existing.AccountMovement = entry.AccountMovement;
@@ -145,7 +151,6 @@ public class TransactionService(
             existing.SpecialItemId   = entry.SpecialItemId;
             existing.CashRegisterId  = entry.CashRegisterId;
             existing.AllocationId    = entry.AllocationId;
-            existing.Allocation =  allocation;
 
             await context.SaveChangesAsync(ct);
             logger.LogInformation("Transaction updated: B{@DocumentNumber}; Desc.:{@Description}; Sum:{@Sum} " +
@@ -171,6 +176,7 @@ public class TransactionService(
     {
         try
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             var transaction = await context.Transactions.FindAsync([id], ct);
             if (transaction is null)
             {
@@ -203,6 +209,7 @@ public class TransactionService(
 
     public async Task<IEnumerable<TransactionModel>> GetTransactionsForExportAsync(DateTime begin, DateTime end, int cashRegisterId, CancellationToken ct = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         return await context.Transactions
             .AsNoTracking()
             .Where(t => t.CashRegisterId == cashRegisterId &&
@@ -229,6 +236,7 @@ public class TransactionService(
         var beginDateOnly = DateOnly.FromDateTime(begin);
         var endDateOnly = DateOnly.FromDateTime(end);
 
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         return await context.Transactions
             .AsSplitQuery()
             .WithAllocationDetails()
@@ -245,6 +253,7 @@ public class TransactionService(
         PagedRequestOptions options,
         CancellationToken cancellationToken)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var baseQuery = context.Transactions.AsNoTracking();
 
         baseQuery = ApplyFilters(baseQuery, options);

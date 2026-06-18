@@ -5,7 +5,7 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.CashRegister;
 
 public class CashRegisterLogoService(
-    CashDataContext context,
+    IDbContextFactory<CashDataContext> contextFactory,
     ILogger<CashRegisterLogoService> logger,
     IResultFactory resultFactory,
     IStringLocalizer<Translation> localizer)
@@ -15,6 +15,7 @@ public class CashRegisterLogoService(
 
     public async Task<(byte[] Data, string ContentType)?> GetLogoAsync(int cashRegisterId, CancellationToken ct = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         var logo = await context.CashRegisterLogos
             .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId, ct);
         return logo is not null ? (logo.Data, logo.ContentType) : null;
@@ -24,6 +25,7 @@ public class CashRegisterLogoService(
     {
         try
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             var logo = await context.CashRegisterLogos
                 .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId, ct);
 
@@ -58,6 +60,7 @@ public class CashRegisterLogoService(
     {
         try
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             var logo = await context.CashRegisterLogos
                 .FirstOrDefaultAsync(l => l.CashRegisterId == cashRegisterId, ct);
 

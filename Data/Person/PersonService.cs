@@ -4,23 +4,26 @@ using ClubTreasury.Data.OperationResult;
 
 namespace ClubTreasury.Data.Person
 {
-    public class PersonService(CashDataContext context, ILogger<PersonService> logger,
+    public class PersonService(IDbContextFactory<CashDataContext> contextFactory, ILogger<PersonService> logger,
         IStringLocalizer<Translation> localizer, IResultFactory operationResultFactory) : IPersonService
     {
         private string EntityName => localizer["Person"];
         public async Task<List<PersonModel>> GetAllPersonsAsync(CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.Persons
                 .ToListAsync(ct);
         }
 
         public async Task<PersonModel?> GetPersonByIdAsync(int id, CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.Persons.FindAsync([id], ct);
         }
 
         public async Task<PersonModel?> GetFirstEntryAsync(CancellationToken ct = default)
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             return await context.Persons.FirstOrDefaultAsync(ct);
         }
 
@@ -28,6 +31,7 @@ namespace ClubTreasury.Data.Person
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 await context.Persons.AddAsync(peson, ct);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Person added: {@PersonModel}", peson);
@@ -44,6 +48,7 @@ namespace ClubTreasury.Data.Person
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 context.Persons.Update(person);
                 await context.SaveChangesAsync(ct);
                 logger.LogInformation("Person updated: {@PersonModel}", person);
@@ -60,6 +65,7 @@ namespace ClubTreasury.Data.Person
         {
             try
             {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
                 var person = await context.Persons.FindAsync([id], ct);
                 if (person is null)
                 {
