@@ -12,6 +12,7 @@ namespace ClubTreasury.Tests.Services;
 [TestFixture]
 public class SpecialItemServiceTests
 {
+    private DbContextOptions<CashDataContext> _options = null!;
     private CashDataContext _context = null!;
     private ILogger<SpecialItemService> _logger = null!;
     private IResultFactory _resultFactory = null!;
@@ -22,11 +23,11 @@ public class SpecialItemServiceTests
     [SetUp]
     public void SetUp()
     {
-        var options = new DbContextOptionsBuilder<CashDataContext>()
+        _options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        _context = new CashDataContext(options);
+        _context = new CashDataContext(_options);
         _contextDisposed = false;
         _logger = A.Fake<ILogger<SpecialItemService>>();
         _resultFactory = A.Fake<IResultFactory>();
@@ -37,7 +38,7 @@ public class SpecialItemServiceTests
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
 
-        _sut = new SpecialItemService(_context, _logger, _localizer, _resultFactory);
+        _sut = new SpecialItemService(new TestDbContextFactory(_options), _logger, _localizer, _resultFactory);
     }
 
     [TearDown]
@@ -146,16 +147,7 @@ public class SpecialItemServiceTests
         A.CallTo(() => _resultFactory.FailedToAdd(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new SpecialItemService(disposedContext, _logger, _localizer, _resultFactory);
+        _sut = new SpecialItemService(new TestDbContextFactory(_options, disposed: true), _logger, _localizer, _resultFactory);
 
         var specialItem = new SpecialItemModel { Name = "New Special Item" };
 
@@ -201,16 +193,7 @@ public class SpecialItemServiceTests
         A.CallTo(() => _resultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new SpecialItemService(disposedContext, _logger, _localizer, _resultFactory);
+        _sut = new SpecialItemService(new TestDbContextFactory(_options, disposed: true), _logger, _localizer, _resultFactory);
 
         var specialItem = new SpecialItemModel { Name = "Test" };
 
@@ -243,6 +226,7 @@ public class SpecialItemServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
+        _context.ChangeTracker.Clear();
         var deletedItem = await _context.SpecialItems.FindAsync(id);
         deletedItem.Should().BeNull();
     }
@@ -272,16 +256,7 @@ public class SpecialItemServiceTests
         A.CallTo(() => _resultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new SpecialItemService(disposedContext, _logger, _localizer, _resultFactory);
+        _sut = new SpecialItemService(new TestDbContextFactory(_options, disposed: true), _logger, _localizer, _resultFactory);
 
         // Act
         var result = await _sut.DeleteSpecialPositionAsync(1);

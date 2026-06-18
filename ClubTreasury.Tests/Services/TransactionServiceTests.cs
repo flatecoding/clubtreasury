@@ -16,6 +16,7 @@ namespace ClubTreasury.Tests.Services;
 [TestFixture]
 public class TransactionServiceTests
 {
+    private DbContextOptions<CashDataContext> _options = null!;
     private CashDataContext _context = null!;
     private IAllocationService _allocationService = null!;
     private ILogger<TransactionService> _logger = null!;
@@ -27,11 +28,11 @@ public class TransactionServiceTests
     [SetUp]
     public void SetUp()
     {
-        var options = new DbContextOptionsBuilder<CashDataContext>()
+        _options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        _context = new CashDataContext(options);
+        _context = new CashDataContext(_options);
         _contextDisposed = false;
         _allocationService = A.Fake<IAllocationService>();
         _logger = A.Fake<ILogger<TransactionService>>();
@@ -45,7 +46,7 @@ public class TransactionServiceTests
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
 
-        _sut = new TransactionService(_context, _allocationService, _logger, _localizer, _resultFactory);
+        _sut = new TransactionService(new TestDbContextFactory(_options), _allocationService, _logger, _localizer, _resultFactory);
     }
 
     [TearDown]
@@ -402,16 +403,7 @@ public class TransactionServiceTests
         A.CallTo(() => _resultFactory.FailedToAdd(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new TransactionService(disposedContext, _allocationService, _logger, _localizer, _resultFactory);
+        _sut = new TransactionService(new TestDbContextFactory(_options, disposed: true), _allocationService, _logger, _localizer, _resultFactory);
 
         var transaction = new TransactionModel
         {
@@ -583,16 +575,7 @@ public class TransactionServiceTests
         A.CallTo(() => _resultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new TransactionService(disposedContext, _allocationService, _logger, _localizer, _resultFactory);
+        _sut = new TransactionService(new TestDbContextFactory(_options, disposed: true), _allocationService, _logger, _localizer, _resultFactory);
 
         var transaction = new TransactionModel { Id = 1, Documentnumber = 100 };
 
@@ -680,6 +663,7 @@ public class TransactionServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
+        _context.ChangeTracker.Clear();
         var deletedTransaction = await _context.Transactions.FindAsync(id);
         deletedTransaction.Should().BeNull();
     }
@@ -707,16 +691,7 @@ public class TransactionServiceTests
         A.CallTo(() => _resultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new TransactionService(disposedContext, _allocationService, _logger, _localizer, _resultFactory);
+        _sut = new TransactionService(new TestDbContextFactory(_options, disposed: true), _allocationService, _logger, _localizer, _resultFactory);
 
         // Act
         var result = await _sut.DeleteTransactionAsync(1);

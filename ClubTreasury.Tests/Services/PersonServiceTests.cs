@@ -12,6 +12,7 @@ namespace ClubTreasury.Tests.Services;
 [TestFixture]
 public class PersonServiceTests
 {
+    private DbContextOptions<CashDataContext> _options = null!;
     private CashDataContext _context = null!;
     private ILogger<PersonService> _logger = null!;
     private IResultFactory _resultFactory = null!;
@@ -22,11 +23,11 @@ public class PersonServiceTests
     [SetUp]
     public void SetUp()
     {
-        var options = new DbContextOptionsBuilder<CashDataContext>()
+        _options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        _context = new CashDataContext(options);
+        _context = new CashDataContext(_options);
         _contextDisposed = false;
         _logger = A.Fake<ILogger<PersonService>>();
         _resultFactory = A.Fake<IResultFactory>();
@@ -37,7 +38,7 @@ public class PersonServiceTests
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
 
-        _sut = new PersonService(_context, _logger, _localizer, _resultFactory);
+        _sut = new PersonService(new TestDbContextFactory(_options), _logger, _localizer, _resultFactory);
     }
 
     [TearDown]
@@ -181,16 +182,7 @@ public class PersonServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate an error
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new PersonService(disposedContext, _logger, _localizer, _resultFactory);
+        _sut = new PersonService(new TestDbContextFactory(_options, disposed: true), _logger, _localizer, _resultFactory);
 
         var person = new PersonModel { Name = "New Person" };
 
@@ -237,16 +229,7 @@ public class PersonServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate error
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new PersonService(disposedContext, _logger, _localizer, _resultFactory);
+        _sut = new PersonService(new TestDbContextFactory(_options, disposed: true), _logger, _localizer, _resultFactory);
 
         var person = new PersonModel { Name = "Test" };
 
@@ -279,6 +262,7 @@ public class PersonServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
+        _context.ChangeTracker.Clear();
         var deletedPerson = await _context.Persons.FindAsync(id);
         deletedPerson.Should().BeNull();
     }
@@ -309,16 +293,7 @@ public class PersonServiceTests
             .Returns(expectedResult);
 
         // Dispose context to simulate error during delete
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new PersonService(disposedContext, _logger, _localizer, _resultFactory);
+        _sut = new PersonService(new TestDbContextFactory(_options, disposed: true), _logger, _localizer, _resultFactory);
 
         // Act
         var result = await _sut.DeletePersonAsync(1);

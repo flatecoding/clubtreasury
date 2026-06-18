@@ -126,6 +126,10 @@ public class TransactionDialogTests : BunitContext
             .MustHaveHappenedOnceExactly();
 
         cut.Markup.Should().Contain("Save");
+        // The dropdowns must pre-select the transaction's values, resolved from the reference lists by Id.
+        cut.Markup.Should().Contain("Main Register");
+        cut.Markup.Should().Contain("Admin");
+        cut.Markup.Should().Contain("Fees");
     }
 
     [Test]

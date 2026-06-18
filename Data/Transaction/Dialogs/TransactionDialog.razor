@@ -182,11 +182,15 @@
 
     private void RestoreSelections()
     {
-        _selectedCashRegisterModel = _transactionModel.CashRegister;
-        _selectedCostUnit = _transactionModel.Allocation.CostCenter;
-        _selectedCategory = _transactionModel.Allocation.Category;
-        _selectedItemDetail = _transactionModel.Allocation.ItemDetail;
-        _selectedSpecialItem = _transactionModel.SpecialItem;
+        // Pick the instances from the loaded dropdown lists by Id so the selected value is the same
+        // object MudSelect renders. The transaction's navigation properties come from a different
+        // DbContext, so they would not match the list items by reference.
+        _selectedCashRegisterModel = _cashRegisters
+            .FirstOrDefault(c => c.Id == _transactionModel.CashRegisterId);
+        _selectedCostUnit = _costCenters
+            .FirstOrDefault(c => c.Id == _transactionModel.Allocation.CostCenterId);
+        _selectedSpecialItem = _specialItemList
+            .FirstOrDefault(s => s.Id == _transactionModel.SpecialItemId);
         TransactionDateTime = _transactionModel.Date?.ToDateTime(TimeOnly.MinValue);
     }
 
@@ -196,17 +200,15 @@
             return;
 
         _categories = await FormService.GetCategoriesForCostCenterAsync(_selectedCostUnit.Id);
-
-        if (_selectedCategory is not null && _categories.All(b => b.Id != _selectedCategory.Id))
-            _selectedCategory = _categories.FirstOrDefault();
+        _selectedCategory = _categories.FirstOrDefault(b => b.Id == _transactionModel.Allocation.CategoryId)
+                            ?? _categories.FirstOrDefault();
 
         if (_selectedCategory is null)
             return;
 
         _unitDetails = await FormService.GetItemDetailsForCategoryAsync(_selectedCategory.Id);
-
-        if (_selectedItemDetail is not null && _unitDetails.All(u => u.Id != _selectedItemDetail.Id))
-            _selectedItemDetail = _unitDetails.FirstOrDefault();
+        _selectedItemDetail = _unitDetails
+            .FirstOrDefault(u => u.Id == _transactionModel.Allocation.ItemDetailId);
     }
 
     private async Task OnCostUnitChangedAsync()

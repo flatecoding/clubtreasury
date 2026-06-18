@@ -12,6 +12,7 @@ namespace ClubTreasury.Tests.Services;
 [TestFixture]
 public class CashRegisterLogoServiceTests
 {
+    private DbContextOptions<CashDataContext> _options = null!;
     private CashDataContext _context = null!;
     private ILogger<CashRegisterLogoService> _logger = null!;
     private IResultFactory _resultFactory = null!;
@@ -22,11 +23,11 @@ public class CashRegisterLogoServiceTests
     [SetUp]
     public void SetUp()
     {
-        var options = new DbContextOptionsBuilder<CashDataContext>()
+        _options = new DbContextOptionsBuilder<CashDataContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        _context = new CashDataContext(options);
+        _context = new CashDataContext(_options);
         _contextDisposed = false;
         _logger = A.Fake<ILogger<CashRegisterLogoService>>();
         _resultFactory = A.Fake<IResultFactory>();
@@ -37,7 +38,7 @@ public class CashRegisterLogoServiceTests
         A.CallTo(() => _localizer["Exception"])
             .Returns(new LocalizedString("Exception", "An error occurred"));
 
-        _sut = new CashRegisterLogoService(_context, _logger, _resultFactory, _localizer);
+        _sut = new CashRegisterLogoService(new TestDbContextFactory(_options), _logger, _resultFactory, _localizer);
     }
 
     [TearDown]
@@ -146,6 +147,7 @@ public class CashRegisterLogoServiceTests
 
         // Assert
         result.Should().Be(expectedResult);
+        _context.ChangeTracker.Clear();
         var logos = await _context.CashRegisterLogos.Where(l => l.CashRegisterId == cashRegister.Id).ToListAsync();
         logos.Should().HaveCount(1);
         logos[0].Data.Should().BeEquivalentTo(newLogoData);
@@ -160,16 +162,7 @@ public class CashRegisterLogoServiceTests
         A.CallTo(() => _resultFactory.FailedToUpdate(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new CashRegisterLogoService(disposedContext, _logger, _resultFactory, _localizer);
+        _sut = new CashRegisterLogoService(new TestDbContextFactory(_options, disposed: true), _logger, _resultFactory, _localizer);
 
         // Act
         var result = await _sut.UploadLogoAsync(1, [0x01], "image/png");
@@ -238,16 +231,7 @@ public class CashRegisterLogoServiceTests
         A.CallTo(() => _resultFactory.FailedToDelete(A<string>._, A<string?>._))
             .Returns(expectedResult);
 
-        await _context.DisposeAsync();
-        _contextDisposed = true;
-
-        var options = new DbContextOptionsBuilder<CashDataContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        var disposedContext = new CashDataContext(options);
-        await disposedContext.DisposeAsync();
-
-        _sut = new CashRegisterLogoService(disposedContext, _logger, _resultFactory, _localizer);
+        _sut = new CashRegisterLogoService(new TestDbContextFactory(_options, disposed: true), _logger, _resultFactory, _localizer);
 
         // Act
         var result = await _sut.DeleteLogoAsync(1);

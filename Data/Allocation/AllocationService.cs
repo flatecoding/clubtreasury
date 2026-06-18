@@ -8,7 +8,7 @@ using ClubTreasury.Data.OperationResult;
 namespace ClubTreasury.Data.Allocation;
 
 public class AllocationService(
-    CashDataContext context,
+    IDbContextFactory<CashDataContext> contextFactory,
     ILogger<AllocationService> logger,
     IResultFactory operationResultFactory,
     IStringLocalizer<Translation> localizer,
@@ -21,6 +21,7 @@ public class AllocationService(
 
     public async Task<AllocationModel?> GetAllocationsByIdAsync(int id, CancellationToken ct = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         return await context.Allocations
             .WithAllComponents()
             .FirstOrDefaultAsync(a => a.Id == id, ct);
@@ -28,6 +29,7 @@ public class AllocationService(
 
     public async Task<List<AllocationModel>> GetAllAllocationsAsync(CancellationToken ct = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         return await context.Allocations
             .WithAllComponents()
             .ToListAsync(ct);
@@ -40,7 +42,8 @@ public class AllocationService(
             if (allocation.CategoryId == 0 || allocation.CostCenterId == 0)
                 return operationResultFactory.DialogIsEmpty(EntityName, $"{localizer["CostCenter"]} Id '{allocation.CostCenterId}' " +
                                                                         $" - {localizer["Category"]} Id '{allocation.CategoryId}'");
-            if (await AllocationExistsAsync(allocation, ct))
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
+            if (await AllocationExistsAsync(context, allocation, ct))
             {
                 logger.LogWarning(
                     "Allocation with CostCenter: {CostCenterId}, Category: {CategoryId}, ItemDetail: {ItemDetailId} already exists.",
@@ -68,7 +71,7 @@ public class AllocationService(
         }
     }
 
-    private async Task<bool> AllocationExistsAsync(AllocationModel allocation, CancellationToken ct = default)
+    private static async Task<bool> AllocationExistsAsync(CashDataContext context, AllocationModel allocation, CancellationToken ct = default)
     {
         return await context.Allocations.AnyAsync(a =>
             a.CostCenterId == allocation.CostCenterId &&
@@ -80,6 +83,7 @@ public class AllocationService(
     {
         try
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             var existing = await context.Allocations.FindAsync([updatedAllocation.Id], ct);
             if (existing == null)
             {
@@ -128,6 +132,7 @@ public class AllocationService(
     {
         try
         {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
             var allocation = await context.Allocations.FindAsync([id], ct);
             if (allocation == null)
             {
@@ -170,6 +175,7 @@ public class AllocationService(
     string? itemDetailName = null,
     CancellationToken ct = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         var costCenter = await costCenterService.GetCostCenterByNameAsync(costCenterName, ct);
         if (costCenter == null)
         {
@@ -196,6 +202,7 @@ public class AllocationService(
         }
 
         var allocation = await FindAllocationAsync(
+            context,
             costCenter.Id,
             category.Id,
             itemDetail?.Id,
@@ -219,7 +226,8 @@ public class AllocationService(
         return allocation;
     }
 
-    private Task<AllocationModel?> FindAllocationAsync(
+    private static Task<AllocationModel?> FindAllocationAsync(
+        CashDataContext context,
         int costCenterId,
         int categoryId,
         int? itemDetailId,
@@ -235,6 +243,7 @@ public class AllocationService(
         int allocationId,
         CancellationToken ct = default)
     {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
         var allocation = await context.Allocations.FindAsync([ allocationId ], ct);
         return allocation ?? throw new InvalidOperationException($"Allocation {allocationId} not found.");
     }
