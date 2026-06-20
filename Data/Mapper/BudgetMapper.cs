@@ -114,4 +114,38 @@ public class BudgetMapper(ILogger<BudgetMapper> logger) : IBudgetMapper
         .ToList();
 }
 
+    public List<BudgetPlanCostCenterDto> BuildBudgetPlan(IEnumerable<BudgetFlatEntryDto> flatEntries)
+    {
+        return flatEntries
+            .GroupBy(e => new { e.CostCenterId, e.CostCenterName })
+            .Select(costCenterGroup =>
+            {
+                var categories = costCenterGroup
+                    .GroupBy(e => new { e.CategoryId, e.CategoryName })
+                    .Select(categoryGroup => new BudgetPlanCategoryDto
+                    {
+                        CategoryId = categoryGroup.Key.CategoryId,
+                        CategoryName = categoryGroup.Key.CategoryName,
+                        Income = RoundUpToHundred(categoryGroup.Where(e => e.Amount > 0).Sum(e => e.Amount)),
+                        Expenses = RoundUpToHundred(categoryGroup.Where(e => e.Amount < 0).Sum(e => -e.Amount))
+                    })
+                    .OrderBy(cat => cat.CategoryName)
+                    .ToList();
+
+                return new BudgetPlanCostCenterDto
+                {
+                    CostCenterId = costCenterGroup.Key.CostCenterId,
+                    CostCenterName = costCenterGroup.Key.CostCenterName,
+                    Income = categories.Sum(c => c.Income),
+                    Expenses = categories.Sum(c => c.Expenses),
+                    Categories = categories
+                };
+            })
+            .OrderBy(cc => cc.CostCenterName)
+            .ToList();
+    }
+
+    private static decimal RoundUpToHundred(decimal value)
+        => value <= 0 ? 0 : Math.Ceiling(value / 100m) * 100m;
+
 }
