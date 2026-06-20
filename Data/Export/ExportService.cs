@@ -15,11 +15,14 @@ public class ExportService(
     public Task<Result> ExportTransactionsToPdfAsync(PdfExportOptions options, CancellationToken ct = default)
         => transactionExporter.ExportToPdfAsync(options, ct);
 
-    public Task<Result> ExportBudgetToCsvAsync(ExportOptions options, CancellationToken ct = default)
-        => budgetExporter.ExportToCsvAsync(options, ct);
+    public Task<Result> ExportBalanceSheetToCsvAsync(ExportOptions options, CancellationToken ct = default)
+        => budgetExporter.ExportBalanceSheetToCsvAsync(options, ct);
 
-    public Task<Result> ExportBudgetToExcelAsync(ExportOptions options, CancellationToken ct = default)
-        => budgetExporter.ExportToExcelAsync(options, ct);
+    public Task<Result> ExportBalanceSheetToExcelAsync(ExportOptions options, CancellationToken ct = default)
+        => budgetExporter.ExportBalanceSheetToExcelAsync(options, ct);
+
+    public Task<Result> ExportBudgetPlanToExcelAsync(ExportOptions options, CancellationToken ct = default)
+        => budgetExporter.ExportBudgetPlanToExcelAsync(options, ct);
 
     public Task<byte[]> ExportBudgetToExcelBytesAsync(DateTime begin, DateTime end, int cashRegisterId, CancellationToken ct = default)
         => budgetExporter.ExportToExcelBytesAsync(begin, end, cashRegisterId, ct);

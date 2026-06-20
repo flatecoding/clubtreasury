@@ -20,6 +20,7 @@ public class ExportServiceTests
     private IBudgetMapper _budgetMapper = null!;
     private ICsvBudgetWriter _csvWriter = null!;
     private IExcelBudgetWriter _excelWriter = null!;
+    private IBudgetPlanExcelWriter _budgetPlanExcelWriter = null!;
     private IPdfTransactionRenderer _pdfRenderer = null!;
     private IResultFactory _resultFactory = null!;
     private IStringLocalizer<Translation> _localizer = null!;
@@ -35,6 +36,7 @@ public class ExportServiceTests
         _budgetMapper = A.Fake<IBudgetMapper>();
         _csvWriter = A.Fake<ICsvBudgetWriter>();
         _excelWriter = A.Fake<IExcelBudgetWriter>();
+        _budgetPlanExcelWriter = A.Fake<IBudgetPlanExcelWriter>();
         _pdfRenderer = A.Fake<IPdfTransactionRenderer>();
         _resultFactory = A.Fake<IResultFactory>();
         _localizer = A.Fake<IStringLocalizer<Translation>>();
@@ -73,6 +75,7 @@ public class ExportServiceTests
             _budgetMapper,
             _csvWriter,
             _excelWriter,
+            _budgetPlanExcelWriter,
             _resultFactory,
             A.Fake<ILogger<BudgetExporter>>(),
             _exportPathProvider);
@@ -260,10 +263,10 @@ public class ExportServiceTests
 
     #endregion
 
-    #region ExportBudgetToCsv Tests
+    #region ExportBalanceSheetToCsv Tests
 
     [Test]
-    public async Task ExportBudgetToCsv_WhenSuccessful_ShouldReturnSuccess()
+    public async Task ExportBalanceSheetToCsv_WhenSuccessful_ShouldReturnSuccess()
     {
         // Arrange
         var begin = new DateTime(2024, 1, 1);
@@ -290,7 +293,7 @@ public class ExportServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportBudgetToCsvAsync(options);
+        var result = await _sut.ExportBalanceSheetToCsvAsync(options);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -299,7 +302,7 @@ public class ExportServiceTests
     }
 
     [Test]
-    public async Task ExportBudgetToCsv_WhenExceptionOccurs_ShouldReturnExportFailed()
+    public async Task ExportBalanceSheetToCsv_WhenExceptionOccurs_ShouldReturnExportFailed()
     {
         // Arrange
         var begin = new DateTime(2024, 1, 1);
@@ -314,7 +317,7 @@ public class ExportServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportBudgetToCsvAsync(options);
+        var result = await _sut.ExportBalanceSheetToCsvAsync(options);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -322,10 +325,10 @@ public class ExportServiceTests
 
     #endregion
 
-    #region ExportBudgetToExcel Tests
+    #region ExportBalanceSheetToExcel Tests
 
     [Test]
-    public async Task ExportBudgetToExcel_WhenSuccessful_ShouldReturnSuccess()
+    public async Task ExportBalanceSheetToExcel_WhenSuccessful_ShouldReturnSuccess()
     {
         // Arrange
         var begin = new DateTime(2024, 1, 1);
@@ -352,7 +355,7 @@ public class ExportServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportBudgetToExcelAsync(options);
+        var result = await _sut.ExportBalanceSheetToExcelAsync(options);
 
         // Assert
         result.Should().Be(expectedResult);
@@ -361,7 +364,7 @@ public class ExportServiceTests
     }
 
     [Test]
-    public async Task ExportBudgetToExcel_WhenExceptionOccurs_ShouldReturnExportFailed()
+    public async Task ExportBalanceSheetToExcel_WhenExceptionOccurs_ShouldReturnExportFailed()
     {
         // Arrange
         var begin = new DateTime(2024, 1, 1);
@@ -376,7 +379,69 @@ public class ExportServiceTests
             .Returns(expectedResult);
 
         // Act
-        var result = await _sut.ExportBudgetToExcelAsync(options);
+        var result = await _sut.ExportBalanceSheetToExcelAsync(options);
+
+        // Assert
+        result.Should().Be(expectedResult);
+    }
+
+    #endregion
+
+    #region ExportBudgetPlanToExcel Tests
+
+    [Test]
+    public async Task ExportBudgetPlanToExcel_WhenSuccessful_ShouldReturnSuccessAndUseNextYear()
+    {
+        // Arrange
+        var begin = new DateTime(2024, 1, 1);
+        var end = new DateTime(2024, 12, 31);
+        const string filename = "budget_plan.xlsx";
+        var options = new ExportOptions(begin, end, filename, 1);
+
+        var transactions = new List<TransactionModel>
+        {
+            new() { Documentnumber = 1, Description = "Test" }
+        };
+        var flatEntries = new List<BudgetFlatEntryDto>();
+        var plan = new List<BudgetPlanCostCenterDto>();
+
+        A.CallTo(() => _transactionService.GetTransactionsForBudgetExportAsync(begin, end, 1))
+            .Returns(transactions);
+        A.CallTo(() => _budgetMapper.BuildFlatEntries(transactions))
+            .Returns(flatEntries);
+        A.CallTo(() => _budgetMapper.BuildBudgetPlan(flatEntries))
+            .Returns(plan);
+
+        var expectedResult = Result.Success("Export successful");
+        A.CallTo(() => _resultFactory.ExportSuccessful(filename))
+            .Returns(expectedResult);
+
+        // Act
+        var result = await _sut.ExportBudgetPlanToExcelAsync(options);
+
+        // Assert
+        result.Should().Be(expectedResult);
+        A.CallTo(() => _budgetPlanExcelWriter.WriteAsync(A<string>._, plan, end.Year + 1))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Test]
+    public async Task ExportBudgetPlanToExcel_WhenExceptionOccurs_ShouldReturnExportFailed()
+    {
+        // Arrange
+        var begin = new DateTime(2024, 1, 1);
+        var end = new DateTime(2024, 12, 31);
+        var options = new ExportOptions(begin, end, "error_plan.xlsx", 1);
+
+        A.CallTo(() => _transactionService.GetTransactionsForBudgetExportAsync(begin, end, 1))
+            .Throws(new Exception("Database error"));
+
+        var expectedResult = Result.Failure(new Error("Test.Error", "Database error"));
+        A.CallTo(() => _resultFactory.ExportFailed(A<string>._))
+            .Returns(expectedResult);
+
+        // Act
+        var result = await _sut.ExportBudgetPlanToExcelAsync(options);
 
         // Assert
         result.Should().Be(expectedResult);

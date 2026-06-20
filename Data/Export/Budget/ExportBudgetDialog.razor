@@ -19,6 +19,16 @@
         <MudForm Model="@_model" @ref="_form" Validation="@(ExportModelValidator.ValidateValue)" ValidationDelay="0">
             <MudGrid Spacing="2">
                 <MudItem xs="12">
+                    <MudSelect T="BudgetReportType"
+                               Label="@Localizer["ReportType"]"
+                               Value="_reportType"
+                               ValueChanged="OnReportTypeChanged">
+                        <MudSelectItem T="BudgetReportType" Value="BudgetReportType.BalanceSheet">@Localizer["BalanceSheetTitle"]</MudSelectItem>
+                        <MudSelectItem T="BudgetReportType" Value="BudgetReportType.BudgetPlan">@Localizer["BudgetPlan"]</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12">
                     <MudSelect T="CashRegisterModel"
                                Label="@Localizer["CashRegister"]"
                                Required="true"
@@ -54,12 +64,15 @@
     </DialogContent>
 
     <DialogActions>
-        <MudLoadingButton @bind-Loading="_isExportingCsv"
-                          LoadingAdornment="Adornment"
-                          OnClick="@ExportCsv"
-                          Color="Color.Primary">
-            @Localizer["ExportCSV"]
-        </MudLoadingButton>
+        @if (_reportType == BudgetReportType.BalanceSheet)
+        {
+            <MudLoadingButton @bind-Loading="_isExportingCsv"
+                              LoadingAdornment="Adornment"
+                              OnClick="@ExportCsv"
+                              Color="Color.Primary">
+                @Localizer["ExportCSV"]
+            </MudLoadingButton>
+        }
 
         <MudLoadingButton @bind-Loading="_isExportingXlsx"
                           LoadingAdornment="Adornment"
@@ -83,6 +96,7 @@
     private readonly ExportModel _model = new();
     private bool _isExportingCsv;
     private bool _isExportingXlsx;
+    private BudgetReportType _reportType = BudgetReportType.BalanceSheet;
     private const Adornment Adornment = MudBlazor.Adornment.Start;
 
     private List<CashRegisterModel> _cashRegisters = [];
@@ -102,6 +116,8 @@
         _model.DateRange = new DateRange(register?.GetFiscalYearStart() ?? DateTime.Today, DateTime.Now);
     }
 
+    private void OnReportTypeChanged(BudgetReportType reportType) => _reportType = reportType;
+
     private async Task ExportCsv()
     {
         if (!await ValidateFormAsync())
@@ -115,7 +131,7 @@
             var filename = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.csv";
 
             var options = new ExportOptions(start, end, filename, _selectedCashRegister!.Id);
-            var result = await ExportService.ExportBudgetToCsvAsync(options);
+            var result = await ExportService.ExportBalanceSheetToCsvAsync(options);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)
@@ -143,7 +159,9 @@
             var fileName = $"{_model.FileName}_{start:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
 
             var options = new ExportOptions(start, end, fileName, _selectedCashRegister!.Id);
-            var result = await ExportService.ExportBudgetToExcelAsync(options);
+            var result = _reportType == BudgetReportType.BudgetPlan
+                ? await ExportService.ExportBudgetPlanToExcelAsync(options)
+                : await ExportService.ExportBalanceSheetToExcelAsync(options);
             MudDialog.Close(DialogResult.Ok(result));
         }
         catch (Exception ex)

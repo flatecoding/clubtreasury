@@ -124,6 +124,34 @@
         <value>Budget Plan</value>
         <comment>BudgetPlan</comment>
     </data>
+    <data name="ReportType" xml:space="preserve">
+        <value>Berichtstyp</value>
+        <comment>ReportType</comment>
+    </data>
+    <data name="PlanningYear" xml:space="preserve">
+        <value>Planungsjahr</value>
+        <comment>PlanningYear</comment>
+    </data>
+    <data name="Number" xml:space="preserve">
+        <value>Nr.</value>
+        <comment>Number</comment>
+    </data>
+    <data name="TotalResult" xml:space="preserve">
+        <value>Gesamtergebnis</value>
+        <comment>TotalResult</comment>
+    </data>
+    <data name="BudgetResult" xml:space="preserve">
+        <value>Budgetergebnis</value>
+        <comment>BudgetResult</comment>
+    </data>
+    <data name="PreviousYearCarryover" xml:space="preserve">
+        <value>Annahme Ergebnis Vorjahr/Vortrag</value>
+        <comment>PreviousYearCarryover</comment>
+    </data>
+    <data name="FinalResult" xml:space="preserve">
+        <value>Endergebnis</value>
+        <comment>FinalResult</comment>
+    </data>
     <data name="CashRegister" xml:space="preserve">
         <value>Vereinskasse</value>
         <comment>CashRegister</comment>
