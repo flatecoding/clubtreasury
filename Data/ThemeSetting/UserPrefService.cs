@@ -76,8 +76,8 @@ public sealed class UserPrefService : INotifyPropertyChanged
     private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        SetPrefs().CatchAndLog(_logger);
-        UpdateThemeBackground().CatchAndLog(_logger);
+        _ = SetPrefs().CatchAndLog(_logger);
+        _ = UpdateThemeBackground().CatchAndLog(_logger);
     }
 
     private async ValueTask UpdateThemeBackground()
