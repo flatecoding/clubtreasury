@@ -17,8 +17,7 @@ internal class BudgetPlanSheetWriter(IStringLocalizer<Translation> localizer)
     private const float SubtitleFontSize = 12;
     private const float CostCenterFontSize = 12;
     private const float CategoryFontSize = 11;
-
-//    private const string CostCenterRowColor = "#D9D9D9";
+    
     private const string CostCenterRowColor = "#00b0f0";
     private const string CategoryRowColor = "#FFFFFF";
     private const string HeaderRowColor = "#ffc000";
