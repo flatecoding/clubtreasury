@@ -18,8 +18,10 @@ internal class BudgetPlanSheetWriter(IStringLocalizer<Translation> localizer)
     private const float CostCenterFontSize = 12;
     private const float CategoryFontSize = 11;
 
-    private const string CostCenterRowColor = "#D9D9D9";
-    private const string CategoryRowColor = "#EDEDED";
+//    private const string CostCenterRowColor = "#D9D9D9";
+    private const string CostCenterRowColor = "#00b0f0";
+    private const string CategoryRowColor = "#FFFFFF";
+    private const string HeaderRowColor = "#ffc000";
 
     public void Write(ExcelPackage package, List<BudgetPlanCostCenterDto> costCenters, int planningYear)
     {
@@ -30,34 +32,37 @@ internal class BudgetPlanSheetWriter(IStringLocalizer<Translation> localizer)
 
         var row = 5;
         var number = 1;
+        var costCenterRows = new List<int>();
 
         foreach (var cc in costCenters)
         {
+            var costCenterRow = row;
             WriteCostCenterRow(ws, ref row, number++, cc);
 
+            var firstCategoryRow = row;
             foreach (var cat in cc.Categories)
             {
                 WriteCategoryRow(ws, ref row, cat);
             }
 
+            WriteCostCenterAmounts(ws, costCenterRow, cc, firstCategoryRow, row - 1);
+            costCenterRows.Add(costCenterRow);
+
             row++;
         }
 
-        WriteSummary(ws, ref row, costCenters);
+        WriteSummary(ws, ref row, costCenterRows);
 
         ws.Cells[4, NumberColumn, row, ExpensesColumn].AutoFitColumns();
         ws.Calculate();
     }
 
-    private void WriteSummary(ExcelWorksheet ws, ref int row, List<BudgetPlanCostCenterDto> costCenters)
+    private void WriteSummary(ExcelWorksheet ws, ref int row, List<int> costCenterRows)
     {
-        var totalIncome = costCenters.Sum(cc => cc.Income);
-        var totalExpenses = costCenters.Sum(cc => cc.Expenses);
-
         var totalRow = row;
         ws.Cells[totalRow, NameColumn].Value = localizer["TotalResult"];
-        WriteSummaryAmount(ws, totalRow, IncomeColumn, (double)totalIncome);
-        WriteSummaryAmount(ws, totalRow, ExpensesColumn, (double)totalExpenses);
+        WriteSummaryTotal(ws, totalRow, IncomeColumn, costCenterRows);
+        WriteSummaryTotal(ws, totalRow, ExpensesColumn, costCenterRows);
         ws.Cells[totalRow, NumberColumn, totalRow, ExpensesColumn].Style.Border.Top.Style = ExcelBorderStyle.Thin;
 
         var incomeAddress = ws.Cells[totalRow, IncomeColumn].Address;
@@ -84,18 +89,29 @@ internal class BudgetPlanSheetWriter(IStringLocalizer<Translation> localizer)
         row = finalRow;
     }
 
-    private static void WriteSummaryAmount(ExcelWorksheet ws, int row, int col, double amount)
+    private static void WriteSummaryTotal(ExcelWorksheet ws, int row, int col, List<int> costCenterRows)
     {
-        ws.Cells[row, col].Value = amount;
+        if (costCenterRows.Count > 0)
+        {
+            var cells = costCenterRows.Select(r => ws.Cells[r, col].Address);
+            ws.Cells[row, col].Formula = $"SUM({string.Join(",", cells)})";
+        }
+        else
+        {
+            ws.Cells[row, col].Value = 0d;
+        }
+
         ws.Cells[row, col].Style.Numberformat.Format = BudgetExportFormats.CurrencyFormat;
     }
 
     private void WriteTitle(ExcelWorksheet ws, int planningYear)
     {
+        ws.Cells[1, NumberColumn, 1, NameColumn].Merge = true;
         ws.Cells[1, NumberColumn].Value = localizer["BudgetPlan"];
         ws.Cells[1, NumberColumn].Style.Font.Bold = true;
         ws.Cells[1, NumberColumn].Style.Font.Size = TitleFontSize;
 
+        ws.Cells[2, NumberColumn, 2, NameColumn].Merge = true;
         ws.Cells[2, NumberColumn].Value = $"{localizer["PlanningYear"]}: {planningYear}";
         ws.Cells[2, NumberColumn].Style.Font.Italic = true;
         ws.Cells[2, NumberColumn].Style.Font.Size = SubtitleFontSize;
@@ -112,8 +128,8 @@ internal class BudgetPlanSheetWriter(IStringLocalizer<Translation> localizer)
         using var range = ws.Cells[row, NumberColumn, row, ExpensesColumn];
         range.Style.Font.Bold = true;
         range.Style.Fill.PatternType = ExcelFillStyle.Solid;
-        range.Style.Fill.BackgroundColor.SetColor(Color.DarkGray);
-        range.Style.Font.Color.SetColor(Color.White);
+        range.Style.Fill.BackgroundColor.SetColor(ColorTranslator.FromHtml(HeaderRowColor));
+        range.Style.Font.Color.SetColor(Color.Black);
         range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
         range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
     }
@@ -122,13 +138,11 @@ internal class BudgetPlanSheetWriter(IStringLocalizer<Translation> localizer)
     {
         ws.Cells[row, NumberColumn].Value = number;
         ws.Cells[row, NumberColumn].Style.Font.Bold = true;
+        ws.Cells[row, NumberColumn].Style.Font.Size = CostCenterFontSize;
 
         ws.Cells[row, NameColumn].Value = cc.CostCenterName;
         ws.Cells[row, NameColumn].Style.Font.Bold = true;
         ws.Cells[row, NameColumn].Style.Font.Size = CostCenterFontSize;
-
-        WriteAmount(ws, row, IncomeColumn, cc.Income);
-        WriteAmount(ws, row, ExpensesColumn, cc.Expenses);
 
         using (var range = ws.Cells[row, NumberColumn, row, ExpensesColumn])
         {
@@ -138,7 +152,32 @@ internal class BudgetPlanSheetWriter(IStringLocalizer<Translation> localizer)
             range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
         }
 
-        row += 2;
+        row++;
+    }
+
+    private static void WriteCostCenterAmounts(
+        ExcelWorksheet ws, int row, BudgetPlanCostCenterDto cc, int firstCategoryRow, int lastCategoryRow)
+    {
+        WriteCostCenterAmount(ws, row, IncomeColumn, cc.Income, firstCategoryRow, lastCategoryRow);
+        WriteCostCenterAmount(ws, row, ExpensesColumn, cc.Expenses, firstCategoryRow, lastCategoryRow);
+    }
+
+    private static void WriteCostCenterAmount(
+        ExcelWorksheet ws, int row, int col, decimal amount, int firstCategoryRow, int lastCategoryRow)
+    {
+        if (lastCategoryRow >= firstCategoryRow)
+        {
+            var first = ws.Cells[firstCategoryRow, col].Address;
+            var last = ws.Cells[lastCategoryRow, col].Address;
+            ws.Cells[row, col].Formula = $"SUM({first}:{last})";
+        }
+        else
+        {
+            ws.Cells[row, col].Value = (double)amount;
+        }
+
+        ws.Cells[row, col].Style.Numberformat.Format = BudgetExportFormats.CurrencyFormat;
+        ws.Cells[row, col].Style.Font.Bold = true;
     }
 
     private static void WriteCategoryRow(ExcelWorksheet ws, ref int row, BudgetPlanCategoryDto cat)
