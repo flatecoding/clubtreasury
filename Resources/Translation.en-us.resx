@@ -120,6 +120,34 @@
         <value>Budget plan</value>
         <comment>BudgetPlan</comment>
     </data>
+    <data name="ReportType" xml:space="preserve">
+        <value>Report type</value>
+        <comment>ReportType</comment>
+    </data>
+    <data name="PlanningYear" xml:space="preserve">
+        <value>Planning year</value>
+        <comment>PlanningYear</comment>
+    </data>
+    <data name="Number" xml:space="preserve">
+        <value>No.</value>
+        <comment>Number</comment>
+    </data>
+    <data name="TotalResult" xml:space="preserve">
+        <value>Total result</value>
+        <comment>TotalResult</comment>
+    </data>
+    <data name="BudgetResult" xml:space="preserve">
+        <value>Budget result</value>
+        <comment>BudgetResult</comment>
+    </data>
+    <data name="PreviousYearCarryover" xml:space="preserve">
+        <value>Assumed previous year result / carryover</value>
+        <comment>PreviousYearCarryover</comment>
+    </data>
+    <data name="FinalResult" xml:space="preserve">
+        <value>Final result</value>
+        <comment>FinalResult</comment>
+    </data>
     <data name="CashRegister" xml:space="preserve">
         <value>Cash register</value>
         <comment>CashRegister</comment>

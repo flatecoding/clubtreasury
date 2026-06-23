@@ -7,8 +7,7 @@ namespace ClubTreasury.Data.Export.Budget;
 public class BudgetExporter(
     ITransactionService transactionService,
     IBudgetMapper budgetMapper,
-    ICsvBudgetWriter csvWriter,
-    IExcelBudgetWriter excelWriter,
+    IBudgetWriters writers,
     IResultFactory operationResultFactory,
     ILogger<BudgetExporter> logger,
     IExportPathProvider exportPathProvider
@@ -24,7 +23,7 @@ public class BudgetExporter(
         return Path.Combine(_exportPath, sanitized);
     }
 
-    public async Task<Result> ExportToCsvAsync(ExportOptions options, CancellationToken ct = default)
+    public async Task<Result> ExportBalanceSheetToCsvAsync(ExportOptions options, CancellationToken ct = default)
     {
         try
         {
@@ -35,7 +34,7 @@ public class BudgetExporter(
             var grouped = budgetMapper.BuildBudgetHierarchy(flat);
 
             var filePath = GetSafeFilePath(options.Filename);
-            await csvWriter.WriteAsync(filePath, grouped);
+            await writers.Csv.WriteAsync(filePath, grouped);
 
             return operationResultFactory.ExportSuccessful(options.Filename);
         }
@@ -46,7 +45,7 @@ public class BudgetExporter(
         }
     }
 
-    public async Task<Result> ExportToExcelAsync(ExportOptions options, CancellationToken ct = default)
+    public async Task<Result> ExportBalanceSheetToExcelAsync(ExportOptions options, CancellationToken ct = default)
     {
         try
         {
@@ -57,7 +56,7 @@ public class BudgetExporter(
             var grouped = budgetMapper.BuildBudgetHierarchy(flat);
 
             var filePath = GetSafeFilePath(options.Filename);
-            await excelWriter.WriteAsync(filePath, grouped, options.Begin, options.End);
+            await writers.Excel.WriteAsync(filePath, grouped, options.Begin, options.End);
 
             return operationResultFactory.ExportSuccessful(options.Filename);
         }
@@ -68,12 +67,34 @@ public class BudgetExporter(
         }
     }
 
+    public async Task<Result> ExportBudgetPlanToExcelAsync(ExportOptions options, CancellationToken ct = default)
+    {
+        try
+        {
+            var transactions =
+                await transactionService.GetTransactionsForBudgetExportAsync(options.Begin, options.End, options.CashRegisterId, ct);
+
+            var flat = budgetMapper.BuildFlatEntries(transactions);
+            var plan = budgetMapper.BuildBudgetPlan(flat);
+
+            var filePath = GetSafeFilePath(options.Filename);
+            await writers.BudgetPlan.WriteAsync(filePath, plan, options.End.Year + 1);
+
+            return operationResultFactory.ExportSuccessful(options.Filename);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Export budget plan to Excel failed");
+            return operationResultFactory.ExportFailed(ex.Message);
+        }
+    }
+
     public async Task<byte[]> ExportToExcelBytesAsync(
         DateTime begin, DateTime end, int cashRegisterId, CancellationToken ct = default)
     {
         var filename = $"Budget_{begin:yyyyMMdd}_{end:yyyyMMdd}.xlsx";
         var request = new ExportOptions(begin, end, filename, cashRegisterId);
-        var result = await ExportToExcelAsync(request, ct);
+        var result = await ExportBalanceSheetToExcelAsync(request, ct);
 
         if (result.IsFailure)
             return Array.Empty<byte>();
