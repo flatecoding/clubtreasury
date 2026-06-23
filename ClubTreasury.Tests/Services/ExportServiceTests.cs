@@ -70,12 +70,12 @@ public class ExportServiceTests
             A.Fake<ILogger<TransactionExporter>>(),
             _exportPathProvider);
 
+        var budgetWriters = new BudgetWriters(_csvWriter, _excelWriter, _budgetPlanExcelWriter);
+
         var budgetExporter = new BudgetExporter(
             _transactionService,
             _budgetMapper,
-            _csvWriter,
-            _excelWriter,
-            _budgetPlanExcelWriter,
+            budgetWriters,
             _resultFactory,
             A.Fake<ILogger<BudgetExporter>>(),
             _exportPathProvider);

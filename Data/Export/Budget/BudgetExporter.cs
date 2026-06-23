@@ -7,9 +7,7 @@ namespace ClubTreasury.Data.Export.Budget;
 public class BudgetExporter(
     ITransactionService transactionService,
     IBudgetMapper budgetMapper,
-    ICsvBudgetWriter csvWriter,
-    IExcelBudgetWriter excelWriter,
-    IBudgetPlanExcelWriter budgetPlanExcelWriter,
+    IBudgetWriters writers,
     IResultFactory operationResultFactory,
     ILogger<BudgetExporter> logger,
     IExportPathProvider exportPathProvider
@@ -36,7 +34,7 @@ public class BudgetExporter(
             var grouped = budgetMapper.BuildBudgetHierarchy(flat);
 
             var filePath = GetSafeFilePath(options.Filename);
-            await csvWriter.WriteAsync(filePath, grouped);
+            await writers.Csv.WriteAsync(filePath, grouped);
 
             return operationResultFactory.ExportSuccessful(options.Filename);
         }
@@ -58,7 +56,7 @@ public class BudgetExporter(
             var grouped = budgetMapper.BuildBudgetHierarchy(flat);
 
             var filePath = GetSafeFilePath(options.Filename);
-            await excelWriter.WriteAsync(filePath, grouped, options.Begin, options.End);
+            await writers.Excel.WriteAsync(filePath, grouped, options.Begin, options.End);
 
             return operationResultFactory.ExportSuccessful(options.Filename);
         }
@@ -80,7 +78,7 @@ public class BudgetExporter(
             var plan = budgetMapper.BuildBudgetPlan(flat);
 
             var filePath = GetSafeFilePath(options.Filename);
-            await budgetPlanExcelWriter.WriteAsync(filePath, plan, options.End.Year + 1);
+            await writers.BudgetPlan.WriteAsync(filePath, plan, options.End.Year + 1);
 
             return operationResultFactory.ExportSuccessful(options.Filename);
         }

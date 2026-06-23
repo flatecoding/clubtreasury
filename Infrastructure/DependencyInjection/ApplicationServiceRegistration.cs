@@ -48,6 +48,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<ICsvBudgetWriter, CsvBudgetWriter>();
         services.AddScoped<IExcelBudgetWriter, ExcelBudgetWriter>();
         services.AddScoped<IBudgetPlanExcelWriter, BudgetPlanExcelWriter>();
+        services.AddScoped<IBudgetWriters, BudgetWriters>();
         services.AddScoped<IPdfTransactionRenderer, PdfTransactionRenderer>();
         services.AddScoped<ICultureService, CultureService>();
         services.AddScoped<IResultFactory, ResultFactory>();
